@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page Not Found — Skiddle ID</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body class="coming-soon">
+  <main class="container" role="main">
+    <img class="logo" src="/assets/logo.svg" alt="Skiddle ID" width="120" height="120" />
+    <h1>404 — Not Found</h1>
+    <p class="lede">Sorry, we couldn’t find that page.</p>
+    <div class="meta">
+      <p><a href="/">Go back home</a></p>
+    </div>
+  </main>
+  <footer class="footer">
+    <p>© <span id="year"></span> Skiddle ID</p>
+  </footer>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
