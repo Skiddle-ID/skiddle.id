@@ -1,0 +1,64 @@
+---
+import Shell from '../layouts/shell.astro';
+---
+
+<Shell>
+  <div class="flex flex-col lg:flex-row justify-start items-center gap-6 max-w-2xl mx-auto w-full mb-4">
+    <img src="https://github.com/arcestia.png" class="size-32 rounded-full" />
+    <div class="flex flex-col items-start justify-center gap-3">
+      <h1 class="font-bold text-2xl">Hi, I'm Laurensius Jeffrey.</h1>
+      <h3 class="text-xl text-pink">Platform Engineer</h3>
+    </div>
+  </div>
+
+  <div class="prose max-w-2xl mx-auto">
+    <p>
+      I love working with all things DevOps, from automation and software
+      engineering to full-on platform engineering. I’m a huge advocate for making
+      things self-service and as reproducible as possible.
+    </p>
+
+    <p>
+      Recently, I’ve been learning how to build developer-focal automation,
+      building up understanding of how to view both sides of the infrastructure
+      coin; platform administration and developers.
+    </p>
+
+    <p>
+      I think pineapple on pizza is a crime, I listen to everything from rock and
+      indie to jungle and breakcore, and I’m a huge fan of virtual reality.
+    </p>
+
+    <p>
+      I’m based in Sheffield, in the UK, and I’m always open to having
+      conversations with people about any topic you think I’d find interesting.
+    </p>
+
+    <p>
+      <span class="line-through">also <a href="https://nohello.net">nohello.net</a> pls thx</span>
+    </p>
+  </div>
+
+  <hr />
+
+  <div class="max-w-sm w-full mx-auto grid sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-2">
+      <span class="font-bold text-lg">On the web</span>
+      <ul class="list-disc list-inside">
+        <li><a class="text-pink underline" href="https://bsky.app/profile/skiddle.blue">Bluesky</a></li>
+        <li><a class="text-pink underline" href="https://discord.gg/vmuNsEuUyW">Discord</a></li>
+        <li><a class="text-pink underline" href="https://github.com/arcestia">GitHub</a></li>
+        <li><a class="text-pink underline" href="https://twitch.tv/skiddle.blue">Twitch</a></li>
+        <li><a class="text-pink underline" href="mailto:jeff@skiddle.id">Email</a></li>
+      </ul>
+    </div>
+    <div class="flex flex-col gap-2">
+      <span class="font-bold text-lg">On this site</span>
+      <ul class="list-disc list-inside">
+        <li><a class="text-pink underline" href="/about">About me</a></li>
+        <li><a class="text-pink underline" href="/posts">Blog</a></li>
+        <li><a class="text-pink underline" href="/ring">Webring</a></li>
+      </ul>
+    </div>
+  </div>
+</Shell>

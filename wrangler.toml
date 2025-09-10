@@ -1,0 +1,28 @@
+name = "skiddle.id"
+main = "./dist/_worker.js/index.js"
+
+compatibility_date = "2025-07-18"
+compatibility_flags = [ "nodejs_compat" ]
+
+[[routes]]
+pattern = "skiddle.id"
+custom_domain = true
+
+[[routes]]
+pattern = "skiddle.cloud"
+custom_domain = true
+
+[vars]
+ATP_IDENTIFIER = "skiddle.blue"
+ATP_SERVICE = "https://rhizopogon.us-west.host.bsky.network/"
+
+[observability]
+enabled = true
+
+[assets]
+binding = "ASSETS"
+directory = "./dist"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "d7e88adf8eb44f7b9e0544b43bfb27b4"
