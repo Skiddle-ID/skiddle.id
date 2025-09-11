@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Global link color in prose (`src/style.css`): `a { color: var(--color-pink) }` -> `a { color: var(--color-blue) }`.
   - Mapped CSS variable in theme (`src/style.css`): `--color-pink` now points to `var(--color-blue)` to ensure any remaining references render as blue.
   - Updated base palette token (`src/style.css`): `--color-base0A` changed from `#ee5396` (pink) to `#82cfff` (blue) for consistency.
+  - Refined theme toggle UI (`src/components/header.astro`): icon now reflects current theme (sun for light, moon for dark), icon size increased, and a subtle bordered/rounded style added.
+  - Replaced theme toggle icons with outlined sun/moon SVGs for improved visual clarity (`src/components/header.astro`).
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).

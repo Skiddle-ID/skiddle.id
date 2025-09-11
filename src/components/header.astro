@@ -8,19 +8,27 @@
   <a class="hover:text-base0E border-r! border-muted" href="/rss.xml">rss</a>
   <button
     id="themeToggle"
-    class="ml-auto px-3 py-1 hover:text-base0E flex items-center justify-center"
+    class="ml-auto px-3 py-1 hover:text-base0E flex items-center justify-center border border-muted rounded-md"
     type="button"
     title="Toggle theme"
     aria-label="Toggle theme"
     aria-pressed="false">
     <span class="sr-only">Toggle theme</span>
-    <!-- Sun icon (shown on dark theme to indicate switch to light) -->
-    <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 hidden">
-      <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 0l1.79-1.8 1.41 1.41-1.8 1.79-1.4-1.4zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.42 1.42-1.79-1.8 1.41-1.41 1.8 1.79zM19.16 17.24l1.4 1.4-1.79 1.8-1.41-1.41 1.8-1.79zM12 6a6 6 0 100 12 6 6 0 000-12z"/>
+    <!-- Sun icon (shown in light theme) -->
+    <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 hidden">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2v2"></path>
+      <path d="M12 20v2"></path>
+      <path d="m4.93 4.93 1.41 1.41"></path>
+      <path d="m17.66 17.66 1.41 1.41"></path>
+      <path d="M2 12h2"></path>
+      <path d="M20 12h2"></path>
+      <path d="m6.34 17.66-1.41 1.41"></path>
+      <path d="m19.07 4.93-1.41 1.41"></path>
     </svg>
-    <!-- Moon icon (shown on light theme to indicate switch to dark) -->
-    <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 hidden">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+    <!-- Moon icon (shown in dark theme) -->
+    <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 hidden">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
     </svg>
   </button>
 </nav>
@@ -41,11 +49,11 @@
       const sun = document.getElementById('iconSun');
       const moon = document.getElementById('iconMoon');
       if (btn && sun && moon) {
-        const dark = theme !== 'light';
-        // Show sun icon in dark theme (indicates switch to light), moon icon in light theme
-        sun.classList.toggle('hidden', !dark);
-        moon.classList.toggle('hidden', dark);
-        btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+        const isLight = theme === 'light';
+        // Show sun icon in light theme (current), moon icon in dark theme (current)
+        sun.classList.toggle('hidden', !isLight);
+        moon.classList.toggle('hidden', isLight);
+        btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
       }
     }
     function init() {
