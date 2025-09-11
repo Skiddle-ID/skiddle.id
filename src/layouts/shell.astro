@@ -36,6 +36,12 @@ const {
           var root = document.documentElement;
           if (theme === 'light') root.classList.add('theme-light');
           else root.classList.remove('theme-light');
+
+          // Apply saved primary color early to prevent flash
+          var savedPrimary = localStorage.getItem('primary');
+          if (savedPrimary) {
+            root.style.setProperty('--color-primary', savedPrimary);
+          }
         } catch (_) {}
       })();
     </script>

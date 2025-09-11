@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Light/Dark theme support via CSS variable theme switching (`src/style.css`).
 - Theme toggle button with persistence in header (`src/components/header.astro`).
 - Early inline script to apply preferred theme before paint and prevent FOUC (`src/layouts/shell.astro`).
+- Primary color switcher in header with dropdown and persistence (`src/components/header.astro`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -24,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated base palette token (`src/style.css`): `--color-base0A` changed from `#ee5396` (pink) to `#82cfff` (blue) for consistency.
   - Refined theme toggle UI (`src/components/header.astro`): icon now reflects current theme (sun for light, moon for dark), icon size increased, and a subtle bordered/rounded style added.
   - Replaced theme toggle icons with outlined sun/moon SVGs for improved visual clarity (`src/components/header.astro`).
+  - Refactored components to use `--color-primary` for primary text/background:
+    - Header brand text and blink bar use `text-[var(--color-primary)]` / `bg-[var(--color-primary)]`.
+    - Home and Posts pages use `text-[var(--color-primary)]` for titles/links.
+    - Footer commit link hover uses `hover:text-[var(--color-primary)]`.
+    - Ring page heading uses `text-[var(--color-primary)]`.
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).

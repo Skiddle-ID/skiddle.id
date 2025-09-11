@@ -27,6 +27,7 @@
   --color-muted: var(--color-base02);
   --color-pink: var(--color-blue);
   --color-blue: var(--color-base0F);
+  --color-primary: var(--color-blue);
 
   --font-mono: 'Geist Mono', monospace;
 
@@ -54,9 +55,9 @@
 @utility prose {
   color: var(--color-white) !important;
 
-  strong { color: var(--color-blue) !important }
+  strong { color: var(--color-primary) !important }
 
-  a { color: var(--color-blue) }
+  a { color: var(--color-primary) }
 
   h1, h2, h3, h4, h5, h6 {
     color: var(--color-white);

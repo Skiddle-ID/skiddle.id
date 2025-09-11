@@ -1,7 +1,7 @@
 <nav class="h-10 border-b border-muted justify-left divide-x divide-muted [&>a]:py-1 [&>a]:px-4 fixed w-full bg-[var(--color-black)] flex items-center">
-  <a href="/" class="flex items-center gap-2 text-blue">
+  <a href="/" class="flex items-center gap-2 text-[var(--color-primary)]">
     <span>skiddle@web ~</span>
-    <div class="w-[10px] h-[21px] animate-blink bg-blue"></div>
+    <div class="w-[10px] h-[21px] animate-blink bg-[var(--color-primary)]"></div>
   </a>
 
   <a class="hover:text-base0E" href="/posts">posts</a>
@@ -31,6 +31,37 @@
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
     </svg>
   </button>
+  <div class="relative">
+    <button
+      id="primaryToggle"
+      class="mx-2 px-2 py-1 hover:text-base0E flex items-center justify-center border border-muted rounded-md"
+      type="button"
+      title="Change primary color"
+      aria-haspopup="true"
+      aria-expanded="false">
+      <span class="sr-only">Change primary color</span>
+      <span id="primarySwatch" class="inline-block size-5 rounded-full ring-2 ring-transparent" style="background-color: var(--color-primary);"></span>
+    </button>
+    <div id="primaryMenu" class="hidden absolute right-0 mt-2 w-14 rounded-lg border border-muted bg-[var(--color-black)] p-2 shadow-lg">
+      <ul class="flex flex-col gap-2" role="menu" aria-label="Primary color choices">
+        <li>
+          <button data-color="var(--color-base0B)" class="size-5 rounded-full block" style="background-color: var(--color-base0B);" title="Blue" aria-label="Blue"></button>
+        </li>
+        <li>
+          <button data-color="var(--color-base0E)" class="size-5 rounded-full block" style="background-color: var(--color-base0E);" title="Purple" aria-label="Purple"></button>
+        </li>
+        <li>
+          <button data-color="var(--color-base0D)" class="size-5 rounded-full block" style="background-color: var(--color-base0D);" title="Green" aria-label="Green"></button>
+        </li>
+        <li>
+          <button data-color="var(--color-base07)" class="size-5 rounded-full block" style="background-color: var(--color-base07);" title="Teal" aria-label="Teal"></button>
+        </li>
+        <li>
+          <button data-color="var(--color-base0C)" class="size-5 rounded-full block" style="background-color: var(--color-base0C);" title="Pink" aria-label="Pink"></button>
+        </li>
+      </ul>
+    </div>
+  </div>
 </nav>
 
 <script>
@@ -62,6 +93,68 @@
         theme = getSystemPrefersLight() ? 'light' : 'dark';
       }
       applyTheme(theme);
+
+      // Primary color init
+      const savedPrimary = localStorage.getItem('primary');
+      const rootStyle = document.documentElement.style;
+      const swatch = document.getElementById('primarySwatch');
+      function updatePrimaryMenuSelection(value) {
+        const menu = document.getElementById('primaryMenu');
+        if (!menu) return;
+        const items = menu.querySelectorAll('button[data-color]');
+        items.forEach((btn) => {
+          const val = btn.getAttribute('data-color');
+          const isActive = val === value;
+          btn.setAttribute('aria-current', isActive ? 'true' : 'false');
+          (btn as HTMLElement).style.boxShadow = isActive ? `0 0 0 2px ${value}` : 'none';
+          (btn as HTMLElement).style.outline = 'none';
+        });
+        if (swatch) {
+          (swatch as HTMLElement).style.boxShadow = `0 0 0 2px ${value}`;
+        }
+      }
+      if (savedPrimary) {
+        rootStyle.setProperty('--color-primary', savedPrimary);
+        if (swatch) swatch.style.backgroundColor = savedPrimary;
+        updatePrimaryMenuSelection(savedPrimary);
+      }
+
+      // Toggle primary menu
+      const primaryToggle = document.getElementById('primaryToggle');
+      const primaryMenu = document.getElementById('primaryMenu');
+      function setMenu(open) {
+        if (!primaryMenu || !primaryToggle) return;
+        primaryMenu.classList.toggle('hidden', !open);
+        primaryToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      if (primaryToggle && primaryMenu) {
+        primaryToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const open = primaryMenu.classList.contains('hidden');
+          setMenu(open);
+        });
+        // Click handlers for color items
+        primaryMenu.querySelectorAll('button[data-color]')?.forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+            const value = btn.getAttribute('data-color');
+            if (!value) return;
+            rootStyle.setProperty('--color-primary', value);
+            localStorage.setItem('primary', value);
+            if (swatch) swatch.style.backgroundColor = value;
+            updatePrimaryMenuSelection(value);
+            setMenu(false);
+          });
+        });
+        // Close on outside click / escape
+        document.addEventListener('click', (evt) => {
+          const target = evt.target as Node | null;
+          if (!target) return;
+          if (!primaryMenu.contains(target) && target !== primaryToggle) setMenu(false);
+        });
+        document.addEventListener('keydown', (evt) => {
+          if (evt.key === 'Escape') setMenu(false);
+        });
+      }
       const btn = document.getElementById('themeToggle');
       if (btn) {
         btn.addEventListener('click', () => {
