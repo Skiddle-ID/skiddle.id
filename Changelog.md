@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theme toggle button with persistence in header (`src/components/header.astro`).
 - Early inline script to apply preferred theme before paint and prevent FOUC (`src/layouts/shell.astro`).
 - Primary color switcher in header with dropdown and persistence (`src/components/header.astro`).
+- GitHub and Bluesky icons added to header (`src/components/header.astro`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -30,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Home and Posts pages use `text-[var(--color-primary)]` for titles/links.
     - Footer commit link hover uses `hover:text-[var(--color-primary)]`.
     - Ring page heading uses `text-[var(--color-primary)]`.
+  - Normalized header control sizing and icon sizes for consistency (`src/components/header.astro`).
+  - Switched header icons to Font Awesome and included CDN in base head (`src/components/header.astro`, `src/components/base-head.astro`).
+  - Removed borders from theme and primary color switcher buttons and menu for a cleaner look (`src/components/header.astro`).
+  - Fixed theme toggle icon logic to display the target theme (moon on light, sun on dark) for clearer affordance (`src/components/header.astro`).
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).

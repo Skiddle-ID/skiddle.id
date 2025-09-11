@@ -1,49 +1,35 @@
-<nav class="h-10 border-b border-muted justify-left divide-x divide-muted [&>a]:py-1 [&>a]:px-4 fixed w-full bg-[var(--color-black)] flex items-center">
+<nav class="h-10 border-b border-muted justify-left divide-x divide-muted [&>a]:py-1 [&>a]:px-4 gap-2 fixed w-full bg-[var(--color-black)] flex items-center">
   <a href="/" class="flex items-center gap-2 text-[var(--color-primary)]">
     <span>skiddle@web ~</span>
     <div class="w-[10px] h-[21px] animate-blink bg-[var(--color-primary)]"></div>
   </a>
 
   <a class="hover:text-base0E" href="/posts">posts</a>
-  <a class="hover:text-base0E border-r! border-muted" href="/rss.xml">rss</a>
-  <button
-    id="themeToggle"
-    class="ml-auto px-3 py-1 hover:text-base0E flex items-center justify-center border border-muted rounded-md"
-    type="button"
-    title="Toggle theme"
-    aria-label="Toggle theme"
-    aria-pressed="false">
-    <span class="sr-only">Toggle theme</span>
-    <!-- Sun icon (shown in light theme) -->
-    <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 hidden">
-      <circle cx="12" cy="12" r="4"></circle>
-      <path d="M12 2v2"></path>
-      <path d="M12 20v2"></path>
-      <path d="m4.93 4.93 1.41 1.41"></path>
-      <path d="m17.66 17.66 1.41 1.41"></path>
-      <path d="M2 12h2"></path>
-      <path d="M20 12h2"></path>
-      <path d="m6.34 17.66-1.41 1.41"></path>
-      <path d="m19.07 4.93-1.41 1.41"></path>
-    </svg>
-    <!-- Moon icon (shown in dark theme) -->
-    <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 hidden">
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-    </svg>
-  </button>
-  <div class="relative">
+  <a class="hover:text-base0E" href="/rss.xml">rss</a>
+  <div class="ml-auto flex items-center gap-2">
     <button
-      id="primaryToggle"
-      class="mx-2 px-2 py-1 hover:text-base0E flex items-center justify-center border border-muted rounded-md"
+      id="themeToggle"
+      class="inline-flex items-center justify-center size-8 hover:text-base0E rounded-md leading-none p-0"
       type="button"
-      title="Change primary color"
-      aria-haspopup="true"
-      aria-expanded="false">
-      <span class="sr-only">Change primary color</span>
-      <span id="primarySwatch" class="inline-block size-5 rounded-full ring-2 ring-transparent" style="background-color: var(--color-primary);"></span>
+      title="Toggle theme"
+      aria-label="Toggle theme"
+      aria-pressed="false">
+      <span class="sr-only">Toggle theme</span>
+      <i id="themeIcon" class="fa-solid fa-moon text-[20px]" aria-hidden="true"></i>
     </button>
-    <div id="primaryMenu" class="hidden absolute right-0 mt-2 w-14 rounded-lg border border-muted bg-[var(--color-black)] p-2 shadow-lg">
-      <ul class="flex flex-col gap-2" role="menu" aria-label="Primary color choices">
+    <div class="relative">
+      <button
+        id="primaryToggle"
+        class="inline-flex items-center justify-center size-8 hover:text-base0E rounded-md leading-none p-0"
+        type="button"
+        title="Change primary color"
+        aria-haspopup="true"
+        aria-expanded="false">
+        <span class="sr-only">Change primary color</span>
+        <span id="primarySwatch" class="inline-block size-5 rounded-full" style="background-color: var(--color-primary);"></span>
+      </button>
+      <div id="primaryMenu" class="hidden absolute right-0 mt-2 w-14 rounded-lg bg-[var(--color-black)] p-2 shadow-lg">
+        <ul class="flex flex-col gap-2" role="menu" aria-label="Primary color choices">
         <li>
           <button data-color="var(--color-base0B)" class="size-5 rounded-full block" style="background-color: var(--color-base0B);" title="Blue" aria-label="Blue"></button>
         </li>
@@ -59,9 +45,16 @@
         <li>
           <button data-color="var(--color-base0C)" class="size-5 rounded-full block" style="background-color: var(--color-base0C);" title="Pink" aria-label="Pink"></button>
         </li>
-      </ul>
+        </ul>
+      </div>
     </div>
   </div>
+  <a class="inline-flex items-center justify-center size-8 hover:text-base0E leading-none px-0 py-0" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+    <i class="fa-brands fa-github text-[20px]" aria-hidden="true"></i>
+  </a>
+  <a class="inline-flex items-center justify-center size-8 hover:text-base0E leading-none px-0 py-0" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="noopener noreferrer" aria-label="Bluesky">
+    <i class="fa-brands fa-bluesky text-[20px]" aria-hidden="true"></i>
+  </a>
 </nav>
 
 <script>
@@ -77,13 +70,12 @@
         root.classList.remove('theme-light');
       }
       const btn = document.getElementById('themeToggle');
-      const sun = document.getElementById('iconSun');
-      const moon = document.getElementById('iconMoon');
-      if (btn && sun && moon) {
+      const icon = document.getElementById('themeIcon');
+      if (btn && icon) {
         const isLight = theme === 'light';
-        // Show sun icon in light theme (current), moon icon in dark theme (current)
-        sun.classList.toggle('hidden', !isLight);
-        moon.classList.toggle('hidden', isLight);
+        // Show target icon: moon in light theme (switch to dark), sun in dark theme (switch to light)
+        icon.classList.toggle('fa-moon', isLight);
+        icon.classList.toggle('fa-sun', !isLight);
         btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
       }
     }
