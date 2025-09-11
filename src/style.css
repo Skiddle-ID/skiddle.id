@@ -14,7 +14,7 @@
   --color-base07: #08bdba;
   --color-base08: #3ddbd9;
   --color-base09: #78a9ff;
-  --color-base0A: #ee5396;
+  --color-base0A: #82cfff;
   --color-base0B: #33b1ff;
   --color-base0C: #ff7eb6;
   --color-base0D: #42be65;
@@ -25,7 +25,7 @@
   --color-white: var(--color-base04);
   --color-gray: var(--color-base02);
   --color-muted: var(--color-base02);
-  --color-pink: var(--color-base0A);
+  --color-pink: var(--color-blue);
   --color-blue: var(--color-base0F);
 
   --font-mono: 'Geist Mono', monospace;
@@ -41,12 +41,22 @@
   }
 }
 
+/* Light theme overrides: toggled by adding the class `theme-light` to <html> */
+.theme-light {
+  /* Swap black/white semantics for light mode */
+  --color-black: var(--color-base06);
+  --color-white: var(--color-base00);
+  /* Make muted/grays slightly darker for contrast on light BG */
+  --color-gray: var(--color-base03);
+  --color-muted: var(--color-base03);
+}
+
 @utility prose {
   color: var(--color-white) !important;
 
   strong { color: var(--color-blue) !important }
 
-  a { color: var(--color-pink) }
+  a { color: var(--color-blue) }
 
   h1, h2, h3, h4, h5, h6 {
     color: var(--color-white);

@@ -1,9 +1,80 @@
-<nav class="h-10 border-b border-muted justify-left divide-x divide-muted [&>a]:py-1 [&>a]:px-4 fixed w-full bg-black flex items-center">
-  <a href="/" class="flex items-center gap-2 text-base0A">
+<nav class="h-10 border-b border-muted justify-left divide-x divide-muted [&>a]:py-1 [&>a]:px-4 fixed w-full bg-[var(--color-black)] flex items-center">
+  <a href="/" class="flex items-center gap-2 text-blue">
     <span>skiddle@web ~</span>
-    <div class="w-[10px] h-[21px] animate-blink bg-pink"></div>
+    <div class="w-[10px] h-[21px] animate-blink bg-blue"></div>
   </a>
 
   <a class="hover:text-base0E" href="/posts">posts</a>
   <a class="hover:text-base0E border-r! border-muted" href="/rss.xml">rss</a>
+  <button
+    id="themeToggle"
+    class="ml-auto px-3 py-1 hover:text-base0E flex items-center justify-center"
+    type="button"
+    title="Toggle theme"
+    aria-label="Toggle theme"
+    aria-pressed="false">
+    <span class="sr-only">Toggle theme</span>
+    <!-- Sun icon (shown on dark theme to indicate switch to light) -->
+    <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 hidden">
+      <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 0l1.79-1.8 1.41 1.41-1.8 1.79-1.4-1.4zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.42 1.42-1.79-1.8 1.41-1.41 1.8 1.79zM19.16 17.24l1.4 1.4-1.79 1.8-1.41-1.41 1.8-1.79zM12 6a6 6 0 100 12 6 6 0 000-12z"/>
+    </svg>
+    <!-- Moon icon (shown on light theme to indicate switch to dark) -->
+    <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5 hidden">
+      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+    </svg>
+  </button>
 </nav>
+
+<script>
+  (function() {
+    function getSystemPrefersLight() {
+      try { return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; } catch (_) { return false; }
+    }
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      if (theme === 'light') {
+        root.classList.add('theme-light');
+      } else {
+        root.classList.remove('theme-light');
+      }
+      const btn = document.getElementById('themeToggle');
+      const sun = document.getElementById('iconSun');
+      const moon = document.getElementById('iconMoon');
+      if (btn && sun && moon) {
+        const dark = theme !== 'light';
+        // Show sun icon in dark theme (indicates switch to light), moon icon in light theme
+        sun.classList.toggle('hidden', !dark);
+        moon.classList.toggle('hidden', dark);
+        btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+      }
+    }
+    function init() {
+      let theme = localStorage.getItem('theme');
+      if (!theme) {
+        theme = getSystemPrefersLight() ? 'light' : 'dark';
+      }
+      applyTheme(theme);
+      const btn = document.getElementById('themeToggle');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const current = document.documentElement.classList.contains('theme-light') ? 'light' : 'dark';
+          const next = current === 'light' ? 'dark' : 'light';
+          localStorage.setItem('theme', next);
+          applyTheme(next);
+        });
+      }
+      // Sync with system changes if no explicit preference
+      if (!localStorage.getItem('theme') && window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: light)');
+        mq.addEventListener?.('change', (e) => {
+          applyTheme(e.matches ? 'light' : 'dark');
+        });
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
