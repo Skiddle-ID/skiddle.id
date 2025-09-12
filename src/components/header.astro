@@ -16,10 +16,10 @@
       placeholder="Search"
       class="h-8 w-36 bg-transparent border border-muted rounded-md px-2 text-sm placeholder:text-base03 focus:outline-none focus:border-base0E" />
   </form>
-  <div class="ml-auto flex items-center gap-2">
+  <div class="ml-auto flex items-center gap-2 navbar-menu social">
     <button
       id="themeToggle"
-      class="inline-flex items-center justify-center size-8 hover:text-base0E rounded-md leading-none p-0"
+      class="inline-flex items-center justify-center size-8 hover:text-base0E hover:bg-[color:oklch(var(--color-gray)_/_0.2)] rounded-full leading-none p-0 transition-colors"
       type="button"
       title="Toggle theme"
       aria-label="Toggle theme"
@@ -30,7 +30,7 @@
     <div class="relative">
       <button
         id="primaryToggle"
-        class="inline-flex items-center justify-center size-8 hover:text-base0E rounded-md leading-none p-0"
+        class="inline-flex items-center justify-center size-8 hover:text-base0E hover:bg-[color:oklch(var(--color-gray)_/_0.2)] rounded-full leading-none p-0 transition-colors"
         type="button"
         title="Change primary color"
         aria-haspopup="true"
@@ -38,7 +38,7 @@
         <span class="sr-only">Change primary color</span>
         <span id="primarySwatch" class="inline-block size-5 rounded-full" style="background-color: var(--color-primary);"></span>
       </button>
-      <div id="primaryMenu" class="hidden absolute right-0 mt-2 w-14 rounded-lg bg-[var(--color-black)] p-2 shadow-lg">
+      <div id="primaryMenu" class="hidden absolute right-0 mt-2 w-14 rounded-xl bg-[var(--color-black)] p-2 shadow-lg">
         <ul class="flex flex-col gap-2" role="menu" aria-label="Primary color choices">
         <li>
           <button data-color="var(--color-base0B)" class="size-5 rounded-full block" style="background-color: var(--color-base0B);" title="Blue" aria-label="Blue"></button>
@@ -59,10 +59,10 @@
       </div>
     </div>
   </div>
-  <a class="inline-flex items-center justify-center size-8 hover:text-base0E leading-none px-0 py-0" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+  <a class="inline-flex items-center justify-center size-8 hover:text-base0E hover:bg-[color:oklch(var(--color-gray)_/_0.2)] rounded-full leading-none px-0 py-0 transition-colors" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
     <i class="fa-brands fa-github text-[20px]" aria-hidden="true"></i>
   </a>
-  <a class="inline-flex items-center justify-center size-8 hover:text-base0E leading-none px-0 py-0" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="noopener noreferrer" aria-label="Bluesky">
+  <a class="inline-flex items-center justify-center size-8 hover:text-base0E hover:bg-[color:oklch(var(--color-gray)_/_0.2)] rounded-full leading-none px-0 py-0 transition-colors" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="noopener noreferrer" aria-label="Bluesky">
     <i class="fa-brands fa-bluesky text-[20px]" aria-hidden="true"></i>
   </a>
 </nav>
