@@ -18,7 +18,7 @@ export const GET = async (context: APIContext) => {
 
   return rss({
     title: 'Skiddle\'s Blog',
-    description: 'The blog of a lowly DevOps Engineer from the UK. Federated on atproto!',
+    description: 'I\'m a software developer passionate about JavaScript and open protocols, creating better information ecosystems.',
     site: context.site,
 
     items: postsShortened.map(post => ({
