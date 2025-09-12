@@ -5,7 +5,17 @@
   </a>
 
   <a class="hover:text-base0E" href="/posts">posts</a>
+  <a class="hover:text-base0E" href="/about">about</a>
   <a class="hover:text-base0E" href="/rss.xml">rss</a>
+  <form action="/posts" method="get" class="ml-2">
+    <label class="sr-only" for="siteSearch">Search</label>
+    <input
+      id="siteSearch"
+      type="search"
+      name="q"
+      placeholder="Search"
+      class="h-8 w-36 bg-transparent border border-muted rounded-md px-2 text-sm placeholder:text-base03 focus:outline-none focus:border-base0E" />
+  </form>
   <div class="ml-auto flex items-center gap-2">
     <button
       id="themeToggle"

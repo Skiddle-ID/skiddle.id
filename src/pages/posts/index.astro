@@ -5,8 +5,16 @@ import { getPosts } from '~/atproto/getPosts';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 
+const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase();
 const posts = await getPosts(Astro.locals, '', false);
-const postsFiltered = posts.filter(p => !p.content?.startsWith('NOT_LIVE'));
+const postsFilteredBase = posts.filter(p => !p.content?.startsWith('NOT_LIVE'));
+const postsFiltered = q
+  ? postsFilteredBase.filter(p => {
+      const title = (p.title || '').toLowerCase();
+      const content = (p.content || '').toLowerCase();
+      return title.includes(q) || content.includes(q);
+    })
+  : postsFilteredBase;
 
 const postsShortened = postsFiltered.map(p => {
   if (p.content?.length! > 200) {
@@ -20,7 +28,10 @@ const postsShortened = postsFiltered.map(p => {
     <header class="flex flex-col">
       <h1 class="font-bold before-hash-1">Posts</h1>
       <p class="text-base03">
-        Showing {posts.length} posts of {posts.length}.
+        { q && (<>
+          Showing {postsFiltered.length} result{postsFiltered.length === 1 ? '' : 's'} for "{q}".
+        </>) }
+        { !q && (<>Showing {postsFilteredBase.length} posts.</>) }
       </p>
     </header>
 
