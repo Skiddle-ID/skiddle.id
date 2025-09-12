@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub and Bluesky icons added to header (`src/components/header.astro`).
 - 404 not found page (`src/pages/404.astro`).
 - Search box in header submitting to posts with `q` query param (`src/components/header.astro`).
+ - Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:

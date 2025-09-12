@@ -1,12 +1,24 @@
 ---
 import Shell from '../layouts/shell.astro';
+
+const handle = 'skiddle.blue';
+let avatarUrl: string | undefined;
+try {
+  const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${handle}`);
+  if (res.ok) {
+    const data = (await res.json()) as { avatar?: string };
+    avatarUrl = data && typeof data.avatar === 'string' ? data.avatar : undefined;
+  }
+} catch (_) {}
+const fallback = 'https://github.com/arcestia.png';
+const profileImg = avatarUrl || fallback;
 ---
 
 <Shell>
   <div class="flex flex-col lg:flex-row justify-start items-center gap-6 max-w-2xl mx-auto w-full mb-4">
-    <img src="https://github.com/arcestia.png" class="size-32 rounded-full" />
+    <img src={profileImg} alt={`Avatar for ${handle}`} class="size-32 rounded-full" />
     <div class="flex flex-col items-start justify-center gap-3">
-      <h1 class="font-bold text-2xl">Hi, I'm Laurensius Jeffrey.</h1>
+      <h1 class="font-bold text-2xl">Hi, I'm Jeff Known as Skiddle.</h1>
       <h3 class="text-xl text-[var(--color-primary)]">DevOps engineer</h3>
     </div>
   </div>
