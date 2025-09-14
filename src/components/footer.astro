@@ -1,7 +1,20 @@
 ---
 const today = new Date(); 
 const hash = __GIT_HASH__;
+const tag = __GIT_TAG__;
+const describe = __GIT_DESCRIBE__;
+
+// Parse describe output like: v1.0.0-4-gabc123
+const m = /^(?<tag>.+)-(?<distance>\d+)-g(?<short>[0-9a-f]+)$/.exec(describe ?? "");
 ---
 <p class="text-base03 px-4 py-2">
-Copyright (c) Laurensius Jeffrey {today.getFullYear()}. Version <a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{hash}</a>.
+Copyright (c) Laurensius Jeffrey {today.getFullYear()}. Version {
+  m ? (
+    <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${m.groups!.tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.tag}</a>-{m.groups!.distance}-g<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${m.groups!.short}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.short}</a></span>
+  ) : tag ? (
+    <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{hash}</a></span>
+  ) : (
+    <a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{hash}</a>
+  )
+}.
 </p>

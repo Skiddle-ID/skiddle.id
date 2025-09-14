@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub and Bluesky icons added to header (`src/components/header.astro`).
 - 404 not found page (`src/pages/404.astro`).
 - Search box in header submitting to posts with `q` query param (`src/components/header.astro`).
- - Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
+- Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
+- Build-time global `__GIT_TAG__` injected from `git describe --tags --exact-match` when building from a tagged commit (`astro.config.mjs`, `env.d.ts`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -40,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed theme toggle icon logic to display the target theme (moon on light, sun on dark) for clearer affordance (`src/components/header.astro`).
   - Posts page supports filtering by `q` (title and content) and reflects counts (`src/pages/posts/index.astro`).
   - RSS: Reverted to use `@astrojs/rss` and removed `atom:link` in custom data to resolve XML namespace error (`src/pages/rss.xml.ts`).
+  - Footer version now renders as `tag+hash` when building from a tagged commit (both parts link appropriately); falls back to short commit hash otherwise (`src/components/footer.astro`).
+  - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).
