@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed borders from theme and primary color switcher buttons and menu for a cleaner look (`src/components/header.astro`).
   - Fixed theme toggle icon logic to display the target theme (moon on light, sun on dark) for clearer affordance (`src/components/header.astro`).
   - Posts page supports filtering by `q` (title and content) and reflects counts (`src/pages/posts/index.astro`).
+  - RSS: Reverted to use `@astrojs/rss` and removed `atom:link` in custom data to resolve XML namespace error (`src/pages/rss.xml.ts`).
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).
