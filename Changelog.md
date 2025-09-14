@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RSS: Reverted to use `@astrojs/rss` and removed `atom:link` in custom data to resolve XML namespace error (`src/pages/rss.xml.ts`).
   - Footer version now renders as `tag+hash` when building from a tagged commit (both parts link appropriately); falls back to short commit hash otherwise (`src/components/footer.astro`).
   - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
+  - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g<hash>` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
 
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).
