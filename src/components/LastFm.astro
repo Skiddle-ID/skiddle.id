@@ -94,7 +94,7 @@
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data = await response.json() as any;
       const recentTrack = data?.recenttracks?.track?.[0];
       
       if (recentTrack) {
