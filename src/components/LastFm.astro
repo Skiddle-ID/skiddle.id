@@ -1,119 +1,205 @@
----
-// Last.fm API configuration
-const FM_KEY = "0c01496602c34103a2b05a5bb6da1747";
-const MAIN = "arcestia"; // Replace with your Last.fm username
-
-interface Track {
-  name: string;
-  artist: string;
-  imageUrl: string;
-  isCurrent: boolean;
-}
-
-let track: Track | null = null;
-let error: string | null = null;
-
-try {
-  const response = await fetch(
-    `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${MAIN}&api_key=${FM_KEY}&limit=1&format=json`
-  );
+<!-- Client-side Last.fm widget that updates in real-time -->
+<div id="lastfm-widget" class="lastfm-widget border border-muted rounded-lg p-4 bg-[var(--color-black)]">
+  <!-- Loading state -->
+  <div id="lastfm-loading" class="flex items-center gap-2 text-sm text-base03">
+    <i class="fa-solid fa-music"></i>
+    <span>Loading Last.fm data...</span>
+  </div>
   
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
+  <!-- Error state -->
+  <div id="lastfm-error" class="hidden flex items-center gap-2 text-sm text-base03">
+    <i class="fa-solid fa-exclamation-triangle"></i>
+    <span>Unable to load Last.fm data</span>
+  </div>
   
-  const data = await response.json() as any;
-  const recentTrack = data?.recenttracks?.track?.[0];
-  
-  if (recentTrack) {
-    track = {
-      name: recentTrack.name,
-      artist: recentTrack.artist["#text"],
-      imageUrl: recentTrack.image[recentTrack.image.length - 1]["#text"],
-      isCurrent: recentTrack["@attr"]?.nowplaying === "true",
-    };
-  }
-} catch (e) {
-  error = e instanceof Error ? e.message : "Failed to fetch Last.fm data";
-  console.error("Last.fm fetch error:", e);
-}
----
-
-<div class="lastfm-widget border border-muted rounded-lg p-4 bg-[var(--color-black)]">
-  {error ? (
-    <div class="flex items-center gap-2 text-sm text-base03">
-      <i class="fa-solid fa-exclamation-triangle"></i>
-      <span>Unable to load Last.fm data</span>
+  <!-- Content -->
+  <div id="lastfm-content" class="hidden flex items-center gap-4">
+    <!-- Album Art -->
+    <div class="flex-shrink-0">
+      <img 
+        id="lastfm-image"
+        class="w-16 h-16 rounded-lg border border-muted object-cover hidden"
+        alt="Album art"
+      />
+      <div id="lastfm-no-image" class="w-16 h-16 rounded-lg border border-muted bg-muted flex items-center justify-center hidden">
+        <i class="fa-solid fa-music text-base03"></i>
+      </div>
     </div>
-  ) : track ? (
-    <div class="flex items-center gap-4">
-      <!-- Album Art -->
-      <div class="flex-shrink-0">
-        {track.imageUrl && track.imageUrl !== "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png" ? (
-          <img 
-            src={track.imageUrl} 
-            alt={`${track.name} by ${track.artist}`}
-            class="w-16 h-16 rounded-lg border border-muted object-cover"
-          />
-        ) : (
-          <div class="w-16 h-16 rounded-lg border border-muted bg-muted flex items-center justify-center">
-            <i class="fa-solid fa-music text-base03"></i>
-          </div>
-        )}
+    
+    <!-- Track Info -->
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 text-sm text-base03 mb-1">
+        <span id="lastfm-status">Last Played</span>
+        <span>on</span>
+        <a 
+          href="https://www.last.fm/user/arcestia" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="text-[var(--color-primary)] hover:text-base0E transition-colors"
+          aria-label="Last.fm Profile"
+        >
+          <i class="fa-brands fa-lastfm"></i>
+        </a>
       </div>
       
-      <!-- Track Info -->
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 text-sm text-base03 mb-1">
-          <span>{track.isCurrent ? "Now Playing" : "Last Played"} on</span>
-          <a 
-            href={`https://www.last.fm/user/${MAIN}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="text-[var(--color-primary)] hover:text-base0E transition-colors"
-            aria-label="Last.fm Profile"
-          >
-            <i class="fa-brands fa-lastfm"></i>
-          </a>
-        </div>
+      <div class="space-y-1">
+        <a 
+          id="lastfm-track-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block font-medium text-[var(--color-primary)] hover:text-base0E transition-colors truncate"
+        >
+          <span id="lastfm-track-name">Track Name</span>
+        </a>
         
-        <div class="space-y-1">
-          <a 
-            href={`https://www.last.fm/music/${encodeURIComponent(track.artist)}/_/${encodeURIComponent(track.name)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block font-medium text-[var(--color-primary)] hover:text-base0E transition-colors truncate"
-            title={track.name}
-          >
-            {track.name}
-          </a>
-          
-          <a 
-            href={`https://www.last.fm/music/${encodeURIComponent(track.artist)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block text-sm text-base03 hover:text-[var(--color-primary)] transition-colors truncate"
-            title={track.artist}
-          >
-            {track.artist}
-          </a>
-        </div>
+        <a 
+          id="lastfm-artist-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block text-sm text-base03 hover:text-[var(--color-primary)] transition-colors truncate"
+        >
+          <span id="lastfm-artist-name">Artist Name</span>
+        </a>
       </div>
-      
-      <!-- Status Indicator -->
-      {track.isCurrent && (
-        <div class="flex-shrink-0">
-          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Currently playing"></div>
-        </div>
-      )}
     </div>
-  ) : (
-    <div class="flex items-center gap-2 text-sm text-base03">
-      <i class="fa-solid fa-music"></i>
-      <span>No recent tracks found</span>
+    
+    <!-- Status Indicator -->
+    <div id="lastfm-playing-indicator" class="flex-shrink-0 hidden">
+      <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Currently playing"></div>
     </div>
-  )}
+  </div>
 </div>
+
+<script>
+  // Last.fm API configuration
+  const FM_KEY = "0c01496602c34103a2b05a5bb6da1747";
+  const MAIN = "arcestia";
+  
+  interface Track {
+    name: string;
+    artist: string;
+    imageUrl: string;
+    isCurrent: boolean;
+  }
+  
+  async function fetchLastFmData(): Promise<Track | null> {
+    try {
+      const response = await fetch(
+        `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${MAIN}&api_key=${FM_KEY}&limit=1&format=json`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const recentTrack = data?.recenttracks?.track?.[0];
+      
+      if (recentTrack) {
+        return {
+          name: recentTrack.name,
+          artist: recentTrack.artist["#text"],
+          imageUrl: recentTrack.image[recentTrack.image.length - 1]["#text"],
+          isCurrent: recentTrack["@attr"]?.nowplaying === "true",
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Last.fm fetch error:", error);
+      throw error;
+    }
+  }
+  
+  function updateUI(track: Track | null, error: boolean = false) {
+    const loading = document.getElementById('lastfm-loading');
+    const errorEl = document.getElementById('lastfm-error');
+    const content = document.getElementById('lastfm-content');
+    
+    // Hide loading
+    if (loading) loading.classList.add('hidden');
+    
+    if (error || !track) {
+      if (errorEl) {
+        errorEl.classList.remove('hidden');
+        errorEl.classList.add('flex');
+      }
+      if (content) content.classList.add('hidden');
+      return;
+    }
+    
+    // Hide error, show content
+    if (errorEl) errorEl.classList.add('hidden');
+    if (content) {
+      content.classList.remove('hidden');
+      content.classList.add('flex');
+    }
+    
+    // Update track info
+    const trackName = document.getElementById('lastfm-track-name');
+    const artistName = document.getElementById('lastfm-artist-name');
+    const trackLink = document.getElementById('lastfm-track-link') as HTMLAnchorElement;
+    const artistLink = document.getElementById('lastfm-artist-link') as HTMLAnchorElement;
+    const status = document.getElementById('lastfm-status');
+    const playingIndicator = document.getElementById('lastfm-playing-indicator');
+    const image = document.getElementById('lastfm-image') as HTMLImageElement;
+    const noImage = document.getElementById('lastfm-no-image');
+    
+    if (trackName) trackName.textContent = track.name;
+    if (artistName) artistName.textContent = track.artist;
+    if (status) status.textContent = track.isCurrent ? "Now Playing" : "Last Played";
+    
+    if (trackLink) {
+      trackLink.href = `https://www.last.fm/music/${encodeURIComponent(track.artist)}/_/${encodeURIComponent(track.name)}`;
+      trackLink.title = track.name;
+    }
+    
+    if (artistLink) {
+      artistLink.href = `https://www.last.fm/music/${encodeURIComponent(track.artist)}`;
+      artistLink.title = track.artist;
+    }
+    
+    // Handle playing indicator
+    if (playingIndicator) {
+      if (track.isCurrent) {
+        playingIndicator.classList.remove('hidden');
+      } else {
+        playingIndicator.classList.add('hidden');
+      }
+    }
+    
+    // Handle image
+    const hasValidImage = track.imageUrl && 
+      track.imageUrl !== "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png";
+    
+    if (hasValidImage && image && noImage) {
+      image.src = track.imageUrl;
+      image.alt = `${track.name} by ${track.artist}`;
+      image.classList.remove('hidden');
+      noImage.classList.add('hidden');
+    } else if (image && noImage) {
+      image.classList.add('hidden');
+      noImage.classList.remove('hidden');
+    }
+  }
+  
+  async function loadLastFm() {
+    try {
+      const track = await fetchLastFmData();
+      updateUI(track);
+    } catch (error) {
+      updateUI(null, true);
+    }
+  }
+  
+  // Load initially
+  loadLastFm();
+  
+  // Refresh every 30 seconds
+  setInterval(loadLastFm, 30000);
+</script>
 
 <style>
   .lastfm-widget {
