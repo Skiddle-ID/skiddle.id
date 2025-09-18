@@ -1,5 +1,6 @@
 ---
 import Shell from '../layouts/shell.astro';
+import LastFm from '../components/LastFm.astro';
 
 const handle = 'skiddle.blue';
 let avatarUrl: string | undefined;
@@ -47,6 +48,11 @@ const profileImg = avatarUrl || fallback;
 
   <hr />
 
+  <!-- Last.fm Now Playing -->
+  <div class="max-w-2xl mx-auto mb-8">
+    <LastFm />
+  </div>
+
   <div class="max-w-sm w-full mx-auto grid sm:grid-cols-2 gap-4">
     <div class="flex flex-col gap-2">
       <span class="font-bold text-lg">On the web</span>
@@ -63,6 +69,7 @@ const profileImg = avatarUrl || fallback;
       <ul class="list-disc list-inside">
         <li><a class="text-[var(--color-primary)] underline" href="/about">About me</a></li>
         <li><a class="text-[var(--color-primary)] underline" href="/works">Works</a></li>
+        <li><a class="text-[var(--color-primary)] underline" href="/uses">Uses</a></li>
         <li><a class="text-[var(--color-primary)] underline" href="/posts">Blog</a></li>
       </ul>
     </div>
