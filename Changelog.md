@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
 - Works page redesigned as a CV/resume format with experience, education, skills, and projects (`src/pages/works.astro`).
 - Uses page to showcase hardware, software, and development tools (`src/pages/uses.astro`).
+- Last.fm "now playing" widget component (`src/components/LastFm.astro`).
 - Build-time global `__GIT_TAG__` injected from `git describe --tags --exact-match` when building from a tagged commit (`astro.config.mjs`, `env.d.ts`).
 
 ### Changed

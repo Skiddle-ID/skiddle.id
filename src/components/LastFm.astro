@@ -1,0 +1,135 @@
+---
+// Last.fm API configuration
+const FM_KEY = "0c01496602c34103a2b05a5bb6da1747";
+const MAIN = "arcestia"; // Replace with your Last.fm username
+
+interface Track {
+  name: string;
+  artist: string;
+  imageUrl: string;
+  isCurrent: boolean;
+}
+
+let track: Track | null = null;
+let error: string | null = null;
+
+try {
+  const response = await fetch(
+    `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${MAIN}&api_key=${FM_KEY}&limit=1&format=json`
+  );
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  const data = await response.json() as any;
+  const recentTrack = data?.recenttracks?.track?.[0];
+  
+  if (recentTrack) {
+    track = {
+      name: recentTrack.name,
+      artist: recentTrack.artist["#text"],
+      imageUrl: recentTrack.image[recentTrack.image.length - 1]["#text"],
+      isCurrent: recentTrack["@attr"]?.nowplaying === "true",
+    };
+  }
+} catch (e) {
+  error = e instanceof Error ? e.message : "Failed to fetch Last.fm data";
+  console.error("Last.fm fetch error:", e);
+}
+---
+
+<div class="lastfm-widget border border-muted rounded-lg p-4 bg-[var(--color-black)]">
+  {error ? (
+    <div class="flex items-center gap-2 text-sm text-base03">
+      <i class="fa-solid fa-exclamation-triangle"></i>
+      <span>Unable to load Last.fm data</span>
+    </div>
+  ) : track ? (
+    <div class="flex items-center gap-4">
+      <!-- Album Art -->
+      <div class="flex-shrink-0">
+        {track.imageUrl && track.imageUrl !== "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png" ? (
+          <img 
+            src={track.imageUrl} 
+            alt={`${track.name} by ${track.artist}`}
+            class="w-16 h-16 rounded-lg border border-muted object-cover"
+          />
+        ) : (
+          <div class="w-16 h-16 rounded-lg border border-muted bg-muted flex items-center justify-center">
+            <i class="fa-solid fa-music text-base03"></i>
+          </div>
+        )}
+      </div>
+      
+      <!-- Track Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 text-sm text-base03 mb-1">
+          <span>{track.isCurrent ? "Now Playing" : "Last Played"} on</span>
+          <a 
+            href={`https://www.last.fm/user/${MAIN}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="text-[var(--color-primary)] hover:text-base0E transition-colors"
+            aria-label="Last.fm Profile"
+          >
+            <i class="fa-brands fa-lastfm"></i>
+          </a>
+        </div>
+        
+        <div class="space-y-1">
+          <a 
+            href={`https://www.last.fm/music/${encodeURIComponent(track.artist)}/_/${encodeURIComponent(track.name)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block font-medium text-[var(--color-primary)] hover:text-base0E transition-colors truncate"
+            title={track.name}
+          >
+            {track.name}
+          </a>
+          
+          <a 
+            href={`https://www.last.fm/music/${encodeURIComponent(track.artist)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block text-sm text-base03 hover:text-[var(--color-primary)] transition-colors truncate"
+            title={track.artist}
+          >
+            {track.artist}
+          </a>
+        </div>
+      </div>
+      
+      <!-- Status Indicator -->
+      {track.isCurrent && (
+        <div class="flex-shrink-0">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Currently playing"></div>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="flex items-center gap-2 text-sm text-base03">
+      <i class="fa-solid fa-music"></i>
+      <span>No recent tracks found</span>
+    </div>
+  )}
+</div>
+
+<style>
+  .lastfm-widget {
+    max-width: 100%;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>
