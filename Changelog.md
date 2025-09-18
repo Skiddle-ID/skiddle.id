@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 404 not found page (`src/pages/404.astro`).
 - Search box in header submitting to posts with `q` query param (`src/components/header.astro`).
 - Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
+- Works page redesigned as a CV/resume format with experience, education, skills, and projects (`src/pages/works.astro`).
 - Build-time global `__GIT_TAG__` injected from `git describe --tags --exact-match` when building from a tagged commit (`astro.config.mjs`, `env.d.ts`).
 
 ### Changed
