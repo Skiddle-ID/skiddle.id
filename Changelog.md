@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
   - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g<hash>` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
 
+### Fixed
+- Fixed blockquote text readability in light mode by changing paragraph color from `var(--color-base04)` to `var(--color-white)` which adapts properly to both light and dark themes (`src/style.css`).
+
 ### Removed
 - Removed Webring from the site navigation (`src/pages/index.astro`).
 - Disabled Webring page by replacing content with a 410 Gone message (`src/pages/ring.astro`).

@@ -81,8 +81,8 @@
   blockquote {
     color: var(--color-blue);
     border-inline-start-color: var(--color-base03);
-    font-style: normal
-    & p { color: var(--color-base04) }
+    font-style: normal;
+    & p { color: var(--color-white) }
   }
 
   pre {
