@@ -7,27 +7,27 @@
         "@astrojs/markdown-remark": "^6.3.6",
         "@astrojs/rss": "^4.0.12",
         "@atproto/api": "^0.16.9",
-        "@fontsource/geist-mono": "^5.2.6",
-        "astro": "^5.13.7",
+        "@fontsource/geist-mono": "^5.2.7",
+        "astro": "^5.13.8",
         "feed": "^5.1.0",
         "isbot": "^5.1.30",
         "shiki": "^3.12.2",
       },
       "devDependencies": {
-        "@cloudflare/workers-types": "^4.20250913.0",
+        "@cloudflare/workers-types": "^4.20250918.0",
         "@tailwindcss/postcss": "^4.1.13",
-        "@tailwindcss/typography": "^0.5.16",
+        "@tailwindcss/typography": "^0.5.18",
         "@tailwindcss/vite": "^4.1.13",
         "@types/bun": "^1.2.22",
-        "@typescript-eslint/eslint-plugin": "^8.43.0",
-        "@typescript-eslint/parser": "^8.43.0",
+        "@typescript-eslint/eslint-plugin": "^8.44.0",
+        "@typescript-eslint/parser": "^8.44.0",
         "eslint": "^9.35.0",
         "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-import": "^2.32.0",
         "postcss": "^8.5.6",
         "tailwindcss": "^4.1.13",
         "typescript": "^5.9.2",
-        "wrangler": "^4.35.0",
+        "wrangler": "^4.37.1",
       },
     },
   },
@@ -340,7 +340,7 @@
 
     "@tailwindcss/postcss": ["@tailwindcss/postcss@4.1.13", "", { "dependencies": { "@alloc/quick-lru": "^5.2.0", "@tailwindcss/node": "4.1.13", "@tailwindcss/oxide": "4.1.13", "postcss": "^8.4.41", "tailwindcss": "4.1.13" } }, "sha512-HLgx6YSFKJT7rJqh9oJs/TkBFhxuMOfUKSBEPYwV+t78POOBsdQ7crhZLzwcH3T0UyUuOzU/GK5pk5eKr3wCiQ=="],
 
-    "@tailwindcss/typography": ["@tailwindcss/typography@0.5.16", "", { "dependencies": { "lodash.castarray": "^4.4.0", "lodash.isplainobject": "^4.0.6", "lodash.merge": "^4.6.2", "postcss-selector-parser": "6.0.10" }, "peerDependencies": { "tailwindcss": ">=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1" } }, "sha512-0wDLwCVF5V3x3b1SGXPCDcdsbDHMBe+lkFzBRaHeLvNi+nrrnZ1lA18u+OTWO8iSWU2GxUOCvlXtDuqftc1oiA=="],
+    "@tailwindcss/typography": ["@tailwindcss/typography@0.5.18", "", { "dependencies": { "postcss-selector-parser": "6.0.10" }, "peerDependencies": { "tailwindcss": ">=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1" } }, "sha512-dDIgwZOlf+tVkZ7A029VvQ1+ngKATENDjMEx2N35s2yPjfTS05RWSM8ilhEWSa5DMJ6ci2Ha9WNZEd2GQjrdQg=="],
 
     "@tailwindcss/vite": ["@tailwindcss/vite@4.1.13", "", { "dependencies": { "@tailwindcss/node": "4.1.13", "@tailwindcss/oxide": "4.1.13", "tailwindcss": "4.1.13" }, "peerDependencies": { "vite": "^5.2.0 || ^6 || ^7" } }, "sha512-0PmqLQ010N58SbMTJ7BVJ4I2xopiQn/5i6nlb4JmxzQf8zcS5+m2Cv6tqh+sfDwtIdjoEnOvwsGQ1hkUi8QEHQ=="],
 
@@ -903,10 +903,6 @@
     "lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.30.1", "", { "os": "win32", "cpu": "x64" }, "sha512-PVqXh48wh4T53F/1CCu8PIPCxLzWyCnn/9T5W1Jpmdy5h9Cwd+0YQS6/LwhHXSafuc61/xg9Lv5OrCby6a++jg=="],
 
     "locate-path": ["locate-path@6.0.0", "", { "dependencies": { "p-locate": "^5.0.0" } }, "sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw=="],
-
-    "lodash.castarray": ["lodash.castarray@4.4.0", "", {}, "sha512-aVx8ztPv7/2ULbArGJ2Y42bG1mEQ5mGjpdvrbJcJFU3TbYybe+QlLS4pst9zV52ymy2in1KpFPiZnAOATxD4+Q=="],
-
-    "lodash.isplainobject": ["lodash.isplainobject@4.0.6", "", {}, "sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA=="],
 
     "lodash.merge": ["lodash.merge@4.6.2", "", {}, "sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ=="],
 
