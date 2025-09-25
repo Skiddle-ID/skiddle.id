@@ -12,31 +12,31 @@
     "typegen": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.8",
-    "@astrojs/markdown-remark": "^6.3.6",
+    "@astrojs/cloudflare": "^12.6.9",
+    "@astrojs/markdown-remark": "^6.3.7",
     "@astrojs/rss": "^4.0.12",
-    "@atproto/api": "^0.16.9",
+    "@atproto/api": "^0.16.10",
     "@fontsource/geist-mono": "^5.2.7",
-    "astro": "^5.13.8",
+    "astro": "^5.13.11",
     "feed": "^5.1.0",
-    "isbot": "^5.1.30",
-    "shiki": "^3.12.2"
+    "isbot": "^5.1.31",
+    "shiki": "^3.13.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250918.0",
+    "@cloudflare/workers-types": "^4.20250924.0",
     "@tailwindcss/postcss": "^4.1.13",
-    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.13",
     "@types/bun": "^1.2.22",
-    "@typescript-eslint/eslint-plugin": "^8.44.0",
-    "@typescript-eslint/parser": "^8.44.0",
-    "eslint": "^9.35.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^9.36.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "wrangler": "^4.37.1"
+    "wrangler": "^4.40.0"
   },
   "engines": {
     "node": ">=20.0.0"
