@@ -19,19 +19,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Works page redesigned as a CV/resume format with experience, education, skills, and projects (`src/pages/works.astro`).
 - Uses page to showcase hardware, software, and development tools (`src/pages/uses.astro`).
 - Last.fm "now playing" widget component (`src/components/LastFm.astro`).
-- Build-time global `__GIT_TAG__` injected from `git describe --tags --exact-match` when building from a tagged commit (`astro.config.mjs`, `env.d.ts`).
  - Services page to highlight public offerings (`src/pages/services.astro`).
  - Navigation link to Services in header (`src/components/header.astro`).
  - Services link added to home page "On this site" section (`src/pages/index.astro`).
  - Testimonials section on Services page (`src/pages/services.astro`).
  - JSON-LD structured data for Services and Reviews for improved SEO (`src/pages/services.astro`).
- - New service: Monitoring Setup (Grafana & Prometheus) with matching JSON-LD entry (`src/pages/services.astro`).
+- New service: Monitoring Setup (Grafana & Prometheus) with matching JSON-LD entry (`src/pages/services.astro`).
+
+### Added
+- SEO: Centralized Open Graph and Twitter Card meta tags with per-page title/description/image and proper canonical URL computation in Base Head (`src/components/base-head.astro`, `src/layouts/shell.astro`).
+- SEO: JSON-LD structured data for Website, Organization, and current WebPage injected globally (`src/layouts/shell.astro`).
+- SEO: Dynamic sitemap endpoint with key site routes (`src/pages/sitemap.xml.ts`).
+- SEO: `robots.txt` referencing the sitemap (`public/robots.txt`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
   - Home page links and subtitle (`src/pages/index.astro`): `text-pink` -> `text-blue`.
   - Posts listing title color (`src/pages/posts/index.astro`): `text-pink` -> `text-blue`.
-  - Header brand color (`src/components/header.astro`): `text-base0A` -> `text-blue`.
+{{ ... }}
   - Header blinking block background (`src/components/header.astro`): `bg-pink` -> `bg-blue`.
   - Footer commit link hover color (`src/components/footer.astro`): `hover:text-pink` -> `hover:text-blue`.
   - Global link color in prose (`src/style.css`): `a { color: var(--color-pink) }` -> `a { color: var(--color-blue) }`.
@@ -59,3 +64,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Disabled Webring page by replacing content with a 410 Gone message (`src/pages/ring.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
+
+- SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).

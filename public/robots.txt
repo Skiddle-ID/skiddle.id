@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://skiddle.id/sitemap.xml

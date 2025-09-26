@@ -10,13 +10,45 @@ import '../style.css';
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
   children: any;
 }
 
 const {
   title = 'Skiddle@web ~',
   description = 'I\'m a software developer passionate about JavaScript and open protocols, creating better information ecosystems.',
+  image = '/android-chrome-512x512.png',
 } = Astro.props;
+const site = Astro.site;
+const canonical = new URL(Astro.url.pathname, site).toString();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: 'Skiddle',
+      url: site,
+      inLanguage: 'en',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${site}posts?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      name: 'Skiddle',
+      url: site,
+      logo: '/android-chrome-512x512.png',
+    },
+    {
+      '@type': 'WebPage',
+      url: canonical,
+      name: title,
+      description: description,
+    },
+  ],
+};
 ---
 
 <html lang="en">
@@ -25,7 +57,8 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <BaseHead />
+    <BaseHead title={title} description={description} image={image} />
+    <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     <script>
       (function() {
         try {
