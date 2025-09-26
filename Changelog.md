@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uses page to showcase hardware, software, and development tools (`src/pages/uses.astro`).
 - Last.fm "now playing" widget component (`src/components/LastFm.astro`).
 - Build-time global `__GIT_TAG__` injected from `git describe --tags --exact-match` when building from a tagged commit (`astro.config.mjs`, `env.d.ts`).
+ - Services page to highlight public offerings (`src/pages/services.astro`).
+ - Navigation link to Services in header (`src/components/header.astro`).
+ - Services link added to home page "On this site" section (`src/pages/index.astro`).
+ - Testimonials section on Services page (`src/pages/services.astro`).
+ - JSON-LD structured data for Services and Reviews for improved SEO (`src/pages/services.astro`).
+ - New service: Monitoring Setup (Grafana & Prometheus) with matching JSON-LD entry (`src/pages/services.astro`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -40,18 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Ring page heading uses `text-[var(--color-primary)]`.
   - Normalized header control sizing and icon sizes for consistency (`src/components/header.astro`).
   - Switched header icons to Font Awesome and included CDN in base head (`src/components/header.astro`, `src/components/base-head.astro`).
-  - Removed borders from theme and primary color switcher buttons and menu for a cleaner look (`src/components/header.astro`).
-  - Fixed theme toggle icon logic to display the target theme (moon on light, sun on dark) for clearer affordance (`src/components/header.astro`).
   - Posts page supports filtering by `q` (title and content) and reflects counts (`src/pages/posts/index.astro`).
   - RSS: Reverted to use `@astrojs/rss` and removed `atom:link` in custom data to resolve XML namespace error (`src/pages/rss.xml.ts`).
   - Footer version now renders as `tag+hash` when building from a tagged commit (both parts link appropriately); falls back to short commit hash otherwise (`src/components/footer.astro`).
   - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
-  - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g<hash>` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
-
-### Fixed
-- Fixed blockquote text readability in light mode by changing paragraph color from `var(--color-base04)` to `var(--color-white)` which adapts properly to both light and dark themes (`src/style.css`).
-
-### Removed
-- Removed Webring from the site navigation (`src/pages/index.astro`).
+  - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g…` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
+  - Redesigned Services page testimonials with modern card UI, star ratings, and badges for readability (`src/pages/services.astro`).
+  - Converted Services page testimonials into an accessible slider/carousel with dots, prev/next controls, keyboard support, and auto‑advance (`src/pages/services.astro`).
+ - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
+ - Fine-tuned testimonials spacing (card padding, track gap, quote indent, avatar/star spacing) for improved readability (`src/pages/services.astro`).
+ - Updated Services offerings content to: Server Setup & Hardening; CI/CD Implementation; Automation with Ansible; Self‑Hosting & Homelab Consultation; Website Project Setup (Custom or CMS). Synced JSON‑LD to reflect these services (`src/pages/services.astro`).
+ - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Disabled Webring page by replacing content with a 410 Gone message (`src/pages/ring.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).

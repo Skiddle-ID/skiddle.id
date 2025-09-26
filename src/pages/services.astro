@@ -1,0 +1,238 @@
+---
+import Shell from '../layouts/shell.astro';
+
+// SEO and structured data
+const site = 'https://skiddle.id';
+const pageUrl = new URL('/services', site).toString();
+
+const servicesData = [
+  { name: 'Server Setup & Hardening', description: 'Provisioning, firewall/TLS, users, backups, and secure defaults on Linux servers.' },
+  { name: 'CI/CD Implementation', description: 'Build/test/deploy pipelines with GitHub Actions or GitLab CI, environments, and releases.' },
+  { name: 'Automation with Ansible', description: 'Playbooks, roles, inventories, idempotent provisioning and repeatable ops.' },
+  { name: 'Self‑Hosting & Homelab Consultation', description: 'Architecture, SSO, backups/restore, monitoring guidance, and safe internet exposure.' },
+  { name: 'Website Project Setup (Custom or CMS)', description: 'From Astro/Next.js custom builds to CMS setups (e.g., WordPress, Ghost) with sensible defaults.' },
+  { name: 'Monitoring Setup (Grafana & Prometheus)', description: 'Dashboards, alerting, and metrics pipelines for actionable insights.' },
+];
+
+const testimonials = [
+  {
+    quote: 'Jeff helped us set up a firewall at the start of our project. After that we keep consulting with him for any security related issues.',
+    author: 'Adhy Musaad',
+    role: 'CTO, Kwikku Interactive',
+    serviceName: 'Server Setup & Hardening',
+    rating: 5,
+  },
+  {
+    quote: 'Our website and mail setup was done in a matter of hours. Saved us a lot of time and money.',
+    author: 'Jason Lim',
+    role: 'Business Owner',
+    serviceName: 'Website Project Setup (Custom or CMS)',
+    rating: 5,
+  },
+  {
+    quote: 'My homelab is messed before. After consulting with Jeff, it is now stable, monitored, and easy to maintain. Thanks a lot!',
+    author: 'K. Tan',
+    role: 'Indie Dev',
+    serviceName: 'Self‑Hosting & Homelab Consultation',
+    rating: 5,
+  },
+  {
+    quote: 'Jeff helped me set up my website and mail server in a matter of hours. Even though He is my boyfriend, I still want to give him a big thank you.',
+    author: 'N. Chen',
+    role: 'Individual',
+    serviceName: 'Website Project Setup (Custom or CMS)',
+    rating: 5,
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      name: 'Services ~ Skiddle',
+      url: pageUrl,
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: site },
+          { '@type': 'ListItem', position: 2, name: 'Services', item: pageUrl },
+        ],
+      },
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: servicesData.map((s, i) => ({
+          '@type': 'Service',
+          name: s.name,
+          description: s.description,
+          position: i + 1,
+        })),
+      },
+    },
+    ...testimonials.map((t) => ({
+      '@type': 'Review',
+      reviewBody: t.quote,
+      reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: 5 },
+      author: { '@type': 'Person', name: t.author },
+      itemReviewed: { '@type': 'Service', name: t.serviceName },
+      publisher: { '@type': 'Person', name: 'Jeff (Skiddle)' },
+    })),
+  ],
+};
+---
+
+<Shell title="Services ~ Skiddle" description="Public services I offer: DevOps, automation, self‑hosting, and more.">
+  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+  <div class="max-w-2xl mx-auto w-full mb-6">
+    <h1 class="font-bold text-3xl mb-2">Services</h1>
+    <p class="text-base leading-relaxed">
+      I offer a selection of public services around DevOps, automation, and self‑hosting.
+      If you don’t see exactly what you need, reach out and we can tailor an engagement.
+    </p>
+  </div>
+
+  <div class="max-w-3xl mx-auto grid gap-4 sm:grid-cols-2">
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Server Setup & Hardening</h2>
+      <p class="text-sm text-base04">Provision secure Linux servers with best practices and backups.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>Firewall, TLS, SSH and users</li>
+        <li>Backups & recovery drills</li>
+        <li>Baseline hardening</li>
+      </ul>
+    </section>
+
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">CI/CD Implementation</h2>
+      <p class="text-sm text-base04">Build, test, and deploy reliably with modern pipelines.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>GitHub Actions / GitLab CI</li>
+        <li>Multi‑env deployments</li>
+        <li>Release workflows</li>
+      </ul>
+    </section>
+
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Automation with Ansible</h2>
+      <p class="text-sm text-base04">Idempotent provisioning and repeatable operations at any scale.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>Playbooks & roles</li>
+        <li>Inventories & secrets</li>
+        <li>Server fleet automation</li>
+      </ul>
+    </section>
+
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Self‑Hosting & Homelab Consultation</h2>
+      <p class="text-sm text-base04">Plan and operate personal services safely and sustainably.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>Reverse proxy & TLS</li>
+        <li>Single‑sign on (SSO)</li>
+        <li>Backups & monitoring guidance</li>
+      </ul>
+    </section>
+
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Website Project Setup (Custom or CMS)</h2>
+      <p class="text-sm text-base04">Kickstart your site with a custom build or a robust CMS.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>Astro / Next.js</li>
+        <li>WordPress / Ghost</li>
+        <li>Content & SEO basics</li>
+      </ul>
+    </section>
+    
+    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Monitoring Setup (Grafana & Prometheus)</h2>
+      <p class="text-sm text-base04">Dashboards, alerts, and metrics that help you act quickly.</p>
+      <ul class="list-disc list-inside text-sm">
+        <li>Grafana dashboards & panels</li>
+        <li>Prometheus scraping & exporters</li>
+        <li>Alertmanager routing & notifications</li>
+      </ul>
+    </section>
+  </div>
+
+  <div id="testimonials" class="max-w-3xl mx-auto mt-8" role="region" aria-label="Client testimonials">
+    <h2 class="font-semibold text-2xl mb-4 text-[var(--color-primary)]">Testimonials</h2>
+
+    <div class="relative overflow-hidden rounded-xl border border-muted bg-[color:oklch(var(--color-gray)_/_0.06)]">
+      <div class="absolute inset-x-0 top-0 h-1 bg-[var(--color-primary)]/70"></div>
+
+      <div class="marquee group">
+        <div class="marquee-track">
+          {[...testimonials, ...testimonials].map((t, idx) => (
+            <figure class="marquee-item p-6 flex flex-col gap-5" data-dup={idx >= testimonials.length ? 'true' : 'false'}>
+              <div class="flex items-start justify-between gap-4 mt-1">
+                <div class="inline-flex items-center gap-4">
+                  <div class="size-10 shrink-0 rounded-full bg-gradient-to-tr from-[var(--color-primary)]/30 to-transparent ring-1 ring-muted flex items-center justify-center">
+                    <span class="text-xs">{t.author.split(' ').map((s) => s[0]).join('').slice(0,2)}</span>
+                  </div>
+                  <figcaption class="flex flex-col">
+                    <span class="font-medium leading-none">{t.author}</span>
+                    <span class="text-xs text-base04 mt-1">{t.role}</span>
+                  </figcaption>
+                </div>
+                <div class="inline-flex items-center gap-2" aria-label={`Rating: ${t.rating} out of 5`} role="img">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg viewBox="0 0 20 20" class={"size-4 " + (i < t.rating ? 'text-[var(--color-primary)]' : 'text-base03')} fill="currentColor" aria-hidden="true">
+                      <path d="M10 15.27l-5.18 3.05 1.64-5.64L1 7.97l5.91-.51L10 2l3.09 5.46 5.91.51-5.46 4.71 1.64 5.64z" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+
+              <blockquote class="relative">
+                <svg aria-hidden="true" class="absolute -left-1 -top-1 size-5 text-[var(--color-primary)]/60" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7.17 6A5.17 5.17 0 0 0 2 11.17V22h8V10a4 4 0 0 0-2.83-3.83ZM19.17 6A5.17 5.17 0 0 0 14 11.17V22h8V10a4 4 0 0 0-2.83-3.83Z" />
+                </svg>
+                <p class="pl-8 leading-relaxed">{t.quote}</p>
+              </blockquote>
+
+              <div class="flex items-center gap-3 mt-3">
+                <span class="text-xs px-2 py-1 rounded-full border border-muted">{t.serviceName}</span>
+              </div>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .marquee { position: relative; overflow: hidden; padding: 0.75rem; }
+      .marquee-track {
+        display: flex;
+        gap: 2.5rem; /* 40px */
+        width: max-content;
+        animation: marquee-scroll 35s linear infinite;
+        will-change: transform;
+      }
+      .marquee-item {
+        width: 30rem; /* ~480px card width */
+        flex: 0 0 auto;
+      }
+      .group:hover .marquee-track { animation-play-state: paused; }
+      @keyframes marquee-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .marquee-track { animation: none; }
+      }
+    </style>
+  </div>
+
+  <div class="max-w-2xl mx-auto mt-6">
+    <div class="border border-muted rounded-lg p-4">
+      <h2 class="font-semibold text-xl mb-1">Get in touch</h2>
+      <p class="text-sm mb-3">
+        Tell me about your project, goals, timeline, and constraints. I'll reply with
+        next steps and a lightweight plan.
+      </p>
+      <a class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-muted hover:bg-[color:oklch(var(--color-gray)_/_0.2)] text-[var(--color-primary)] underline"
+         href="mailto:work@skiddle.id?subject=Service%20Inquiry%20from%20skiddle.id">
+        Email work@skiddle.id
+      </a>
+    </div>
+  </div>
+</Shell>
