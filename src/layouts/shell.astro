@@ -21,6 +21,20 @@ const {
 } = Astro.props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
+
+// Build BreadcrumbList from the path segments
+const segments = Astro.url.pathname
+  .split('/')
+  .filter(Boolean);
+const breadcrumbItems = [
+  { '@type': 'ListItem', position: 1, name: 'Home', item: site },
+  ...segments.map((seg, idx) => {
+    const url = new URL('/' + segments.slice(0, idx + 1).join('/'), site).toString();
+    const name = seg.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    return { '@type': 'ListItem', position: idx + 2, name, item: url };
+  }),
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -46,6 +60,10 @@ const jsonLd = {
       url: canonical,
       name: title,
       description: description,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: breadcrumbItems,
     },
   ],
 };

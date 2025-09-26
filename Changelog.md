@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SEO: JSON-LD structured data for Website, Organization, and current WebPage injected globally (`src/layouts/shell.astro`).
 - SEO: Dynamic sitemap endpoint with key site routes (`src/pages/sitemap.xml.ts`).
 - SEO: `robots.txt` referencing the sitemap (`public/robots.txt`).
+  - Sitemap now auto-discovers static pages under `src/pages` (excludes dynamic routes and endpoints) for better coverage (`src/pages/sitemap.xml.ts`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -59,10 +60,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Redesigned Services page testimonials with modern card UI, star ratings, and badges for readability (`src/pages/services.astro`).
   - Converted Services page testimonials into an accessible slider/carousel with dots, prev/next controls, keyboard support, and auto‑advance (`src/pages/services.astro`).
  - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
- - Fine-tuned testimonials spacing (card padding, track gap, quote indent, avatar/star spacing) for improved readability (`src/pages/services.astro`).
- - Updated Services offerings content to: Server Setup & Hardening; CI/CD Implementation; Automation with Ansible; Self‑Hosting & Homelab Consultation; Website Project Setup (Custom or CMS). Synced JSON‑LD to reflect these services (`src/pages/services.astro`).
  - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Disabled Webring page by replacing content with a 410 Gone message (`src/pages/ring.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
 
-- SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).
+ - SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).
+ - SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
+ - SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
+ - SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).

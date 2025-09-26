@@ -11,6 +11,7 @@ const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle@web ~';
 const ogDesc = description ?? "I'm a software developer passionate about JavaScript and open protocols, creating better information ecosystems.";
 const ogImage = image ?? '/android-chrome-512x512.png';
+const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, site).toString();
 ---
 
 <link rel="canonical" href={canonical} />
@@ -23,14 +24,14 @@ const ogImage = image ?? '/android-chrome-512x512.png';
 <meta property="og:site_name" content="Skiddle" />
 <meta property="og:title" content={ogTitle} />
 <meta property="og:description" content={ogDesc} />
-<meta property="og:image" content={ogImage} />
+<meta property="og:image" content={absOgImage} />
 <meta property="og:image:alt" content={ogTitle} />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={ogTitle} />
 <meta name="twitter:description" content={ogDesc} />
-<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image" content={absOgImage} />
 
 <!-- Icons -->
 <link rel="icon" href="/favicon.ico" />
