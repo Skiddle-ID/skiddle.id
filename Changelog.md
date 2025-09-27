@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SEO: Dynamic sitemap endpoint with key site routes (`src/pages/sitemap.xml.ts`).
 - SEO: `robots.txt` referencing the sitemap (`public/robots.txt`).
   - Sitemap now auto-discovers static pages under `src/pages` (excludes dynamic routes and endpoints) for better coverage (`src/pages/sitemap.xml.ts`).
+ - Social: Dynamic OG image generator endpoint for posts returning SVG (`src/pages/og/posts/[rkey].svg.ts`).
+ - Social: Posts now reference their dynamic OG image for previews (`src/pages/posts/[rkey].astro`).
 
 ### Changed
 - Switched all pink text styles to blue for consistency:
@@ -68,3 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
  - SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
  - SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).
+ - UX: Default theme is now dark when no saved preference exists (`src/layouts/shell.astro`).
+
+### Fixed
+- Social: Dynamic OG image route now explicitly server-rendered with `export const prerender = false;` to resolve `getStaticPaths()` requirement for dynamic routes (`src/pages/og/posts/[rkey].svg.ts`).

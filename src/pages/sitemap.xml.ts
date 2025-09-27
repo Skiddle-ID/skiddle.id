@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { getPosts } from '~/atproto/getPosts';
 
 // Build-time discovery of static pages under src/pages using Vite's glob import.
 function discoverStaticRoutes(): string[] {
@@ -29,9 +30,21 @@ function discoverStaticRoutes(): string[] {
   return Array.from(new Set(routes)).sort();
 }
 
-export const GET: APIRoute = ({ site }) => {
+export const GET: APIRoute = async ({ site, locals }) => {
   const base = String(site ?? 'https://skiddle.id');
   const urls = discoverStaticRoutes();
+
+  // Fetch dynamic blog posts and include their URLs
+  try {
+    const posts = await getPosts(locals as any, undefined, false);
+    for (const p of posts) {
+      if (p?.rkey) {
+        urls.push(`/posts/${p.rkey}`);
+      }
+    }
+  } catch (_) {
+    // Swallow errors to avoid failing the sitemap if posts fetch is unavailable
+  }
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +

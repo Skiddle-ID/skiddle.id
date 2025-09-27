@@ -17,8 +17,26 @@ const markdownProcessor = await createMarkdownProcessor();
 const post = await getPost(Astro.locals, rkey!);
 const content = await markdownProcessor.render(post.content)
 const shortContent = post.content.slice(0, 200).trimEnd() + '...';
+
+const site = Astro.site;
+const canonical = new URL(Astro.url.pathname, site).toString();
+const ogImage = `/og/posts/${rkey}.svg`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  datePublished: new Date(Date.parse(post.createdAt)).toISOString(),
+  dateModified: new Date(Date.parse(post.createdAt)).toISOString(),
+  author: { '@type': 'Person', name: 'Jeff (Skiddle)' },
+  publisher: { '@type': 'Organization', name: 'Skiddle', url: site },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  description: shortContent,
+  url: canonical,
+  image: new URL(ogImage, site).toString(),
+};
 ---
-<Shell title={post.title} description={shortContent}>
+<Shell title={post.title} description={shortContent} image={ogImage}>
+  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
   <header class="max-w-2xl mx-auto w-full">
     <h1 class="font-bold before-hash-1">{post.title}</h1>
     <span class="text-base03">
