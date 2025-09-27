@@ -15,6 +15,8 @@ custom_domain = true
 [vars]
 ATP_IDENTIFIER = "skiddle.blue"
 ATP_SERVICE = "https://rhizopogon.us-west.host.bsky.network/"
+LASTFM_USERNAME = "arcestia"
+LASTFM_API_KEY = "0c01496602c34103a2b05a5bb6da1747"
 
 [observability]
 enabled = true

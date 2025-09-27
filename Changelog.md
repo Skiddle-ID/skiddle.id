@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - JSON-LD structured data for Services and Reviews for improved SEO (`src/pages/services.astro`).
 - New service: Monitoring Setup (Grafana & Prometheus) with matching JSON-LD entry (`src/pages/services.astro`).
 
+- Dynamic Last.fm SVG endpoint for embedding in README and elsewhere (`src/pages/lastfm.svg.ts`).
+  - Query params: `user` (override username), `limit` (1–5), `theme` (`light` | `dark`).
+  - Returns `image/svg+xml` with edge caching (`Cache-Control: s-maxage=300, stale-while-revalidate=600`).
+  - Not prerendered (`export const prerender = false;`) to ensure live data.
+  - Example: `https://<site-domain>/lastfm.svg?theme=dark&limit=1`.
+- Environment example file documenting required Last.fm variables (`.env.example`):
+  - `LASTFM_USERNAME`
+  - `LASTFM_API_KEY`
+
 ### Added
 - SEO: Centralized Open Graph and Twitter Card meta tags with per-page title/description/image and proper canonical URL computation in Base Head (`src/components/base-head.astro`, `src/layouts/shell.astro`).
 - SEO: JSON-LD structured data for Website, Organization, and current WebPage injected globally (`src/layouts/shell.astro`).
@@ -74,3 +83,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Social: Dynamic OG image route now explicitly server-rendered with `export const prerender = false;` to resolve `getStaticPaths()` requirement for dynamic routes (`src/pages/og/posts/[rkey].svg.ts`).
+- Last.fm SVG endpoint types and error handling improved (`src/pages/lastfm.svg.ts`).
+ - Last.fm SVG invalid `xlink:href` causing "prefix not bound" XML error replaced with standard `href` on `<a>` elements (`src/pages/lastfm.svg.ts`).
