@@ -1,57 +1,32 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+  ## [Unreleased]
 
-### Added
+  ### Added
 - Light/Dark theme support via CSS variable theme switching (`src/style.css`).
 - Theme toggle button with persistence in header (`src/components/header.astro`).
 - Early inline script to apply preferred theme before paint and prevent FOUC (`src/layouts/shell.astro`).
 - Primary color switcher in header with dropdown and persistence (`src/components/header.astro`).
 - GitHub and Bluesky icons added to header (`src/components/header.astro`).
-- 404 not found page (`src/pages/404.astro`).
-- Search box in header submitting to posts with `q` query param (`src/components/header.astro`).
-- Home page avatar now loads from Bluesky profile (`skiddle.blue`) with GitHub avatar fallback (`src/pages/index.astro`).
-- Works page redesigned as a CV/resume format with experience, education, skills, and projects (`src/pages/works.astro`).
-- Uses page to showcase hardware, software, and development tools (`src/pages/uses.astro`).
-- Last.fm "now playing" widget component (`src/components/LastFm.astro`).
- - Services page to highlight public offerings (`src/pages/services.astro`).
- - Navigation link to Services in header (`src/components/header.astro`).
- - Services link added to home page "On this site" section (`src/pages/index.astro`).
- - Testimonials section on Services page (`src/pages/services.astro`).
- - JSON-LD structured data for Services and Reviews for improved SEO (`src/pages/services.astro`).
-- New service: Monitoring Setup (Grafana & Prometheus) with matching JSON-LD entry (`src/pages/services.astro`).
-
-- Dynamic Last.fm SVG endpoint for embedding in README and elsewhere (`src/pages/lastfm.svg.ts`).
-  - Query params: `user` (override username), `limit` (1–5), `theme` (`light` | `dark`).
-  - Returns `image/svg+xml` with edge caching (`Cache-Control: s-maxage=300, stale-while-revalidate=600`).
-  - Not prerendered (`export const prerender = false;`) to ensure live data.
-  - Example: `https://<site-domain>/lastfm.svg?theme=dark&limit=1`.
-- Environment example file documenting required Last.fm variables (`.env.example`):
-  - `LASTFM_USERNAME`
-  - `LASTFM_API_KEY`
-
-### Added
-- SEO: Centralized Open Graph and Twitter Card meta tags with per-page title/description/image and proper canonical URL computation in Base Head (`src/components/base-head.astro`, `src/layouts/shell.astro`).
-- SEO: JSON-LD structured data for Website, Organization, and current WebPage injected globally (`src/layouts/shell.astro`).
-- SEO: Dynamic sitemap endpoint with key site routes (`src/pages/sitemap.xml.ts`).
+{{ ... }}
 - SEO: `robots.txt` referencing the sitemap (`public/robots.txt`).
   - Sitemap now auto-discovers static pages under `src/pages` (excludes dynamic routes and endpoints) for better coverage (`src/pages/sitemap.xml.ts`).
- - Social: Dynamic OG image generator endpoint for posts returning SVG (`src/pages/og/posts/[rkey].svg.ts`).
- - Social: Posts now reference their dynamic OG image for previews (`src/pages/posts/[rkey].astro`).
+  - Social: Dynamic OG image generator endpoint for posts returning SVG (`src/pages/og/posts/[rkey].svg.ts`).
+  - Social: Posts now reference their dynamic OG image for previews (`src/pages/posts/[rkey].astro`).
 
-### Changed
-- Switched all pink text styles to blue for consistency:
+  ### Changed
+  - Posts listing now renders Markdown formatting for summaries on `/posts` using Astro's Markdown processor; it extracts the first paragraph of the rendered HTML and supports Shiki syntax highlighting (`src/pages/posts/index.astro`).
+  - Switched all pink text styles to blue for consistency:
   - Home page links and subtitle (`src/pages/index.astro`): `text-pink` -> `text-blue`.
   - Posts listing title color (`src/pages/posts/index.astro`): `text-pink` -> `text-blue`.
 {{ ... }}
   - Header blinking block background (`src/components/header.astro`): `bg-pink` -> `bg-blue`.
   - Footer commit link hover color (`src/components/footer.astro`): `hover:text-pink` -> `hover:text-blue`.
-  - Global link color in prose (`src/style.css`): `a { color: var(--color-pink) }` -> `a { color: var(--color-blue) }`.
+{{ ... }}
   - Mapped CSS variable in theme (`src/style.css`): `--color-pink` now points to `var(--color-blue)` to ensure any remaining references render as blue.
   - Updated base palette token (`src/style.css`): `--color-base0A` changed from `#ee5396` (pink) to `#82cfff` (blue) for consistency.
   - Refined theme toggle UI (`src/components/header.astro`): icon now reflects current theme (sun for light, moon for dark), icon size increased, and a subtle bordered/rounded style added.

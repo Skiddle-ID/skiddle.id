@@ -1,9 +1,14 @@
 ---
 export const prerender = false;
 
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import { getPosts } from '~/atproto/getPosts';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
+import { loadWasm } from 'shiki';
+
+// @ts-ignore - load Oniguruma for shiki syntax highlighting used by the markdown processor
+loadWasm(await import('shiki/onig.wasm'));
 
 const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase();
 const posts = await getPosts(Astro.locals, '', false);
@@ -16,12 +21,24 @@ const postsFiltered = q
     })
   : postsFilteredBase;
 
-const postsShortened = postsFiltered.map(p => {
-  if (p.content?.length! > 200) {
-    p.content = p.content?.slice(0, 200).trimEnd() + '...';
-  }
-  return p;
-});
+const markdownProcessor = await createMarkdownProcessor();
+
+function firstBlock(html: string): string {
+  // Prefer the first paragraph; fall back to first common block or a plain text slice
+  const p = html.match(/<p[\s\S]*?<\/p>/i);
+  if (p) return p[0];
+  const block = html.match(/<(p|h[1-6]|ul|ol|pre|blockquote)[\s\S]*?<\/(?:\1)>/i);
+  if (block) return block[0];
+  return html.slice(0, 200);
+}
+
+const postsRendered = await Promise.all(
+  postsFiltered.map(async (p) => {
+    const rendered = await markdownProcessor.render(p.content || '');
+    const summaryHtml = firstBlock(rendered.code);
+    return { ...p, summaryHtml };
+  })
+);
 ---
 <Shell title="Skiddle@web ~/posts">
   <div class="mx-auto max-w-2xl flex flex-col">
@@ -36,7 +53,7 @@ const postsShortened = postsFiltered.map(p => {
     </header>
 
     <div class="flex flex-col divide-y divide-muted">
-      {postsShortened.map((post) => (
+      {postsRendered.map((post) => (
         <div class="py-4">
           <article>
             <header>
@@ -51,11 +68,10 @@ const postsShortened = postsFiltered.map(p => {
             </header>
           </article>
 
-          <section class="post__summary prose max-w-6xl">
-              { post.content }
-          </section>
+          <section class="post__summary prose max-w-6xl" set:html={post.summaryHtml} />
         </div>
       ))}
     </div>
   </div>
 </Shell>
+
