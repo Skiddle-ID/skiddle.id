@@ -17,7 +17,7 @@ export const GET = async (context: APIContext) => {
 
   // Resolve metadata
   const requestUrl = new URL(context.request.url);
-  const site = context.site ?? `${requestUrl.origin}/`;
+  const site = `${requestUrl.origin}/`;
 
   // Pull display name from Bluesky (fallback to 'Skiddle')
   const handle = 'skiddle.blue';

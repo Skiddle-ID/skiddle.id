@@ -30,8 +30,11 @@ function discoverStaticRoutes(): string[] {
   return Array.from(new Set(routes)).sort();
 }
 
-export const GET: APIRoute = async ({ site, locals }) => {
-  const base = String(site ?? 'https://skiddle.id');
+export const prerender = false;
+
+export const GET: APIRoute = async ({ site, locals, request }) => {
+  const requestUrl = new URL(request.url);
+  const base = `${requestUrl.origin}/`;
   const urls = discoverStaticRoutes();
 
   // Fetch dynamic blog posts and include their URLs

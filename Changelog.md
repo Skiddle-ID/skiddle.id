@@ -44,17 +44,19 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
   - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g…` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
   - Redesigned Services page testimonials with modern card UI, star ratings, and badges for readability (`src/pages/services.astro`).
-  - Converted Services page testimonials into an accessible slider/carousel with dots, prev/next controls, keyboard support, and auto‑advance (`src/pages/services.astro`).
  - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
  - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
-- Disabled Webring page by replacing content with a 410 Gone message (`src/pages/ring.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
-
- - SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).
- - SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
- - SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
- - SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).
+- SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).
+- SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
+- SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
+- SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).
  - UX: Default theme is now dark when no saved preference exists (`src/layouts/shell.astro`).
+ - RSS/Sitemap: Base URL now derived from the incoming request origin to support multiple domains (`src/pages/rss.xml.ts`, `src/pages/sitemap.xml.ts`).
+ - Robots: `robots.txt` is now generated dynamically so the `Sitemap:` URL uses the incoming request origin (`src/pages/robots.txt.ts`).
+
+### Removed
+ - Removed static `public/robots.txt` in favor of dynamic endpoint at `src/pages/robots.txt.ts` to ensure correct domain in `Sitemap:`.
 
 ### Fixed
 - Social: Dynamic OG image route now explicitly server-rendered with `export const prerender = false;` to resolve `getStaticPaths()` requirement for dynamic routes (`src/pages/og/posts/[rkey].svg.ts`).
