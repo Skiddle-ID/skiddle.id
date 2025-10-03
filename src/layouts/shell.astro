@@ -1,6 +1,6 @@
 ---
 import BaseHead from '../components/base-head.astro';
-import Header from '../components/header.astro';
+import Sidebar from '../components/sidebar.astro';
 import Footer from '../components/footer.astro';
 
 import '@fontsource/geist-mono';
@@ -95,15 +95,14 @@ const jsonLd = {
       })();
     </script>
   </head>
-  <body class="antialiased bg-[var(--color-black)] text-[var(--color-white)] font-mono tracking-normal leading-normal flex flex-col min-h-screen selection:bg-base0E selection:text-black">
-    <div class="flex flex-col grow">
-      <Header />
-
-      <main class="mt-10 flex flex-col gap-3 px-5 pt-5 grow">
+  <body class="antialiased bg-[var(--color-black)] text-[var(--color-white)] font-mono tracking-normal leading-normal min-h-screen selection:bg-base0E selection:text-black">
+    <Sidebar />
+    <div class="pl-56 flex flex-col min-h-screen">
+      <main class="flex flex-col gap-3 px-5 py-5 grow">
         <slot />
       </main>
 
-      <footer class="page__footer">
+      <footer class="page__footer px-5 pb-5">
         <Footer />
       </footer>
     </div>
