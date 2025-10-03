@@ -121,6 +121,38 @@ const projects: Project[] = [
     status: 'in-services',
     category: 'tool',
   },
+  {
+    id: 'proxylist',
+    name: 'ProxyList',
+    description: 'A proxy scraper | Proxy list - Updates every hours.',
+    homepage: 'https://skiddle-id.github.io/proxylist',
+    github: 'https://github.com/Skiddle-ID/proxylist',
+    tags: ['proxy', 'proxy-list', 'proxy-scraper'],
+    tech: {
+      languages: ['javascript'],
+      tools: ['GithubActions'],
+    },
+    year: 2024,
+    status: 'in-services',
+    category: 'tool',
+  },
+  {
+    id: 'domainchecker',
+    name: 'DomainChecker',
+    description: 'A Fast Domain Block Checker /w Hono & Cloudflare Workers.',
+    homepage: 'https://skiddle-id.github.io/domainchecker',
+    github: 'https://github.com/Skiddle-ID/domainchecker',
+    tags: ['domain-checker', 'hono', 'cloudflare-workers'],
+    tech: {
+      languages: ['javascript'],
+      platforms: ['cloudflare workers'],
+      frameworks: ['hono'],
+      databases: ['turso'],
+    },
+    year: 2024,
+    status: 'in-services',
+    category: 'tool',
+  }
 ];
 
 export default projects;

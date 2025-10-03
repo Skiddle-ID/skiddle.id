@@ -6,6 +6,7 @@ export interface ProjectTech {
   frameworks?: string[];
   tools?: string[];
   platforms?: string[];
+  databases?: string[];
 }
 
 export interface ProjectTeam {

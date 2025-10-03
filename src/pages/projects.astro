@@ -12,10 +12,18 @@ const deviconAliases: Record<string, string> = {
   ts: 'typescript',
   node: 'nodejs',
   'cloudflare workers': 'cloudflareworkers',
+  'cloudflare-workers': 'cloudflareworkers',
+  githubactions: 'githubactions',
+  hono: 'hono', // no devicon; handled by fallbacks
+  turso: 'turso', // no devicon; handled by fallbacks
+  libsql: 'libsql', // no devicon; handled by fallbacks
 };
 function iconKey(raw: string) {
   const k = String(raw).toLowerCase();
   return deviconAliases[k] ?? k;
+}
+function simpleSlug(raw: string) {
+  return String(raw).toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 function statusClass(status?: string) {
   const base = 'px-2 py-0.5 text-xs border rounded-full';
@@ -46,6 +54,7 @@ function formatCategory(cat?: string) {
         ...(p.tech?.frameworks ?? []),
         ...(p.tech?.tools ?? []),
         ...(p.tech?.platforms ?? []),
+        ...(p.tech?.databases ?? []),
       ]).map(String)));
       return (
         <div class="flex flex-col gap-3">
@@ -74,6 +83,7 @@ function formatCategory(cat?: string) {
         ...(p.tech?.frameworks ?? []),
         ...(p.tech?.tools ?? []),
         ...(p.tech?.platforms ?? []),
+        ...(p.tech?.databases ?? []),
       ].join(',')} class={`project-card border rounded-lg p-2 md:p-3 flex flex-col gap-2 md:gap-3 bg-[color:oklch(var(--color-gray)_/_0.15)] transition-colors hover:border-[var(--color-base03)] hover:outline outline-1 outline-offset-2 outline-[color:var(--color-base03)]/20 ${p.featured ? 'border-[color:gold]/40' : 'border-muted'}` }>
         <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3">
           <div class="flex items-center gap-2 flex-wrap">
@@ -110,15 +120,19 @@ function formatCategory(cat?: string) {
             ...(p.tech?.frameworks ?? []),
             ...(p.tech?.tools ?? []),
             ...(p.tech?.platforms ?? []),
+            ...(p.tech?.databases ?? []),
           ];
           return stack.length ? (
             <div class="flex flex-wrap items-center gap-2 md:gap-3 text-xs" aria-label="Tech stack">
               {stack.map((lang) => {
                 const key = iconKey(lang);
-                const original = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${key}/${key}-original.svg`;
+                const orig = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${key}/${key}-original.svg`;
                 const plain = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${key}/${key}-plain.svg`;
+                const simp = `https://cdn.simpleicons.org/${simpleSlug(key)}`;
+                const local = `/icons/${simpleSlug(key)}.svg`;
+                const fallbacks = [plain, simp, local].join('|');
                 return (
-                  <img src={original} title={String(lang)} alt={`${lang} icon`} width="32" height="32" class="w-6 h-6 md:w-8 md:h-8" loading="lazy" onerror={`this.onerror=null;this.src='${plain}'`} />
+                  <img src={orig} data-fallbacks={fallbacks} data-label={String(lang)} title={String(lang)} alt={`${lang} icon`} width="32" height="32" class="w-6 h-6 md:w-8 md:h-8 icon-with-fallback" loading="lazy" />
                 );
               })}
             </div>
@@ -182,6 +196,27 @@ function formatCategory(cat?: string) {
   });
 
   document.addEventListener('DOMContentLoaded', applyFilters);
+  function attachIconFallbacks() {
+    document.querySelectorAll('img.icon-with-fallback').forEach((imgEl) => {
+      const img = imgEl as HTMLImageElement;
+      const fallbacks = (img.getAttribute('data-fallbacks') || '').split('|').filter(Boolean);
+      const label = img.getAttribute('data-label') || '';
+      let idx = 0;
+      function onerr() {
+        if (idx < fallbacks.length) {
+          img.src = fallbacks[idx++];
+        } else {
+          img.removeEventListener('error', onerr);
+          const monogram = document.createElement('span');
+          monogram.className = 'inline-flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded border border-muted text-[var(--color-white)]/70 text-[10px] md:text-xs';
+          monogram.textContent = (label.trim()[0] || '?').toUpperCase();
+          img.replaceWith(monogram);
+        }
+      }
+      img.addEventListener('error', onerr);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', attachIconFallbacks);
 </script>
 
 <style is:global>

@@ -19,6 +19,7 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Social: Posts now reference their dynamic OG image for previews (`src/pages/posts/[rkey].astro`).
   - Sidebar navigation component introduced (`src/components/sidebar.astro`) providing vertical menu with search, theme toggle, and primary color picker.
   - Projects page to showcase open-source work (`src/pages/projects.astro`) backed by a simple data source (`src/data/projects.ts`).
+  - Data model: Added `databases` to `ProjectTech` and integrated into filters and tech stack display (`src/types/projects.ts`, `src/pages/projects.astro`).
   - Projects now support optional `languages` and `year` metadata in the data model and UI (`src/data/projects.ts`, `src/pages/projects.astro`).
   - Projects languages now render with Devicon icons via CDN fallbacking to `-plain` variant on error (`src/pages/projects.astro`).
   - UI: Project titles on the Projects page now use the primary theme color for emphasis (`src/pages/projects.astro`).
