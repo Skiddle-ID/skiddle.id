@@ -1,0 +1,208 @@
+---
+import Shell from '../layouts/shell.astro';
+import type { Project } from '../types/projects';
+import projects from '../data/projects';
+
+export const prerender = true;
+// Sort projects by year (descending). Items without year go last.
+const sortedProjects: Project[] = [...projects].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+// Devicon alias mapping to improve CDN resolution
+const deviconAliases: Record<string, string> = {
+  js: 'javascript',
+  ts: 'typescript',
+  node: 'nodejs',
+  'cloudflare workers': 'cloudflareworkers',
+};
+function iconKey(raw: string) {
+  const k = String(raw).toLowerCase();
+  return deviconAliases[k] ?? k;
+}
+function statusClass(status?: string) {
+  const base = 'px-2 py-0.5 text-xs border rounded-full';
+  if (!status) return `${base} border-muted text-[var(--color-white)]/70`;
+  const s = status.toLowerCase();
+  if (s === 'completed') return `${base} border-[color:#16a34a]/40 text-[color:#22c55e]`; // green
+  if (s === 'in-progress') return `${base} border-[color:#f59e0b]/40 text-[color:#fbbf24]`; // amber
+  if (s === 'archived') return `${base} border-[color:#6b7280]/40 text-[color:#9ca3af]`; // gray
+  return `${base} border-muted text-[var(--color-white)]/70`;
+}
+function formatCategory(cat?: string) {
+  if (!cat) return '';
+  return cat.slice(0,1).toUpperCase() + cat.slice(1);
+}
+---
+<Shell title="Projects — Open Source" description="A curated list of my open‑source projects with links to repos and demos.">
+  <section class="flex flex-col gap-6">
+    <p class="max-w-[70ch] text-[color:var(--color-white)]/90">
+      Explore my open‑source work. Contributions and feedback are welcome!
+    </p>
+
+    <!-- Filters -->
+    {(() => {
+      const categories = Array.from(new Set(sortedProjects.map(p => p.category).filter(Boolean)));
+      const techstack = Array.from(new Set(sortedProjects.flatMap(p => [
+        ...(p.tech?.languages ?? []),
+        ...(p.tech?.frameworks ?? []),
+        ...(p.tech?.tools ?? []),
+        ...(p.tech?.platforms ?? []),
+      ]).map(String)));
+      return (
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-2 flex-nowrap overflow-x-auto whitespace-nowrap pr-2 [-ms-overflow-style:none] [scrollbar-width:none]" style="scrollbar-width: none;">
+            <span class="text-xs text-[var(--color-white)]/60">Category:</span>
+            <button class="filter-cat px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/80" data-cat="all" aria-pressed="true">All</button>
+            {categories.map(cat => (
+              <button class="filter-cat px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70" data-cat={String(cat)} aria-pressed="false">{formatCategory(String(cat))}</button>
+            ))}
+          </div>
+          <div class="flex items-center gap-2 flex-nowrap overflow-x-auto whitespace-nowrap pr-2 [-ms-overflow-style:none] [scrollbar-width:none]" style="scrollbar-width: none;">
+            <span class="text-xs text-[var(--color-white)]/60">Tech stack:</span>
+            <button class="filter-lang px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/80" data-lang="all" aria-pressed="true">All</button>
+            {techstack.map(l => (
+              <button class="filter-lang px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70" data-lang={String(l)} aria-pressed="false">{String(l)}</button>
+            ))}
+          </div>
+        </div>
+      );
+    })()}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3">
+    {sortedProjects.map((p: Project) => (
+      <article data-category={p.category ?? ''} data-langs={[
+        ...(p.tech?.languages ?? []),
+        ...(p.tech?.frameworks ?? []),
+        ...(p.tech?.tools ?? []),
+        ...(p.tech?.platforms ?? []),
+      ].join(',')} class={`project-card border rounded-lg p-2 md:p-3 flex flex-col gap-2 md:gap-3 bg-[color:oklch(var(--color-gray)_/_0.15)] transition-colors hover:border-[var(--color-base03)] hover:outline outline-1 outline-offset-2 outline-[color:var(--color-base03)]/20 ${p.featured ? 'border-[color:gold]/40' : 'border-muted'}` }>
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            {(() => {
+              const href = p.homepage ?? p.github;
+              return href ? (
+                <a href={href} target="_blank" rel="noopener noreferrer" class="font-semibold text-[var(--color-primary)] hover:underline underline-offset-4">{p.name}</a>
+              ) : (
+                <h2 class="font-semibold text-[var(--color-primary)]">{p.name}</h2>
+              );
+            })()}
+            {p.featured && (
+              <span title="Featured" class="px-2 py-0.5 text-xs rounded-full text-[gold] border border-[color:gold]/60">★</span>
+            )}
+            {p.status && (<span class={statusClass(p.status)}>{p.status}</span>)}
+            {p.category && (
+              <span class="px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70">{formatCategory(p.category)}</span>
+            )}
+          </div>
+          {p.year && (<span class="px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/80">{p.year}</span>)}
+        </header>
+
+        {p.tags && p.tags.length ? (
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            {p.tags.map((t) => (
+              <span class="px-2 py-0.5 border border-muted rounded-full text-[var(--color-white)]/70">{t}</span>
+            ))}
+          </div>
+        ) : null}
+
+        {(() => {
+          const stack = [
+            ...(p.tech?.languages ?? []),
+            ...(p.tech?.frameworks ?? []),
+            ...(p.tech?.tools ?? []),
+            ...(p.tech?.platforms ?? []),
+          ];
+          return stack.length ? (
+            <div class="flex flex-wrap items-center gap-2 md:gap-3 text-xs" aria-label="Tech stack">
+              {stack.map((lang) => {
+                const key = iconKey(lang);
+                const original = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${key}/${key}-original.svg`;
+                const plain = `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${key}/${key}-plain.svg`;
+                return (
+                  <img src={original} title={String(lang)} alt={`${lang} icon`} width="32" height="32" class="w-6 h-6 md:w-8 md:h-8" loading="lazy" onerror={`this.onerror=null;this.src='${plain}'`} />
+                );
+              })}
+            </div>
+          ) : null;
+        })()}
+
+        <p class="text-sm text-[var(--color-white)]/85 leading-relaxed">{p.description}</p>
+        {p.highlights && p.highlights.length ? (
+          <ul class="mt-1 ml-4 list-disc text-[var(--color-white)]/75 text-sm">
+            {p.highlights.map((h) => (<li>{h}</li>))}
+          </ul>
+        ) : null}
+
+        <div class="mt-auto flex items-center gap-2 pt-2">
+          {p.homepage && (
+            <a class="inline-flex items-center gap-1 rounded-md border border-muted px-3 py-1 text-sm text-[var(--color-primary)] hover:text-base0E hover:border-base0E transition-colors" href={p.homepage} target="_blank" rel="noopener noreferrer">
+              <span>Live</span>
+            </a>
+          )}
+          {p.github && (
+            <a class="inline-flex items-center gap-1 rounded-md border border-muted px-3 py-1 text-sm text-[var(--color-primary)] hover:text-base0E hover:border-base0E transition-colors" href={p.github} target="_blank" rel="noopener noreferrer">
+              <span>Repo</span>
+            </a>
+          )}
+        </div>
+      </article>
+    ))}
+  </div>
+  </section>
+</Shell>
+
+<script>
+  // Simple client-side filters for category and languages
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  function applyFilters() {
+    const activeCatBtn = document.querySelector('.filter-cat[aria-pressed="true"]');
+    const activeLangBtn = document.querySelector('.filter-lang[aria-pressed="true"]');
+    const activeCat = activeCatBtn?.getAttribute('data-cat') ?? 'all';
+    const activeLang = activeLangBtn?.getAttribute('data-lang') ?? 'all';
+
+    $$('.project-card').forEach((card) => {
+      const cat = card.getAttribute('data-category') || '';
+      const langs = (card.getAttribute('data-langs') || '').toLowerCase().split(',').filter(Boolean);
+      const catOk = activeCat === 'all' || cat === activeCat;
+      const langOk = activeLang === 'all' || langs.includes(String(activeLang).toLowerCase());
+      card.classList.toggle('hidden', !(catOk && langOk));
+    });
+  }
+
+  function setExclusivePressed(selector, target) {
+    $$(selector).forEach((btn) => btn.setAttribute('aria-pressed', btn === target ? 'true' : 'false'));
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element | null;
+    const btn = target ? (target.closest('.filter-cat, .filter-lang') as HTMLElement | null) : null;
+    if (!btn) return;
+    if (btn.classList.contains('filter-cat')) setExclusivePressed('.filter-cat', btn);
+    if (btn.classList.contains('filter-lang')) setExclusivePressed('.filter-lang', btn);
+    applyFilters();
+  });
+
+  document.addEventListener('DOMContentLoaded', applyFilters);
+</script>
+
+<style is:global>
+  .filter-cat[aria-pressed="true"],
+  .filter-lang[aria-pressed="true"] {
+    background: color-mix(in oklch, var(--color-primary) 18%, transparent);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .filter-cat,
+  .filter-lang {
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .filter-cat:hover,
+  .filter-lang:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .filter-cat:focus-visible,
+  .filter-lang:focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--color-primary) 60%, transparent);
+    outline-offset: 2px;
+    border-color: var(--color-primary);
+  }
+</style>

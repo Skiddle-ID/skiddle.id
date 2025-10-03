@@ -7,6 +7,7 @@
   <a class="hover:text-base0E py-1 px-2" href="/posts">posts</a>
   <a class="hover:text-base0E py-1 px-2" href="/about">about</a>
   <a class="hover:text-base0E py-1 px-2" href="/works">works</a>
+  <a class="hover:text-base0E py-1 px-2" href="/projects">projects</a>
   <a class="hover:text-base0E py-1 px-2" href="/services">services</a>
   <a class="hover:text-base0E py-1 px-2" href="/uses">uses</a>
   <a class="hover:text-base0E py-1 px-2" href="/rss.xml">rss</a>
@@ -112,16 +113,16 @@
           const val = btn.getAttribute('data-color');
           const isActive = val === value;
           btn.setAttribute('aria-current', isActive ? 'true' : 'false');
-          btn.style.boxShadow = isActive ? `0 0 0 2px ${value}` : 'none';
-          btn.style.outline = 'none';
+          (btn as HTMLElement).style.boxShadow = isActive ? `0 0 0 2px ${value}` : 'none';
+          (btn as HTMLElement).style.outline = 'none';
         });
         if (swatch) {
-          swatch.style.boxShadow = `0 0 0 2px ${value}`;
+          (swatch as HTMLElement).style.boxShadow = `0 0 0 2px ${value}`;
         }
       }
       if (savedPrimary) {
         rootStyle.setProperty('--color-primary', savedPrimary);
-        if (swatch) swatch.style.backgroundColor = savedPrimary;
+        if (swatch) (swatch as HTMLElement).style.backgroundColor = savedPrimary;
         updatePrimaryMenuSelection(savedPrimary);
       }
 
@@ -144,13 +145,13 @@
             if (!value) return;
             rootStyle.setProperty('--color-primary', value);
             localStorage.setItem('primary', value);
-            if (swatch) swatch.style.backgroundColor = value;
+            if (swatch) (swatch as HTMLElement).style.backgroundColor = value;
             updatePrimaryMenuSelection(value);
             setMenu(false);
           });
         });
         document.addEventListener('click', (evt) => {
-          const target = evt.target;
+          const target = evt.target as Node | null;
           if (!target) return;
           if (!primaryMenu.contains(target) && target !== primaryToggle) setMenu(false);
         });

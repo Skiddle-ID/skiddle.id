@@ -18,6 +18,11 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Social: Dynamic OG image generator endpoint for posts returning SVG (`src/pages/og/posts/[rkey].svg.ts`).
   - Social: Posts now reference their dynamic OG image for previews (`src/pages/posts/[rkey].astro`).
   - Sidebar navigation component introduced (`src/components/sidebar.astro`) providing vertical menu with search, theme toggle, and primary color picker.
+  - Projects page to showcase open-source work (`src/pages/projects.astro`) backed by a simple data source (`src/data/projects.ts`).
+  - Projects now support optional `languages` and `year` metadata in the data model and UI (`src/data/projects.ts`, `src/pages/projects.astro`).
+  - Projects languages now render with Devicon icons via CDN fallbacking to `-plain` variant on error (`src/pages/projects.astro`).
+  - UI: Project titles on the Projects page now use the primary theme color for emphasis (`src/pages/projects.astro`).
+  - UI: Increased language icon size on Projects page to 32px for better readability (`src/pages/projects.astro`).
 
   ### Changed
   - Posts listing now renders Markdown formatting for summaries on `/posts` using Astro's Markdown processor; it extracts the first paragraph of the rendered HTML and supports Shiki syntax highlighting (`src/pages/posts/index.astro`).
@@ -48,19 +53,20 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
  - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
  - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
-- SEO: Home page now provides explicit `<title>` and meta description via layout props to improve SERP snippets (`src/pages/index.astro`).
 - SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
 - SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
 - SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).
  - UX: Default theme is now dark when no saved preference exists (`src/layouts/shell.astro`).
  - RSS/Sitemap: Base URL now derived from the incoming request origin to support multiple domains (`src/pages/rss.xml.ts`, `src/pages/sitemap.xml.ts`).
- - Robots: `robots.txt` is now generated dynamically so the `Sitemap:` URL uses the incoming request origin (`src/pages/robots.txt.ts`).
+  - Robots: `robots.txt` is now generated dynamically so the `Sitemap:` URL uses the incoming request origin (`src/pages/robots.txt.ts`).
   - Layout switched from top navigation bar to left sidebar. Replaced `Header` with `Sidebar` in layout and adjusted spacing: `pl-56` wrapper and removed `mt-10` offset on `<main>` (`src/layouts/shell.astro`). The old `header.astro` component remains in the codebase but is no longer used by the layout.
+  - Navigation updated to include a link to `/projects` in the sidebar (`src/components/sidebar.astro`).
+  - Projects page to showcase open-source work (`src/pages/projects.astro`) backed by a simple data source (`src/data/projects.ts`).
 
 ### Removed
  - Removed static `public/robots.txt` in favor of dynamic endpoint at `src/pages/robots.txt.ts` to ensure correct domain in `Sitemap:`.
 
 ### Fixed
-- Social: Dynamic OG image route now explicitly server-rendered with `export const prerender = false;` to resolve `getStaticPaths()` requirement for dynamic routes (`src/pages/og/posts/[rkey].svg.ts`).
+{{ ... }}
 - Last.fm SVG endpoint types and error handling improved (`src/pages/lastfm.svg.ts`).
  - Last.fm SVG invalid `xlink:href` causing "prefix not bound" XML error replaced with standard `href` on `<a>` elements (`src/pages/lastfm.svg.ts`).
