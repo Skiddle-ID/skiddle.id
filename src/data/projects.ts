@@ -105,6 +105,20 @@ const projects: Project[] = [
     },
     year: 2024,
     status: 'completed',
+    category: 'api',
+  },
+  {
+    id: 'blocklist',
+    name: 'Blocklist',
+    description: 'Uncensored Kominfo blocklist taken automatically updated every hour.',
+    github: 'https://github.com/Skiddle-ID/blocklist',
+    tags: ['blocklist', 'internet-censorship', 'domains-list'],
+    tech: {
+      languages: ['bash'],
+      tools: ['GithubActions'],
+    },
+    year: 2024,
+    status: 'in-services',
     category: 'tool',
   },
 ];

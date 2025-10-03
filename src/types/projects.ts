@@ -1,4 +1,4 @@
-export type ProjectStatus = 'planned' | 'in-progress' | 'completed' | 'archived';
+export type ProjectStatus = 'planned' | 'in-progress' | 'in-services' | 'completed' | 'archived';
 export type ProjectCategory = 'app' | 'api' | 'library' | 'tool' | 'service' | 'website' | 'other';
 
 export interface ProjectTech {
