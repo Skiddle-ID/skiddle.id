@@ -65,12 +65,14 @@ function formatCategory(cat?: string) {
               <button class="filter-cat px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70" data-cat={String(cat)} aria-pressed="false">{formatCategory(String(cat))}</button>
             ))}
           </div>
-          <div class="flex items-center gap-2 flex-nowrap overflow-x-auto whitespace-nowrap pr-2 [-ms-overflow-style:none] [scrollbar-width:none]" style="scrollbar-width: none;">
-            <span class="text-xs text-[var(--color-white)]/60">Tech stack:</span>
-            <button class="filter-lang px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/80" data-lang="all" aria-pressed="true">All</button>
-            {techstack.map(l => (
-              <button class="filter-lang px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70" data-lang={String(l)} aria-pressed="false">{String(l)}</button>
-            ))}
+          <div class="flex items-center gap-2">
+            <label for="tech-select" class="text-xs text-[var(--color-white)]/60">Tech:</label>
+            <select id="tech-select" class="appearance-none bg-white text-black border border-muted rounded px-2 py-1 text-xs focus:outline-none focus:border-[var(--color-primary)]">
+              <option value="all">All</option>
+              {techstack.map(l => (
+                <option value={String(l)}>{String(l)}</option>
+              ))}
+            </select>
           </div>
         </div>
       );
@@ -167,11 +169,15 @@ function formatCategory(cat?: string) {
 <script>
   // Simple client-side filters for category and languages
   const $$ = (s) => Array.from(document.querySelectorAll(s));
+  function getTechSelect(): HTMLSelectElement | null {
+    const el = document.getElementById('tech-select');
+    return el instanceof HTMLSelectElement ? el : null;
+  }
   function applyFilters() {
     const activeCatBtn = document.querySelector('.filter-cat[aria-pressed="true"]');
-    const activeLangBtn = document.querySelector('.filter-lang[aria-pressed="true"]');
+    const techSelect = getTechSelect();
     const activeCat = activeCatBtn?.getAttribute('data-cat') ?? 'all';
-    const activeLang = activeLangBtn?.getAttribute('data-lang') ?? 'all';
+    const activeLang = techSelect?.value ?? 'all';
 
     $$('.project-card').forEach((card) => {
       const cat = card.getAttribute('data-category') || '';
@@ -191,11 +197,14 @@ function formatCategory(cat?: string) {
     const btn = target ? (target.closest('.filter-cat, .filter-lang') as HTMLElement | null) : null;
     if (!btn) return;
     if (btn.classList.contains('filter-cat')) setExclusivePressed('.filter-cat', btn);
-    if (btn.classList.contains('filter-lang')) setExclusivePressed('.filter-lang', btn);
     applyFilters();
   });
 
   document.addEventListener('DOMContentLoaded', applyFilters);
+  const techSelectInit = getTechSelect();
+  if (techSelectInit) {
+    techSelectInit.addEventListener('change', applyFilters);
+  }
   function attachIconFallbacks() {
     document.querySelectorAll('img.icon-with-fallback').forEach((imgEl) => {
       const img = imgEl as HTMLImageElement;

@@ -93,6 +93,11 @@ const projects: Project[] = [
     year: 2016,
     status: 'archived',
     category: 'app',
+    highlights: [
+      'First time building from scratch',
+      'Written in object-oriented PHP',
+      'MySQL Database'
+    ]
   },
   {
     id: 'checkdomain',
@@ -106,6 +111,11 @@ const projects: Project[] = [
     year: 2024,
     status: 'completed',
     category: 'api',
+    highlights: [
+      'Simple API for checking domain status',
+      'Written in Node.js',
+      'Runs on Cloudflare Workers'
+    ]
   },
   {
     id: 'blocklist',
@@ -120,6 +130,11 @@ const projects: Project[] = [
     year: 2024,
     status: 'in-services',
     category: 'tool',
+    highlights: [
+      'Simple script for updating blocklist',
+      'Written in Bash',
+      'Runs on Github Actions'
+    ]
   },
   {
     id: 'proxylist',
@@ -135,16 +150,21 @@ const projects: Project[] = [
     year: 2024,
     status: 'in-services',
     category: 'tool',
+    highlights: [
+      'Simple script for updating proxy list',
+      'Written in JavaScript',
+      'Runs on Github Actions'
+    ]
   },
   {
     id: 'domainchecker',
     name: 'DomainChecker',
     description: 'A Fast Domain Block Checker /w Hono & Cloudflare Workers.',
-    homepage: 'https://skiddle-id.github.io/domainchecker',
+    homepage: 'https://skiddle.link/checkdomain',
     github: 'https://github.com/Skiddle-ID/domainchecker',
     tags: ['domain-checker', 'hono', 'cloudflare-workers'],
     tech: {
-      languages: ['javascript'],
+      languages: ['typescript'],
       platforms: ['cloudflare workers'],
       frameworks: ['hono'],
       databases: ['turso'],
@@ -152,6 +172,11 @@ const projects: Project[] = [
     year: 2024,
     status: 'in-services',
     category: 'tool',
+    highlights: [
+      'Web application for checking domain status',
+      'Written in TypeScript',
+      'Runs on Cloudflare Workers'
+    ]
   }
 ];
 
