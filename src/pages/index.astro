@@ -15,47 +15,34 @@ const fallback = 'https://github.com/arcestia.png';
 const profileImg = avatarUrl || fallback;
 ---
 
-<Shell title="Skiddle ~ Developer, DevOps & Automation" description="Jeff (Skiddle) — Developer & DevOps engineer in Bangkok. I build automation, self‑hosting, and tools with JavaScript and open protocols.">
+<Shell title="Skiddle ~ DevOps, Platforms & Automation" description="Jeff (Skiddle) — DevOps engineer building platforms, automation, and networks across cloud and self‑hosted; passionate about AI and aviation.">
   <div class="flex flex-col lg:flex-row justify-start items-center gap-6 max-w-2xl mx-auto w-full mb-4">
     <img src={profileImg} alt={`Avatar for ${handle}`} class="size-32 rounded-full" />
     <div class="flex flex-col items-start justify-center gap-3">
       <h1 class="font-bold text-2xl">Hi, I'm Jeff Known as Skiddle.</h1>
-      <h3 class="text-xl text-[var(--color-primary)]">DevOps / Engineer / Investor</h3>
+      <h3 class="text-xl text-[var(--color-primary)]">DevOps engineer — platforms, automation, networking, AI</h3>
     </div>
   </div>
 
   <div class="prose max-w-2xl mx-auto">
     <p>
-      I'm a software developer passionate about JavaScript and open protocols, creating better information ecosystems.
-      I'm currently working as a DevOps engineer.
-    </p>
-
+      I build platforms end‑to‑end, automate delivery and operations, and run networks across cloud and self‑hosted. Passionate about AI, and outside of work I love aviation and I’m working toward a first solo flight. See my <a href="/works">Works</a>.
     <p>
-      I'm building automation and tools to make my life easier.
-      I'm also building Homelab and self-hosted services.
+      I like shipping small tools and self‑hosted systems that remove toil. My priorities are reliability, security, and cost efficiency—using automation wherever possible.
     </p>
-
     <p>
-      I'm huge fan of open source software and I'm always open to learning new things.
-      I'm also love data science and machine learning.
-    </p>
-
-    <p>
-      I’m based in Bangkok, Thailand, and I’m always open to having
-      conversations with people about any topic you think I’d find interesting.
+      I’m based in Bangkok and open to collaborating on server setup & hardening, CI/CD implementation, automation with Ansible, self‑hosting & homelab, website project setup, and monitoring with Grafana/Prometheus — see <a href="/services">Services</a>.
     </p>
   </div>
 
   <hr />
 
-  <!-- Last.fm Now Playing -->
   <div class="max-w-2xl mx-auto mb-8">
     <LastFm />
   </div>
 
   <div class="max-w-sm w-full mx-auto grid sm:grid-cols-2 gap-4">
     <div class="flex flex-col gap-2">
-      <span class="font-bold text-lg">On the web</span>
       <ul class="list-disc list-inside">
         <li><a class="text-[var(--color-primary)] underline" href="https://bsky.app/profile/skiddle.blue">Bluesky</a></li>
         <li><a class="text-[var(--color-primary)] underline" href="https://github.com/arcestia">GitHub</a></li>
