@@ -26,6 +26,8 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - UI: Increased language icon size on Projects page to 32px for better readability (`src/pages/projects.astro`).
   - Works: Introduced typed data model and data source for Works page (`src/types/works.ts`, `src/data/works.ts`).
   - Services: Introduced typed data model and data source (`src/types/services.ts`, `src/data/services.ts`).
+  - Mobile: Top bar on small screens with a menu button to open the sidebar (`src/layouts/shell.astro`).
+  - Mobile: Off‑canvas sidebar drawer with backdrop overlay and smooth transitions; includes ARIA attributes and Escape/overlay close behavior (`src/components/sidebar.astro`, `src/layouts/shell.astro`).
 
   ### Changed
   - Posts listing now renders Markdown formatting for summaries on `/posts` using Astro's Markdown processor; it extracts the first paragraph of the rendered HTML and supports Shiki syntax highlighting (`src/pages/posts/index.astro`).
@@ -63,6 +65,9 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
 - Home: Added two more intro paragraphs expanding on tools/self‑hosting/reliability and collaboration interests (`src/pages/index.astro`).
   - Home: Updated collaboration line to mirror Services offerings and linked to /services (`src/pages/index.astro`).
   - Works: Refactored page to render from typed data source (`src/pages/works.astro`) using `src/data/works.ts`.
+  - Works (Mobile): Improved responsiveness — added container side padding, responsive heading sizes, wrapped contact links, stacked date rows, and minor spacing tweaks (`src/pages/works.astro`).
+  - Layout: Switched main wrapper padding to `lg:pl-56` (desktop) and added `pt-12` on mobile to account for the new top bar (`src/layouts/shell.astro`).
+  - Accessibility/UX: Prevent background scroll when the mobile sidebar is open and restore on close; added `aria-expanded` sync for the menu button (`src/layouts/shell.astro`).
 
 ### Fixed
 - Home: Removed stray placeholder and corrected paragraph/container tags causing parse error in the homepage (`src/pages/index.astro`).
@@ -73,6 +78,7 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
  - RSS/Sitemap: Base URL now derived from the incoming request origin to support multiple domains (`src/pages/rss.xml.ts`, `src/pages/sitemap.xml.ts`).
   - Robots: `robots.txt` is now generated dynamically so the `Sitemap:` URL uses the incoming request origin (`src/pages/robots.txt.ts`).
   - Layout switched from top navigation bar to left sidebar. Replaced `Header` with `Sidebar` in layout and adjusted spacing: `pl-56` wrapper and removed `mt-10` offset on `<main>` (`src/layouts/shell.astro`). The old `header.astro` component remains in the codebase but is no longer used by the layout.
+  - Mobile: Removed duplicate brand in top bar and sidebar by hiding the sidebar brand on small screens (`src/components/sidebar.astro`).
   - Navigation updated to include a link to `/projects` in the sidebar (`src/components/sidebar.astro`).
   - Projects page to showcase open-source work (`src/pages/projects.astro`) backed by a simple data source (`src/data/projects.ts`).
 

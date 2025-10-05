@@ -96,8 +96,26 @@ const jsonLd = {
     </script>
   </head>
   <body class="antialiased bg-[var(--color-black)] text-[var(--color-white)] font-mono tracking-normal leading-normal min-h-screen selection:bg-base0E selection:text-black">
+    <!-- Mobile top bar -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 h-12 border-b border-muted bg-[var(--color-black)] z-40 flex items-center px-4 gap-3">
+      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md border border-muted hover:border-base0E hover:text-base0E transition-colors" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true">
+          <path fill-rule="evenodd" d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+      <a href="/" class="flex items-center gap-2 text-[var(--color-primary)]">
+        <span>skiddle@web ~</span>
+        <div class="w-[10px] h-[21px] animate-blink bg-[var(--color-primary)]"></div>
+      </a>
+    </div>
+
+    <!-- Sidebar (off-canvas on mobile) -->
     <Sidebar />
-    <div class="pl-56 flex flex-col min-h-screen">
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-black/50 z-30 hidden"></div>
+
+    <div class="lg:pl-56 pt-12 lg:pt-0 flex flex-col min-h-screen">
       <main class="flex flex-col gap-3 px-5 py-5 grow">
         <slot />
       </main>
@@ -106,5 +124,40 @@ const jsonLd = {
         <Footer />
       </footer>
     </div>
+
+    <script>
+      (function() {
+        function setupMobileSidebar() {
+          const btn = document.getElementById('mobileMenuButton');
+          const sidebar = document.getElementById('sidebar');
+          const backdrop = document.getElementById('sidebarBackdrop');
+          if (!btn || !sidebar || !backdrop) return;
+
+          function open() {
+            sidebar.classList.remove('-translate-x-full');
+            backdrop.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            document.documentElement.classList.add('overflow-hidden');
+          }
+          function close() {
+            sidebar.classList.add('-translate-x-full');
+            backdrop.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            document.documentElement.classList.remove('overflow-hidden');
+          }
+          function toggle() {
+            if (sidebar.classList.contains('-translate-x-full')) open(); else close();
+          }
+          btn.addEventListener('click', toggle);
+          backdrop.addEventListener('click', close);
+          document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setupMobileSidebar);
+        } else {
+          setupMobileSidebar();
+        }
+      })();
+    </script>
   </body>
 </html>

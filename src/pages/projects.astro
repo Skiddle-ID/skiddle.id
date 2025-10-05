@@ -41,7 +41,7 @@ function formatCategory(cat?: string) {
 }
 ---
 <Shell title="Projects — Open Source" description="A curated list of my open‑source projects with links to repos and demos.">
-  <section class="flex flex-col gap-6">
+  <section class="flex flex-col gap-4 md:gap-6 px-4 sm:px-5 md:px-0">
     <p class="max-w-[70ch] text-[color:var(--color-white)]/90">
       Explore my open‑source work. Contributions and feedback are welcome!
     </p>
@@ -58,11 +58,11 @@ function formatCategory(cat?: string) {
       ]).map(String)));
       return (
         <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-2 flex-nowrap overflow-x-auto whitespace-nowrap pr-2 [-ms-overflow-style:none] [scrollbar-width:none]" style="scrollbar-width: none;">
+          <div class="flex items-center gap-2 flex-nowrap overflow-x-auto whitespace-nowrap pr-2 -mx-1 px-1 [-ms-overflow-style:none] [scrollbar-width:none]" style="scrollbar-width: none;">
             <span class="text-xs text-[var(--color-white)]/60">Category:</span>
-            <button class="filter-cat px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/80" data-cat="all" aria-pressed="true">All</button>
+            <button class="filter-cat px-3 py-1 text-[13px] md:text-xs md:py-0.5 border border-muted rounded-full text-[var(--color-white)]/80" data-cat="all" aria-pressed="true">All</button>
             {categories.map(cat => (
-              <button class="filter-cat px-2 py-0.5 text-xs border border-muted rounded-full text-[var(--color-white)]/70" data-cat={String(cat)} aria-pressed="false">{formatCategory(String(cat))}</button>
+              <button class="filter-cat px-3 py-1 text-[13px] md:text-xs md:py-0.5 border border-muted rounded-full text-[var(--color-white)]/70" data-cat={String(cat)} aria-pressed="false">{formatCategory(String(cat))}</button>
             ))}
           </div>
           <div class="flex items-center gap-2">
