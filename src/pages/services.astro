@@ -1,49 +1,13 @@
 ---
 import Shell from '../layouts/shell.astro';
+import data from '../data/services';
 
 // SEO and structured data
 const site = 'https://skiddle.id';
 const pageUrl = new URL('/services', site).toString();
 
-const servicesData = [
-  { name: 'Server Setup & Hardening', description: 'Provisioning, firewall/TLS, users, backups, and secure defaults on Linux servers.' },
-  { name: 'CI/CD Implementation', description: 'Build/test/deploy pipelines with GitHub Actions or GitLab CI, environments, and releases.' },
-  { name: 'Automation with Ansible', description: 'Playbooks, roles, inventories, idempotent provisioning and repeatable ops.' },
-  { name: 'Self‑Hosting & Homelab Consultation', description: 'Architecture, SSO, backups/restore, monitoring guidance, and safe internet exposure.' },
-  { name: 'Website Project Setup (Custom or CMS)', description: 'From Astro/Next.js custom builds to CMS setups (e.g., WordPress, Ghost) with sensible defaults.' },
-  { name: 'Monitoring Setup (Grafana & Prometheus)', description: 'Dashboards, alerting, and metrics pipelines for actionable insights.' },
-];
-
-const testimonials = [
-  {
-    quote: 'Jeff helped us set up a firewall at the start of our project. After that we keep consulting with him for any security related issues.',
-    author: 'Adhy Musaad',
-    role: 'CTO, Kwikku Interactive',
-    serviceName: 'Server Setup & Hardening',
-    rating: 5,
-  },
-  {
-    quote: 'Our website and mail setup was done in a matter of hours. Saved us a lot of time and money.',
-    author: 'Jason Lim',
-    role: 'Business Owner',
-    serviceName: 'Website Project Setup (Custom or CMS)',
-    rating: 5,
-  },
-  {
-    quote: 'My homelab is messed before. After consulting with Jeff, it is now stable, monitored, and easy to maintain. Thanks a lot!',
-    author: 'K. Tan',
-    role: 'Indie Dev',
-    serviceName: 'Self‑Hosting & Homelab Consultation',
-    rating: 5,
-  },
-  {
-    quote: 'Jeff helped me set up my website and mail server in a matter of hours. Even though He is my cousin, I still want to give him a big thank you.',
-    author: 'N. Chen',
-    role: 'Individual',
-    serviceName: 'Website Project Setup (Custom or CMS)',
-    rating: 5,
-  },
-];
+const servicesData = data.services;
+const testimonials = data.testimonials;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -92,65 +56,17 @@ const jsonLd = {
   </div>
 
   <div class="max-w-3xl mx-auto grid gap-4 sm:grid-cols-2">
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Server Setup & Hardening</h2>
-      <p class="text-sm text-base04">Provision secure Linux servers with best practices and backups.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>Firewall, TLS, SSH and users</li>
-        <li>Backups & recovery drills</li>
-        <li>Baseline hardening</li>
-      </ul>
-    </section>
-
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">CI/CD Implementation</h2>
-      <p class="text-sm text-base04">Build, test, and deploy reliably with modern pipelines.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>GitHub Actions / GitLab CI</li>
-        <li>Multi‑env deployments</li>
-        <li>Release workflows</li>
-      </ul>
-    </section>
-
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Automation with Ansible</h2>
-      <p class="text-sm text-base04">Idempotent provisioning and repeatable operations at any scale.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>Playbooks & roles</li>
-        <li>Inventories & secrets</li>
-        <li>Server fleet automation</li>
-      </ul>
-    </section>
-
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Self‑Hosting & Homelab Consultation</h2>
-      <p class="text-sm text-base04">Plan and operate personal services safely and sustainably.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>Reverse proxy & TLS</li>
-        <li>Single‑sign on (SSO)</li>
-        <li>Backups & monitoring guidance</li>
-      </ul>
-    </section>
-
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Website Project Setup (Custom or CMS)</h2>
-      <p class="text-sm text-base04">Kickstart your site with a custom build or a robust CMS.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>Astro / Next.js</li>
-        <li>WordPress / Ghost</li>
-        <li>Content & SEO basics</li>
-      </ul>
-    </section>
-    
-    <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-      <h2 class="font-semibold text-xl text-[var(--color-primary)]">Monitoring Setup (Grafana & Prometheus)</h2>
-      <p class="text-sm text-base04">Dashboards, alerts, and metrics that help you act quickly.</p>
-      <ul class="list-disc list-inside text-sm">
-        <li>Grafana dashboards & panels</li>
-        <li>Prometheus scraping & exporters</li>
-        <li>Alertmanager routing & notifications</li>
-      </ul>
-    </section>
+    {servicesData.map((svc) => (
+      <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
+        <h2 class="font-semibold text-xl text-[var(--color-primary)]">{svc.name}</h2>
+        <p class="text-sm text-base04">{svc.description}</p>
+        {svc.features && svc.features.length ? (
+          <ul class="list-disc list-inside text-sm">
+            {svc.features.map((f) => (<li>{f}</li>))}
+          </ul>
+        ) : null}
+      </section>
+    ))}
   </div>
 
   <div id="testimonials" class="max-w-3xl mx-auto mt-8" role="region" aria-label="Client testimonials">

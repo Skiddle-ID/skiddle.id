@@ -25,6 +25,7 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - UI: Project titles on the Projects page now use the primary theme color for emphasis (`src/pages/projects.astro`).
   - UI: Increased language icon size on Projects page to 32px for better readability (`src/pages/projects.astro`).
   - Works: Introduced typed data model and data source for Works page (`src/types/works.ts`, `src/data/works.ts`).
+  - Services: Introduced typed data model and data source (`src/types/services.ts`, `src/data/services.ts`).
 
   ### Changed
   - Posts listing now renders Markdown formatting for summaries on `/posts` using Astro's Markdown processor; it extracts the first paragraph of the rendered HTML and supports Shiki syntax highlighting (`src/pages/posts/index.astro`).
@@ -55,20 +56,18 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
  - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
  - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Works: Rewrote the `Summary` to reflect certifications and DevOps/infra experience more accurately (`src/pages/works.astro`).
-- Works: Fixed structure/frontmatter after edit to ensure valid Astro layout and correct section ordering (`src/pages/works.astro`).
 - Works: Simplified `Summary` to focus on coding, platform building, automation, networking, and AI; removed certification listing and noted personal aviation goal (`src/pages/works.astro`).
 - Home: Updated homepage title/description, subheading, and intro paragraphs to align with Works summary (platforms, automation, networking, AI, aviation goal) (`src/pages/index.astro`).
 - Meta: Added explicit page descriptions to improve SEO and social previews on Works and About (`src/pages/works.astro`, `src/pages/about.astro`).
 - Works: Added a second paragraph to `Summary` covering homelab/self‑hosting, small tools to reduce toil, reliability/security/cost focus, and collaboration interests (`src/pages/works.astro`).
 - Home: Added two more intro paragraphs expanding on tools/self‑hosting/reliability and collaboration interests (`src/pages/index.astro`).
-- Home: Updated collaboration line to mirror Services offerings and linked to /services (`src/pages/index.astro`).
- - Works: Refactored page to render from typed data source (`src/pages/works.astro`) using `src/data/works.ts`.
+  - Home: Updated collaboration line to mirror Services offerings and linked to /services (`src/pages/index.astro`).
+  - Works: Refactored page to render from typed data source (`src/pages/works.astro`) using `src/data/works.ts`.
 
 ### Fixed
 - Home: Removed stray placeholder and corrected paragraph/container tags causing parse error in the homepage (`src/pages/index.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
 - SEO: Converted social images to absolute URLs for more reliable link previews (`src/components/base-head.astro`).
-- SEO: Added BreadcrumbList JSON‑LD across pages based on URL path segments (`src/layouts/shell.astro`).
 - SEO: Added bullets to document sitemap auto-discovery (`src/pages/sitemap.xml.ts`).
  - UX: Default theme is now dark when no saved preference exists (`src/layouts/shell.astro`).
  - RSS/Sitemap: Base URL now derived from the incoming request origin to support multiple domains (`src/pages/rss.xml.ts`, `src/pages/sitemap.xml.ts`).
