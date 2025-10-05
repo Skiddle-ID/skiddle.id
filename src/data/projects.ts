@@ -159,10 +159,10 @@ const projects: Project[] = [
   {
     id: 'domainchecker',
     name: 'DomainChecker',
-    description: 'A Fast Domain Block Checker /w Hono & Cloudflare Workers.',
+    description: 'A Fast Domain Block Checker /w Hono & Turso deployed on Cloudflare Workers.',
     homepage: 'https://skiddle.link/checkdomain',
     github: 'https://github.com/Skiddle-ID/domainchecker',
-    tags: ['domain-checker', 'hono', 'cloudflare-workers'],
+    tags: ['domain-checker', 'hono', 'turso', 'cloudflare-workers'],
     tech: {
       languages: ['typescript'],
       platforms: ['cloudflare workers'],
