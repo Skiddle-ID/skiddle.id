@@ -24,6 +24,7 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Projects languages now render with Devicon icons via CDN fallbacking to `-plain` variant on error (`src/pages/projects.astro`).
   - UI: Project titles on the Projects page now use the primary theme color for emphasis (`src/pages/projects.astro`).
   - UI: Increased language icon size on Projects page to 32px for better readability (`src/pages/projects.astro`).
+  - Works: Introduced typed data model and data source for Works page (`src/types/works.ts`, `src/data/works.ts`).
 
   ### Changed
   - Posts listing now renders Markdown formatting for summaries on `/posts` using Astro's Markdown processor; it extracts the first paragraph of the rendered HTML and supports Shiki syntax highlighting (`src/pages/posts/index.astro`).
@@ -61,6 +62,7 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
 - Works: Added a second paragraph to `Summary` covering homelab/self‑hosting, small tools to reduce toil, reliability/security/cost focus, and collaboration interests (`src/pages/works.astro`).
 - Home: Added two more intro paragraphs expanding on tools/self‑hosting/reliability and collaboration interests (`src/pages/index.astro`).
 - Home: Updated collaboration line to mirror Services offerings and linked to /services (`src/pages/index.astro`).
+ - Works: Refactored page to render from typed data source (`src/pages/works.astro`) using `src/data/works.ts`.
 
 ### Fixed
 - Home: Removed stray placeholder and corrected paragraph/container tags causing parse error in the homepage (`src/pages/index.astro`).
