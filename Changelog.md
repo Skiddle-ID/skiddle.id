@@ -70,6 +70,15 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Layout: Switched main wrapper padding to `lg:pl-56` (desktop) and added `pt-12` on mobile to account for the new top bar (`src/layouts/shell.astro`).
   - Accessibility/UX: Prevent background scroll when the mobile sidebar is open and restore on close; added `aria-expanded` sync for the menu button (`src/layouts/shell.astro`).
 
+  ### Security
+  - Last.fm: Removed client-side exposure of `LASTFM_API_KEY` by moving data fetching to a server-side API route. The widget now calls `/api/lastfm.json` and no secrets are sent to the client (`src/components/LastFm.astro`, `src/pages/api/lastfm.json.ts`).
+
+  ### Added
+  - API: New endpoint `GET /api/lastfm.json` to return recent track data as JSON using environment variables (`LASTFM_USERNAME`, `LASTFM_API_KEY`) (`src/pages/api/lastfm.json.ts`).
+
+  ### Changed
+  - Last.fm widget now fetches from the secure API instead of hitting Last.fm directly with an inline key; removed hardcoded API key and mapped server response to UI (`src/components/LastFm.astro`).
+
 ### Fixed
 - Home: Removed stray placeholder and corrected paragraph/container tags causing parse error in the homepage (`src/pages/index.astro`).
 - Deleted the unused Webring module directory (`src/ring/`).
