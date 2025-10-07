@@ -55,14 +55,15 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Footer version formatting tightened to remove unwanted spaces (e.g., `v1.0.0-0-gef5067f`) (`src/components/footer.astro`).
   - Footer no longer displays the distance from the tag; when a tag is available it renders as `vX.Y.Z-g…` (e.g., `v1.0.0-4-g…` or `v1.0.0-0-g…` both display as `v1.0.0-g…`) (`src/components/footer.astro`).
   - Redesigned Services page testimonials with modern card UI, star ratings, and badges for readability (`src/pages/services.astro`).
- - Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
- - Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
+- Converted Services testimonials to a continuous marquee-style auto-scroll with pause-on-hover and reduced-motion support (`src/pages/services.astro`).
+- Aligned testimonial service names to canonical categories for SEO and schema consistency (`src/pages/services.astro`).
 - Works: Rewrote the `Summary` to reflect certifications and DevOps/infra experience more accurately (`src/pages/works.astro`).
 - Works: Simplified `Summary` to focus on coding, platform building, automation, networking, and AI; removed certification listing and noted personal aviation goal (`src/pages/works.astro`).
 - Home: Updated homepage title/description, subheading, and intro paragraphs to align with Works summary (platforms, automation, networking, AI, aviation goal) (`src/pages/index.astro`).
 - Meta: Added explicit page descriptions to improve SEO and social previews on Works and About (`src/pages/works.astro`, `src/pages/about.astro`).
 - Works: Added a second paragraph to `Summary` covering homelab/self‑hosting, small tools to reduce toil, reliability/security/cost focus, and collaboration interests (`src/pages/works.astro`).
 - Home: Added two more intro paragraphs expanding on tools/self‑hosting/reliability and collaboration interests (`src/pages/index.astro`).
+  - Home: Refined homepage link groups for better semantics/accessibility — replaced bullet lists with a landmark `<nav>` containing two `<section>` groups, added headings, removed default bullets, tightened spacing, and added `rel/target` to external links (`src/pages/index.astro`).
   - Home: Updated collaboration line to mirror Services offerings and linked to /services (`src/pages/index.astro`).
   - Works: Refactored page to render from typed data source (`src/pages/works.astro`) using `src/data/works.ts`.
   - Works (Mobile): Improved responsiveness — added container side padding, responsive heading sizes, wrapped contact links, stacked date rows, and minor spacing tweaks (`src/pages/works.astro`).

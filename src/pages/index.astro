@@ -41,25 +41,27 @@ const profileImg = avatarUrl || fallback;
     <LastFm />
   </div>
 
-  <div class="max-w-sm w-full mx-auto grid sm:grid-cols-2 gap-4">
-    <div class="flex flex-col gap-2">
-      <ul class="list-disc list-inside">
-        <li><a class="text-[var(--color-primary)] underline" href="https://bsky.app/profile/skiddle.blue">Bluesky</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="https://github.com/arcestia">GitHub</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="https://www.instagram.com/skiddle.id">Instagram</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="https://open.spotify.com/artist/3Syg5zMokVKFq3ZpdFVK4F">Spotify</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="mailto:jeff@skiddle.id">Email</a></li>
+  <nav class="max-w-sm w-full mx-auto grid sm:grid-cols-2 gap-6" aria-labelledby="homepage-link-groups">
+    <h2 id="homepage-link-groups" class="sr-only">Homepage link groups</h2>
+    <section aria-labelledby="elsewhere-heading" class="flex flex-col gap-2">
+      <h3 id="elsewhere-heading" class="font-semibold text-base">Elsewhere</h3>
+      <ul class="list-none m-0 p-0 space-y-1">
+        <li><a class="text-[var(--color-primary)] hover:underline" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer">Bluesky</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="https://www.instagram.com/skiddle.id" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="https://open.spotify.com/artist/3Syg5zMokVKFq3ZpdFVK4F" target="_blank" rel="noopener noreferrer">Spotify</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="mailto:jeff@skiddle.id">Email</a></li>
       </ul>
-    </div>
-    <div class="flex flex-col gap-2">
-      <span class="font-bold text-lg">On this site</span>
-      <ul class="list-disc list-inside">
-        <li><a class="text-[var(--color-primary)] underline" href="/about">About me</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="/works">Works</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="/services">Services</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="/uses">Uses</a></li>
-        <li><a class="text-[var(--color-primary)] underline" href="/posts">Blog</a></li>
+    </section>
+    <section aria-labelledby="onsite-heading" class="flex flex-col gap-2">
+      <h3 id="onsite-heading" class="font-semibold text-base">On this site</h3>
+      <ul class="list-none m-0 p-0 space-y-1">
+        <li><a class="text-[var(--color-primary)] hover:underline" href="/about">About me</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="/works">Works</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="/services">Services</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="/uses">Uses</a></li>
+        <li><a class="text-[var(--color-primary)] hover:underline" href="/posts">Blog</a></li>
       </ul>
-    </div>
-  </div>
+    </section>
+  </nav>
 </Shell>
