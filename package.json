@@ -15,7 +15,7 @@
     "@astrojs/cloudflare": "^12.6.9",
     "@astrojs/markdown-remark": "^6.3.8",
     "@astrojs/rss": "^4.0.12",
-    "@atproto/api": "^0.16.11",
+    "@atproto/api": "^0.18.3",
     "@fontsource/geist-mono": "^5.2.7",
     "astro": "^5.14.1",
     "feed": "^5.1.0",
