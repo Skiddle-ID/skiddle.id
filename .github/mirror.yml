@@ -1,5 +1,8 @@
 name: Mirror to Tangled
-on: [push, delete]
+on: 
+  push:
+  delete:
+  workflow_dispatch: # This adds a "Run workflow" button in the UI
 
 jobs:
   codeberg:
