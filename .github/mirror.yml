@@ -2,7 +2,7 @@ name: Mirror to Tangled
 on: [push, delete]
 
 jobs:
-  tangled:
+  codeberg:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
