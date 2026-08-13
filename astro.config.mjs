@@ -42,17 +42,15 @@ export default defineConfig({
     },
     entrypointResolution: "auto",
   }),
+  markdown: {
+    syntaxHighlight: false,
+  },
   vite: {
     plugins: [tailwindcss()],
     define: {
       __GIT_HASH__: JSON.stringify(hash),
       __GIT_TAG__: JSON.stringify(tag),
       __GIT_DESCRIBE__: JSON.stringify(describe),
-    },
-    build: {
-      rollupOptions: {
-        external: ['shiki/onig.wasm'],
-      },
     },
   }
 });

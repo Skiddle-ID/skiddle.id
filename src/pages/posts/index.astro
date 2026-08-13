@@ -1,14 +1,9 @@
 ---
 export const prerender = false;
 
-import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import { getPosts } from '~/atproto/getPosts';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
-import { loadWasm } from 'shiki';
-
-// @ts-ignore - load Oniguruma for shiki syntax highlighting used by the markdown processor
-loadWasm(await import('shiki/onig.wasm'));
 
 const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase();
 const posts = await getPosts(Astro.locals, '', false);
@@ -21,10 +16,26 @@ const postsFiltered = q
     })
   : postsFilteredBase;
 
-const markdownProcessor = await createMarkdownProcessor();
+// Lightweight markdown render without shiki - keeps Worker under 3 MiB
+function simpleMarkdownToHtml(md: string): string {
+  const escaped = md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Code blocks
+  const withCode = escaped.replace(/```[\w-]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  // Paragraphs
+  const html = withCode
+    .replace(/\n\n+/g, '\n\n')
+    .split('\n\n')
+    .map(block => {
+      const b = block.trim();
+      if (!b) return '';
+      if (b.startsWith('<pre>') || b.startsWith('<h') || b.startsWith('<ul') || b.startsWith('<ol')) return b;
+      return `<p>${b.replace(/\n/g, '<br />')}</p>`;
+    }).join('\n');
+  return html;
+}
 
 function firstBlock(html: string): string {
-  // Prefer the first paragraph; fall back to first common block or a plain text slice
   const p = html.match(/<p[\s\S]*?<\/p>/i);
   if (p) return p[0];
   const block = html.match(/<(p|h[1-6]|ul|ol|pre|blockquote)[\s\S]*?<\/(?:\1)>/i);
@@ -32,13 +43,11 @@ function firstBlock(html: string): string {
   return html.slice(0, 200);
 }
 
-const postsRendered = await Promise.all(
-  postsFiltered.map(async (p) => {
-    const rendered = await markdownProcessor.render(p.content || '');
-    const summaryHtml = firstBlock(rendered.code);
-    return { ...p, summaryHtml };
-  })
-);
+const postsRendered = postsFiltered.map((p) => {
+  const rendered = simpleMarkdownToHtml(p.content || '');
+  const summaryHtml = firstBlock(rendered);
+  return { ...p, summaryHtml };
+});
 ---
 <Shell title="Skiddle@web ~/posts">
   <div class="mx-auto max-w-2xl flex flex-col">
@@ -74,4 +83,3 @@ const postsRendered = await Promise.all(
     </div>
   </div>
 </Shell>
-
