@@ -1,18 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import childProcess from "child_process";
-import fs from "node:fs";
-import path from "node:path";
-
-// Ensure dist/_worker.js/index.js exists before @cloudflare/vite-plugin validates Wrangler config.
-// Astro deletes dist during build; the vite-plugin runs in config phase before dist is recreated.
-// Creating a placeholder prevents "doesn't point to an existing file" on fresh builds.
-try {
-  fs.mkdirSync(path.resolve("dist/_worker.js"), { recursive: true });
-  const placeholder = path.resolve("dist/_worker.js/index.js");
-  if (!fs.existsSync(placeholder)) fs.writeFileSync(placeholder, "export default {};\n");
-} catch {}
-
 import tailwindcss from '@tailwindcss/vite';
 
 // obtain Git commit hash

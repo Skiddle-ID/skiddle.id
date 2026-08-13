@@ -1,5 +1,6 @@
 import { AtpAgent } from '@atproto/api';
+import { env } from 'cloudflare:workers';
 
-export const atpAgent = (locals: App.Locals) => new AtpAgent({
-  service: locals.runtime.env.ATP_SERVICE,
+export const atpAgent = (_locals?: App.Locals) => new AtpAgent({
+  service: env.ATP_SERVICE,
 });

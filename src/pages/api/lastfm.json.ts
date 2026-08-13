@@ -1,7 +1,7 @@
 /*
   Astro API Route: /api/lastfm.json
   Returns recent track information from Last.fm without exposing the API key.
-  Environment variables (in Cloudflare Workers via locals.runtime.env):
+  Environment variables (in Cloudflare Workers via cloudflare:workers env):
     - LASTFM_USERNAME
     - LASTFM_API_KEY
 
@@ -10,15 +10,15 @@
     - limit: number of tracks to fetch (default 1, max 5)
 */
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, locals }) => {
+export const GET: APIRoute = async ({ request }) => {
   try {
     const url = new URL(request.url);
-    const env = (locals as any)?.runtime?.env as Env | undefined;
-    const username = url.searchParams.get('user') || env?.LASTFM_USERNAME || '';
-    const apiKey = env?.LASTFM_API_KEY || '';
+    const username = url.searchParams.get('user') || env.LASTFM_USERNAME || '';
+    const apiKey = env.LASTFM_API_KEY || '';
 
     const limitParam = Number(url.searchParams.get('limit') || '1');
     const limit = Number.isFinite(limitParam) ? Math.max(1, Math.min(5, limitParam)) : 1;

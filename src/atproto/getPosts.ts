@@ -2,6 +2,7 @@ import type { WhtwndBlogEntryRecord, WhtwndBlogEntryView } from "src/types";
 import { atpAgent } from "./agent";
 import { whtwndBlogEntryRecordToView } from "./dataToView";
 import { getCachedPosts, setCachedPost, setCachedPosts } from "src/kv";
+import { env } from "cloudflare:workers";
 
 export const getPosts = async (ctx: App.Locals, cursor: string | undefined, skipCache?: boolean) => {
   const cachedRes = await getCachedPosts(ctx);
@@ -9,7 +10,7 @@ export const getPosts = async (ctx: App.Locals, cursor: string | undefined, skip
     return cachedRes;
   }
 
-  const repo = ctx.runtime.env.ATP_IDENTIFIER;
+  const repo = env.ATP_IDENTIFIER;
   const res = await atpAgent(ctx).com.atproto.repo.listRecords({
     collection: 'com.whtwnd.blog.entry',
     repo,
