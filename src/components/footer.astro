@@ -7,7 +7,7 @@ const describe = __GIT_DESCRIBE__;
 // Parse describe output like: v1.0.0-4-gabc123
 const m = /^(?<tag>.+)-(?<distance>\d+)-g(?<short>[0-9a-f]+)$/.exec(describe ?? "");
 ---
-<p class="text-base03 px-4 py-2">
+<p class="text-[var(--color-muted)] px-4 py-2 text-sm">
 Copyright (c) Laurensius Jeffrey {today.getFullYear()}. Version {
   m ? (
     <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${m.groups!.tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${m.groups!.short}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.short}</a></span>

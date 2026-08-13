@@ -3,58 +3,62 @@ import Shell from '../layouts/shell.astro';
 
 const birthdate = "1997-08-09T07:00:00Z";
 const ageDiff = new Date(Date.now() - new Date(birthdate).getTime());
-const age = ageDiff.getUTCFullYear() - 1970
+const age = ageDiff.getUTCFullYear() - 1970;
 ---
 
-<Shell title="skiddle@web ~/about" description="About Jeff (Skiddle) — DevOps engineer who builds platforms, automation, and networks; passionate about AI and aviation, based in Bangkok.">
+<Shell title="skiddle@web ~/about" description="About Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
   <div class="prose max-w-2xl mx-auto px-4 sm:px-5 md:px-0 space-y-4">
     <h1>About me</h1>
 
     <p class="mt-2">
-      I'm a software developer passionate about JavaScript and open protocols, creating better information ecosystems.
-      I'm a {age}-year old from Indonesia, now based in Bangkok, Thailand.
+      I'm Jeff — also known as <strong>Skiddle</strong>. I'm a {age}-year-old DevOps engineer
+      based in Bangkok, Thailand. By day (or rather, by night — I work the graveyard shift)
+      I build platforms, automate operations, and keep infrastructure running smoothly across
+      cloud and self-hosted environments.
     </p>
 
     <p>
-      I specialize in web development, decentralized technologies, and AI, with a particular
-      focus on the ATProtocol ecosystem. My journey in tech has been driven by a
-      desire to create meaningful and impactful solutions.
+      My stack is Go, PHP/Laravel, Node.js, MariaDB, PostgreSQL, Redis, Docker, and Kubernetes.
+      I deploy on Cloudflare, AWS, and self-hosted. I'm also into open protocols — the ATProtocol
+      ecosystem in particular — and I run a small personal mesh of self-hosted services from
+      my homelab setup.
     </p>
 
     <p>
-      I'm have a little ADHD, but I'm lucky enough to not have
-      it be too obstructive to my work or my life.
-      Currently, I'm also working as a DevOps engineer.
+      I like shipping small tools that remove toil. Reliability, security, and cost efficiency
+      are my priorities. I automate everything I can, and I'm always curious about new ways
+      to make systems better.
     </p>
 
-    <h2>My interests</h2>
+    <h2>On the Skiddle Ecosystem</h2>
 
     <p>
-      I'm a open to learning anything new. It doesn’t matter if it's not tech, I
-      just want to learn. From history to philosophy, from music to art, from
-      sports to games, I'm always up for a new challenge.
-    </p>
-
-    <p>
-      Primarily last few years, I've been interested in building with AI, 
-      and I've been learning a lot about it. This related to my major in 
-      Artificial Intelligence and Machine Learning.
+      This site — <strong>skiddle.id</strong> — is my corner of the internet.
+      I post about what I'm working on, what I'm learning, and occasionally things that
+      have nothing to do with tech. The blog is powered by ATProtocol, which means posts
+      are decentralized and you can follow via Bluesky.
     </p>
 
     <p>
-      Outside of programming, I enjoy gaming, and also learning about aviation.
-      I've been learning to fly for a while now, and I'm also interested in 
-      learning about space. Also working towards a PPL license (Private Pilot License).
+      I also run a small collection of personal projects — servers, bots, infrastructure
+      tools — most of which you'll find on GitHub.
+    </p>
+
+    <h2>Personal stuff</h2>
+
+    <p>
+      I have a bit of ADHD, but it doesn't get in the way of the work. Outside of tech,
+      I game, read, and generally exist at odd hours. I'm a night person — go figure.
     </p>
 
     <p>
-      As a {age}-year-old, I Feel missing out on a lot of the social aspect of 
-      the world, but I try to make the most of it.
+      I believe in open internet, open protocols, and owning your own data. I also believe
+      you should be able to run your own infrastructure if you want to.
     </p>
 
     <p>
-      For a detailed breakdown of my hardware, software, and development tools, 
-      check out my <a href="/uses">Uses page</a>.
+      For a detailed breakdown of my hardware, software, and tools, check out my
+      <a href="/uses">Uses page</a>.
     </p>
   </div>
 </Shell>
