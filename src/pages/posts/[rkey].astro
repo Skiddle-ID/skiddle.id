@@ -11,7 +11,10 @@ const post = await getPost(Astro.locals, rkey!);
 function simpleMarkdownToHtml(md: string): string {
   const escaped = md
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const withCode = escaped.replace(/```[\w-]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  const withCode = escaped.replace(/```(\w+)?\n([\s\S]*?)```/g, (_m, lang: string, code: string) => {
+    const cls = lang ? ` class="language-${lang.toLowerCase()}"` : '';
+    return `<pre><code${cls}>${code}</code></pre>`;
+  });
   const html = withCode
     .split('\n\n')
     .map(block => {
@@ -55,6 +58,14 @@ const jsonLd = {
   <hr />
 
   <div class="prose max-w-2xl mx-auto pb-5" set:html={content.code} />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-bash.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-go.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-typescript.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-json.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>Prism.highlightAll();</script>
 
   <hr />
 
