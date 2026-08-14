@@ -1,35 +1,49 @@
-<nav id="sidebar" class="fixed left-0 top-12 lg:top-0 h-[calc(100vh-3rem)] lg:h-screen w-56 border-r border-border bg-[var(--color-bg)] flex flex-col gap-1 p-4 z-40 lg:z-20 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out">
-
-  <!-- Terminal prompt -->
-  <div class="hidden lg:flex items-center gap-1 text-sm mb-3 select-none">
-    <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-primary)]">@web</span><span class="text-[var(--color-muted)]"> ~</span>
-    <div class="cursor-blink"></div>
+<nav id="sidebar" class="fixed left-0 top-12 lg:top-0 h-[calc(100vh-3rem)] lg:h-screen w-56 border-r flex flex-col gap-1 p-4 z-40 lg:z-20 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out" style="background: var(--color-bg); border-color: var(--color-border)">
+  <!-- Brand — editorial, no terminal -->
+  <div class="hidden lg:flex flex-col gap-2 mb-3">
+    <a href="/" class="flex items-center gap-2 no-underline">
+      <img src="https://github.com/arcestia.png" alt="avatar" class="size-8 rounded-full" style="border:1px solid var(--color-border)" />
+      <span style="font-family: var(--font-heading); font-weight:700; color: var(--color-text)">Skiddle</span>
+      <span class="text-xs px-2 py-0.5 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-text-muted)">v3.0</span>
+    </a>
+    <p class="text-xs leading-snug" style="color: var(--color-text-muted)">Night-shift platform engineer — Bangkok.</p>
   </div>
 
-  <!-- Nav links -->
+  <!-- Nav links — editorial -->
   <div class="flex flex-col gap-0.5">
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/posts">posts</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/about">about</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/works">works</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/projects">projects</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/services">services</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/uses">uses</a>
-    <a class="hover:text-[var(--color-primary)] py-1 px-2 rounded text-sm transition-colors" href="/rss.xml">rss</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/" style="font-family: var(--font-heading)">Home</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/posts">Posts</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/topics/">Topics</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/about">About</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/works">Works</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/uses">Uses</a>
+    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/rss.xml">RSS</a>
   </div>
 
-  <!-- Search -->
-  <form action="/posts" method="get" class="mt-3 px-2">
+  <!-- Search — always visible, editorial card -->
+  <form action="/posts" method="get" class="mt-3 px-0">
     <label class="sr-only" for="siteSearch">Search</label>
-    <input
-      id="siteSearch"
-      type="search"
-      name="q"
-      placeholder="Search posts..."
-      class="h-8 w-full bg-[var(--color-bg-alt)] border border-border rounded-md px-3 text-sm placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+    <div class="relative">
+      <input
+        id="siteSearch"
+        type="search"
+        name="q"
+        placeholder="Search posts..."
+        style="height:2rem; width:100%; background:white; border:1px solid var(--color-border); border-radius:999px; padding:0 2.25rem 0 0.75rem; font-size:12px; color: var(--color-text)"
+        class="placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+      <span aria-hidden="true" class="absolute right-2 top-1/2 -translate-y-1/2 size-6 grid place-items-center rounded-full" style="background:#eef6ff; border:1px solid var(--color-border)"><i class="fa-solid fa-magnifying-glass text-[11px]" style="color: var(--color-muted)"></i></span>
+    </div>
   </form>
 
+  <!-- Now playing — restore on sidebar, was on home -->
+  <div id="nowPlayingCard" class="mt-3 p-3 rounded-xl hidden" style="background:white; border:1px solid var(--color-border); box-shadow: var(--shadow, 0 4px 12px hsla(210,60%,88%,.5))">
+    <div class="text-[10px] uppercase tracking-widest" style="color: var(--color-muted); font-family: var(--font-heading)">Now playing</div>
+    <div id="nowPlayingContent" class="text-xs mt-1 leading-snug" style="color: var(--color-text)">Loading…</div>
+    <a id="nowPlayingLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[11px] mt-1 inline-flex gap-1 items-center hidden" style="color: var(--color-primary)"><i class="fa-brands fa-lastfm text-[11px]"></i> <span>Open in Last.fm</span></a>
+  </div>
+
   <!-- Bottom controls: theme + colors + socials -->
-  <div class="mt-auto flex items-center gap-2 pt-2 border-t border-border">
+  <div class="mt-auto flex items-center gap-2 pt-3" style="border-top:1px solid var(--color-border)">
     <button
       id="themeToggle"
       class="inline-flex items-center justify-center size-8 hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-alt)] rounded leading-none p-0 transition-colors"
@@ -51,25 +65,15 @@
         aria-haspopup="true"
         aria-expanded="false">
         <span class="sr-only">Change primary color</span>
-        <span id="primarySwatch" class="inline-block size-5 rounded-full border border-border" style="background-color: var(--color-primary);"></span>
+        <span id="primarySwatch" class="inline-block size-5 rounded-full border" style="background-color: var(--color-primary); border-color: var(--color-border)"></span>
       </button>
-      <div id="primaryMenu" class="hidden absolute left-0 mt-2 w-14 rounded-xl bg-[var(--color-bg-alt)] border border-border p-2 shadow-lg">
+      <div id="primaryMenu" class="hidden absolute left-0 bottom-full mb-2 w-14 rounded-xl p-2 shadow-lg" style="background:white; border:1px solid var(--color-border)">
         <ul class="flex flex-col gap-2" role="menu" aria-label="Primary color choices">
-          <li>
-            <button data-color="var(--color-base0B)" class="size-5 rounded-full block" style="background-color: var(--color-base0B);" title="Blue" aria-label="Blue"></button>
-          </li>
-          <li>
-            <button data-color="var(--color-base09)" class="size-5 rounded-full block" style="background-color: var(--color-base09);" title="Purple" aria-label="Purple"></button>
-          </li>
-          <li>
-            <button data-color="var(--color-base0D)" class="size-5 rounded-full block" style="background-color: var(--color-base0D);" title="Green" aria-label="Green"></button>
-          </li>
-          <li>
-            <button data-color="var(--color-base0E)" class="size-5 rounded-full block" style="background-color: var(--color-base0E);" title="Teal" aria-label="Teal"></button>
-          </li>
-          <li>
-            <button data-color="var(--color-base0C)" class="size-5 rounded-full block" style="background-color: var(--color-base0C);" title="Pink" aria-label="Pink"></button>
-          </li>
+          <li><button data-color="#2a67a5" class="size-5 rounded-full block" style="background-color:#2a67a5;" title="Blue — tania warm" aria-label="Blue"></button></li>
+          <li><button data-color="#6b21a8" class="size-5 rounded-full block" style="background-color:#6b21a8;" title="Purple" aria-label="Purple"></button></li>
+          <li><button data-color="#15803d" class="size-5 rounded-full block" style="background-color:#15803d;" title="Green" aria-label="Green"></button></li>
+          <li><button data-color="#0e7490" class="size-5 rounded-full block" style="background-color:#0e7490;" title="Teal" aria-label="Teal"></button></li>
+          <li><button data-color="#be185d" class="size-5 rounded-full block" style="background-color:#be185d;" title="Pink" aria-label="Pink"></button></li>
         </ul>
       </div>
     </div>
@@ -108,12 +112,8 @@
     }
     function init() {
       let theme = localStorage.getItem('theme');
-      if (!theme) {
-        // Default to light — no class needed since that's the default
-        theme = getSystemPrefersDark() ? 'dark' : 'light';
-      }
+      if (!theme) theme = getSystemPrefersDark() ? 'dark' : 'light';
       applyTheme(theme);
-
       const savedPrimary = localStorage.getItem('primary');
       const rootStyle = document.documentElement.style;
       const swatch = document.getElementById('primarySwatch');
@@ -127,16 +127,13 @@
           (btn as HTMLElement).style.boxShadow = isActive ? `0 0 0 2px ${value}` : 'none';
           (btn as HTMLElement).style.outline = 'none';
         });
-        if (swatch) {
-          (swatch as HTMLElement).style.boxShadow = `0 0 0 2px ${value}`;
-        }
+        if (swatch) (swatch as HTMLElement).style.boxShadow = `0 0 0 2px ${value}`;
       }
       if (savedPrimary) {
         rootStyle.setProperty('--color-primary', savedPrimary);
         if (swatch) (swatch as HTMLElement).style.backgroundColor = savedPrimary;
         updatePrimaryMenuSelection(savedPrimary);
       }
-
       const primaryToggle = document.getElementById('primaryToggle');
       const primaryMenu = document.getElementById('primaryMenu');
       function setMenu(open) {
@@ -181,15 +178,40 @@
       }
       if (!localStorage.getItem('theme') && window.matchMedia) {
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        mq.addEventListener?.('change', (e) => {
-          applyTheme(e.matches ? 'dark' : 'light');
-        });
+        mq.addEventListener?.('change', (e) => { applyTheme(e.matches ? 'dark' : 'light'); });
       }
+      // Now playing — fetch lastfm via /api/now-playing (if available), fallback hide
+      (async function() {
+        const card = document.getElementById('nowPlayingCard');
+        const content = document.getElementById('nowPlayingContent');
+        const link = document.getElementById('nowPlayingLink');
+        if (!card || !content) return;
+        try {
+          const res = await fetch('/api/now-playing');
+          if (!res.ok) throw new Error('no api');
+          const data = await res.json();
+          const track = data.track || data.nowPlaying || data;
+          const title = track.name || track.title || track.track;
+          const artist = track.artist?.['#text'] || track.artist || '';
+          if (!title) throw new Error('empty');
+          card.classList.remove('hidden');
+          content.textContent = artist ? `${title} — ${artist}` : String(title);
+          if (link && track.url) { (link as HTMLAnchorElement).href = track.url; link.classList.remove('hidden'); }
+        } catch (_) {
+          // keep hidden or show fallback
+          try {
+            const p = document.createElement('p');
+            p.className = 'text-xs';
+            p.style.color = 'var(--color-muted)';
+            p.textContent = 'Now playing — via Last.fm';
+            content.textContent = '';
+            content.appendChild(p);
+            card.classList.remove('hidden');
+          } catch (__) {}
+        }
+      })();
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
   })();
 </script>

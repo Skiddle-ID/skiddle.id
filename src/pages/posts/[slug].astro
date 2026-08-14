@@ -21,8 +21,7 @@ const { Content, headings } = await render(entry);
 const site = Astro.site;
 const slug = slugOf(entry);
 const canonical = new URL(Astro.url.pathname, site).toString();
-const rkey = entry.data.rkey || slug;
-const ogImage = `/og/posts/${rkey}.svg`;
+const ogImage = `/og/posts/${slug}.svg`;
 const shortContent = entry.data.description || entry.body.slice(0, 200).trimEnd() + '…';
 const wordCount = entry.body.split(/\s+/).length;
 const readingMin = Math.max(1, Math.ceil(wordCount / 200));
@@ -108,9 +107,39 @@ const jsonLd = {
         </div>
       )}
 
+      <!-- A: mobile ToC — collapsible -->
+      {headings.length > 0 && (
+        <details class="lg:hidden max-w-2xl mx-auto mb-4 card p-3" style="background:white">
+          <summary class="mono text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer" style="color: var(--color-text)"><i class="fa-solid fa-list"></i> On this page — {headings.length} · {readingMin} min</summary>
+          <nav class="flex flex-col gap-1 mt-3">
+            {headings.map((h: any) => (<a href={`#${h.slug}`} class="mono text-xs px-2 py-1 rounded" style="color: var(--color-primary)">{h.text}</a>))}
+          </nav>
+        </details>
+      )}
+
       <div class="prose max-w-2xl mx-auto pb-5">
         <Content />
       </div>
+      <script>
+        (function(){
+          function init(){
+            document.querySelectorAll('.prose pre').forEach(function(pre){
+              if(pre.querySelector('.code-copy')) return;
+              var btn = document.createElement('button');
+              btn.className = 'code-copy mono'; btn.type = 'button'; btn.textContent = 'Copy';
+              btn.addEventListener('click', function(){
+                var code = pre.querySelector('code');
+                var text = code ? code.innerText : pre.innerText;
+                navigator.clipboard.writeText(text).then(function(){
+                  var o = btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=o},1200);
+                });
+              });
+              pre.appendChild(btn);
+            });
+          }
+          if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+        })();
+      </script>
 
       <!-- B prev/next -->
       {(prev || next) && (

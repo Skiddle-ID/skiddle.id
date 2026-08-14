@@ -202,6 +202,19 @@ pre:has(code) {
   border-radius: 0;
 }
 
+/* ── Code copy + mobile ToC ── */
+.prose pre { position: relative; }
+.code-copy {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 11px; line-height: 1;
+  border: 1px solid var(--color-border);
+  background: white; color: var(--color-text);
+  border-radius: 999px; padding: 6px 10px;
+  opacity: 0; transition: opacity .15s, background .15s;
+}
+.prose pre:hover .code-copy, .prose pre:focus-within .code-copy { opacity: 1; }
+.code-copy:active { background: var(--color-bg-alt); }
+
 /* ── Cursor blink element ── */
 .cursor-blink {
   display: inline-block;

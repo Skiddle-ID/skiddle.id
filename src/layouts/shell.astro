@@ -15,7 +15,7 @@ interface Props {
 }
 
 const {
-  title = 'skiddle@web ~',
+  title = 'Skiddle — Systems Architecture',
   description = "Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.",
   image = '/android-chrome-512x512.png',
 } = Astro.props;
@@ -101,16 +101,17 @@ const jsonLd = {
     </script>
   </head>
   <body class="antialiased font-mono tracking-normal leading-normal min-h-screen selection:bg-base0A selection:text-base00">
-    <!-- Mobile top bar -->
-    <div class="lg:hidden fixed top-0 left-0 right-0 h-12 border-b border-border bg-[var(--color-bg)] z-40 flex items-center px-4 gap-3">
-      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md border border-border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+    <!-- Mobile top bar — editorial -->
+    <div class="lg:hidden fixed top-0 left-0 right-0 h-12 border-b z-40 flex items-center px-4 gap-3" style="background: var(--color-bg); border-color: var(--color-border)">
+      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors" style="border-color: var(--color-border)" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true">
           <path fill-rule="evenodd" d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z" clip-rule="evenodd"/>
         </svg>
       </button>
-      <a href="/" class="flex items-center gap-1 text-[var(--color-text)] text-sm">
-        <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-primary)]">@web</span><span class="text-[var(--color-muted)]"> ~</span>
-        <div class="cursor-blink"></div>
+      <a href="/" class="flex items-center gap-2 no-underline">
+        <img src="https://github.com/arcestia.png" alt="avatar" class="size-6 rounded-full" style="border:1px solid var(--color-border)" />
+        <span style="font-family: var(--font-heading); font-weight:700; color: var(--color-text)">Skiddle</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-text-muted)">v3.0</span>
       </a>
     </div>
 
