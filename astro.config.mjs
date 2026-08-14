@@ -43,7 +43,10 @@ export default defineConfig({
     entrypointResolution: "auto",
   }),
   markdown: {
-    syntaxHighlight: false,
+    shikiConfig: {
+      theme: 'github-light',
+      wrap: true,
+    },
   },
   vite: {
     plugins: [tailwindcss()],

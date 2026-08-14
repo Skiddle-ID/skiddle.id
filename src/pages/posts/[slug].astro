@@ -1,0 +1,188 @@
+---
+export const prerender = true;
+import { getCollection, getEntry } from 'astro:content';
+import { render } from 'astro:content';
+import Shell from '~/layouts/shell.astro';
+import FormattedDate from '~/components/formatted-date.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }: any) => !data.draft);
+  return posts.map((entry: any) => ({
+    params: { slug: entry.slug || entry.id.replace(/\.md$/, '') },
+    props: { entry },
+  }));
+}
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
+
+const { entry } = Astro.props as { entry: Awaited<ReturnType<typeof getEntry>> & any };
+if (!entry) throw new Error('Post not found');
+const { Content, headings } = await render(entry);
+
+const site = Astro.site;
+const slug = slugOf(entry);
+const canonical = new URL(Astro.url.pathname, site).toString();
+const rkey = entry.data.rkey || slug;
+const ogImage = `/og/posts/${rkey}.svg`;
+const shortContent = entry.data.description || entry.body.slice(0, 200).trimEnd() + '…';
+const wordCount = entry.body.split(/\s+/).length;
+const readingMin = Math.max(1, Math.ceil(wordCount / 200));
+
+const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
+  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+let prev: typeof all[number] | null = null;
+let next: typeof all[number] | null = null;
+if (entry.data.series) {
+  const seriesPosts = all
+    .filter((p: any) => p.data.series === entry.data.series)
+    .sort((a: any, b: any) => (a.data.order ?? 0) - (b.data.order ?? 0));
+  const idx = seriesPosts.findIndex((p: any) => slugOf(p) === slug);
+  if (idx > 0) prev = seriesPosts[idx - 1];
+  if (idx >= 0 && idx < seriesPosts.length - 1) next = seriesPosts[idx + 1];
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: entry.data.title,
+  datePublished: entry.data.pubDate.toISOString(),
+  dateModified: (entry.data.updatedDate || entry.data.pubDate).toISOString(),
+  author: { '@type': 'Person', name: 'Jeff (Skiddle)' },
+  publisher: { '@type': 'Organization', name: 'Skiddle', url: site },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  description: shortContent,
+  url: canonical,
+  image: new URL(ogImage, site).toString(),
+};
+---
+
+<Shell title={entry.data.title} description={shortContent} image={ogImage}>
+  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+
+  <!-- Breadcrumbs -->
+  <nav class="max-w-2xl mx-auto w-full mono text-xs flex items-center gap-2 mb-3" style="color: var(--color-text-muted)">
+    <a href="/posts/">Posts</a>
+    <span>›</span>
+    <span style="color: var(--color-text)">{entry.data.category}</span>
+    {entry.data.series && (
+      <>
+        <span>›</span>
+        <span class="tag">{entry.data.series}</span>
+      </>
+    )}
+  </nav>
+
+  <div class="max-w-2xl mx-auto w-full flex gap-6">
+    <article class="flex-1 min-w-0">
+      <header class="flex flex-col gap-2">
+        <h1 class="font-bold before-hash-1" style="font-family: var(--font-heading)">{entry.data.title}</h1>
+        <p class="mono text-xs flex flex-wrap gap-2 items-center" style="color: var(--color-text-muted)">
+          <FormattedDate date={entry.data.pubDate} />
+          {entry.data.updatedDate && (
+            <span>· Updated <FormattedDate date={entry.data.updatedDate} /></span>
+          )}
+          <span>· {readingMin} min · {wordCount.toLocaleString()} words</span>
+          <span class="tag">{entry.data.category}</span>
+          {entry.data.tags.map((t: string) => (<span class="tag">#{t}</span>))}
+        </p>
+      </header>
+
+      <hr />
+
+      <!-- C: cover hero if cover exists -->
+      {entry.data.cover && (
+        <div class="card overflow-hidden mb-4" style="background: linear-gradient(135deg, #0f2854 0%, #2a67a5 45%, #8ac6ff 100%); color: white; padding: 18px 20px;">
+          <div class="mono text-xs px-2 py-1 rounded-full inline-block mb-2" style="background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25)">Cover · {entry.data.cover}</div>
+          <div class="font-bold" style="font-size: 1.15rem; line-height: 1.2">{entry.data.title}</div>
+          <div class="mono text-xs mt-1 opacity-90">{entry.data.description}</div>
+        </div>
+      )}
+
+      <!-- B optional: series banner -->
+      {entry.data.series && (prev || next) && (
+        <div class="mono text-xs px-3 py-2 rounded-lg mb-4 flex flex-wrap gap-2 items-center" style="background: #eef6ff; border: 1px solid var(--color-border); color: var(--color-primary)">
+          <i class="fa-solid fa-layer-group"></i>
+          <b>Series: {entry.data.series}</b>
+          {prev && (<a href={`/posts/${slugOf(prev)}/`} style="color: var(--color-primary); text-decoration: underline">← {prev.data.title}</a>)}
+          {next && (<a href={`/posts/${slugOf(next)}/`} style="color: var(--color-primary); text-decoration: underline">{next.data.title} →</a>)}
+        </div>
+      )}
+
+      <div class="prose max-w-2xl mx-auto pb-5">
+        <Content />
+      </div>
+
+      <!-- B prev/next -->
+      {(prev || next) && (
+        <div class="grid sm:grid-cols-2 gap-3 mt-6 max-w-2xl mx-auto">
+          {prev ? (
+            <a href={`/posts/${slugOf(prev)}/`} class="card p-3 block">
+              <div class="mono text-xs" style="color: var(--color-text-muted)">← Prev in series</div>
+              <div class="text-sm font-semibold">{prev.data.title}</div>
+            </a>
+          ) : (<div />)}
+          {next ? (
+            <a href={`/posts/${slugOf(next)}/`} class="card p-3 block text-right sm:text-left">
+              <div class="mono text-xs" style="color: var(--color-text-muted)">Next →</div>
+              <div class="text-sm font-semibold">{next.data.title}</div>
+            </a>
+          ) : (<div />)}
+        </div>
+      )}
+
+      <hr />
+
+      <p class="max-w-2xl mx-auto pb-5 prose">
+        Thanks for reading along, I hope you enjoyed this post.
+        If you did, maybe consider following me on <a href="https://bsky.app/profile/skiddle.blue">Bluesky</a>,
+        I'm trying to write more this year, so I'll see you in the next post. 👋
+      </p>
+    </article>
+
+    <!-- A: ToC + post sidebar meta -->
+    {(headings.length > 0 || entry.data.tags.length > 0) && (
+      <aside class="hidden lg:block" style="width: 200px; flex-shrink: 0">
+        {headings.length > 0 && (
+          <div class="card p-3" style="background: white; position: sticky; top: 72px">
+            <div class="mono text-xs font-bold uppercase mb-2 flex items-center gap-1.5">
+              <i class="fa-solid fa-list"></i> On this page
+            </div>
+            <nav class="flex flex-col gap-1">
+              {headings.map((h: any) => (
+                <a href={`#${h.slug}`} class="mono text-xs px-2 py-1 rounded" style="color: var(--color-text-muted)">{h.text}</a>
+              ))}
+            </nav>
+            <div class="mono text-xs mt-3 pt-2" style="border-top: 1px solid var(--color-border); color: var(--color-text-muted)">
+              {readingMin} min
+            </div>
+          </div>
+        )}
+        <div class="card p-3 mt-3" style="background: white">
+          <div class="mono text-xs font-bold uppercase mb-2" style="color: var(--color-text-muted)">Tags</div>
+          <div class="flex flex-wrap gap-1.5">
+            {entry.data.tags.map((t: string) => (<a href={`/topics/#${entry.data.category}`} class="tag">#{t}</a>))}
+          </div>
+          <div class="mono text-xs font-bold uppercase mt-3 mb-1.5" style="color: var(--color-text-muted)">Share</div>
+          <div class="flex flex-col gap-1.5">
+            <button
+              class="btn text-xs !justify-start"
+              data-copy={canonical}
+              onclick={`navigator.clipboard.writeText(this.dataset.copy).then(()=>{const o=this.innerHTML; this.innerHTML='Copied!'; setTimeout(()=>this.innerHTML=o,1200)})`}
+            >
+              <i class="fa-regular fa-copy"></i> Copy link
+            </button>
+            <a href={`https://bsky.app/intent/compose?text=${encodeURIComponent(entry.data.title + ' ' + canonical)}`} target="_blank" class="btn text-xs !justify-start">
+              <i class="fa-brands fa-bluesky"></i> Bluesky
+            </a>
+            <a href={`https://github.com/Skiddle-ID/skiddle.id/blob/main/src/content/posts/${slug}.md`} class="btn text-xs !justify-start">
+              <i class="fa-brands fa-github"></i> Edit on GitHub
+            </a>
+          </div>
+          <div class="mono text-xs mt-3 pt-2" style="border-top: 1px solid var(--color-border); color: var(--color-text-muted)">
+            src/content/posts/{slug}.md
+          </div>
+        </div>
+      </aside>
+    )}
+  </div>
+</Shell>

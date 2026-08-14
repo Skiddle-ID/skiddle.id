@@ -1,77 +1,15 @@
 ---
-export const prerender = false;
+export const prerender = true;
+import { getCollection } from 'astro:content';
 
-import { getPost } from '~/atproto/getPost';
-import Shell from '~/layouts/shell.astro';
-import FormattedDate from '~/components/formatted-date.astro';
-
-const rkey = Astro.params.rkey;
-
-const post = await getPost(Astro.locals, rkey!);
-function simpleMarkdownToHtml(md: string): string {
-  const escaped = md
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const withCode = escaped.replace(/```(\w+)?\n([\s\S]*?)```/g, (_m, lang: string, code: string) => {
-    const cls = lang ? ` class="language-${lang.toLowerCase()}"` : '';
-    return `<pre><code${cls}>${code}</code></pre>`;
-  });
-  const html = withCode
-    .split('\n\n')
-    .map(block => {
-      const b = block.trim();
-      if (!b) return '';
-      if (b.startsWith('<pre>') || b.startsWith('<h')) return b;
-      return `<p>${b.replace(/\n/g, '<br />')}</p>`;
-    }).join('\n');
-  return html;
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }: any) => !data.draft && !!data.rkey);
+  return posts.map((entry: any) => ({
+    params: { rkey: entry.data.rkey! },
+    props: { slug: entry.slug || entry.id.replace(/\.md$/, '') },
+  }));
 }
-const contentHtml = simpleMarkdownToHtml(post.content);
-const content = { code: contentHtml };
-const shortContent = post.content.slice(0, 200).trimEnd() + '...';
 
-const site = Astro.site;
-const canonical = new URL(Astro.url.pathname, site).toString();
-const ogImage = `/og/posts/${rkey}.svg`;
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: post.title,
-  datePublished: new Date(Date.parse(post.createdAt)).toISOString(),
-  dateModified: new Date(Date.parse(post.createdAt)).toISOString(),
-  author: { '@type': 'Person', name: 'Jeff (Skiddle)' },
-  publisher: { '@type': 'Organization', name: 'Skiddle', url: site },
-  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-  description: shortContent,
-  url: canonical,
-  image: new URL(ogImage, site).toString(),
-};
+const { slug } = Astro.props as { slug: string };
+return Astro.redirect(`/posts/${slug}/`, 301);
 ---
-<Shell title={post.title} description={shortContent} image={ogImage}>
-  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-  <header class="max-w-2xl mx-auto w-full">
-    <h1 class="font-bold before-hash-1">{post.title}</h1>
-    <span class="text-base03">
-      <FormattedDate date={new Date(Date.parse(post.createdAt))} />
-    </span>
-  </header>
-
-  <hr />
-
-  <div class="prose max-w-2xl mx-auto pb-5" set:html={content.code} />
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-bash.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-go.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-typescript.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-json.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script>Prism.highlightAll();</script>
-
-  <hr />
-
-  <p class="max-w-2xl mx-auto pb-5 prose">
-    Thanks for reading along, I hope you enjoyed this post.
-    If you did, maybe consider following me on <a href="https://bsky.app/profile/skiddle.blue">Bluesky</a>,
-    I'm trying to write more this year, so I'll see you in the next post. 👋
-  </p>
-</Shell>

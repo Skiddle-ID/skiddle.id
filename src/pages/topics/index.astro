@@ -1,0 +1,63 @@
+---
+export const prerender = true;
+import Shell from '~/layouts/shell.astro';
+import { getCollection } from 'astro:content';
+
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
+
+const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
+  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const byCat = (cat: string) => all.filter((p: any) => p.data.category === cat);
+const infra = byCat('infra');
+const atproto = byCat('atproto');
+const homelab = byCat('homelab');
+const cats = [
+  { id: 'infra', label: 'Infra & Delivery', desc: 'Pipelines, Workers, KV — the 9.46M plumbing.', posts: infra },
+  { id: 'atproto', label: 'ATProto & Open', desc: 'Building in the open — skiddle.blue, PDS, WhiteWind → local MD.', posts: atproto },
+  { id: 'homelab', label: 'Homelab & Life', desc: 'Self-hosted notes — Purelymail, Aerialite, Bangkok.', posts: homelab },
+];
+---
+
+<Shell title="Topics — skiddle.dev" description="Topics — browse posts by category">
+  <div class="max-w-2xl mx-auto w-full flex flex-col gap-6">
+    <header>
+      <h1 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--color-text)">Topics</h1>
+      <p class="text-sm mt-1" style="color: var(--color-text-muted)">
+        Browse {all.length} posts by category. From <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">src/content/posts/*.md</code> — shiki at build.
+      </p>
+      <nav class="mono text-xs flex flex-wrap gap-2 mt-3" style="color: var(--color-text-muted)">
+        {cats.map(c => (<a href={`#${c.id}`} class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border); background:#eef6ff">#{c.id} · {c.posts.length}</a>))}
+        <a href="/posts/" class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border)">all →</a>
+      </nav>
+    </header>
+
+    {cats.map(cat => (
+      <section id={cat.id} class="card p-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">{cat.label}</h2>
+          <span class="mono text-xs px-2 py-1 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border)">{cat.posts.length}</span>
+        </div>
+        <p class="text-sm mt-1" style="color: var(--color-text-muted)">{cat.desc}</p>
+        <div class="mt-3 flex flex-col gap-2">
+          {cat.posts.length === 0 && (
+            <div class="text-sm" style="color: var(--color-text-muted)">No posts yet.</div>
+          )}
+          {cat.posts.map((p: any) => (
+            <a href={`/posts/${slugOf(p)}/`} class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 text-sm hover:underline" style="color: var(--color-primary)">
+              <span>{p.data.title}</span>
+              <span class="mono text-xs flex items-center gap-2" style="color: var(--color-text-muted)">
+                {p.data.pubDate.toLocaleDateString()} · {Math.max(1, Math.ceil(p.body.split(/\s+/).length / 200))} min
+                {p.data.featured && (<span class="tag">featured</span>)}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <div class="card p-3 mono text-xs" style="color: var(--color-text-muted)">
+      Source: <code>src/content/posts/*.md</code> — <a href="https://github.com/Skiddle-ID/skiddle.id" style="color: var(--color-primary)">Edit on GitHub</a>
+    </div>
+  </div>
+</Shell>

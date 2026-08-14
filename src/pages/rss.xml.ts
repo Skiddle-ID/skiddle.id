@@ -1,25 +1,13 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from "astro";
-import { getPosts } from '~/atproto/getPosts';
+import { getCollection } from 'astro:content';
 
-export const prerender = false;
-
+export const prerender = true;
 export const GET = async (context: APIContext) => {
-  const posts = await getPosts(context.locals, undefined);
-
-  const postsFiltered = posts.filter((p) => !p.content?.startsWith('NOT_LIVE'));
-  const postsShortened = postsFiltered.map((p) => {
-    if (p.content?.length! > 200) {
-      p.content = p.content?.slice(0, 200).trimEnd() + '...';
-    }
-    return p;
-  });
-
-  // Resolve metadata
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
   const requestUrl = new URL(context.request.url);
   const site = `${requestUrl.origin}/`;
-
-  // Pull display name from Bluesky (fallback to 'Skiddle')
   const handle = 'skiddle.blue';
   let displayName = 'Skiddle';
   try {
@@ -29,20 +17,17 @@ export const GET = async (context: APIContext) => {
       if (data?.displayName) displayName = data.displayName;
     }
   } catch {}
-
   return rss({
     title: `${displayName}'s Blog`,
     description: 'Personal blog and writings',
     site,
-    items: postsShortened.map((post) => ({
-      id: `${site}posts/${post.rkey}/`,
-      title: post.title ?? 'Untitled',
-      link: `${site}posts/${post.rkey}/`,
-      pubDate: new Date(post.createdAt),
-      description: post.content ?? undefined,
+    items: sorted.map(post => ({
+      id: `${site}posts/${post.slug}/`,
+      title: post.data.title ?? 'Untitled',
+      link: `${site}posts/${post.slug}/`,
+      pubDate: post.data.pubDate,
+      description: post.data.description || post.body.slice(0, 200).trimEnd() + '…',
     })),
-    // Note: @astrojs/rss does not allow adding xmlns declarations on the root element,
-    // so we omit the atom:link to avoid a namespace error in validators.
     customData: `\n<language>en-us</language>`,
   });
 };

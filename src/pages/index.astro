@@ -1,6 +1,8 @@
 ---
 import Shell from '../layouts/shell.astro';
-import LastFm from '../components/LastFm.astro';
+import { getCollection } from 'astro:content';
+export const prerender = true;
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
 
 const handle = 'skiddle.blue';
 let avatarUrl: string | undefined;
@@ -13,90 +15,145 @@ try {
 } catch (_) {}
 const fallback = 'https://github.com/arcestia.png';
 const profileImg = avatarUrl || fallback;
+
+const allPosts = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
+  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const featured = allPosts.find((p: any) => p.data.featured) || allPosts[0];
+const infra = allPosts.filter((p: any) => p.data.category === 'infra');
+const atproto = allPosts.filter((p: any) => p.data.category === 'atproto');
+const homelab = allPosts.filter((p: any) => p.data.category === 'homelab');
 ---
 
-<Shell title="skiddle@web ~" description="Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
+<Shell title="skiddle@web — Jeff (Skiddle) — Systems Architecture" description="Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
+  <div class="max-w-2xl mx-auto w-full flex flex-col gap-6">
 
-  <!-- Terminal intro block -->
-  <div class="max-w-2xl mx-auto w-full">
-    <!-- whoami prompt -->
-    <div class="font-mono text-sm leading-relaxed mb-6">
-      <div class="flex items-start gap-2">
-        <span class="text-[var(--color-primary)] select-none">$</span>
+    <!-- Hero — editorial, no terminal -->
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mono text-xs px-2.5 py-1 rounded-full mb-3 inline-flex" style="background: #eef6ff; border: 1px solid var(--color-border); color: var(--color-text-muted)">
+        <span class="w-2 h-2 rounded-full" style="background: #22c55e"></span>
+        Hey, I'm Jeff · Systems Architecture · Bangkok
+      </div>
+      <div class="flex items-start gap-4">
+        <img src={profileImg} alt="avatar" class="size-14 rounded-full border" style="border-color: var(--color-border)" />
         <div>
-          <div class="flex items-center gap-1">
-            <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-text)]">@web</span><span class="text-[var(--color-muted)]"> whoami</span>
-          </div>
-          <div class="pl-4 mt-1 flex items-center gap-4">
-            <img src={profileImg} alt="avatar" class="size-12 rounded-full border border-border" />
-            <div class="leading-snug">
-              <div class="font-bold text-[var(--color-text)]">Jeff <span class="text-[var(--color-muted)]">aka</span> Skiddle</div>
-              <div class="text-[var(--color-primary)] text-sm">DevOps · Bangkok · night shift</div>
-            </div>
-          </div>
+          <h1 style="font-family: var(--font-heading); font-size: 1.9rem; line-height: 1.05; margin: 0; color: var(--color-text)">
+            Hey, I'm Jeff — <span style="color: var(--color-primary)">Skiddle</span>
+          </h1>
+          <p class="text-sm mt-2" style="color: var(--color-text-muted)">
+            Night-shift platform engineer. I build delivery pipelines, run infra across cloud & homelab, and write about removing toil.
+          </p>
         </div>
       </div>
 
-      <div class="flex items-start gap-2 mt-3">
-        <span class="text-[var(--color-primary)] select-none">$</span>
-        <div class="flex items-center gap-1">
-          <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-text)]">@web</span><span class="text-[var(--color-muted)]"> cat about.txt</span>
+      <div class="mt-5" style="border-top: 1px solid var(--color-border); padding-top: 14px">
+        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">A brief timeline</div>
+        <div class="text-sm flex flex-col gap-2" style="color: var(--color-text-muted)">
+          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2015–2020</span><span>Self-taught, homelab experiments — learning infra by breaking it.</span></div>
+          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2021–2023</span><span>Co-founded <b style="color: var(--color-text)">Aerialite</b> in Bangkok — delivery pipelines, self-hosted to cloud.</span></div>
+          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2024–now</span><span><b style="color: var(--color-text)">Skiddle Ecosystem</b>: <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">api-trustpositif</code> · 9.46M pipeline → <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">skiddle.blue</code> + <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">skiddle.id</code> {allPosts.length} posts.</span></div>
         </div>
-      </div>
-      <div class="pl-8 mt-1 space-y-1 text-sm leading-relaxed">
-        <p>I build platforms end-to-end, automate delivery and operations, and run infra across cloud and self-hosted.</p>
-        <p>Into AI, open protocols (ATProtocol), homelab stuff, and shipping small tools that remove toil.</p>
-        <p>Based in Bangkok. Open to collaborating — see <a href="/services" class="text-[var(--color-primary)] hover:underline">services</a>.</p>
-      </div>
-
-      <div class="flex items-start gap-2 mt-4">
-        <span class="text-[var(--color-primary)] select-none">$</span>
-        <div class="flex items-center gap-1">
-          <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-text)]">@web</span><span class="text-[var(--color-muted)]"> tail -f music.lastfm</span>
+        <div class="flex flex-wrap gap-2 mt-4">
+          <a href="/posts/" class="btn btn-primary mono text-xs">Latest writing →</a>
+          <a href="/topics/" class="btn mono text-xs">Topics →</a>
         </div>
       </div>
     </div>
 
-    <!-- Last.fm widget -->
-    <div class="pl-8 mb-8">
-      <LastFm />
-    </div>
-
-    <!-- More links -->
-    <div class="flex items-start gap-2 mb-4">
-      <span class="text-[var(--color-primary)] select-none">$</span>
-      <div class="flex items-center gap-1">
-        <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-text)]">@web</span><span class="text-[var(--color-muted)]"> ls links/</span>
-      </div>
-    </div>
-
-    <div class="pl-8 grid sm:grid-cols-2 gap-6 max-w-sm">
+    <!-- Featured (if any) -->
+    {featured && (
       <div>
-        <div class="text-xs text-[var(--color-muted)] mb-2">elsewhere/</div>
-        <ul class="space-y-1 text-sm">
-          <li><a class="text-[var(--color-primary)] hover:underline" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer">bsky.social</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer">github</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="https://www.instagram.com/skiddle.id" target="_blank" rel="noopener noreferrer">instagram</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="mailto:jeff@skiddle.id">email</a></li>
-        </ul>
+        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Featured</div>
+        <a href={`/posts/${slugOf(featured)}/`} class="card p-4 block" style="background: linear-gradient(135deg, #e6f0ff 0%, #d9e8ff 50%, #c2d6f0 100%); border-color: var(--color-primary)">
+          <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">
+            {featured.data.category} · {featured.data.pubDate.toLocaleDateString()} · {featured.data.tags.slice(0,2).join(', ')}
+          </div>
+          <div class="font-bold" style="font-family: var(--font-heading); font-size: 1.15rem; line-height: 1.2">{featured.data.title}</div>
+          <div class="text-sm mt-1" style="color: var(--color-text-muted)">{featured.data.description}</div>
+        </a>
       </div>
-      <div>
-        <div class="text-xs text-[var(--color-muted)] mb-2">on_this_site/</div>
-        <ul class="space-y-1 text-sm">
-          <li><a class="text-[var(--color-primary)] hover:underline" href="/about">about</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="/works">works</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="/services">services</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="/uses">uses</a></li>
-          <li><a class="text-[var(--color-primary)] hover:underline" href="/posts">blog</a></li>
-        </ul>
+    )}
+
+    <!-- Shelves — infra / atproto / homelab -->
+    <section>
+      <div class="flex items-baseline justify-between mb-1">
+        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">Infra & Delivery</h2>
+        <a href="/topics/#infra" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
+      </div>
+      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Pipelines, Workers, KV — the 9.46M plumbing.</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        {infra.slice(0, 2).map((p: any) => (
+          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
+            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()} · {Math.max(1, Math.ceil(p.body.split(/\s+/).length / 200))} min</div>
+            <div class="font-semibold text-sm">{p.data.title}</div>
+            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section>
+      <div class="flex items-baseline justify-between mb-1">
+        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">ATProto & Open</h2>
+        <a href="/topics/#atproto" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
+      </div>
+      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Building in the open — skiddle.blue, PDS, WhiteWind → local MD.</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        {atproto.slice(0, 2).map((p: any) => (
+          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
+            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()}</div>
+            <div class="font-semibold text-sm">{p.data.title}</div>
+            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
+          </a>
+        ))}
+        {atproto.length === 0 && (
+          <div class="card p-4 text-sm" style="background: white; color: var(--color-text-muted)">More ATProto posts coming — see timeline above.</div>
+        )}
+      </div>
+    </section>
+
+    <section>
+      <div class="flex items-baseline justify-between mb-1">
+        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">Homelab & Life</h2>
+        <a href="/topics/#homelab" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
+      </div>
+      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Self-hosted notes — Purelymail, Aerialite, Bangkok.</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        {homelab.slice(0, 2).map((p: any) => (
+          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
+            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()}</div>
+            <div class="font-semibold text-sm">{p.data.title}</div>
+            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Links -->
+    <div class="card p-4">
+      <div class="grid sm:grid-cols-2 gap-6 text-sm">
+        <div>
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Elsewhere</div>
+          <ul class="space-y-1">
+            <li><a class="text-[var(--color-primary)] hover:underline" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer">bsky.social</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer">github</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="https://www.instagram.com/skiddle.id" target="_blank" rel="noopener noreferrer">instagram</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="mailto:jeff@skiddle.id">email</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">On this site</div>
+          <ul class="space-y-1">
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/about">about</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/works">works</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/services">services</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/uses">uses</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/posts">blog</a></li>
+            <li><a class="text-[var(--color-primary)] hover:underline" href="/topics/">topics</a></li>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <!-- Prompt with cursor -->
-    <div class="mt-8 flex items-center gap-1 text-sm">
-      <span class="text-[var(--color-muted)]">skiddle</span><span class="text-[var(--color-text)]">@web</span><span class="text-[var(--color-muted)]"> ~</span>
-      <div class="cursor-blink"></div>
-    </div>
   </div>
-
 </Shell>
