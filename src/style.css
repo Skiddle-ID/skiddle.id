@@ -1,24 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 @import '@fontsource/geist-mono' layer(base);
 
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
 @theme {
-  /* ── IBM Carbon palette ── */
+  /* ── IBM Carbon + Tania warm blue ── */
   --color-base00: #161616;   /* near-black */
   --color-base01: #262626;   /* dark gray */
   --color-base02: #393939;   /* mid-dark gray */
-  --color-base03: #525252;   /* mid gray */
+  --color-base03: #5a6b87;   /* slate blue-gray (tania muted) */
   --color-base04: #8d8d8d;   /* light-mid gray */
-  --color-base05: #c6c6c6;   /* light gray */
-  --color-base06: #e0e0e0;   /* lighter gray */
-  --color-base07: #f4f4f4;   /* off-white */
+  --color-base05: #c2d6f0;   /* blue border */
+  --color-base06: #d9e8ff;   /* light blue card */
+  --color-base07: #eef6ff;   /* blue-warm paper (was f4f4f4) */
 
   /* ── Accent palette ── */
   --color-base08: #ff8389;   /* red */
   --color-base09: #be95ff;   /* purple */
   --color-base0A: #82cfff;   /* sky blue ← primary accent */
-  --color-base0B: #33b1ff;   /* blue */
+  --color-base0B: #2a67a5;   /* tania blue */
   --color-base0C: #ff7eb6;   /* pink */
   --color-base0D: #42be65;   /* green */
   --color-base0E: #08bdba;   /* teal */
@@ -27,8 +28,8 @@
   /* ── Semantic aliases (LIGHT default) ── */
   --color-bg:     var(--color-base07);
   --color-bg-alt: var(--color-base06);
-  --color-bg-card:var(--color-base07);
-  --color-text:   var(--color-base00);
+  --color-bg-card: #e6f0ff;
+  --color-text:   #1a2332;
   --color-muted:  var(--color-base03);
   --color-border: var(--color-base05);
 
@@ -36,10 +37,11 @@
   --color-black:  var(--color-base00);
   --color-white:  var(--color-base00);  /* text is dark on light */
   --color-gray:   var(--color-base02);
-  --color-primary:var(--color-base0A);  /* sky blue #82cfff */
+  --color-primary:var(--color-base0B);  /* tania blue #2a67a5 (toggle to sky blue) */
 
   /* ── Font & layout ── */
   --font-mono: 'Geist Mono', monospace;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --tracking-normal: -0.32px;
   --leading-normal: 180%;
 
@@ -76,6 +78,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     color: var(--color-text);
+    font-family: var(--font-heading);
     font-size: 1em;
     font-weight: 700;
     &::before { color: var(--color-muted); }
@@ -186,6 +189,8 @@
 @utility card {
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px hsla(210,60%,88%,.5);
 }
 
 hr {
