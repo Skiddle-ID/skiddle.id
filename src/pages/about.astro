@@ -6,59 +6,69 @@ const ageDiff = new Date(Date.now() - new Date(birthdate).getTime());
 const age = ageDiff.getUTCFullYear() - 1970;
 ---
 
-<Shell title="skiddle@web ~/about" description="About Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
-  <div class="prose max-w-2xl mx-auto px-4 sm:px-5 md:px-0 space-y-4">
-    <h1>About me</h1>
+<Shell title="About — Skiddle" description="About Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
+  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
+    <!-- Hero — editorial warm blue -->
+    <div class="card p-5" style="background: linear-gradient(135deg, #e6f0ff 0%, #d9e8ff 50%, #c2d6f0 100%); border-color: var(--color-primary)">
+      <div class="flex items-start gap-4">
+        <img src="https://github.com/arcestia.png" alt="avatar" class="size-14 rounded-full border" style="border-color: var(--color-border)" />
+        <div>
+          <h1 style="font-family: var(--font-heading); font-size: 1.75rem; line-height: 1.1; margin: 0; color: var(--color-text)">About me</h1>
+          <p class="mono text-xs mt-1 px-2 py-1 rounded-full inline-flex items-center gap-1.5" style="background:white; border:1px solid var(--color-border); color: var(--color-text-muted)"><span class="w-2 h-2 rounded-full" style="background:#22c55e"></span> Bangkok · night-shift · {age} · open internet</p>
+        </div>
+      </div>
+      <p class="text-sm mt-3 leading-relaxed" style="color: var(--color-text)">
+        I'm <strong>Jeff — Skiddle</strong>, night-shift platform engineer in Bangkok. By day (or rather, by night) I build platforms, automate ops, and keep infra running across cloud & homelab.
+      </p>
+    </div>
 
-    <p class="mt-2">
-      I'm Jeff — also known as <strong>Skiddle</strong>. I'm a {age}-year-old DevOps engineer
-      based in Bangkok, Thailand. By day (or rather, by night — I work the graveyard shift)
-      I build platforms, automate operations, and keep infrastructure running smoothly across
-      cloud and self-hosted environments.
-    </p>
+    <!-- Intro — card -->
+    <div class="card p-4" style="background:white">
+      <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">What I do</div>
+      <p class="text-sm leading-relaxed" style="color: var(--color-text)">
+        My stack is <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">Go</code> <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">PHP/Laravel</code> <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">Node.js</code> <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">MariaDB/Postgres/Redis</code> <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">Docker/K8s</code> on <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">Cloudflare/AWS</code> + self-hosted. Into ATProto and owning your own data — small personal mesh from my homelab.
+      </p>
+      <p class="text-sm leading-relaxed mt-2" style="color: var(--color-text)">
+        I ship small tools that remove toil. Reliability, security, cost — automate everything, be curious, make systems better.
+      </p>
+    </div>
 
-    <p>
-      My stack is Go, PHP/Laravel, Node.js, MariaDB, PostgreSQL, Redis, Docker, and Kubernetes.
-      I deploy on Cloudflare, AWS, and self-hosted. I'm also into open protocols — the ATProtocol
-      ecosystem in particular — and I run a small personal mesh of self-hosted services from
-      my homelab setup.
-    </p>
+    <!-- Skiddle Ecosystem + personal — two cards -->
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div class="card p-4" style="background:white">
+        <div class="mono text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5" style="color: var(--color-text-muted)"><i class="fa-solid fa-layer-group text-[11px]"></i> Skiddle ecosystem</div>
+        <p class="text-sm leading-relaxed" style="color: var(--color-text)">
+          This site — <strong>skiddle.id</strong> — is my corner. I post about what I'm building, learning, and occasionally non-tech. Blog is ATProto → Bluesky follow <a href="https://bsky.app/profile/skiddle.blue" style="color: var(--color-primary)">@skiddle.blue</a>.
+        </p>
+        <p class="text-sm leading-relaxed mt-2" style="color: var(--color-text)">Small projects — servers, bots, infra tools — on <a href="https://github.com/Skiddle-ID" style="color: var(--color-primary)">GitHub</a>.</p>
+      </div>
+      <div class="card p-4" style="background:white">
+        <div class="mono text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5" style="color: var(--color-text-muted)"><i class="fa-solid fa-heart text-[11px]"></i> Personal</div>
+        <p class="text-sm leading-relaxed" style="color: var(--color-text)">ADHD, but doesn't block the work. I game, read, live at odd hours — night person.</p>
+        <p class="text-sm leading-relaxed mt-2" style="color: var(--color-text)">Open internet, open protocols, own your data. Run your own infra if you want.</p>
+        <p class="text-sm mt-2"><a href="/uses" style="color: var(--color-primary)" class="mono text-xs">Hardware & tools →</a></p>
+      </div>
+    </div>
 
-    <p>
-      I like shipping small tools that remove toil. Reliability, security, and cost efficiency
-      are my priorities. I automate everything I can, and I'm always curious about new ways
-      to make systems better.
-    </p>
-
-    <h2>On the Skiddle Ecosystem</h2>
-
-    <p>
-      This site — <strong>skiddle.id</strong> — is my corner of the internet.
-      I post about what I'm working on, what I'm learning, and occasionally things that
-      have nothing to do with tech. The blog is powered by ATProtocol, which means posts
-      are decentralized and you can follow via Bluesky.
-    </p>
-
-    <p>
-      I also run a small collection of personal projects — servers, bots, infrastructure
-      tools — most of which you'll find on GitHub.
-    </p>
-
-    <h2>Personal stuff</h2>
-
-    <p>
-      I have a bit of ADHD, but it doesn't get in the way of the work. Outside of tech,
-      I game, read, and generally exist at odd hours. I'm a night person — go figure.
-    </p>
-
-    <p>
-      I believe in open internet, open protocols, and owning your own data. I also believe
-      you should be able to run your own infrastructure if you want to.
-    </p>
-
-    <p>
-      For a detailed breakdown of my hardware, software, and tools, check out my
-      <a href="/uses">Uses page</a>.
-    </p>
+    <!-- Links — quick nav, no duplicate hero -->
+    <div class="card p-4" style="background:white">
+      <div class="mono text-xs uppercase tracking-widest mb-3" style="color: var(--color-text-muted)">On this site · elsewhere</div>
+      <div class="grid sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <div class="mono text-xs mb-1" style="color: var(--color-muted)">On this site</div>
+          <ul class="space-y-1">
+            <li><a href="/posts" style="color: var(--color-primary)">Posts</a> · <a href="/topics/" style="color: var(--color-primary)">Topics</a></li>
+            <li><a href="/works" style="color: var(--color-primary)">Works</a> · <a href="/uses" style="color: var(--color-primary)">Uses</a> · <a href="/projects" style="color: var(--color-primary)">Projects</a></li>
+            <li><a href="/services" style="color: var(--color-primary)">Services</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="mono text-xs mb-1" style="color: var(--color-muted)">Elsewhere</div>
+          <ul class="space-y-1">
+            <li><a href="https://bsky.app/profile/skiddle.blue" style="color: var(--color-primary)" target="_blank">bsky</a> · <a href="https://github.com/arcestia" style="color: var(--color-primary)" target="_blank">github</a> · <a href="mailto:jeff@skiddle.id" style="color: var(--color-primary)">email</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </Shell>

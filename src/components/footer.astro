@@ -3,18 +3,29 @@ const today = new Date();
 const hash = __GIT_HASH__;
 const tag = __GIT_TAG__;
 const describe = __GIT_DESCRIBE__;
-
-// Parse describe output like: v1.0.0-4-gabc123
 const m = /^(?<tag>.+)-(?<distance>\d+)-g(?<short>[0-9a-f]+)$/.exec(describe ?? "");
 ---
-<p class="text-[var(--color-muted)] px-4 py-2 text-sm">
-Copyright (c) Laurensius Jeffrey {today.getFullYear()}. Version {
-  m ? (
-    <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${m.groups!.tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${m.groups!.short}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{m.groups!.short}</a></span>
-  ) : tag ? (
-    <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{hash}</a></span>
-  ) : (
-    <a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-color duration-200">{hash}</a>
-  )
-}.
-</p>
+<div class="card p-4 mt-4" style="background:white">
+  <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+    <div class="flex flex-wrap gap-3" style="color: var(--color-muted)">
+      <a href="/posts" class="hover:underline" style="color: var(--color-primary)">Posts</a>
+      <a href="/topics/" class="hover:underline" style="color: var(--color-primary)">Topics</a>
+      <a href="/about" class="hover:underline" style="color: var(--color-primary)">About</a>
+      <a href="/uses" class="hover:underline" style="color: var(--color-primary)">Uses</a>
+      <a href="/rss.xml" class="hover:underline" style="color: var(--color-primary)">RSS</a>
+      <a href="https://github.com/Skiddle-ID/skiddle.id" target="_blank" class="hover:underline" style="color: var(--color-primary)">GitHub</a>
+    </div>
+    <div class="mono text-xs" style="color: var(--color-muted)">
+      { m ? (
+        <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${m.groups!.tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-colors">{m.groups!.tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${m.groups!.short}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-colors">{m.groups!.short}</a></span>
+      ) : tag ? (
+        <span class="whitespace-nowrap"><a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/releases/tag/${tag}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-colors">{tag}</a>+<a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-colors">{hash}</a></span>
+      ) : (
+        <a target="_blank" href={`https://github.com/Skiddle-ID/skiddle.id/commit/${hash}`} class="decoration-wavy underline hover:text-[var(--color-primary)] transition-colors">{hash}</a>
+      )}
+    </div>
+  </div>
+  <p class="mono text-xs mt-2" style="color: var(--color-muted)">
+    Copyright (c) Laurensius Jeffrey {today.getFullYear()} · warm blue · <span style="color: var(--color-primary)">skiddle.id v3</span>
+  </p>
+</div>

@@ -1,0 +1,109 @@
+---
+title: "MDX demo — every possibility"
+description: "Test all possibilities — callout, tabs, details, mermaid, tables, footnotes, cover, ToC, and Related."
+pubDate: 2025-08-16T00:00:00.000Z
+category: infra
+tags: [astro, mdx, warm]
+draft: true
+cover: "/og/posts/mdx-demo.svg"
+featured: true
+series: "Warm blue kitchen sink"
+order: 1
+---
+
+import Callout from '~/components/mdx/callout.astro';
+
+<Callout type="info" title="Warm blue — MDX is opt‑in hybrid">
+
+`src/content/posts/*.md` stays prose. Create `.mdx` only when you need components. This `mdx-demo.mdx` tests every `MDX` possibility warm blue `eef6ff` style.
+
+</Callout>
+
+## 1) Headings & ToC
+
+### Table of contents works
+
+#### Nested h3/h4
+
+Paragraph with inline `code` and **bold** and _italic_ and a [link](/posts/) — ToC picks `h2/h3/h4` min `2` and `readingTime`.
+
+<Callout type="warn" title="Note: callout warn">
+
+Use for deprecations — e.g. `Purelymail` vs `Postfix → Workspace` `migrating email` cost table below.
+
+</Callout>
+
+<Callout type="tip" title="Tip">
+
+`tip` `green #dcfce7` — e.g. `bun add @astrojs/mdx@4.3.8` fixed `chunkToString` for `astro 6.4.8`.
+
+</Callout>
+
+<Callout type="danger" title="Breaking — keep <3 MiB gzip">
+
+Every release `wrangler deploy --dry-run` must stay `<3072 KiB gzip` — current `428 gz` OK `12 modules`.
+
+</Callout>
+
+## 2) Code — shiki at build `github-light`
+
+```ts
+// shiki at build — no Worker WASM
+export const prerender = true;
+import { getCollection } from 'astro:content';
+const slugOf = (e: any) => e.slug || e.id.replace(/\.mdx?$/, '');
+```
+
+```bash
+bun run build       # 16.43s 428 gz
+bunx astro check    # typecheck MD/MDX
+```
+
+Copy pill `Copy → Copied` on `pre:has(code)` `absolute right-2` warm `white` should appear.
+
+## 3) Tables
+
+| Service | Cost | Infra | Notes |
+|--------:|:----:|:-----:|------|
+| Postfix self‑host | ~$0 | 24/7 VM | you run spam, DKIM, PTR |
+| Workspace | $6/u/mo | Google | easy, not warm blue |
+| Purelymail | $10/y | minimal | sweet spot `i-migrate...` |
+
+## 4) Lists, quotes, details
+
+- Unordered `API` `trustpositif` `checkdomain`
+- Nested
+  - second level warm `·` should be `var(--color-primary)`
+
+1. Ordered `PPL` `ForeFlight`
+2. `Uses` `Works`
+
+> Quote — open internet, own your data. Warm border `4px var(--color-primary)` if styled in `prose`.
+
+<details>
+<summary class="mono text-xs uppercase tracking-widest" style="color: var(--color-primary)">Details — collapsible (for long ToC on mobile)</summary>
+
+Mobile `ToC` is `<details lg:hidden>`. This tests `<details>` inside `MDX` `prose`.
+
+</details>
+
+## 5) Footnotes
+
+Text with footnote `[^1]` warm blue link `var(--color-primary)` underline.
+
+[^1]: Footnote — `migrating email to Purelymail` story `Cloudflare Routing` → `Purelymail $10/y` — footnote should render at bottom.
+
+## 6) Images & OG
+
+Cover `/og/posts/mdx-demo.svg` `1200×630` `fbfbfb→eef6ff` warm. Loader `glob **/*.{md,mdx}` picks `mdx-demo` cover same as `md`.
+
+![Cover placeholder — OG svg renders at post header](/og/posts/mdx-demo.svg)
+
+## 7) Series & Related
+
+`series: Warm blue kitchen sink` + `order: 1` — next post in series would be `order: 2` `prev/next` nav should appear below. `Related` `same category/tags` `3` cards should list `infra` or `astro/mdx`.
+
+---
+
+Test `posts/` `topics/` `topics/tag/mdx/` `topics/tag/warm/` — draft `false` `featured:true` should surface `featured` slot on `index` and `topics`. Code `Copy` + mobile `On this page` `lg:hidden` should work in this `MDX`.
+

@@ -1,0 +1,30 @@
+---
+interface Props { tabs: string[]; }
+const { tabs } = Astro.props as Props;
+const id = `tabs-${Math.random().toString(36).slice(2,8)}`;
+---
+<div class="tabs card my-3" style="background:white" data-tabs={id}>
+  <div class="flex flex-wrap gap-1.5 p-2" style="border-bottom:1px solid var(--color-border)">
+    {tabs.map((t, i) => (<button type="button" class="tag" data-tab={String(i)} aria-selected={i===0 ? 'true' : 'false'} style={i===0 ? 'background:#d9e8ff; border-color:var(--color-primary); color:var(--color-primary)' : ''}>{t}</button>))}
+  </div>
+  <div class="p-3 text-sm leading-relaxed">
+    <slot />
+  </div>
+</div>
+<style>
+  [data-tabs] [data-panel] { display: none; }
+  [data-tabs] [data-panel].is-active { display: block; }
+  [data-tabs] [data-tab][aria-selected="true"] { background:#d9e8ff; border-color: var(--color-primary); color: var(--color-primary); }
+</style>
+<script>
+  document.querySelectorAll('[data-tabs]').forEach((root) => {
+    const tabs = [...root.querySelectorAll('[data-tab]')] as HTMLElement[];
+    const panels = [...root.querySelectorAll('[data-panel]')] as HTMLElement[];
+    function activate(i: number) {
+      tabs.forEach((t, idx) => t.setAttribute('aria-selected', idx===i ? 'true':'false'));
+      panels.forEach((p, idx) => p.classList.toggle('is-active', idx===i));
+    }
+    tabs.forEach((t, i) => t.addEventListener('click', () => activate(i)));
+    if (panels.length) activate(0);
+  });
+</script>

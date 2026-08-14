@@ -5,7 +5,7 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-  /* ── IBM Carbon + Tania warm blue ── */
+  /* ── IBM Carbon + Warm blue ── */
   --color-base00: #161616;   /* near-black */
   --color-base01: #262626;   /* dark gray */
   --color-base02: #393939;   /* mid-dark gray */
@@ -51,19 +51,6 @@
     0%, 25%, 100% { opacity: 1 }
     50%, 75%       { opacity: 0 }
   }
-}
-
-/* ── Dark theme: toggled by adding `theme-dark` to <html> ── */
-.theme-dark {
-  --color-bg:      var(--color-base00);
-  --color-bg-alt:  var(--color-base01);
-  --color-bg-card: var(--color-base01);
-  --color-text:    var(--color-base07);
-  --color-muted:   var(--color-base03);
-  --color-border:  var(--color-base02);
-  --color-black:   var(--color-base00);
-  --color-white:   var(--color-base07);
-  --color-primary: var(--color-base0A);  /* keep sky blue in both themes */
 }
 
 /* ── Prose / markdown content ── */
@@ -117,7 +104,14 @@
     &::after  { content: "" !important }
   }
 
-  p { margin: 0.75em 0; }
+  p { margin: 0.5em 0; }
+  h1, h2, h3, h4, h5, h6 { margin: 1em 0 0.4em; }
+  ul, ol, blockquote, pre, table { margin: 0.6em 0; }
+  .card { margin: 0.6em 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.875em; line-height: 1.4; }
+  th, td { border: 1px solid var(--color-border); padding: 0.4em 0.6em; text-align: left; }
+  th { background: #eef6ff; color: var(--color-text); font-family: var(--font-heading); font-weight: 700; }
+  td { background: white; }
   ul { list-style: none; padding-left: 1.25em;
        & li::before { content: '• '; color: var(--color-primary); margin-left: -1.25em; }
      }
@@ -201,6 +195,19 @@ pre:has(code) {
   background-color: var(--color-bg-alt) !important;
   border-radius: 0;
 }
+
+/* ── Code copy + mobile ToC ── */
+.prose pre { position: relative; }
+.code-copy {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 11px; line-height: 1;
+  border: 1px solid var(--color-border);
+  background: white; color: var(--color-text);
+  border-radius: 999px; padding: 6px 10px;
+  opacity: 0; transition: opacity .15s, background .15s;
+}
+.prose pre:hover .code-copy, .prose pre:focus-within .code-copy { opacity: 1; }
+.code-copy:active { background: var(--color-bg-alt); }
 
 /* ── Cursor blink element ── */
 .cursor-blink {
