@@ -53,19 +53,6 @@
   }
 }
 
-/* ── Dark theme: toggled by adding `theme-dark` to <html> ── */
-.theme-dark {
-  --color-bg:      var(--color-base00);
-  --color-bg-alt:  var(--color-base01);
-  --color-bg-card: var(--color-base01);
-  --color-text:    var(--color-base07);
-  --color-muted:   var(--color-base03);
-  --color-border:  var(--color-base02);
-  --color-black:   var(--color-base00);
-  --color-white:   var(--color-base07);
-  --color-primary: var(--color-base0A);  /* keep sky blue in both themes */
-}
-
 /* ── Prose / markdown content ── */
 @utility prose {
   color: var(--color-text) !important;

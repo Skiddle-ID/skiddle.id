@@ -69,7 +69,7 @@ const jsonLd = {
 };
 ---
 
-<html lang="en" class="theme-light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -77,28 +77,6 @@ const jsonLd = {
     <meta name="description" content={description} />
     <BaseHead title={title} description={description} image={image} />
     <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    <script>
-      (function() {
-        try {
-          // Default to light theme (no class needed — it's the default)
-          var theme = localStorage.getItem('theme');
-          var root = document.documentElement;
-          if (theme === 'dark') {
-            root.classList.remove('theme-light');
-            root.classList.add('theme-dark');
-          } else {
-            root.classList.remove('theme-dark');
-            root.classList.add('theme-light');
-          }
-
-          // Apply saved primary color early to prevent flash
-          var savedPrimary = localStorage.getItem('primary');
-          if (savedPrimary) {
-            root.style.setProperty('--color-primary', savedPrimary);
-          }
-        } catch (_) {}
-      })();
-    </script>
   </head>
   <body class="antialiased font-mono tracking-normal leading-normal min-h-screen selection:bg-base0A selection:text-base00">
     <!-- Mobile top bar — editorial -->
