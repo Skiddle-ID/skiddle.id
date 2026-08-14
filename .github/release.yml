@@ -1,0 +1,34 @@
+changelog:
+  categories:
+    - title: Added
+      labels:
+        - feat
+        - feature
+        - enhancement
+    - title: Changed
+      labels:
+        - change
+        - chore
+        - refactor
+        - perf
+    - title: Fixed
+      labels:
+        - fix
+        - bug
+        - hotfix
+    - title: Dependencies
+      labels:
+        - dependencies
+        - deps
+        - javascript
+    - title: Docs
+      labels:
+        - docs
+        - documentation
+  exclude:
+    labels:
+      - skip-changelog
+      - duplicate
+      - invalid
+      - wontfix
+      - question

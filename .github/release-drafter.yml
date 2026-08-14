@@ -1,0 +1,39 @@
+name-template: "v$RESOLVED_VERSION — $CHANGES"
+tag-template: "v$RESOLVED_VERSION"
+categories:
+  - title: "🚀 Added"
+    labels:
+      - "feat"
+      - "feature"
+      - "enhancement"
+  - title: "✨ Changed"
+    labels:
+      - "change"
+      - "chore"
+      - "refactor"
+      - "perf"
+  - title: "🐛 Fixed"
+    labels:
+      - "fix"
+      - "bug"
+      - "hotfix"
+  - title: "📦 Dependencies"
+    labels:
+      - "dependencies"
+      - "deps"
+  - title: "📝 Docs"
+    labels:
+      - "docs"
+      - "documentation"
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: "\\<*_&"
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$CURRENT_TAG
+
+exclude-labels:
+  - "skip-changelog"
+autocategorize: true
