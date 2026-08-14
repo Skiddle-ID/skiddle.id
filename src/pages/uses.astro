@@ -2,157 +2,100 @@
 import Shell from '../layouts/shell.astro';
 ---
 
-<Shell title="skiddle@web ~/uses">
-  <div class="prose max-w-2xl mx-auto">
-    <h1>Uses</h1>
+<Shell title="Uses — Skiddle">
+  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
+    <!-- Hero — warm blue -->
+    <div class="card p-5" style="background: linear-gradient(135deg, #e6f0ff 0%, #d9e8ff 50%, #c2d6f0 100%); border-color: var(--color-primary)">
+      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; line-height: 1.1; margin: 0; color: var(--color-text)">Uses</h1>
+      <p class="text-sm mt-2 leading-relaxed" style="color: var(--color-text-muted)">
+        Hardware, software, and tools I use daily. Inspired by <a href="https://uses.tech" style="color: var(--color-primary)">uses.tech</a> — regularly updated.
+      </p>
+      <p class="mono text-xs mt-2 px-2.5 py-1 rounded-full inline-flex" style="background:white; border:1px solid var(--color-border); color: var(--color-text-muted)">Last updated · September 2025</p>
+    </div>
 
-    <p>
-      Here's a comprehensive list of the hardware, software, and tools I use for development, 
-      content creation, and daily computing. This page is inspired by the 
-      <a href="https://uses.tech">uses.tech</a> movement.
-    </p>
+    <!-- Infrastructure — 4 small warm cards -->
+    <section>
+      <div class="mono text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5" style="color: var(--color-text-muted)"><i class="fa-solid fa-server text-[11px]"></i> Infrastructure</div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="card p-4" style="background:white; border-left: 4px solid var(--color-primary)">
+          <div class="mono text-xs uppercase tracking-widest" style="color: var(--color-primary)">PCs</div>
+          <ul class="text-sm mt-2 space-y-1" style="color: var(--color-text)">
+            <li><strong>Skiddle-Pika</strong> — Arch Linux · Ryzen 9 7950X · RTX 4090</li>
+            <li><strong>Skiddle-Bulba</strong> — Windows 11 · Ryzen 9 9950X3D · RTX 5090</li>
+          </ul>
+        </div>
+        <div class="card p-4" style="background:white; border-left: 4px solid var(--color-primary)">
+          <div class="mono text-xs uppercase tracking-widest" style="color: var(--color-primary)">Laptops</div>
+          <ul class="text-sm mt-2 space-y-1" style="color: var(--color-text)">
+            <li><strong>Skiddle-Blastoise</strong> — MacBook Pro 16" · M3 Pro · macOS</li>
+            <li><strong>Skiddle-Charizard</strong> — ASUS ProArt P16 · AMD HX 370 · RTX 5070</li>
+          </ul>
+        </div>
+        <div class="card p-4" style="background:white; border-left: 4px solid var(--color-primary)">
+          <div class="mono text-xs uppercase tracking-widest" style="color: var(--color-primary)">Storage</div>
+          <ul class="text-sm mt-2 space-y-1" style="color: var(--color-text)">
+            <li><strong>Skiddle-Torchic</strong> — Home NAS · Unraid · 4TB NVMe · 65TB HDD</li>
+            <li><strong>Skiddle-Mewtwo</strong> — Primary NAS · Unraid · 8TB NVMe · 550TB · Backblaze · Indonesia</li>
+          </ul>
+        </div>
+        <div class="card p-4" style="background:white; border-left: 4px solid var(--color-primary)">
+          <div class="mono text-xs uppercase tracking-widest" style="color: var(--color-primary)">Cluster & server</div>
+          <ul class="text-sm mt-2 space-y-1" style="color: var(--color-text)">
+            <li><strong>Skiddle-Eevee</strong> — Pi 4 Cluster · 8× 4B+ 4GB · Kubernetes</li>
+            <li><strong>Skiddle-Titan</strong> <span class="mono text-xs px-1.5 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">transferred to Aerialite</span> — Threadripper PRO 9985WX · RTX 6000 Ada · Proxmox VE</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-    <h2>My Infrastructure</h2>
+    <!-- Software — warm blue pills -->
+    <section>
+      <div class="mono text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5" style="color: var(--color-text-muted)"><i class="fa-solid fa-code text-[11px]"></i> Software & dev</div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="card p-4" style="background:white">
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Editor · terminal</div>
+          <p class="text-sm" style="color: var(--color-text)"><a href="https://zed.dev" style="color: var(--color-primary)">Zed</a> + <a href="https://neovim.io" style="color: var(--color-primary)">Neovim</a> — quick edits. <a href="https://ghostty.org/" style="color: var(--color-primary)">Ghostty</a> on macOS/Linux, Windows Terminal + WSL.</p>
+          <div class="flex flex-wrap gap-1.5 mt-2"><span class="tag">Zed</span><span class="tag">Neovim</span><span class="tag">Ghostty</span></div>
+        </div>
+        <div class="card p-4" style="background:white">
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">DevOps · infra</div>
+          <div class="flex flex-wrap gap-1.5"><span class="tag">Docker</span><span class="tag">Kubernetes</span><span class="tag">Proxmox VE</span><span class="tag">Unraid</span><span class="tag">ZFS</span><span class="tag">Prometheus</span><span class="tag">Grafana</span><span class="tag">GitHub Actions</span><span class="tag">Backblaze</span></div>
+          <div class="mono text-xs mt-2" style="color: var(--color-muted)">AWS · Cloudflare · GCP · Vercel · Render</div>
+        </div>
+        <div class="card p-4" style="background:white">
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Web · data</div>
+          <p class="text-sm" style="color: var(--color-text)">Vue/Astro/React/Svelte/Nuxt — Node/Go/PHP/Python/Ruby — Postgres/MySQL/Redis/Mongo</p>
+          <div class="flex flex-wrap gap-1.5 mt-2"><span class="tag">Astro</span><span class="tag">Go</span><span class="tag">Node.js</span><span class="tag">Postgres</span></div>
+        </div>
+        <div class="card p-4" style="background:white">
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Daily · browser</div>
+          <p class="text-sm" style="color: var(--color-text)">Arch Linux (dev) · macOS (daily) · Windows 11 (games) — Zen Browser · Chrome Canary · Firefox Nightly</p>
+        </div>
+      </div>
+    </section>
 
-    <h3>PCs</h3>
+    <!-- Creation · Audio · Gaming — compact -->
+    <div class="grid sm:grid-cols-3 gap-3">
+      <div class="card p-4" style="background:white">
+        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Writing & notes</div>
+        <p class="text-sm" style="color: var(--color-text)">This site — Astro. Notes — Obsidian. Docs — Markdown.</p>
+        <p class="text-sm mt-2" style="color: var(--color-text-muted)">Design — Adobe CC · Video — DaVinci · OBS</p>
+      </div>
+      <div class="card p-4" style="background:white">
+        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Audio</div>
+        <p class="text-sm" style="color: var(--color-text)">Audacity · Logic Pro — WH-1000XM4 · HD600 — AT2020 · SM58 · Audient iD14</p>
+      </div>
+      <div class="card p-4" style="background:white">
+        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-primary)">Gaming & reading</div>
+        <p class="text-sm" style="color: var(--color-text)">Steam · Epic — Netflix · YouTube · Spotify — Kindle · Prime Reading · Audible</p>
+      </div>
+    </div>
 
-    <ul>
-      <li><strong>Skiddle-Pika:</strong> My Main PC, running Arch Linux, with a Ryzen 9 7950X and RTX 4090</li>
-      <li><strong>Skiddle-Bulba:</strong> Gaming PC, running Windows 11, with a Ryzen 9 9950X3D and RTX 5090</li>
-    </ul>
-
-    <h3>Laptops</h3>
-
-    <ul>
-      <li><strong>Skiddle-Blastoise:</strong> My MacBook Pro 16-inch, running macOS, with an M3 Pro</li>
-      <li><strong>Skiddle-Charizard:</strong> ASUS ProArt P16, running Windows 11, with an AMD Ryzen AI 9 HX 370 and RTX 5070 (Newest, mostly used by my Girlfriend)</li>
-    </ul>
-
-    <h3>Storage</h3>
-
-    <ul>
-      <li><strong>Skiddle-Torchic:</strong> My Home NAS, running Unraid, with a 4TB NVMe and a combined 65TB HDD</li>
-      <li><strong>Skiddle-Mewtwo:</strong> Primary NAS, running Unraid, with a 8TB NVMe and a combined 550TB HDD, Also have cloud backup to Backblaze. Located back in Indonesia (My home country)</li>
-    </ul>
-
-    <h3>Server</h3>
-
-    <ul>
-      <li><s><strong>Skiddle-Titan:</strong> My Server & Workstation, Proxmox VE, with a Ryzen Threadripper PRO 9985WX (64-core) and RTX 6000 Ada</s> Transferred to Aerialite</li>
-    </ul>
-
-    <h3>Other</h3>
-
-    <ul>
-      <li><strong>Skiddle-Eevee:</strong> Raspberry Pi 4 Cluster, 8x Raspberry Pi 4B+ with 4GB RAM each, Running Kubernetes</li>
-    </ul>
-
-    <h2>Software & Development Tools</h2>
-
-    <h3>Editor & IDE</h3>
-
-    <p>
-      Primarily, I use <a href="https://zed.dev">Zed</a> for most of my development work,
-      but I also use <a href="https://neovim.io">Neovim</a> for quick edits and terminal-based tasks.
-    </p>
-
-    <h3>Terminal</h3>
-
-    <ul>
-      <li><strong>macOS:</strong> <a href="https://ghostty.org/">Ghostty</a> with custom themes and configurations</li>
-      <li><strong>Windows:</strong> <a href="https://github.com/microsoft/terminal">Windows Terminal</a> with PowerShell and WSL</li>
-      <li><strong>Linux:</strong> <a href="https://ghostty.org/">Ghostty</a> Similar to macOS, i've using same dotfiles</li>
-    </ul>
-
-    <h3>DevOps & Infrastructure Tools</h3>
-
-    <ul>
-      <li><strong>Containerization:</strong> Docker, Kubernetes</li>
-      <li><strong>Virtualization:</strong> Proxmox VE, VMware</li>
-      <li><strong>Storage:</strong> Unraid, TrueNAS, ZFS, Backblaze, WekaFS</li>
-      <li><strong>Monitoring:</strong> Prometheus, Grafana</li>
-      <li><strong>CI/CD:</strong> GitHub Actions, GitLab CI, Jenkins</li>
-      <li><strong>Cloud:</strong> AWS, Cloudflare, Google Cloud, Vercel, Render</li>
-    </ul>
-
-    <h3>Web Development</h3>
-
-    <ul>
-      <li><strong>Frontend:</strong> Vue.js, Astro, React, Svelte, Nuxt.js</li>
-      <li><strong>Backend:</strong> Node.js, Go, PHP, Python, Ruby</li>
-      <li><strong>Databases:</strong> PostgreSQL, MySQL, Redis, MongoDB</li>
-      <li><strong>Hosting:</strong> Cloudflare Pages, Vercel, Render, Self-hosted</li>
-    </ul>
-
-    <h2>Productivity & Daily Use</h2>
-
-    <h3>Operating Systems</h3>
-
-    <ul>
-      <li><strong>Primary:</strong> Arch Linux (development)</li>
-      <li><strong>Secondary:</strong> macOS (daily driver)</li>
-      <li><strong>Gaming:</strong> Windows 11 (for games and compatibility)</li>
-    </ul>
-
-    <h3>Browser</h3>
-
-    <ul>
-      <li><strong>Primary:</strong> Zen Browser</li>
-      <li><strong>Secondary:</strong> Chrome Canary & Firefox Nightly</li>
-    </ul>
-
-    <h2>Content Creation & Production</h2>
-
-    <h3>Writing & Documentation</h3>
-
-    <ul>
-      <li><strong>Blog:</strong> This website built with Astro</li>
-      <li><strong>Notes:</strong> Obsidian for personal knowledge management</li>
-      <li><strong>Documentation:</strong> Markdown with various editors</li>
-    </ul>
-
-    <h3>Design & Media</h3>
-
-    <ul>
-      <li><strong>Graphics:</strong> Adobe Creative Suite</li>
-      <li><strong>Video:</strong> DaVinci Resolve, OBS Studio</li>
-    </ul>
-
-    <h3>Audio</h3>
-
-    <ul>
-      <li><strong>Recording:</strong> Audacity, Logic Pro</li>
-      <li><strong>Headphones:</strong> Sony WH-1000XM4 & Sennheiser HD600</li>
-      <li><strong>Microphone:</strong> Audio-Technica AT2020 & Shure SM58</li>
-      <li><strong>Audio Interface:</strong> Audient iD14</li>
-    </ul>
-
-    <h2>Gaming & Entertainment</h2>
-
-    <ul>
-      <li><strong>Gaming:</strong> Steam, Epic Games Store</li>
-      <li><strong>Streaming:</strong> Netflix, YouTube, Spotify</li>
-      <li><strong>Reading:</strong> Kindle, Amazon Prime Reading</li>
-      <li><strong>Audiobooks:</strong> Audible</li>
-    </ul>
-
-    <h2>Aviation</h2>
-
-    <p>
-      As someone working towards a Private Pilot License (PPL), I use various aviation tools:
-    </p>
-
-    <ul>
-      <li><strong>Flight Planning:</strong> ForeFlight, SkyVector</li>
-      <li><strong>Weather:</strong> Aviation Weather Center, Windy</li>
-      <li><strong>Training:</strong> Flight simulators, ground school apps</li>
-      <li><strong>Plane:</strong> Cirrus SR22</li>
-    </ul>
-
-    <hr />
-
-    <p class="text-sm text-base03">
-      This page is regularly updated as my setup evolves. Last updated: September 2025.
-    </p>
+    <!-- Aviation — warm blue accel -->
+    <div class="card p-5" style="background: linear-gradient(135deg, #fbfbfb 0%, #eef6ff 55%, #d9e8ff 100%); border-color: var(--color-primary)">
+      <div class="mono text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5" style="color: var(--color-primary)"><i class="fa-solid fa-plane text-[11px]"></i> Aviation — PPL</div>
+      <p class="text-sm" style="color: var(--color-text)">Working toward Private Pilot License. ForeFlight · SkyVector · Aviation Weather Center · Windy · simulators · Cirrus SR22.</p>
+      <div class="flex flex-wrap gap-1.5 mt-2"><span class="tag" style="background:white">ForeFlight</span><span class="tag" style="background:white">Cirrus SR22</span><span class="tag" style="background:white">PPL ground school</span></div>
+    </div>
   </div>
 </Shell>

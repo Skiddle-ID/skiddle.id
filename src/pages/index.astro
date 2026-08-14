@@ -2,7 +2,7 @@
 import Shell from '../layouts/shell.astro';
 import { getCollection } from 'astro:content';
 export const prerender = true;
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
 
 const handle = 'skiddle.blue';
 let avatarUrl: string | undefined;
@@ -26,7 +26,7 @@ const homelab = allPosts.filter((p: any) => p.data.category === 'homelab');
 ---
 
 <Shell title="Skiddle — Systems Architecture" description="Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
-  <div class="max-w-2xl mx-auto w-full flex flex-col gap-6">
+  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
 
     <!-- Hero — editorial, no terminal -->
     <div class="card p-5">

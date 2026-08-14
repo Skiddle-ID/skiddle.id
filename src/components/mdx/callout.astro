@@ -1,0 +1,14 @@
+---
+interface Props { type?: 'info' | 'warn' | 'tip' | 'danger'; title?: string; }
+const { type = 'info', title } = Astro.props as Props;
+const map: Record<string, string> = {
+  info: 'border:1px solid var(--color-border); background:#eef6ff; color: var(--color-text)',
+  warn: 'border:1px solid #f59e0b; background:#fef3c7; color:#92400e',
+  tip: 'border:1px solid #16a34a; background:#dcfce7; color:#166534',
+  danger: 'border:1px solid #dc2626; background:#fee2e2; color:#991b1b',
+};
+---
+<div class="card p-3 my-3" style={map[type] || map.info}>
+  {title && <div class="mono text-xs font-bold uppercase mb-1" style="color: inherit">{title}</div>}
+  <div class="text-sm leading-relaxed"><slot /></div>
+</div>

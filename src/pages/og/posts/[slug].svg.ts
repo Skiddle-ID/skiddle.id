@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }: any) => !data.draft);
   return posts.map((entry: any) => ({
-    params: { slug: entry.slug || entry.id.replace(/\.md$/, '') },
+    params: { slug: entry.slug || entry.id.replace(/\.mdx?$/, '') },
     props: { entry },
   }));
 }
@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ props }) => {
       ${lines.map((line, i) => `<text x="0" y="${i * 72}" font-family="Outfit, system-ui, sans-serif" font-size="56" font-weight="700" fill="#1a2332">${line}</text>`).join('\n')}
     </g>
     <text x="96" y="520" font-family="Geist Mono, monospace" font-size="18" fill="#5a6b87">skiddle.id · ${escapeXml(entry?.data?.category || 'post')}</text>
-    <text x="96" y="542" font-family="Geist Mono, monospace" font-size="14" fill="#5a6b87">tania-warm blue · #2a67a5 · local markdown</text>
+    <text x="96" y="542" font-family="Geist Mono, monospace" font-size="14" fill="#5a6b87">warm blue · #2a67a5 · local markdown</text>
   </svg>`;
   return new Response(svg, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=31536000, immutable' } });
 };

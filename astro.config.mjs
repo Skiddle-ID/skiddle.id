@@ -1,5 +1,7 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import mdx from '@astrojs/mdx';
+import remarkGfm from 'remark-gfm';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
 
@@ -43,11 +45,15 @@ export default defineConfig({
     entrypointResolution: "auto",
   }),
   markdown: {
+    remarkPlugins: [remarkGfm],
     shikiConfig: {
       theme: 'github-light',
       wrap: true,
     },
   },
+  integrations: [
+    mdx({ remarkPlugins: [remarkGfm] }),
+  ],
   vite: {
     plugins: [tailwindcss()],
     define: {

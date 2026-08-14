@@ -1,6 +1,6 @@
 ---
 title: "A Newest Refactoring of My Personal Sites"
-description: "Dozens of redesigns - from Jekyll 2015 to Astro 6 tania-warm blue."
+description: "Dozens of redesigns - from Jekyll 2015 to Astro 6 warm blue."
 pubDate: 2025-09-15T15:06:13.146Z
 category: infra
 tags: [astro, design, refactoring]

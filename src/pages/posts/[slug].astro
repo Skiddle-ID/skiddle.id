@@ -8,11 +8,11 @@ import FormattedDate from '~/components/formatted-date.astro';
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }: any) => !data.draft);
   return posts.map((entry: any) => ({
-    params: { slug: entry.slug || entry.id.replace(/\.md$/, '') },
+    params: { slug: entry.slug || entry.id.replace(/\.mdx?$/, '') },
     props: { entry },
   }));
 }
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
 
 const { entry } = Astro.props as { entry: Awaited<ReturnType<typeof getEntry>> & any };
 if (!entry) throw new Error('Post not found');
@@ -40,6 +40,13 @@ if (entry.data.series) {
   if (idx >= 0 && idx < seriesPosts.length - 1) next = seriesPosts[idx + 1];
 }
 
+// Related: same category + tag overlap, exclude self + series prev/next, top 3
+const related = all
+  .filter((p: any) => slugOf(p) !== slug)
+  .filter((p: any) => p.data.category === entry.data.category || (p.data.tags as string[]).some((t: string) => (entry.data.tags as string[]).map((x:string)=>x.toLowerCase()).includes(t.toLowerCase())))
+  .filter((p: any) => p !== prev && p !== next)
+  .slice(0, 3);
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -59,7 +66,7 @@ const jsonLd = {
   <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
 
   <!-- Breadcrumbs -->
-  <nav class="max-w-2xl mx-auto w-full mono text-xs flex items-center gap-2 mb-3" style="color: var(--color-text-muted)">
+  <nav class="max-w-[900px] mx-auto w-full mono text-xs flex items-center gap-2 mb-3" style="color: var(--color-text-muted)">
     <a href="/posts/">Posts</a>
     <span>›</span>
     <span style="color: var(--color-text)">{entry.data.category}</span>
@@ -71,7 +78,7 @@ const jsonLd = {
     )}
   </nav>
 
-  <div class="max-w-2xl mx-auto w-full flex gap-6">
+  <div class="max-w-[900px] mx-auto w-full flex gap-6">
     <article class="flex-1 min-w-0">
       <header class="flex flex-col gap-2">
         <h1 class="font-bold before-hash-1" style="font-family: var(--font-heading)">{entry.data.title}</h1>
@@ -109,7 +116,7 @@ const jsonLd = {
 
       <!-- A: mobile ToC — collapsible -->
       {headings.length > 0 && (
-        <details class="lg:hidden max-w-2xl mx-auto mb-4 card p-3" style="background:white">
+        <details class="lg:hidden max-w-[900px] mx-auto mb-4 card p-3" style="background:white">
           <summary class="mono text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer" style="color: var(--color-text)"><i class="fa-solid fa-list"></i> On this page — {headings.length} · {readingMin} min</summary>
           <nav class="flex flex-col gap-1 mt-3">
             {headings.map((h: any) => (<a href={`#${h.slug}`} class="mono text-xs px-2 py-1 rounded" style="color: var(--color-primary)">{h.text}</a>))}
@@ -117,7 +124,7 @@ const jsonLd = {
         </details>
       )}
 
-      <div class="prose max-w-2xl mx-auto pb-5">
+      <div class="prose max-w-[900px] mx-auto pb-5">
         <Content />
       </div>
       <script>
@@ -143,7 +150,7 @@ const jsonLd = {
 
       <!-- B prev/next -->
       {(prev || next) && (
-        <div class="grid sm:grid-cols-2 gap-3 mt-6 max-w-2xl mx-auto">
+        <div class="grid sm:grid-cols-2 gap-3 mt-6 max-w-[900px] mx-auto">
           {prev ? (
             <a href={`/posts/${slugOf(prev)}/`} class="card p-3 block">
               <div class="mono text-xs" style="color: var(--color-text-muted)">← Prev in series</div>
@@ -161,7 +168,22 @@ const jsonLd = {
 
       <hr />
 
-      <p class="max-w-2xl mx-auto pb-5 prose">
+      {related.length > 0 && (
+        <div class="max-w-[900px] mx-auto w-full mt-4">
+          <div class="mono text-xs font-bold uppercase mb-2" style="color: var(--color-text-muted)">Related</div>
+          <div class="grid gap-3 sm:grid-cols-3">
+            {related.map((p: any) => (
+              <a href={`/posts/${slugOf(p)}/`} class="card p-3 block no-underline" style="background:white">
+                <div class="mono text-xs" style="color: var(--color-muted)">{p.data.category} · {p.data.tags.slice(0,2).map((t:string)=>`#${t}`).join(' ')}</div>
+                <div class="text-sm font-bold mt-1" style="font-family: var(--font-heading)">{p.data.title}</div>
+                <div class="text-xs mt-1 line-clamp-2" style="color: var(--color-text-muted)">{p.data.description}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p class="max-w-[900px] mx-auto pb-5 prose">
         Thanks for reading along, I hope you enjoyed this post.
         If you did, maybe consider following me on <a href="https://bsky.app/profile/skiddle.blue">Bluesky</a>,
         I'm trying to write more this year, so I'll see you in the next post. 👋
@@ -189,7 +211,7 @@ const jsonLd = {
         <div class="card p-3 mt-3" style="background: white">
           <div class="mono text-xs font-bold uppercase mb-2" style="color: var(--color-text-muted)">Tags</div>
           <div class="flex flex-wrap gap-1.5">
-            {entry.data.tags.map((t: string) => (<a href={`/topics/#${entry.data.category}`} class="tag">#{t}</a>))}
+            {entry.data.tags.map((t: string) => (<a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>))}
           </div>
           <div class="mono text-xs font-bold uppercase mt-3 mb-1.5" style="color: var(--color-text-muted)">Share</div>
           <div class="flex flex-col gap-1.5">

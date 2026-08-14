@@ -1,0 +1,43 @@
+---
+export const prerender = true;
+import { getCollection } from 'astro:content';
+import Shell from '~/layouts/shell.astro';
+import FormattedDate from '~/components/formatted-date.astro';
+
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
+
+export async function getStaticPaths() {
+  const all = await getCollection('posts', ({ data }: any) => !data.draft);
+  const tags = new Set<string>();
+  for (const p of all) for (const t of (p.data.tags as string[])) tags.add(t.toLowerCase());
+  return [...tags].map(tag => {
+    const posts = all.filter((p: any) => (p.data.tags as string[]).some((t: string) => t.toLowerCase() === tag)).sort((a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+    return { params: { tag }, props: { tag, posts } };
+  });
+}
+
+const { tag, posts } = Astro.props as { tag: string; posts: any[] };
+---
+
+<Shell title={`#${tag} — Skiddle`} description={`Posts tagged #${tag}`}>
+  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-4">
+    <header class="card p-4" style="background:white">
+      <div class="mono text-xs flex items-center gap-2" style="color: var(--color-muted)"><a href="/topics/">Topics</a> <span>›</span> <span style="color: var(--color-text)">#${tag}</span></div>
+      <h1 style="font-family: var(--font-heading); font-size: 1.6rem; margin: 8px 0 4px; color: var(--color-text)">#{tag}</h1>
+      <p class="mono text-xs" style="color: var(--color-muted)">{posts.length} post{posts.length === 1 ? '' : 's'} — <a href="/posts" style="color: var(--color-primary)">All posts →</a></p>
+    </header>
+
+    <div class="flex flex-col gap-3">
+      {posts.map((p: any) => (
+        <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background:white; text-decoration:none">
+          <div class="mono text-xs flex flex-wrap gap-2 items-center" style="color: var(--color-muted)">
+            <FormattedDate date={p.data.pubDate} /> <span>· {p.data.category}</span> <span>· {Math.max(1, Math.ceil(p.body.split(/\s+/).length / 200))} min</span>
+          </div>
+          <div class="font-bold mt-1" style="font-family: var(--font-heading)">{p.data.title}</div>
+          <div class="text-sm mt-1" style="color: var(--color-muted)">{p.data.description}</div>
+          <div class="flex flex-wrap gap-1.5 mt-2">{p.data.tags.map((t: string) => (<span class="tag" style={t.toLowerCase()===tag ? 'background:#d9e8ff; border-color:var(--color-primary); color:var(--color-primary)' : ''}>#{t}</span>))}</div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Shell>

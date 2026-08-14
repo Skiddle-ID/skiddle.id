@@ -6,7 +6,7 @@ export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }: any) => !data.draft && !!data.rkey);
   return posts.map((entry: any) => ({
     params: { rkey: entry.data.rkey! },
-    props: { slug: entry.slug || entry.id.replace(/\.md$/, '') },
+    props: { slug: entry.slug || entry.id.replace(/\.mdx?$/, '') },
   }));
 }
 

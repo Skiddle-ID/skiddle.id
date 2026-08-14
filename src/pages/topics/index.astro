@@ -3,7 +3,7 @@ export const prerender = true;
 import Shell from '~/layouts/shell.astro';
 import { getCollection } from 'astro:content';
 
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.md$/, ''); }
+function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
 
 const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
   (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -17,10 +17,14 @@ const cats = [
   { id: 'atproto', label: 'ATProto & Open', desc: 'Building in the open — skiddle.blue, PDS, WhiteWind → local MD.', posts: atproto },
   { id: 'homelab', label: 'Homelab & Life', desc: 'Self-hosted notes — Purelymail, Aerialite, Bangkok.', posts: homelab },
 ];
+// tag cloud
+const tagCount = new Map<string, number>();
+for (const p of all) for (const t of (p.data.tags as string[])) tagCount.set(t.toLowerCase(), (tagCount.get(t.toLowerCase()) || 0) + 1);
+const tags = [...tagCount.entries()].sort((a,b) => b[1]-a[1]);
 ---
 
-<Shell title="Topics — skiddle.dev" description="Topics — browse posts by category">
-  <div class="max-w-2xl mx-auto w-full flex flex-col gap-6">
+<Shell title="Topics — Skiddle" description="Topics — browse posts by category and tags">
+  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
     <header>
       <h1 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--color-text)">Topics</h1>
       <p class="text-sm mt-1" style="color: var(--color-text-muted)">
@@ -30,19 +34,25 @@ const cats = [
         {cats.map(c => (<a href={`#${c.id}`} class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border); background:#eef6ff">#{c.id} · {c.posts.length}</a>))}
         <a href="/posts/" class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border)">all →</a>
       </nav>
+      {tags.length > 0 && (
+        <div class="mt-3">
+          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-muted)">Tags</div>
+          <div class="flex flex-wrap gap-1.5">
+            {tags.map(([tag, n]) => (<a href={`/topics/tag/${tag}/`} class="tag">#{tag} · {n}</a>))}
+          </div>
+        </div>
+      )}
     </header>
 
     {cats.map(cat => (
-      <section id={cat.id} class="card p-4">
+      <section id={cat.id} class="card p-4" style="background:white">
         <div class="flex items-baseline justify-between gap-2">
           <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">{cat.label}</h2>
           <span class="mono text-xs px-2 py-1 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border)">{cat.posts.length}</span>
         </div>
         <p class="text-sm mt-1" style="color: var(--color-text-muted)">{cat.desc}</p>
         <div class="mt-3 flex flex-col gap-2">
-          {cat.posts.length === 0 && (
-            <div class="text-sm" style="color: var(--color-text-muted)">No posts yet.</div>
-          )}
+          {cat.posts.length === 0 && (<div class="text-sm" style="color: var(--color-text-muted)">No posts yet.</div>)}
           {cat.posts.map((p: any) => (
             <a href={`/posts/${slugOf(p)}/`} class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 text-sm hover:underline" style="color: var(--color-primary)">
               <span>{p.data.title}</span>
@@ -56,7 +66,7 @@ const cats = [
       </section>
     ))}
 
-    <div class="card p-3 mono text-xs" style="color: var(--color-text-muted)">
+    <div class="card p-3 mono text-xs" style="color: var(--color-text-muted); background:white">
       Source: <code>src/content/posts/*.md</code> — <a href="https://github.com/Skiddle-ID/skiddle.id" style="color: var(--color-primary)">Edit on GitHub</a>
     </div>
   </div>

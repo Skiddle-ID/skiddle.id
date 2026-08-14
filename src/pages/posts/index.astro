@@ -23,7 +23,7 @@ function readingTime(words: number): string {
 const withExcerpt = filtered.map((entry: any) => {
   const words = entry.body.split(/\s+/).length;
   const excerpt = entry.data.description || entry.body.slice(0, 180).trimEnd() + '…';
-  const slug = entry.slug || entry.id.replace(/\.md$/, '');
+  const slug = entry.slug || entry.id.replace(/\.mdx?$/, '');
   return { entry, words, excerpt, slug };
 });
 ---
