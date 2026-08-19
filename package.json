@@ -16,7 +16,7 @@
     "@astrojs/markdown-remark": "^6.3.8",
     "@astrojs/mdx": "4.3.8",
     "@astrojs/rss": "^4.0.12",
-    "@atproto/api": "^0.19.3",
+    "@atproto/api": "^0.20.41",
     "@fontsource/geist-mono": "^5.2.7",
     "astro": "^6.4.8",
     "feed": "^5.1.0",
