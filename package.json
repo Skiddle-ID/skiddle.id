@@ -18,7 +18,7 @@
     "@astrojs/rss": "^4.0.12",
     "@atproto/api": "^0.19.3",
     "@fontsource/geist-mono": "^5.2.7",
-    "astro": "^6.4.8",
+    "astro": "^7.2.2",
     "feed": "^5.1.0",
     "isbot": "^5.1.31",
     "remark-gfm": "^4.0.1"
