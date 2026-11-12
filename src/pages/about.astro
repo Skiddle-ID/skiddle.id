@@ -1,76 +1,186 @@
 ---
 import Shell from '../layouts/shell.astro';
+import Icon from '../components/icon.astro';
 
-const birthdate = new Date('1997-08-09T07:00:00Z');
-const now = new Date();
-let age = now.getUTCFullYear() - birthdate.getUTCFullYear();
-if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birthdate.getUTCDate()))) age--;
+// neofetch-style profile. Keep it to things you're happy to have public.
+const profile = [
+  ['Role', 'Platform engineer'],
+  ['Based', 'Bangkok, Thailand'],
+  ['Hours', 'Night shift'],
+  ['Langs', 'Go, TypeScript, PHP, Python'],
+  ['Infra', 'Kubernetes, Proxmox, Cloudflare'],
+  ['Editor', 'Zed + Neovim'],
+  ['Terminal', 'Ghostty'],
+  ['Studying', "Master's in AI & ML"],
+  ['Flying', 'Private pilot (PPL, 2026)'],
+  ['Uptime', 'blogging since 2015'],
+];
+
+const accents = [
+  { id: 'blue', dark: '#82cfff', light: '#0f62fe' },
+  { id: 'teal', dark: '#3ddbd9', light: '#007d79' },
+  { id: 'purple', dark: '#be95ff', light: '#8a3ffc' },
+  { id: 'pink', dark: '#ff7eb6', light: '#d02670' },
+  { id: 'green', dark: '#42be65', light: '#198038' },
+];
+
+const principles = [
+  { title: 'Automate the toil', body: 'A small tool beats doing the same manual step twice.' },
+  { title: 'Reliability, security, cost', body: 'I weigh all three on every change, not just the first one.' },
+  { title: 'Own your data', body: 'Open protocols and self-hosting, where it makes sense.' },
+  { title: 'Share what I learn', body: 'I write up what I build, including the parts that went wrong.' },
+];
+
+// Facts from the CV, projects and posts on this site.
+const timeline: { year: string; text: string; href?: string }[] = [
+  { year: '2015', text: 'Started blogging, on Jekyll and GitHub Pages.', href: '/posts/a-newest-refactoring-of-my-personal-sites/' },
+  { year: '2016', text: 'Built Klasemate, my first app from scratch: open-source forum software in PHP.' },
+  { year: '2019', text: 'First infra engineer role: LDAP, device management, backups.' },
+  { year: '2020', text: 'Founded Skiddle ID, building web apps and running infrastructure for clients.' },
+  { year: '2021', text: "Started a bachelor's in AI & machine learning at Chulalongkorn." },
+  { year: '2022', text: 'Co-founded Aerialite, a security & privacy startup in Bangkok, as DevOps engineer.' },
+  { year: '2024', text: "Launched CheckDomain and Blocklist, and started my master's." },
+  { year: '2025', text: 'Moved to Aerialite\'s advisory board and started pilot ground school.', href: '/posts/how-it-all-started-1/' },
+  { year: '2026', text: 'Earned my Private Pilot License.' },
+];
 ---
 
-<Shell title="About — Skiddle" description="About Jeff (Skiddle) — night-shift platform engineer in Bangkok, homelabber, open-web fan and student pilot.">
+<Shell title="About — Skiddle" description="About Jeff (Skiddle) — platform engineer in Bangkok, homelabber, open-web fan and private pilot.">
   <div class="max-w-[70ch] w-full">
-    <div class="flex items-center gap-4 mb-8">
-      <img src="https://github.com/arcestia.png?size=160" alt="Jeff's avatar" width="72" height="72" class="size-18 rounded-full border shrink-0" />
-      <div>
-        <h1 class="font-semibold text-xl before-hash-1">About me</h1>
-        <p class="text-sm text-[var(--color-muted)] mt-1">Bangkok · <span id="age" data-birthdate={birthdate.toISOString()}>{age}</span> · night person</p>
-      </div>
-    </div>
+    <h1 class="font-semibold text-xl before-hash-1">About me</h1>
 
-    <div class="prose">
+    <!-- neofetch -->
+    <section aria-label="Profile" class="card mt-5 p-5 text-sm">
+      <p class="text-[var(--color-muted)]" aria-hidden="true">
+        <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ neofetch
+      </p>
+      <div class="mt-4 flex flex-col sm:flex-row gap-6">
+        <img src="https://github.com/arcestia.png?size=280" alt="Jeff's avatar" width="140" height="140" class="size-28 sm:size-36 rounded-lg border shrink-0" />
+        <div class="min-w-0">
+          <p class="font-semibold"><span class="text-[var(--color-primary)]">jeff</span>@<span class="text-[var(--color-primary)]">skiddle</span></p>
+          <p class="text-[var(--color-muted)]" aria-hidden="true">------------</p>
+          <dl class="mt-1 grid grid-cols-[5.5rem_1fr] gap-x-2 gap-y-0.5">
+            {profile.map(([k, v]) => (
+              <>
+                <dt class="text-[var(--color-primary)] font-semibold">{k}:</dt>
+                <dd class="min-w-0">{v}</dd>
+              </>
+            ))}
+          </dl>
+          <div class="mt-3 flex gap-1" role="group" aria-label="Pick an accent colour">
+            {accents.map((a) => (
+              <button
+                type="button"
+                class="accent-swatch h-4 w-7 rounded-sm border border-transparent hover:scale-110 transition-transform"
+                data-accent-choice={a.id}
+                style={`--swatch-dark:${a.dark};--swatch-light:${a.light}`}
+                aria-label={`Use ${a.id} accent`}
+                title={a.id}
+              ></button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="prose mt-10">
       <p>
         I'm <strong>Jeff</strong>, known online as <strong>Skiddle</strong>. I work the night shift as a platform
         engineer in Bangkok: building platforms, automating ops, and keeping infrastructure running across cloud
         and my homelab.
       </p>
-
-      <h2>What I do</h2>
       <p>
-        Most days I'm working with <code>Go</code>, <code>PHP/Laravel</code>, <code>Node.js</code>,
-        <code>Postgres</code>/<code>MariaDB</code>/<code>Redis</code> and <code>Docker</code>/<code>Kubernetes</code>,
-        on <code>Cloudflare</code>, <code>AWS</code> and self-hosted hardware.
-      </p>
-      <p>
-        I like shipping small tools that remove toil. Reliability, security and cost all matter to me, and my default
-        answer is usually "can we automate that?". The longer version is on my <a href="/works/">works</a> page, and
-        the open-source bits are on <a href="/projects/">projects</a>.
-      </p>
-
-      <h2>The open web</h2>
-      <p>
-        I care about open protocols and owning your own data. I'm into ATProto, I'm on Bluesky as
-        <a href="https://bsky.app/profile/skiddle.blue" rel="me">@skiddle.blue</a>, and I run as much as I can myself.
-        This site is where I write about what I'm building, what I'm learning, and sometimes things that have nothing to
-        do with tech.
-      </p>
-
-      <h2>Outside of work</h2>
-      <p>
-        I have ADHD, and it doesn't stop me doing the work. I game, I read, and I keep odd hours. Right now I'm also
-        working toward my Private Pilot License, and I'm writing about that journey on the blog too.
-      </p>
-      <p>
-        Curious what hardware and software I use? It's all on the <a href="/uses/">uses</a> page.
-      </p>
-
-      <h2>Say hi</h2>
-      <p>
-        <a href="https://bsky.app/profile/skiddle.blue" rel="me">Bluesky</a> ·
-        <a href="https://github.com/arcestia" rel="me">GitHub</a> ·
-        <a href="mailto:jeff@skiddle.id">jeff@skiddle.id</a>
+        I co-founded <strong>Aerialite</strong>, a security and privacy startup here in Bangkok, and now sit on its
+        advisory board. I also run <strong>Skiddle ID</strong>, where I build web apps and look after infrastructure
+        for clients. The full version is on my <a href="/works/">CV</a>, and the open-source bits are on
+        <a href="/projects/">projects</a>.
       </p>
     </div>
+
+    <!-- How I work -->
+    <section aria-labelledby="how" class="mt-10">
+      <h2 id="how" class="font-semibold before-hash-2">How I work</h2>
+      <div class="mt-4 grid sm:grid-cols-2 gap-3">
+        {principles.map((p, i) => (
+          <div class="card p-4">
+            <p class="text-xs text-[var(--color-muted)]">0{i + 1}</p>
+            <h3 class="font-semibold text-[var(--color-primary)] mt-1">{p.title}</h3>
+            <p class="text-sm text-[var(--color-muted)] mt-1">{p.body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section aria-labelledby="timeline" class="mt-12">
+      <h2 id="timeline" class="font-semibold before-hash-2">So far</h2>
+      <ol class="mt-4 relative border-l ml-1.5">
+        {timeline.map((t) => (
+          <li class="relative pl-6 pb-5 last:pb-0">
+            <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full border-2 border-[var(--color-primary)] bg-[var(--color-bg)]" aria-hidden="true"></span>
+            <p class="text-sm grid grid-cols-[3rem_1fr]">
+              <span class="text-[var(--color-primary)] font-semibold tabular-nums">{t.year}</span>
+              <span>
+                {t.text}
+                {t.href && <a href={t.href} class="link ml-1 text-xs">read more</a>}
+              </span>
+            </p>
+          </li>
+        ))}
+        <li class="relative pl-6">
+          <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
+          <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>Night-shift platform work, my master's, and flying. <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Outside of work -->
+    <section aria-labelledby="outside" class="mt-12">
+      <h2 id="outside" class="font-semibold before-hash-2">Outside of work</h2>
+      <div class="prose mt-3">
+        <p>
+          I have ADHD, and it doesn't stop me doing the work. I game, I read, and I keep odd hours. I'm also
+          a private pilot: I earned my PPL in early 2026, and I write about <a href="/topics/tag/aviation/">how that journey started</a>.
+          I care about open protocols and owning your own data, and I'm into ATProto. Curious what I run all this on?
+          It's on the <a href="/uses/">uses</a> page.
+        </p>
+      </div>
+    </section>
+
+    <!-- Say hi -->
+    <section aria-labelledby="hi" class="mt-12 card p-5">
+      <h2 id="hi" class="font-semibold">Say hi</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-1.5">
+        For work, email is best. For everything else, Bluesky is where I hang out.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id"><Icon name="mail" size={14} /> work@skiddle.id</a>
+        <a class="btn" href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank"><Icon name="bluesky" size={14} /> @skiddle.blue</a>
+        <a class="btn" href="https://github.com/arcestia" rel="me noopener" target="_blank"><Icon name="github" size={14} /> GitHub</a>
+        <a class="btn" href="mailto:jeff@skiddle.id"><Icon name="mail" size={14} /> jeff@skiddle.id</a>
+      </div>
+    </section>
   </div>
 </Shell>
 
+<style>
+  .accent-swatch { background: var(--swatch-dark); }
+  :global([data-theme='light']) .accent-swatch { background: var(--swatch-light); }
+  .accent-swatch[aria-pressed='true'] { border-color: var(--color-text); }
+</style>
+
 <script>
-  // The page is static, so refresh the age in the browser (the build-time value is the fallback).
-  const el = document.getElementById('age');
-  const born = el?.dataset.birthdate ? new Date(el.dataset.birthdate) : null;
-  if (el && born) {
-    const now = new Date();
-    let age = now.getUTCFullYear() - born.getUTCFullYear();
-    if (now < new Date(Date.UTC(now.getUTCFullYear(), born.getUTCMonth(), born.getUTCDate()))) age--;
-    el.textContent = String(age);
-  }
+  // The colour blocks double as an accent picker (same setting as the sidebar dot).
+  const root = document.documentElement;
+  const swatches = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-accent-choice]'));
+  const sync = () => swatches.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.accentChoice === (root.dataset.accent || 'blue'))));
+  swatches.forEach((b) =>
+    b.addEventListener('click', () => {
+      root.dataset.accent = b.dataset.accentChoice!;
+      try { localStorage.setItem('accent', root.dataset.accent); } catch {}
+      sync();
+    }),
+  );
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-accent'] });
+  sync();
 </script>

@@ -29,6 +29,11 @@
   --color-muted: #a8a8a8;
   --color-primary: #82cfff;
 
+  /* Status colours (project status dots, terminal errors) */
+  --color-ok: #42be65;
+  --color-warn: #f1c21b;
+  --color-err: #fa4d56;
+
   /* Legacy aliases so nothing old breaks */
   --color-text-muted: var(--color-muted);
   --color-white: var(--color-text);
@@ -55,6 +60,9 @@
   --color-text: #161616;
   --color-muted: #525252;
   --color-primary: #0f62fe;
+  --color-ok: #198038;
+  --color-warn: #8e6a00;
+  --color-err: #da1e28;
   color-scheme: light;
 }
 
@@ -240,4 +248,30 @@ html .prose {
 }
 @media (prefers-reduced-motion: reduce) {
   .cursor-blink { animation: none; }
+}
+
+/* ── Print (Works page doubles as a printable CV) ── */
+@media print {
+  :root,
+  :root[data-theme],
+  :root[data-theme][data-accent] {
+    --color-bg: #ffffff;
+    --color-bg-alt: #ffffff;
+    --color-border: #cccccc;
+    --color-text: #000000;
+    --color-muted: #444444;
+    --color-primary: #0f62fe;
+    color-scheme: light;
+  }
+  body { font-size: 10.5pt; }
+  .cursor-blink { display: none; }
+  /* Show where links go on paper (mailto links already show the address) */
+  .print-urls a[href^="http"]:not([data-plain])::after {
+    content: ' <' attr(href) '>';
+    color: var(--color-muted);
+    font-size: 0.85em;
+    text-decoration: none;
+  }
+  section, article, li { break-inside: avoid; }
+  @page { margin: 14mm; }
 }

@@ -2,6 +2,8 @@
 import Shell from '../layouts/shell.astro';
 import PostList from '../components/post-list.astro';
 import { getPosts } from '~/lib/posts';
+import projects from '../data/projects';
+import services from '../data/services';
 export const prerender = true;
 
 const handle = 'skiddle.blue';
@@ -16,68 +18,131 @@ try {
 const profileImg = avatarUrl || 'https://github.com/arcestia.png';
 
 const posts = await getPosts();
-const recent = posts.slice(0, 5);
-const linkCls = 'link';
+const recent = posts.slice(0, 4);
+
+// Hand-picked order for the homepage; everything else lives on /projects/
+const selectedIds = ['checkdomain', 'shortlink', 'blocklist'];
+const selected = selectedIds
+  .map((id) => projects.find((p) => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+const testimonial = services.testimonials[0];
+const h2 = 'font-semibold before-hash-2';
 ---
 
-<Shell title="Skiddle — Jeff's corner of the internet" description="Jeff (Skiddle) — night-shift platform engineer in Bangkok. I build delivery pipelines, run a homelab, care about open protocols, and I'm learning to fly.">
+<Shell title="Skiddle — platform engineer in Bangkok" description="Jeff (Skiddle) — platform engineer in Bangkok. I build delivery pipelines and self-hosted infrastructure, write about it, and I fly as a private pilot.">
   <div class="max-w-[70ch] w-full">
-    <section class="flex flex-col sm:flex-row sm:items-center gap-6 mb-8">
-      <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-28 rounded-full shrink-0 border" />
-      <div class="flex flex-col gap-2">
-        <h1 class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
-        <p class="text-[var(--color-primary)]">Platform engineer / Homelabber / Student pilot</p>
+
+    <!-- Intro -->
+    <section aria-labelledby="intro" class="flex flex-col sm:flex-row sm:items-center gap-6">
+      <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-24 sm:size-28 rounded-full shrink-0 border" />
+      <div class="flex flex-col gap-1.5">
+        <h1 id="intro" class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
+        <p class="text-[var(--color-primary)]">Platform engineer · Bangkok</p>
+        <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
+          <span class="size-2 rounded-full bg-[#42be65] shrink-0" aria-hidden="true"></span>
+          Open to consulting and interesting conversations
+        </p>
       </div>
     </section>
 
-    <div class="prose">
+    <div class="prose mt-8">
       <p>
-        I'm a night-shift platform engineer based in Bangkok, Thailand. I build delivery pipelines,
-        keep infrastructure running across cloud and my homelab, and write small tools so I don't
-        have to do the same boring thing twice.
+        I build delivery pipelines and keep infrastructure running across the cloud and my homelab, mostly
+        on the night shift. If I have to do something twice, I'd rather write a small tool for it.
       </p>
       <p>
-        I'm a big fan of open source and open protocols like ATProto. Most of what I run lives in
-        my homelab, because I like owning my own little corner of the internet.
-      </p>
-      <p>
-        Away from the terminal, I'm working toward my Private Pilot License together with my fiancé.
-        I write about all of it here: infra, the open web, homelab experiments, and life.
-      </p>
-      <p>
-        Always happy to talk about any of it. Say hi on <a href="https://bsky.app/profile/skiddle.blue" rel="me">Bluesky</a> or
-        by <a href="mailto:jeff@skiddle.id">email</a>.
+        I'm a fan of open source and open protocols like ATProto, and I write here about infra, the open web,
+        homelab experiments and life, including flying.
       </p>
     </div>
 
-    <section class="mt-10">
-      <div class="flex items-baseline justify-between mb-2">
-        <h2 class="font-semibold before-hash-2">Recent posts</h2>
-        <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
-      </div>
-      <PostList posts={recent} />
+    <nav aria-label="Quick links" class="flex flex-wrap gap-2 mt-6">
+      <a href="#work" class="btn">Selected work</a>
+      <a href="/posts/" class="btn">Read the blog</a>
+      <a href="/services/" class="btn border-[var(--color-primary)] text-[var(--color-primary)]">Work with me →</a>
+    </nav>
+
+    <!-- Now -->
+    <section aria-labelledby="now" class="mt-12">
+      <h2 id="now" class={h2}>Now</h2>
+      <ul class="mt-3 text-sm flex flex-col gap-1.5">
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>Platform engineering on the night shift in Bangkok</span></li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>Advising <span class="text-[var(--color-text)]">Aerialite</span>, the security &amp; privacy startup I co-founded</span></li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>Studying for a master's in AI &amp; machine learning at Chulalongkorn</span></li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>Flying as a newly licensed private pilot (PPL, early 2026). <a href="/topics/tag/aviation/" class="link">How it started</a></span></li>
+      </ul>
     </section>
 
-    <section class="mt-10 grid grid-cols-2 gap-6 text-sm">
-      <div>
-        <h2 class="font-semibold mb-2 before-hash-2">On the web</h2>
-        <ul class="space-y-1">
-          <li><a class={linkCls} href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank">Bluesky</a></li>
-          <li><a class={linkCls} href="https://github.com/arcestia" rel="me noopener" target="_blank">GitHub</a></li>
-          <li><a class={linkCls} href="https://www.instagram.com/skiddle.id" rel="noopener" target="_blank">Instagram</a></li>
-          <li><a class={linkCls} href="mailto:jeff@skiddle.id">Email</a></li>
-        </ul>
+    <!-- Selected work -->
+    <section id="work" aria-labelledby="work-title" class="mt-12 scroll-mt-16">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 id="work-title" class={h2}>Selected work</h2>
+        <a href="/projects/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all projects →</a>
       </div>
-      <div>
-        <h2 class="font-semibold mb-2 before-hash-2">On this site</h2>
-        <ul class="space-y-1">
-          <li><a class={linkCls} href="/about/">About me</a></li>
-          <li><a class={linkCls} href="/works/">Works</a></li>
-          <li><a class={linkCls} href="/projects/">Projects</a></li>
-          <li><a class={linkCls} href="/uses/">Uses</a></li>
-          <li><a class={linkCls} href="/services/">Services</a></li>
-        </ul>
+      <div class="mt-4 flex flex-col gap-3">
+        {selected.map((p) => (
+          <article class="card p-4 hover:border-[var(--color-primary)] transition-colors">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+              <h3 class="font-semibold text-[var(--color-primary)]">{p.name}</h3>
+              <span class="text-xs text-[var(--color-muted)]">{[p.year, p.category].filter(Boolean).join(' · ')}</span>
+            </div>
+            <p class="text-sm mt-1.5">{p.impact ?? p.description}</p>
+            <p class="text-xs mt-3 flex flex-wrap gap-x-4 gap-y-1">
+              {p.writeup && (<a href={p.writeup} class="link">read the story</a>)}
+              {p.homepage && (<a href={p.homepage} class="link" target="_blank" rel="noopener noreferrer">live</a>)}
+              {p.github && (<a href={p.github} class="link" target="_blank" rel="noopener noreferrer">source</a>)}
+            </p>
+          </article>
+        ))}
       </div>
     </section>
+
+    <!-- Writing -->
+    <section aria-labelledby="writing" class="mt-12">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 id="writing" class={h2}>Writing</h2>
+        <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
+      </div>
+      <div class="mt-2">
+        <PostList posts={recent} />
+      </div>
+    </section>
+
+    <!-- Kind words -->
+    {testimonial && (
+      <section aria-label="Testimonial" class="mt-12">
+        <figure class="border-l-2 border-[var(--color-primary)] pl-4">
+          <blockquote class="text-sm leading-relaxed">“{testimonial.quote}”</blockquote>
+          <figcaption class="text-xs text-[var(--color-muted)] mt-2">
+            — <span class="text-[var(--color-text)]">{testimonial.author}</span>, {testimonial.role}
+          </figcaption>
+        </figure>
+      </section>
+    )}
+
+    <!-- Work with me -->
+    <section aria-labelledby="hire" class="mt-12 card p-5">
+      <h2 id="hire" class="font-semibold">Need a hand with infrastructure?</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-1.5">
+        I help with server hardening, CI/CD, automation, monitoring and self-hosting.
+        Tell me what you're working on and I'll reply with next steps.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id?subject=Hello%20from%20skiddle.id">Email work@skiddle.id</a>
+        <a class="btn" href="/services/">See services</a>
+        <a class="btn" href="/works/">View my CV</a>
+      </div>
+    </section>
+
+    <!-- Elsewhere -->
+    <p class="mt-10 text-sm text-[var(--color-muted)] flex flex-wrap gap-x-4 gap-y-1">
+      <span>Elsewhere:</span>
+      <a class="link" href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank">Bluesky</a>
+      <a class="link" href="https://github.com/arcestia" rel="me noopener" target="_blank">GitHub</a>
+      <a class="link" href="https://www.instagram.com/skiddle.id" rel="noopener" target="_blank">Instagram</a>
+      <a class="link" href="mailto:jeff@skiddle.id">Email</a>
+      <a class="link" href="/rss.xml">RSS</a>
+    </p>
   </div>
 </Shell>

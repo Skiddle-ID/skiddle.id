@@ -8,6 +8,7 @@ const links = [
   { href: '/works/', label: 'works' },
   { href: '/projects/', label: 'projects' },
   { href: '/uses/', label: 'uses' },
+  { href: '/services/', label: 'services' },
 ];
 const isActive = (href: string) => {
   const h = href.replace(/\/$/, '');
@@ -15,7 +16,7 @@ const isActive = (href: string) => {
 };
 ---
 
-<nav id="sidebar" aria-label="Main" class="fixed left-0 top-12 lg:top-0 h-[calc(100dvh-3rem)] lg:h-dvh w-56 border-r flex flex-col gap-1 p-5 z-40 lg:z-20 -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out bg-[var(--color-bg)] overflow-y-auto">
+<nav id="sidebar" aria-label="Main" class="print:hidden fixed left-0 top-12 lg:top-0 h-[calc(100dvh-3rem)] lg:h-dvh w-56 border-r flex flex-col gap-1 p-5 z-40 lg:z-20 -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out bg-[var(--color-bg)] overflow-y-auto">
   <a href="/" class="hidden lg:flex items-center gap-1.5 text-[var(--color-primary)] mb-5">
     <span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span>
   </a>

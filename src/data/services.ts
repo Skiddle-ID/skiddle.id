@@ -61,13 +61,6 @@ const servicesData: ServicesData = {
       serviceName: 'Self‑Hosting & Homelab Consultation',
       rating: 5,
     },
-    {
-      quote: 'Jeff helped me set up my website and mail server in a matter of hours. Even though He is my cousin, I still want to give him a big thank you.',
-      author: 'N. Chen',
-      role: 'Individual',
-      serviceName: 'Website Project Setup (Custom or CMS)',
-      rating: 5,
-    },
   ],
 };
 
