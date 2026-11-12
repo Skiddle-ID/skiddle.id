@@ -17,6 +17,8 @@ const posts = defineCollection({
     series: z.string().optional(),
     order: z.number().optional(),
     rkey: z.string().optional(),
+    /** at:// URI of the Bluesky post announcing this post; its replies show as comments */
+    bluesky: z.string().startsWith('at://').optional(),
   }),
 });
 

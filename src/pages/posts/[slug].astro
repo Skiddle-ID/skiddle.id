@@ -5,6 +5,7 @@ import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 import Icon from '~/components/icon.astro';
 import PostList from '~/components/post-list.astro';
+import BlueskyComments from '~/components/bluesky-comments.astro';
 import { getPosts, postUrl, readingMinutes, categoryLabels, type Post } from '~/lib/posts';
 
 export async function getStaticPaths() {
@@ -37,10 +38,15 @@ if (entry.data.series) {
   if (idx >= 0 && idx < series.length - 1) next = series[idx + 1];
 }
 
+// Chronological neighbours for the older / newer links (all is newest first)
+const pos = all.findIndex((p) => p.id === entry.id);
+const newer: Post | null = pos > 0 ? all[pos - 1] : null;
+const older: Post | null = pos >= 0 && pos < all.length - 1 ? all[pos + 1] : null;
+
 // Related: score by shared tags (2pts) and same category (1pt); skip series neighbours
 const myTags = new Set(entry.data.tags.map((t) => t.toLowerCase()));
 const related = all
-  .filter((p) => p.id !== entry.id && p.id !== prev?.id && p.id !== next?.id)
+  .filter((p) => p.id !== entry.id && p.id !== prev?.id && p.id !== next?.id && p.id !== older?.id && p.id !== newer?.id)
   .map((p) => ({
     p,
     score: p.data.tags.filter((t) => myTags.has(t.toLowerCase())).length * 2 + (p.data.category === entry.data.category ? 1 : 0),
@@ -51,7 +57,7 @@ const related = all
   .map((r) => r.p);
 // Nothing related? Suggest the latest posts instead so readers always have somewhere to go.
 if (related.length === 0) {
-  related.push(...all.filter((p) => p.id !== entry.id && p.id !== prev?.id && p.id !== next?.id).slice(0, 3));
+  related.push(...all.filter((p) => ![entry.id, prev?.id, next?.id, older?.id, newer?.id].includes(p.id)).slice(0, 3));
 }
 
 const jsonLd = {
@@ -118,18 +124,25 @@ const jsonLd = {
       <Content />
     </div>
 
-    {(prev || next) && (
-      <nav aria-label="Series" class="grid sm:grid-cols-2 gap-3 mt-10 text-sm" lang="en">
-        {prev ? (
-          <a href={postUrl(prev)} class="card p-3 hover:border-[var(--color-primary)]">
-            <span class="block text-xs text-[var(--color-muted)]">← previous</span>
-            <span lang={prev.data.lang}>{prev.data.title}</span>
+    {next && (
+      <p class="mt-10 text-sm" lang="en">
+        <span class="text-[var(--color-muted)]">Next in this series:</span>
+        <a href={postUrl(next)} class="link ml-1" lang={next.data.lang}>{next.data.title} →</a>
+      </p>
+    )}
+
+    {(older || newer) && (
+      <nav aria-label="More posts" class="grid sm:grid-cols-2 gap-3 mt-6 text-sm" lang="en">
+        {older ? (
+          <a href={postUrl(older)} rel="prev" class="card p-3 hover:border-[var(--color-primary)]">
+            <span class="block text-xs text-[var(--color-muted)]">← older post</span>
+            <span lang={older.data.lang}>{older.data.title}</span>
           </a>
-        ) : <span />}
-        {next && (
-          <a href={postUrl(next)} class="card p-3 sm:text-right hover:border-[var(--color-primary)]">
-            <span class="block text-xs text-[var(--color-muted)]">next →</span>
-            <span lang={next.data.lang}>{next.data.title}</span>
+        ) : <span class="hidden sm:block" />}
+        {newer && (
+          <a href={postUrl(newer)} rel="next" class="card p-3 sm:text-right hover:border-[var(--color-primary)]">
+            <span class="block text-xs text-[var(--color-muted)]">newer post →</span>
+            <span lang={newer.data.lang}>{newer.data.title}</span>
           </a>
         )}
       </nav>
@@ -153,6 +166,8 @@ const jsonLd = {
         <a class="btn" target="_blank" rel="noopener" href={editUrl}><Icon name="github" size={14} /> Suggest an edit</a>
       </div>
     </footer>
+
+    <BlueskyComments uri={entry.data.bluesky} title={entry.data.title} url={canonical} />
 
     {related.length > 0 && (
       <section class="mt-12" lang="en">

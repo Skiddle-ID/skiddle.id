@@ -7,6 +7,7 @@ tags: [api, checkdomain, trustpositif]
 series: checkdomain
 order: 1
 rkey: 3m6cjqfkcfr23
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3m6m4larhbs2c
 draft: false
 ---
 
