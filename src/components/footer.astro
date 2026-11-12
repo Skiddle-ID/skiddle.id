@@ -14,7 +14,10 @@ const linkCls = 'decoration-wavy underline underline-offset-2 hover:text-[var(--
     <span>
       {versionTag ? (
         <a target="_blank" rel="noopener" href={`${repo}/releases/tag/${versionTag}`} class={linkCls}>{versionTag}</a>
-      ) : null}{versionTag ? '+' : ''}<a target="_blank" rel="noopener" href={`${repo}/commit/${m?.groups?.short || hash}`} class={linkCls}>{m?.groups?.short || hash}</a>
+      ) : (
+        // No tag reachable (e.g. git info unavailable at build): fall back to the commit
+        <a target="_blank" rel="noopener" href={`${repo}/commit/${m?.groups?.short || hash}`} class={linkCls}>{m?.groups?.short || hash}</a>
+      )}
     </span>
     <span aria-hidden="true">·</span>
     <a href="/rss.xml" class={linkCls}>rss</a>
