@@ -1,74 +1,156 @@
 ---
 import Shell from '../layouts/shell.astro';
+import Icon from '../components/icon.astro';
 import data from '../data/services';
 
-// SEO and structured data
-const site = 'https://skiddle.id';
-const pageUrl = new URL('/services', site).toString();
-
-const servicesData = data.services;
+const site = Astro.site!;
+const pageUrl = new URL('/services/', site).toString();
+const services = data.services;
 const testimonials = data.testimonials;
+
+const email = 'work@skiddle.id';
+const mailto = (subject: string, body?: string) =>
+  `mailto:${email}?subject=${encodeURIComponent(subject)}${body ? `&body=${encodeURIComponent(body)}` : ''}`;
+const briefTemplate = [
+  'Hi Jeff,',
+  '',
+  'What I need help with:',
+  '',
+  'Goal / what "done" looks like:',
+  '',
+  'Timeline:',
+  '',
+  'Current setup and constraints:',
+  '',
+].join('\n');
+
+// Proof points — all from the CV, projects and posts on this site.
+const proof = [
+  { value: 'since 2020', label: 'helping clients through Skiddle ID' },
+  { value: '3 years', label: 'as co-founder and DevOps engineer at Aerialite, a security startup' },
+  { value: '60%', label: 'less deployment time after automating Aerialite’s releases' },
+  { value: '~500M', label: 'requests a month served by my free CheckDomain API', href: '/posts/the-story-behind-taking-down-my-free-checkdomain-api/' },
+];
+
+const steps = [
+  { title: 'Tell me about it', body: 'Email what you need, your goal, timeline and constraints. The template below helps.' },
+  { title: 'Get a plan', body: 'I reply with next steps and a lightweight plan, so you know what you’re getting before we start.' },
+  { title: 'Build it', body: 'I set it up, keep you posted, and stick to what we agreed.' },
+  { title: 'Hand over', body: 'You get notes on what was set up and how to run it, so you’re not dependent on me.' },
+];
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebPage',
-      name: 'Services — Skiddle',
-      url: pageUrl,
-      breadcrumb: {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: site },
-          { '@type': 'ListItem', position: 2, name: 'Services', item: pageUrl },
-        ],
-      },
-      mainEntity: {
-        '@type': 'ItemList',
-        itemListElement: servicesData.map((s, i) => ({
-          '@type': 'Service',
-          name: s.name,
-          description: s.description,
-          position: i + 1,
-        })),
-      },
-    },
-  ],
+  '@type': 'WebPage',
+  name: 'Services — Skiddle',
+  url: pageUrl,
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: services.map((s, i) => ({
+      '@type': 'Service',
+      position: i + 1,
+      name: s.name,
+      description: s.description,
+      serviceType: s.category,
+      provider: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle', url: site.toString() },
+    })),
+  },
 };
 ---
 
-<Shell title="Services — Skiddle" description="DevOps, automation, self-hosting and infrastructure help from Jeff (Skiddle).">
+<Shell title="Services — Skiddle" description="Infrastructure help from Jeff (Skiddle): server hardening, CI/CD, Ansible automation, monitoring, self-hosting and website setup.">
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <div class="max-w-[70ch] w-full">
-    <h1 class="font-semibold text-xl before-hash-1">Services</h1>
-    <p class="text-sm mt-3 leading-relaxed">
-      Need a hand with infrastructure? I help with DevOps, automation and self-hosting.
-      If you don't see exactly what you need, <a href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id" class="link">send me an email</a> and we'll figure it out.
-    </p>
+  <div class="max-w-[56rem] w-full">
 
-    <div class="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-7">
-      {servicesData.map((svc) => (
-        <section>
-          <h2 class="font-semibold text-[var(--color-primary)]">{svc.name}</h2>
-          <p class="text-sm text-[var(--color-muted)] mt-1">{svc.description}</p>
-          {svc.features && svc.features.length > 0 && (
-            <ul class="text-sm mt-2 flex flex-col gap-1">
-              {svc.features.map((f) => (<li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{f}</span></li>))}
-            </ul>
-          )}
-        </section>
+    <!-- Pitch -->
+    <header class="max-w-[70ch]">
+      <h1 class="font-semibold text-xl before-hash-1">Services</h1>
+      <p class="mt-3 leading-relaxed">
+        Infrastructure that's secure, automated and boring in the best way, so you can get back to your product.
+      </p>
+      <p class="text-sm text-[var(--color-muted)] mt-2 leading-relaxed">
+        I help small teams and individuals with servers, pipelines, monitoring and self-hosting. If you don't see exactly
+        what you need, ask anyway and we'll figure it out.
+      </p>
+      <p class="text-xs text-[var(--color-muted)] mt-4 flex items-center gap-2">
+        <span class="size-2 rounded-full bg-[var(--color-ok)] shrink-0" aria-hidden="true"></span>
+        Open to consulting · based in Bangkok (UTC+7), working nights
+      </p>
+      <div class="flex flex-wrap gap-2 mt-5">
+        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href={mailto('Service inquiry from skiddle.id', briefTemplate)}><Icon name="mail" size={14} /> Email {email}</a>
+        <a class="btn" href="#services">See what I do</a>
+        <a class="btn" href="/works/">View my CV</a>
+      </div>
+    </header>
+
+    <!-- Proof -->
+    <section aria-label="Track record" class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {proof.map((p) => (
+        <div class="card p-4">
+          <p class="text-lg font-semibold text-[var(--color-primary)]">{p.value}</p>
+          <p class="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">
+            {p.label}{p.href && <> <a href={p.href} class="link">story</a></>}
+          </p>
+        </div>
       ))}
-    </div>
+    </section>
 
+    <!-- Services -->
+    <section id="services" aria-labelledby="services-title" class="mt-12 scroll-mt-16">
+      <h2 id="services-title" class="font-semibold before-hash-2">What I can help with</h2>
+      <p class="text-xs text-[var(--color-muted)] mt-1" aria-hidden="true">
+        <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ ls services/
+      </p>
+      <div class="mt-4 grid gap-3 md:grid-cols-2">
+        {services.map((svc, i) => (
+          <article class="card p-5 flex flex-col hover:border-[var(--color-primary)] transition-colors">
+            <header class="flex items-baseline justify-between gap-3">
+              <h3 class="font-semibold text-[var(--color-primary)]">{svc.name}</h3>
+              <span class="text-xs text-[var(--color-muted)] tabular-nums shrink-0" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            </header>
+            {svc.category && <p class="text-[11px] uppercase tracking-wider text-[var(--color-muted)] mt-1">{svc.category}</p>}
+            <p class="text-sm mt-3 leading-relaxed">{svc.description}</p>
+            {svc.features && svc.features.length > 0 && (
+              <ul class="mt-3 text-sm flex flex-col gap-1">
+                {svc.features.map((f) => (
+                  <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-ok)]">✓</span><span>{f}</span></li>
+                ))}
+              </ul>
+            )}
+            <p class="mt-auto pt-4 text-sm">
+              <a href={mailto(`Inquiry: ${svc.name}`, briefTemplate)} class="link">Ask about this →</a>
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section aria-labelledby="process" class="mt-12">
+      <h2 id="process" class="font-semibold before-hash-2">How it works</h2>
+      <ol class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map((s, i) => (
+          <li class="card p-4">
+            <p class="text-xs text-[var(--color-primary)] font-semibold">step {i + 1}</p>
+            <h3 class="font-semibold mt-1">{s.title}</h3>
+            <p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{s.body}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- Testimonials -->
     {testimonials.length > 0 && (
-      <section class="mt-12" aria-label="Client testimonials">
-        <h2 class="font-semibold before-hash-2 mb-4">What people say</h2>
-        <div class="flex flex-col gap-6">
+      <section aria-labelledby="kind-words" class="mt-12">
+        <h2 id="kind-words" class="font-semibold before-hash-2">What people say</h2>
+        <div class="mt-4 grid gap-3 md:grid-cols-3">
           {testimonials.map((t) => (
-            <figure class="border-l-2 border-[var(--color-primary)] pl-4">
+            <figure class="card p-5 flex flex-col">
               <blockquote class="text-sm leading-relaxed">“{t.quote}”</blockquote>
-              <figcaption class="text-xs text-[var(--color-muted)] mt-2">
-                — <span class="text-[var(--color-text)]">{t.author}</span>, {t.role} · {t.serviceName}
+              <figcaption class="mt-auto pt-4 text-xs text-[var(--color-muted)]">
+                <span class="block text-[var(--color-text)]">{t.author}</span>
+                {t.role}
+                <span class="block mt-1 text-[var(--color-primary)]">{t.serviceName}</span>
               </figcaption>
             </figure>
           ))}
@@ -76,12 +158,22 @@ const jsonLd = {
       </section>
     )}
 
-    <section class="mt-12 card p-5">
-      <h2 class="font-semibold">Get in touch</h2>
-      <p class="text-sm text-[var(--color-muted)] mt-1">
-        Tell me about your project, goals, timeline and constraints. I'll reply with next steps and a lightweight plan.
+    <!-- Contact -->
+    <section aria-labelledby="contact" class="mt-12 card p-6">
+      <h2 id="contact" class="font-semibold text-lg">Tell me about your project</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-2 max-w-[60ch]">
+        A few lines is plenty. The email button opens with a short template so you don't have to think about what to include:
       </p>
-      <a class="btn mt-4" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id">Email work@skiddle.id →</a>
+      <ul class="mt-3 text-sm flex flex-col gap-1">
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span>what you need help with</li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span>what "done" looks like</li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span>your timeline</li>
+        <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span>your current setup and any constraints</li>
+      </ul>
+      <div class="flex flex-wrap gap-2 mt-5">
+        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href={mailto('Service inquiry from skiddle.id', briefTemplate)}><Icon name="mail" size={14} /> Email {email}</a>
+        <a class="btn" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="noopener"><Icon name="bluesky" size={14} /> Or say hi on Bluesky</a>
+      </div>
     </section>
   </div>
 </Shell>
