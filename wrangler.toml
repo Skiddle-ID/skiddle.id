@@ -15,7 +15,7 @@ custom_domain = true
 ATP_IDENTIFIER = "skiddle.blue"
 ATP_SERVICE = "https://rhizopogon.us-west.host.bsky.network/"
 LASTFM_USERNAME = "arcestia"
-LASTFM_API_KEY = "0c01496602c34103a2b05a5bb6da1747"
+# LASTFM_API_KEY is a secret, not a var: set it with `npx wrangler secret put LASTFM_API_KEY` (local dev: .dev.vars)
 
 [observability]
 enabled = true
