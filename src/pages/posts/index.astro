@@ -1,70 +1,74 @@
 ---
 export const prerender = true;
-import { getCollection } from 'astro:content';
 import Shell from '~/layouts/shell.astro';
-import FormattedDate from '~/components/formatted-date.astro';
+import PostList from '~/components/post-list.astro';
+import { getPosts } from '~/lib/posts';
 
-const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase();
-const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
-  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
-const filtered = q
-  ? all.filter((p: any) => {
-      const t = (p.data.title || '').toLowerCase();
-      const body = (p.body || '').toLowerCase();
-      const tags = (p.data.tags || []).join(' ').toLowerCase();
-      return t.includes(q) || body.includes(q) || tags.includes(q);
-    })
-  : all;
-
-function readingTime(words: number): string {
-  return `${Math.max(1, Math.ceil(words / 200))} min`;
-}
-const withExcerpt = filtered.map((entry: any) => {
-  const words = entry.body.split(/\s+/).length;
-  const excerpt = entry.data.description || entry.body.slice(0, 180).trimEnd() + '…';
-  const slug = entry.slug || entry.id.replace(/\.mdx?$/, '');
-  return { entry, words, excerpt, slug };
-});
+const posts = await getPosts();
+const tagCount = new Map<string, number>();
+for (const p of posts) for (const t of p.data.tags) tagCount.set(t.toLowerCase(), (tagCount.get(t.toLowerCase()) || 0) + 1);
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<Shell title="Posts — Skiddle">
-  <div class="mx-auto max-w-2xl flex flex-col">
-    <header class="flex flex-col gap-3">
-      <h1 class="font-bold before-hash-1" style="font-family: var(--font-heading)">Posts</h1>
-      <form action="/posts" method="get" class="flex gap-2">
-        <label class="sr-only" for="postsSearch">Search</label>
-        <input id="postsSearch" type="search" name="q" value={q} placeholder="Search title, tags, body..." class="flex-1 h-9 rounded-full px-4 text-sm" style="background:white; border:1px solid var(--color-border); color: var(--color-text)" />
-        <button class="h-9 px-4 rounded-full text-sm font-semibold" style="background: var(--color-primary); color:white; border:1px solid var(--color-primary)">Search</button>
-        {q && (<a href="/posts" class="h-9 px-4 rounded-full text-sm grid place-items-center" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-primary)">Clear</a>)}
-      </form>
-      <p class="text-base03 mono text-xs">
-        { q && (<>Showing {filtered.length} result{filtered.length === 1 ? '' : 's'} for "{q}".</>) }
-        { !q && (<>Showing {all.length} posts · local markdown · shiki at build — <a href="/topics/">Topics →</a></>) }
-      </p>
-    </header>
+<Shell title="Posts — Skiddle" description="Everything I've written: infra, open protocols, homelab notes and life.">
+  <div class="max-w-[70ch] w-full">
+    <h1 class="font-semibold text-xl before-hash-1">Posts</h1>
 
-    <div class="flex flex-col divide-y mt-2" style="border-color: var(--color-border)">
-      {withExcerpt.length === 0 && (<div class="py-10 text-sm" style="color: var(--color-muted)">No posts for "{q}". <a href="/posts" style="color: var(--color-primary)">Clear</a></div>)}
-      {withExcerpt.map(({ entry, words, excerpt, slug }) => (
-        <div class="py-4">
-          <article>
-            <header>
-              <h2 class="font-bold" style="font-family: var(--font-heading)">
-                <a href={`/posts/${slug}/`} style="color: var(--color-primary)">{entry.data.title}</a>
-              </h2>
-              <p class="mono text-xs flex flex-wrap gap-2 items-center" style="color: var(--color-text-muted)">
-                <FormattedDate date={entry.data.pubDate} />
-                {entry.data.updatedDate && (<span>· Updated <FormattedDate date={entry.data.updatedDate} /></span>)}
-                <span>· {readingTime(words)}</span>
-                <span class="tag">{entry.data.category}</span>
-                {entry.data.tags.slice(0,2).map((t: string) => (<span class="tag">#{t}</span>))}
-              </p>
-            </header>
-          </article>
-          <p class="text-sm mt-2" style="color: var(--color-text-muted)">{excerpt}</p>
-        </div>
-      ))}
+    <form action="/posts/" method="get" role="search" class="mt-4 flex gap-2" id="postsSearchForm">
+      <label class="sr-only" for="postsSearch">Search posts</label>
+      <input id="postsSearch" type="search" name="q" placeholder="search titles, tags, text…" autocomplete="off"
+        class="flex-1 h-9 bg-transparent border rounded-md px-3 text-sm placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)]" />
+    </form>
+    <p id="postsSummary" class="text-xs text-[var(--color-muted)] mt-2" aria-live="polite">{posts.length} posts</p>
+
+    <div class="mt-2">
+      <PostList posts={posts} descriptions searchable />
+      <p id="postsEmpty" class="hidden py-8 text-sm text-[var(--color-muted)]">Nothing matches that. <a href="/posts/" class="link">Clear search</a></p>
     </div>
+
+    <section class="mt-10">
+      <h2 class="font-semibold before-hash-2 mb-2">Browse by tag</h2>
+      <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        {tags.map(([t, n]) => <a href={`/topics/tag/${t}/`} class="tag">#{t}<span class="opacity-60"> {n}</span></a>)}
+      </p>
+      <p class="text-sm mt-3"><a href="/topics/" class="link">or by topic →</a></p>
+    </section>
   </div>
 </Shell>
+
+<script>
+  // Static page, so search runs in the browser (works for ?q= links from the sidebar too).
+  const input = document.getElementById('postsSearch') as HTMLInputElement | null;
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.post-item'));
+  const summary = document.getElementById('postsSummary');
+  const empty = document.getElementById('postsEmpty');
+  const total = items.length;
+
+  function apply(q: string) {
+    const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const el of items) {
+      const hay = el.dataset.search || '';
+      const ok = terms.every((t) => hay.includes(t));
+      el.hidden = !ok;
+      if (ok) shown++;
+    }
+    if (summary) summary.textContent = terms.length ? `${shown} of ${total} posts match “${q.trim()}”` : `${total} posts`;
+    empty?.classList.toggle('hidden', shown > 0);
+  }
+
+  const initial = new URLSearchParams(location.search).get('q') || '';
+  if (input) {
+    input.value = initial;
+    input.addEventListener('input', () => {
+      apply(input.value);
+      const url = new URL(location.href);
+      if (input.value.trim()) url.searchParams.set('q', input.value.trim()); else url.searchParams.delete('q');
+      history.replaceState(null, '', url);
+    });
+  }
+  document.getElementById('postsSearchForm')?.addEventListener('submit', (e) => e.preventDefault());
+  const sidebarSearch = document.getElementById('siteSearch') as HTMLInputElement | null;
+  if (sidebarSearch) sidebarSearch.value = initial;
+  apply(initial);
+</script>

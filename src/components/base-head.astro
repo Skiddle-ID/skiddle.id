@@ -3,23 +3,29 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  type?: 'website' | 'article';
 }
 
-const { title, description, image } = Astro.props as Props;
+const { title, description, image, type = 'website' } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
-const ogTitle = title ?? 'Skiddle@web ~';
-const ogDesc = description ?? "I'm a software developer passionate about JavaScript and open protocols, creating better information ecosystems.";
+const ogTitle = title ?? 'Skiddle';
+const ogDesc = description ?? 'Jeff (Skiddle) — night-shift platform engineer in Bangkok, writing about infra, open protocols, homelab and life.';
 const ogImage = image ?? '/android-chrome-512x512.png';
 const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, site).toString();
 ---
 
 <link rel="canonical" href={canonical} />
 <meta name="robots" content="index,follow" />
-<meta name="theme-color" content="#82cfff" />
+<meta name="author" content="Laurensius Jeffrey (Skiddle)" />
+<!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
+<meta name="theme-color" content="#161616" id="themeColor" />
+<link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />
+<link rel="me" href="https://bsky.app/profile/skiddle.blue" />
+<link rel="me" href="https://github.com/arcestia" />
 
 <!-- Open Graph -->
-<meta property="og:type" content="website" />
+<meta property="og:type" content={type} />
 <meta property="og:url" content={canonical} />
 <meta property="og:site_name" content="Skiddle" />
 <meta property="og:title" content={ogTitle} />
@@ -27,17 +33,13 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <meta property="og:image" content={absOgImage} />
 <meta property="og:image:alt" content={ogTitle} />
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
+<!-- Twitter / Bluesky -->
+<meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content={ogTitle} />
 <meta name="twitter:description" content={ogDesc} />
 <meta name="twitter:image" content={absOgImage} />
 
 <!-- Icons -->
-<link rel="icon" href="/favicon.ico" />
-<link rel="icon" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-<!-- Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />

@@ -1,92 +1,125 @@
-<nav id="sidebar" class="fixed left-0 top-12 lg:top-0 h-[calc(100vh-3rem)] lg:h-screen w-56 border-r flex flex-col gap-1 p-4 z-40 lg:z-20 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out" style="background: var(--color-bg); border-color: var(--color-border)">
-  <!-- Brand — editorial, no terminal -->
-  <div class="hidden lg:flex flex-col gap-2 mb-3">
-    <a href="/" class="flex items-center gap-2 no-underline">
-      <img src="https://github.com/arcestia.png" alt="avatar" class="size-8 rounded-full" style="border:1px solid var(--color-border)" />
-      <span style="font-family: var(--font-heading); font-weight:700; color: var(--color-text)">Skiddle</span>
-      <span class="text-xs px-2 py-0.5 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-text-muted)">{__GIT_TAG__ || __GIT_DESCRIBE__ || "v3.1"}</span>
-    </a>
-    <p class="text-xs leading-snug" style="color: var(--color-text-muted)">Night-shift platform engineer — Bangkok.</p>
-  </div>
+---
+import Icon from './icon.astro';
 
-  <!-- Nav links — editorial -->
-  <div class="flex flex-col gap-0.5">
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/" style="font-family: var(--font-heading)">Home</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/posts">Posts</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/topics/">Topics</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/about">About</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/works">Works</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/uses">Uses</a>
-    <a class="hover:text-[var(--color-primary)] py-1.5 px-2 rounded text-sm transition-colors" href="/rss.xml">RSS</a>
-  </div>
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+  { href: '/posts/', label: 'posts' },
+  { href: '/about/', label: 'about' },
+  { href: '/works/', label: 'works' },
+  { href: '/projects/', label: 'projects' },
+  { href: '/uses/', label: 'uses' },
+];
+const isActive = (href: string) => {
+  const h = href.replace(/\/$/, '');
+  return path === h || path.startsWith(h + '/') || (h === '/posts' && path.startsWith('/topics'));
+};
+---
 
-  <!-- Search — always visible, editorial card -->
-  <form action="/posts" method="get" class="mt-3 px-0">
-    <label class="sr-only" for="siteSearch">Search</label>
+<nav id="sidebar" aria-label="Main" class="fixed left-0 top-12 lg:top-0 h-[calc(100dvh-3rem)] lg:h-dvh w-56 border-r flex flex-col gap-1 p-5 z-40 lg:z-20 -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out bg-[var(--color-bg)] overflow-y-auto">
+  <a href="/" class="hidden lg:flex items-center gap-1.5 text-[var(--color-primary)] mb-5">
+    <span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span>
+  </a>
+
+  <ul class="flex flex-col">
+    {links.map((l) => (
+      <li>
+        <a
+          href={l.href}
+          aria-current={isActive(l.href) ? 'page' : undefined}
+          class:list={[
+            'block py-1 px-2 -mx-2 rounded transition-colors hover:text-[var(--color-primary)]',
+            isActive(l.href) && 'text-[var(--color-primary)]',
+          ]}
+        >
+          {isActive(l.href) ? <span aria-hidden="true">&gt; </span> : <span aria-hidden="true" class="opacity-0">&gt; </span>}{l.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <form action="/posts/" method="get" role="search" class="mt-4">
+    <label class="sr-only" for="siteSearch">Search posts</label>
     <div class="relative">
       <input
         id="siteSearch"
         type="search"
         name="q"
-        placeholder="Search posts..."
-        style="height:2rem; width:100%; background:white; border:1px solid var(--color-border); border-radius:999px; padding:0 2.25rem 0 0.75rem; font-size:12px; color: var(--color-text)"
-        class="placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
-      <span aria-hidden="true" class="absolute right-2 top-1/2 -translate-y-1/2 size-6 grid place-items-center rounded-full" style="background:#eef6ff; border:1px solid var(--color-border)"><i class="fa-solid fa-magnifying-glass text-[11px]" style="color: var(--color-muted)"></i></span>
+        placeholder="search posts"
+        class="h-8 w-full bg-transparent border rounded-md pl-2 pr-7 text-sm placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)]"
+      />
+      <Icon name="search" size={14} class="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-muted)] pointer-events-none" />
     </div>
   </form>
 
-  <!-- Now playing — via Last.fm -->
-  <div id="nowPlayingCard" class="mt-3 p-3 rounded-xl hidden" style="background:white; border:1px solid var(--color-border); box-shadow: var(--shadow, 0 4px 12px hsla(210,60%,88%,.5))">
-    <div class="text-[10px] uppercase tracking-widest" style="color: var(--color-muted); font-family: var(--font-heading)">Now playing</div>
-    <div id="nowPlayingContent" class="text-xs mt-1 leading-snug" style="color: var(--color-text)">Loading…</div>
-    <a id="nowPlayingLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[11px] mt-1 inline-flex gap-1 items-center hidden" style="color: var(--color-primary)"><i class="fa-brands fa-lastfm text-[11px]"></i> <span>Open in Last.fm</span></a>
-  </div>
+  <!-- Now playing (Last.fm) — stays hidden unless a track loads -->
+  <a id="nowPlaying" href="https://www.last.fm/user/arcestia" target="_blank" rel="noopener noreferrer" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
+    <span class="flex items-center gap-1.5 mb-1">
+      <Icon name="music" size={12} class="text-[var(--color-primary)]" />
+      <span id="nowPlayingLabel">last played</span>
+    </span>
+    <span id="nowPlayingTrack" class="block text-[var(--color-text)] group-hover:text-[var(--color-primary)] line-clamp-2"></span>
+    <span id="nowPlayingArtist" class="block line-clamp-1"></span>
+  </a>
 
-  <!-- Bottom — socials only (pure light, no theme/color picker) -->
-  <div class="mt-auto flex items-center gap-2 pt-3" style="border-top:1px solid var(--color-border)">
-    <a class="inline-flex items-center justify-center size-8 hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-alt)] rounded leading-none px-0 py-0 transition-colors" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-      <i class="fa-brands fa-github text-[18px]" aria-hidden="true"></i>
-    </a>
-    <a class="inline-flex items-center justify-center size-8 hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-alt)] rounded leading-none px-0 py-0 transition-colors" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="noopener noreferrer" aria-label="Bluesky">
-      <i class="fa-brands fa-bluesky text-[18px]" aria-hidden="true"></i>
-    </a>
+  <div class="mt-auto pt-4 flex items-center gap-1 text-[var(--color-muted)]">
+    <button id="themeToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" aria-label="Switch to light theme" title="Toggle theme">
+      <span class="theme-icon-dark"><Icon name="sun" /></span>
+      <span class="theme-icon-light hidden"><Icon name="moon" /></span>
+    </button>
+    <button id="accentToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full text-[var(--color-primary)] hover:scale-110 transition-transform" aria-label="Change accent colour" title="Change accent colour">
+      <Icon name="palette" size={16} />
+    </button>
+    <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="https://github.com/arcestia" target="_blank" rel="me noopener noreferrer" aria-label="GitHub"><Icon name="github" /></a>
+    <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer" aria-label="Bluesky"><Icon name="bluesky" /></a>
+    <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="/rss.xml" aria-label="RSS feed"><Icon name="rss" /></a>
   </div>
 </nav>
 
+<style>
+  :global([data-theme='light']) .theme-icon-dark { display: none; }
+  :global([data-theme='light']) .theme-icon-light { display: inline; }
+</style>
+
 <script>
-  (function() {
-    function init() {
-      // Now playing — fetch lastfm via /api/now-playing (if available)
-      (async function() {
-        const card = document.getElementById('nowPlayingCard');
-        const content = document.getElementById('nowPlayingContent');
-        const link = document.getElementById('nowPlayingLink');
-        if (!card || !content) return;
-        try {
-          const res = await fetch('/api/now-playing');
-          if (!res.ok) throw new Error('no api');
-          const data = await res.json();
-          const track = data.track || data.nowPlaying || data;
-          const title = track.name || track.title || track.track;
-          const artist = track.artist?.['#text'] || track.artist || '';
-          if (!title) throw new Error('empty');
-          card.classList.remove('hidden');
-          content.textContent = artist ? `${title} — ${artist}` : String(title);
-          if (link && track.url) { link.href = track.url; link.classList.remove('hidden'); }
-        } catch (_) {
-          try {
-            const p = document.createElement('p');
-            p.className = 'text-xs';
-            p.style.color = 'var(--color-muted)';
-            p.textContent = 'Now playing — via Last.fm';
-            content.textContent = '';
-            content.appendChild(p);
-            card.classList.remove('hidden');
-          } catch (__) {}
-        }
-      })();
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
+  const root = document.documentElement;
+  const ACCENTS = ['blue', 'teal', 'purple', 'pink', 'green'];
+  const save = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} };
+
+  const themeBtn = document.getElementById('themeToggle');
+  const syncThemeLabel = () => {
+    const light = root.dataset.theme === 'light';
+    themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+    document.getElementById('themeColor')?.setAttribute('content', light ? '#ffffff' : '#161616');
+  };
+  syncThemeLabel();
+  themeBtn?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = next;
+    save('theme', next);
+    syncThemeLabel();
+  });
+
+  document.getElementById('accentToggle')?.addEventListener('click', () => {
+    const i = ACCENTS.indexOf(root.dataset.accent || 'blue');
+    const next = ACCENTS[(i + 1) % ACCENTS.length];
+    root.dataset.accent = next;
+    save('accent', next);
+  });
+
+  // Now playing
+  (async () => {
+    const card = document.getElementById('nowPlaying') as HTMLAnchorElement | null;
+    if (!card) return;
+    try {
+      const res = await fetch('/api/lastfm.json');
+      if (!res.ok) return;
+      const { track } = await res.json();
+      if (!track?.name) return;
+      document.getElementById('nowPlayingLabel')!.textContent = track.isCurrent ? 'now playing' : 'last played';
+      document.getElementById('nowPlayingTrack')!.textContent = track.name;
+      document.getElementById('nowPlayingArtist')!.textContent = track.artist || '';
+      if (track.trackUrl) card.href = track.trackUrl;
+      card.classList.remove('hidden');
+    } catch {}
   })();
 </script>

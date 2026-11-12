@@ -2,7 +2,7 @@
 title: "My Last Month at Aerialite"
 description: "Co-founding a security & privacy startup in Bangkok - and stepping back after loss."
 pubDate: 2025-09-19T10:33:53.307Z
-category: atproto
+category: life
 tags: [aerialite, bangkok, startup]
 rkey: 3lz6nxxqb6s2x
 draft: false

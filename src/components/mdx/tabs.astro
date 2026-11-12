@@ -3,9 +3,9 @@ interface Props { tabs: string[]; }
 const { tabs } = Astro.props as Props;
 const id = `tabs-${Math.random().toString(36).slice(2,8)}`;
 ---
-<div class="tabs card my-3" style="background:white" data-tabs={id}>
+<div class="tabs card my-3" data-tabs={id}>
   <div class="flex flex-wrap gap-1.5 p-2" style="border-bottom:1px solid var(--color-border)">
-    {tabs.map((t, i) => (<button type="button" class="tag" data-tab={String(i)} aria-selected={i===0 ? 'true' : 'false'} style={i===0 ? 'background:#d9e8ff; border-color:var(--color-primary); color:var(--color-primary)' : ''}>{t}</button>))}
+    {tabs.map((t, i) => (<button type="button" class="tag px-2 py-0.5" data-tab={String(i)} aria-selected={i===0 ? 'true' : 'false'}>{t}</button>))}
   </div>
   <div class="p-3 text-sm leading-relaxed">
     <slot />
@@ -14,7 +14,7 @@ const id = `tabs-${Math.random().toString(36).slice(2,8)}`;
 <style>
   [data-tabs] [data-panel] { display: none; }
   [data-tabs] [data-panel].is-active { display: block; }
-  [data-tabs] [data-tab][aria-selected="true"] { background:#d9e8ff; border-color: var(--color-primary); color: var(--color-primary); }
+  [data-tabs] [data-tab][aria-selected="true"] { color: var(--color-primary); text-decoration: underline; }
 </style>
 <script>
   document.querySelectorAll('[data-tabs]').forEach((root) => {

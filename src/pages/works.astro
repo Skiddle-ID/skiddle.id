@@ -1,106 +1,93 @@
 ---
 import Shell from '../layouts/shell.astro';
 import works from '../data/works';
+
+const h2 = 'font-semibold before-hash-2 mt-10 mb-3';
 ---
 
-<Shell title="Works — Skiddle" description="Jeff’s work — DevOps engineer building platforms, automation, and networks across cloud and self‑hosted. Passionate about AI and aviation.">
-  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
-    <!-- Header — warm blue hero -->
-    <div class="card p-5" style="background: linear-gradient(135deg, #e6f0ff 0%, #d9e8ff 50%, #c2d6f0 100%); border-color: var(--color-primary)">
-      <h1 style="font-family: var(--font-heading); font-size: 1.75rem; line-height: 1.1; margin: 0; color: var(--color-text)">{works.header.name}</h1>
-      <p class="mono text-xs mt-1 px-2.5 py-1 rounded-full inline-flex" style="background:white; border:1px solid var(--color-border); color: var(--color-primary)">{works.header.title} · {works.header.location}</p>
-      <div class="flex flex-wrap gap-3 mt-3 text-sm">
-        <a href={`mailto:${works.header.email}`} style="color: var(--color-primary)" class="mono text-xs">{works.header.email}</a>
-        {works.header.links.github && (<a href={works.header.links.github} style="color: var(--color-primary)" class="mono text-xs" target="_blank">GitHub →</a>)}
-        {works.header.links.bluesky && (<a href={works.header.links.bluesky} style="color: var(--color-primary)" class="mono text-xs" target="_blank">Bluesky →</a>)}
-      </div>
+<Shell title="Works — Skiddle" description="Jeff's work — DevOps engineer building platforms, automation and networks across cloud and self-hosted infrastructure.">
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">{works.header.name}</h1>
+      <p class="text-[var(--color-primary)] mt-1">{works.header.title} · {works.header.location}</p>
+      <p class="text-sm mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <a href={`mailto:${works.header.email}`} class="link">{works.header.email}</a>
+        {works.header.links.github && (<a href={works.header.links.github} class="link" target="_blank" rel="me noopener">GitHub</a>)}
+        {works.header.links.bluesky && (<a href={works.header.links.bluesky} class="link" target="_blank" rel="me noopener">Bluesky</a>)}
+        <a href="/projects/" class="link">Open-source projects</a>
+        <a href="/services/" class="link">Hire me</a>
+      </p>
+    </header>
+
+    <h2 class={h2}>Summary</h2>
+    <div class="text-sm leading-relaxed flex flex-col gap-3">
+      {works.summary.map((p) => (<p>{p}</p>))}
     </div>
 
-    <!-- Summary -->
-    <div class="card p-4" style="background:white">
-      <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Summary</div>
-      {works.summary.map((p) => (<p class="text-sm leading-relaxed" style="color: var(--color-text)">{p}</p>))}
-    </div>
-
-    <!-- Experience — warm timeline -->
-    <section>
-      <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Experience</div>
-      <div class="flex flex-col gap-3">
-        {works.experience.map((exp) => (
-          <div class="card p-4" style="background:white">
-            <div class="font-bold" style="font-family: var(--font-heading); color: var(--color-text)">{exp.company}</div>
-            <div class="mt-2 flex flex-col gap-3">
-              {exp.positions.map((pos) => (
-                <div class="flex gap-3">
-                  <div class="w-1 rounded-full shrink-0 self-stretch" style="background: var(--color-border)"></div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-baseline justify-between gap-2">
-                      <span class="text-sm font-semibold" style="color: var(--color-text)">{pos.role}</span>
-                      <span class="mono text-xs px-1.5 py-0.5 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-text-muted)">{pos.start} — {pos.end}</span>
-                    </div>
-                    <ul class="mt-2 space-y-1 text-sm" style="color: var(--color-text-muted)">
-                      {pos.highlights.map((h) => (<li class="flex gap-2"><span style="color: var(--color-primary)">·</span><span>{h}</span></li>))}
-                    </ul>
-                  </div>
+    <h2 class={h2}>Experience</h2>
+    <div class="flex flex-col gap-8">
+      {works.experience.map((exp) => (
+        <section>
+          <h3 class="font-semibold">{exp.company}</h3>
+          <div class="mt-2 flex flex-col gap-4 border-l pl-4">
+            {exp.positions.map((pos) => (
+              <div>
+                <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                  <span class="text-sm text-[var(--color-primary)]">{pos.role}</span>
+                  <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {pos.end}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <!-- Education + Skills — grid -->
-    <div class="grid sm:grid-cols-2 gap-3">
-      <div class="card p-4" style="background:white">
-        <div class="mono text-xs uppercase tracking-widest mb-3" style="color: var(--color-text-muted)">Education</div>
-        <div class="flex flex-col gap-4">
-          {works.education.map((ed) => (
-            <div>
-              <div class="font-semibold text-sm" style="color: var(--color-text)">{ed.degree}</div>
-              <div class="mono text-xs" style="color: var(--color-text-muted)">{ed.school} · {ed.start}{ed.end ? ` — ${ed.end}` : ''}</div>
-              {ed.description && (<p class="text-xs mt-1" style="color: var(--color-text-muted)">{ed.description}</p>)}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div class="card p-4" style="background:white">
-        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Skills</div>
-        <div class="flex flex-col gap-3 text-sm">
-          <div><div class="mono text-xs mb-1" style="color: var(--color-primary)">Languages</div><div class="flex flex-wrap gap-1.5">{works.skills.programmingLanguages.map((s) => (<span class="tag">{s}</span>))}</div></div>
-          <div><div class="mono text-xs mb-1" style="color: var(--color-primary)">DevOps</div><div class="flex flex-wrap gap-1.5">{works.skills.devopsInfrastructure.map((s) => (<span class="tag">{s}</span>))}</div></div>
-          <div><div class="mono text-xs mb-1" style="color: var(--color-primary)">Frameworks</div><div class="flex flex-wrap gap-1.5">{works.skills.frameworksTools.map((s) => (<span class="tag">{s}</span>))}</div></div>
-          <div><div class="mono text-xs mb-1" style="color: var(--color-primary)">Interests</div><div class="flex flex-wrap gap-1.5">{works.skills.interests.map((s) => (<span class="tag">{s}</span>))}</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Projects + Certs -->
-    <div class="grid sm:grid-cols-2 gap-3">
-      <div class="card p-4" style="background:white">
-        <div class="mono text-xs uppercase tracking-widest mb-3" style="color: var(--color-text-muted)">Notable projects</div>
-        <div class="flex flex-col gap-4">
-          {works.projects.map((prj) => (
-            <div>
-              <div class="font-semibold text-sm" style="color: var(--color-text)">{prj.title}</div>
-              <p class="text-xs mt-1" style="color: var(--color-text-muted)">{prj.description}</p>
-              <div class="flex flex-wrap gap-1 mt-2">{prj.labels.map((l) => (<span class="tag" style="background:#eef6ff">{l}</span>))}</div>
-              <div class="flex gap-3 mt-2 mono text-xs">
-                {prj.live && (<a href={prj.live} style="color: var(--color-primary)" target="_blank">Live →</a>)}
-                {prj.github && (<a href={prj.github} style="color: var(--color-primary)" target="_blank">GitHub →</a>)}
+                <ul class="mt-1.5 text-sm text-[var(--color-muted)] flex flex-col gap-1">
+                  {pos.highlights.map((h) => (<li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{h}</span></li>))}
+                </ul>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div class="card p-4" style="background:white">
-        <div class="mono text-xs uppercase tracking-widest mb-3" style="color: var(--color-text-muted)">Certifications</div>
-        <div class="flex flex-col gap-2 text-sm">
-          {works.certifications.map((c) => (
-            <div class="flex justify-between gap-2"><span style="color: var(--color-text)">{c.title}</span><span class="mono text-xs shrink-0" style="color: var(--color-text-muted)">{c.yearOrStatus}</span></div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
+
+    <h2 class={h2}>Education</h2>
+    <div class="flex flex-col gap-3 text-sm">
+      {works.education.map((ed) => (
+        <div>
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+            <span>{ed.degree}</span>
+            <span class="text-xs text-[var(--color-muted)] tabular-nums">{ed.start}{ed.end ? ` – ${ed.end}` : ''}</span>
+          </div>
+          <div class="text-[var(--color-muted)]">{ed.school}</div>
+          {ed.description && (<p class="text-xs text-[var(--color-muted)] mt-1">{ed.description}</p>)}
+        </div>
+      ))}
+    </div>
+
+    <h2 class={h2}>Skills</h2>
+    <dl class="text-sm grid sm:grid-cols-[9rem_1fr] gap-x-4 gap-y-2">
+      <dt class="text-[var(--color-muted)]">Languages</dt><dd>{works.skills.programmingLanguages.join(', ')}</dd>
+      <dt class="text-[var(--color-muted)]">DevOps & infra</dt><dd>{works.skills.devopsInfrastructure.join(', ')}</dd>
+      <dt class="text-[var(--color-muted)]">Frameworks</dt><dd>{works.skills.frameworksTools.join(', ')}</dd>
+      <dt class="text-[var(--color-muted)]">Interests</dt><dd>{works.skills.interests.join(', ')}</dd>
+    </dl>
+
+    <h2 class={h2}>Notable projects</h2>
+    <div class="flex flex-col gap-5 text-sm">
+      {works.projects.map((prj) => (
+        <div>
+          <div class="flex flex-wrap items-baseline gap-x-3">
+            <span class="font-semibold">{prj.title}</span>
+            {prj.live && (<a href={prj.live} class="link text-xs" target="_blank" rel="noopener">live</a>)}
+            {prj.github && (<a href={prj.github} class="link text-xs" target="_blank" rel="noopener">source</a>)}
+          </div>
+          <p class="text-[var(--color-muted)] mt-1">{prj.description}</p>
+          <p class="text-xs text-[var(--color-muted)] mt-1">{prj.labels.join(' · ')}</p>
+        </div>
+      ))}
+    </div>
+
+    <h2 class={h2}>Certifications</h2>
+    <ul class="flex flex-col gap-1.5 text-sm">
+      {works.certifications.map((c) => (
+        <li class="flex justify-between gap-3"><span>{c.title}</span><span class="text-xs text-[var(--color-muted)] shrink-0">{c.yearOrStatus}</span></li>
+      ))}
+    </ul>
   </div>
 </Shell>

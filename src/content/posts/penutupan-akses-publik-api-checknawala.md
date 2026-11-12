@@ -5,7 +5,7 @@ pubDate: 2025-11-23T15:37:40.144Z
 updatedDate: 2025-11-24T00:00:00.000Z
 category: infra
 tags: [api, trustpositif, checknawala]
-cover: ./cover-checknawala.png
+lang: id
 featured: true
 series: checkdomain
 order: 2

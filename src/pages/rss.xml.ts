@@ -22,9 +22,9 @@ export const GET = async (context: APIContext) => {
     description: 'Personal blog and writings',
     site,
     items: sorted.map(post => ({
-      id: `${site}posts/${post.slug}/`,
+      id: `${site}posts/${post.id}/`,
       title: post.data.title ?? 'Untitled',
-      link: `${site}posts/${post.slug}/`,
+      link: `${site}posts/${post.id}/`,
       pubDate: post.data.pubDate,
       description: post.data.description || post.body.slice(0, 200).trimEnd() + '…',
     })),

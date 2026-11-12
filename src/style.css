@@ -1,220 +1,243 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
-@import '@fontsource/geist-mono' layer(base);
+@import '@fontsource/geist-mono/latin-400.css' layer(base);
+@import '@fontsource/geist-mono/latin-600.css' layer(base);
 
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/*
+  skiddle.id — v1 soul, v3 features.
+  IBM Carbon palette. Dark is the default; light via <html data-theme="light">.
+  Accent colour via <html data-accent="blue|teal|purple|pink|green">.
+*/
 @theme {
-  /* ── IBM Carbon + Warm blue ── */
-  --color-base00: #161616;   /* near-black */
-  --color-base01: #262626;   /* dark gray */
-  --color-base02: #393939;   /* mid-dark gray */
-  --color-base03: #5a6b87;   /* slate blue-gray (tania muted) */
-  --color-base04: #8d8d8d;   /* light-mid gray */
-  --color-base05: #c2d6f0;   /* blue border */
-  --color-base06: #d9e8ff;   /* light blue card */
-  --color-base07: #eef6ff;   /* blue-warm paper (was f4f4f4) */
+  /* Carbon base (kept so old utilities like text-base03 still resolve) */
+  --color-base00: #161616;
+  --color-base01: #262626;
+  --color-base02: #393939;
+  --color-base03: #a8a8a8;
+  --color-base04: #c6c6c6;
+  --color-base05: #e0e0e0;
+  --color-base06: #f4f4f4;
+  --color-base07: #ffffff;
+  --color-base0A: #82cfff;
 
-  /* ── Accent palette ── */
-  --color-base08: #ff8389;   /* red */
-  --color-base09: #be95ff;   /* purple */
-  --color-base0A: #82cfff;   /* sky blue ← primary accent */
-  --color-base0B: #2a67a5;   /* tania blue */
-  --color-base0C: #ff7eb6;   /* pink */
-  --color-base0D: #42be65;   /* green */
-  --color-base0E: #08bdba;   /* teal */
-  --color-base0F: #fa4d56;   /* red-orange */
+  /* Semantic tokens — dark (default) */
+  --color-bg: #161616;
+  --color-bg-alt: #1f1f1f;
+  --color-border: #393939;
+  --color-text: #f2f4f8;
+  --color-muted: #a8a8a8;
+  --color-primary: #82cfff;
 
-  /* ── Semantic aliases (LIGHT default) ── */
-  --color-bg:     var(--color-base07);
-  --color-bg-alt: var(--color-base06);
-  --color-bg-card: #e6f0ff;
-  --color-text:   #1a2332;
-  --color-muted:  var(--color-base03);
-  --color-border: var(--color-base05);
+  /* Legacy aliases so nothing old breaks */
+  --color-text-muted: var(--color-muted);
+  --color-white: var(--color-text);
+  --color-black: var(--color-bg);
+  --color-gray: var(--color-border);
 
-  /* map existing tokens */
-  --color-black:  var(--color-base00);
-  --color-white:  var(--color-base00);  /* text is dark on light */
-  --color-gray:   var(--color-base02);
-  --color-primary:var(--color-base0B);  /* tania blue #2a67a5 (toggle to sky blue) */
-
-  /* ── Font & layout ── */
-  --font-mono: 'Geist Mono', monospace;
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-mono);
   --tracking-normal: -0.32px;
   --leading-normal: 180%;
 
-  /* ── Animation ── */
   --animate-blink: blink 1.45s infinite step-start;
   @keyframes blink {
     0%, 25%, 100% { opacity: 1 }
-    50%, 75%       { opacity: 0 }
+    50%, 75% { opacity: 0 }
   }
 }
 
-/* ── Prose / markdown content ── */
-@utility prose {
-  color: var(--color-text) !important;
-
-  strong { color: var(--color-primary) !important }
-
-  a { color: var(--color-primary); text-decoration: none;
-      &:hover { text-decoration: underline; }
-    }
-
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--color-text);
-    font-family: var(--font-heading);
-    font-size: 1em;
-    font-weight: 700;
-    &::before { color: var(--color-muted); }
-  }
-
-  h1::before { content: '# ' / '' !important; }
-  h2::before { content: '## ' / '' !important; }
-  h3::before { content: '### ' / '' !important; }
-  h4::before { content: '#### ' / '' !important; }
-  h5::before { content: '##### ' / '' !important; }
-  h6::before { content: '###### ' / '' !important; }
-
-  hr {
-    border-color: var(--color-border);
-    width: 100%;
-    margin: 1.5em 0;
-  }
-
-  blockquote {
-    color: var(--color-base0B);
-    border-inline-start: 2px solid var(--color-border);
-    padding-inline-start: 1em;
-    font-style: normal;
-    & p { color: var(--color-text) }
-  }
-
-  pre {
-    background-color: var(--color-bg-alt) !important;
-    border: 1px solid var(--color-border);
-    border-radius: 0;
-  }
-
-  code {
-    color: var(--color-base09);
-    &::before { content: "" !important }
-    &::after  { content: "" !important }
-  }
-
-  p { margin: 0.5em 0; }
-  h1, h2, h3, h4, h5, h6 { margin: 1em 0 0.4em; }
-  ul, ol, blockquote, pre, table { margin: 0.6em 0; }
-  .card { margin: 0.6em 0; }
-  table { border-collapse: collapse; width: 100%; font-size: 0.875em; line-height: 1.4; }
-  th, td { border: 1px solid var(--color-border); padding: 0.4em 0.6em; text-align: left; }
-  th { background: #eef6ff; color: var(--color-text); font-family: var(--font-heading); font-weight: 700; }
-  td { background: white; }
-  ul { list-style: none; padding-left: 1.25em;
-       & li::before { content: '• '; color: var(--color-primary); margin-left: -1.25em; }
-     }
-  ol { padding-left: 1.5em; }
+/* ── Light theme ── */
+:root[data-theme='light'] {
+  --color-bg: #ffffff;
+  --color-bg-alt: #f4f4f4;
+  --color-border: #e0e0e0;
+  --color-text: #161616;
+  --color-muted: #525252;
+  --color-primary: #0f62fe;
+  color-scheme: light;
 }
 
-/* ── Base reset ── */
+/* ── Accent colours (dark values, then light values with enough contrast) ── */
+:root[data-accent='blue']   { --color-primary: #82cfff; }
+:root[data-accent='teal']   { --color-primary: #3ddbd9; }
+:root[data-accent='purple'] { --color-primary: #be95ff; }
+:root[data-accent='pink']   { --color-primary: #ff7eb6; }
+:root[data-accent='green']  { --color-primary: #42be65; }
+:root[data-theme='light'][data-accent='blue']   { --color-primary: #0f62fe; }
+:root[data-theme='light'][data-accent='teal']   { --color-primary: #007d79; }
+:root[data-theme='light'][data-accent='purple'] { --color-primary: #8a3ffc; }
+:root[data-theme='light'][data-accent='pink']   { --color-primary: #d02670; }
+:root[data-theme='light'][data-accent='green']  { --color-primary: #198038; }
+
+/* ── Base ── */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
     border-color: var(--color-border);
   }
-
   html {
+    color-scheme: dark;
     scroll-behavior: smooth;
-    color-scheme: light;
+    scroll-padding-top: 4rem;
   }
-
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
   }
-
+  a { text-underline-offset: 3px; }
   ::selection {
-    background-color: var(--color-base0A);
-    color: var(--color-base00);
+    background-color: var(--color-primary);
+    color: var(--color-bg);
   }
-
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
-  ::-webkit-scrollbar-track { background: var(--color-bg-alt); }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-muted);
-    border-radius: 3px;
-  }
+  hr { border-color: var(--color-border); }
 }
 
-/* ── Utility helpers ── */
-@utility rendering-pixelated {
-  image-rendering: pixelated;
-}
+/* ── Prose / post content ── */
+@utility prose {
+  color: var(--color-text) !important;
 
-@utility before-hash-1 {
-  &::before {
-    content: '# ' / '';
+  a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    &:hover { text-decoration-style: wavy; }
+  }
+  strong { color: var(--color-text); font-weight: 600; }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text);
+    font-size: 1em;
+    font-weight: 600;
+    margin: 2em 0 0.6em;
+    &::before { color: var(--color-muted); }
+  }
+  h1::before { content: '# ' / ''; }
+  h2::before { content: '## ' / ''; }
+  h3::before { content: '### ' / ''; }
+  h4::before { content: '#### ' / ''; }
+  h5::before { content: '##### ' / ''; }
+  h6::before { content: '###### ' / ''; }
+
+  p { margin: 0 0 1.1em; }
+  img { border-radius: 6px; border: 1px solid var(--color-border); }
+  hr { border-color: var(--color-border); margin: 2em 0; }
+
+  blockquote {
     color: var(--color-muted);
+    border-inline-start: 2px solid var(--color-primary);
+    padding-inline-start: 1em;
+    font-style: normal;
+    font-weight: 400;
+    & p::before, & p::after { content: none; }
   }
+
+  pre {
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.85em;
+    line-height: 1.6;
+  }
+  :not(pre) > code {
+    color: var(--color-primary);
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    font-weight: 400;
+    &::before, &::after { content: '' !important; }
+  }
+
+  ul { list-style: none; padding-left: 1.25em; }
+  ul > li::before { content: '-'; color: var(--color-primary); margin-left: -1.25em; position: absolute; }
+  ul > li { position: relative; }
+  ol { padding-left: 1.5em; }
+  ol > li::marker { color: var(--color-muted); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.875em; line-height: 1.5; }
+  th, td { border: 1px solid var(--color-border); padding: 0.45em 0.7em; text-align: left; }
+  th { background: var(--color-bg-alt); color: var(--color-text); font-weight: 600; }
 }
 
-@utility before-hash-2 {
-  &::before {
-    content: '## ' / '';
-    color: var(--color-muted);
-  }
+/* Size/measure overrides. Unlayered + extra specificity so they beat
+   @tailwindcss/typography's own `.prose { max-width: 65ch; font-size: 1rem }`. */
+html .prose {
+  max-width: 70ch;
+  font-size: 0.95rem;
+  line-height: 1.85;
 }
 
-@utility before-hash-3 {
-  &::before {
-    content: '### ' / '';
-    color: var(--color-muted);
-  }
+/* ── Shiki: dual themes, dark inline by default ── */
+:root[data-theme='light'] .astro-code,
+:root[data-theme='light'] .astro-code span {
+  color: var(--shiki-light) !important;
 }
+.astro-code { background-color: var(--color-bg-alt) !important; }
 
+/* ── Small shared pieces ── */
+@utility before-hash-1 { &::before { content: '# ' / ''; color: var(--color-muted); } }
+@utility before-hash-2 { &::before { content: '## ' / ''; color: var(--color-muted); } }
+@utility before-hash-3 { &::before { content: '### ' / ''; color: var(--color-muted); } }
+
+/* Subtle bordered block — used sparingly (callouts, ToC) */
 @utility card {
-  background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px hsla(210,60%,88%,.5);
+  border-radius: 6px;
 }
 
-hr {
-  border-color: var(--color-border);
+/* Inline tag link: #astro */
+@utility tag {
+  color: var(--color-muted);
+  white-space: nowrap;
+  &:hover { color: var(--color-primary); }
 }
 
-pre:has(code) {
-  background-color: var(--color-bg-alt) !important;
-  border-radius: 0;
+/* Text button / link with arrow feel */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  transition: border-color .15s, color .15s;
+  &:hover { border-color: var(--color-primary); color: var(--color-primary); }
 }
 
-/* ── Code copy + mobile ToC ── */
+@utility link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  &:hover { text-decoration-style: wavy; }
+}
+
+@utility mono { font-family: var(--font-mono); }
+
+/* Code copy button */
 .prose pre { position: relative; }
 .code-copy {
-  position: absolute; top: 8px; right: 8px;
+  position: absolute; top: 6px; right: 6px;
   font-size: 11px; line-height: 1;
   border: 1px solid var(--color-border);
-  background: white; color: var(--color-text);
-  border-radius: 999px; padding: 6px 10px;
-  opacity: 0; transition: opacity .15s, background .15s;
+  background: var(--color-bg); color: var(--color-muted);
+  border-radius: 4px; padding: 5px 8px;
+  opacity: 0; transition: opacity .15s;
 }
-.prose pre:hover .code-copy, .prose pre:focus-within .code-copy { opacity: 1; }
-.code-copy:active { background: var(--color-bg-alt); }
+.prose pre:hover .code-copy, .prose pre:focus-within .code-copy, .code-copy:focus-visible { opacity: 1; }
 
-/* ── Cursor blink element ── */
 .cursor-blink {
   display: inline-block;
-  width: 10px;
-  height: 1.2em;
+  width: 9px;
+  height: 1.15em;
   background-color: var(--color-primary);
   vertical-align: text-bottom;
   animation: var(--animate-blink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink { animation: none; }
 }

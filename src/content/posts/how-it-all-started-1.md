@@ -2,8 +2,8 @@
 title: "How It All Started #1"
 description: "Kitchen to cockpit - learning to fly with my fiancé, from A320 passenger to PPL ground school."
 pubDate: 2025-09-30T11:25:13.198Z
-category: homelab
-tags: [atproto, aviation, ppl]
+category: life
+tags: [aviation, ppl]
 rkey: 3lzyaaxwvgg2e
 draft: false
 ---

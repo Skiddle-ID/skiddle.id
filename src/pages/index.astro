@@ -1,8 +1,8 @@
 ---
 import Shell from '../layouts/shell.astro';
-import { getCollection } from 'astro:content';
+import PostList from '../components/post-list.astro';
+import { getPosts } from '~/lib/posts';
 export const prerender = true;
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
 
 const handle = 'skiddle.blue';
 let avatarUrl: string | undefined;
@@ -10,150 +10,74 @@ try {
   const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${handle}`);
   if (res.ok) {
     const data = (await res.json()) as { avatar?: string };
-    avatarUrl = data && typeof data.avatar === 'string' ? data.avatar : undefined;
+    avatarUrl = typeof data?.avatar === 'string' ? data.avatar : undefined;
   }
 } catch (_) {}
-const fallback = 'https://github.com/arcestia.png';
-const profileImg = avatarUrl || fallback;
+const profileImg = avatarUrl || 'https://github.com/arcestia.png';
 
-const allPosts = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
-  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
-const featured = allPosts.find((p: any) => p.data.featured) || allPosts[0];
-const infra = allPosts.filter((p: any) => p.data.category === 'infra');
-const atproto = allPosts.filter((p: any) => p.data.category === 'atproto');
-const homelab = allPosts.filter((p: any) => p.data.category === 'homelab');
+const posts = await getPosts();
+const recent = posts.slice(0, 5);
+const linkCls = 'link';
 ---
 
-<Shell title="Skiddle — Systems Architecture" description="Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.">
-  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
+<Shell title="Skiddle — Jeff's corner of the internet" description="Jeff (Skiddle) — night-shift platform engineer in Bangkok. I build delivery pipelines, run a homelab, care about open protocols, and I'm learning to fly.">
+  <div class="max-w-[70ch] w-full">
+    <section class="flex flex-col sm:flex-row sm:items-center gap-6 mb-8">
+      <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-28 rounded-full shrink-0 border" />
+      <div class="flex flex-col gap-2">
+        <h1 class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
+        <p class="text-[var(--color-primary)]">Platform engineer / Homelabber / Student pilot</p>
+      </div>
+    </section>
 
-    <!-- Hero — editorial, no terminal -->
-    <div class="card p-5">
-      <div class="flex items-center gap-2 mono text-xs px-2.5 py-1 rounded-full mb-3 inline-flex" style="background: #eef6ff; border: 1px solid var(--color-border); color: var(--color-text-muted)">
-        <span class="w-2 h-2 rounded-full" style="background: #22c55e"></span>
-        Hey, I'm Jeff · Systems Architecture · Bangkok
-      </div>
-      <div class="flex items-start gap-4">
-        <img src={profileImg} alt="avatar" class="size-14 rounded-full border" style="border-color: var(--color-border)" />
-        <div>
-          <h1 style="font-family: var(--font-heading); font-size: 1.9rem; line-height: 1.05; margin: 0; color: var(--color-text)">
-            Hey, I'm Jeff — <span style="color: var(--color-primary)">Skiddle</span>
-          </h1>
-          <p class="text-sm mt-2" style="color: var(--color-text-muted)">
-            Night-shift platform engineer. I build delivery pipelines, run infra across cloud & homelab, and write about removing toil.
-          </p>
-        </div>
-      </div>
-
-      <div class="mt-5" style="border-top: 1px solid var(--color-border); padding-top: 14px">
-        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">A brief timeline</div>
-        <div class="text-sm flex flex-col gap-2" style="color: var(--color-text-muted)">
-          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2015–2020</span><span>Self-taught, homelab experiments — learning infra by breaking it.</span></div>
-          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2021–2023</span><span>Co-founded <b style="color: var(--color-text)">Aerialite</b> in Bangkok — delivery pipelines, self-hosted to cloud.</span></div>
-          <div class="flex gap-3"><span class="mono text-xs font-semibold" style="color: var(--color-primary); min-width: 88px; padding-top: 2px;">2024–now</span><span><b style="color: var(--color-text)">Skiddle Ecosystem</b>: <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">api-trustpositif</code> · 9.46M pipeline → <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">skiddle.blue</code> + <code class="mono text-xs px-1 py-0.5 rounded" style="background: #eef6ff; border: 1px solid var(--color-border)">skiddle.id</code> {allPosts.length} posts.</span></div>
-        </div>
-        <div class="flex flex-wrap gap-2 mt-4">
-          <a href="/posts/" class="btn btn-primary mono text-xs">Latest writing →</a>
-          <a href="/topics/" class="btn mono text-xs">Topics →</a>
-        </div>
-      </div>
+    <div class="prose">
+      <p>
+        I'm a night-shift platform engineer based in Bangkok, Thailand. I build delivery pipelines,
+        keep infrastructure running across cloud and my homelab, and write small tools so I don't
+        have to do the same boring thing twice.
+      </p>
+      <p>
+        I'm a big fan of open source and open protocols like ATProto. Most of what I run lives in
+        my homelab, because I like owning my own little corner of the internet.
+      </p>
+      <p>
+        Away from the terminal, I'm working toward my Private Pilot License together with my fiancé.
+        I write about all of it here: infra, the open web, homelab experiments, and life.
+      </p>
+      <p>
+        Always happy to talk about any of it. Say hi on <a href="https://bsky.app/profile/skiddle.blue" rel="me">Bluesky</a> or
+        by <a href="mailto:jeff@skiddle.id">email</a>.
+      </p>
     </div>
 
-    <!-- Featured (if any) -->
-    {featured && (
+    <section class="mt-10">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="font-semibold before-hash-2">Recent posts</h2>
+        <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
+      </div>
+      <PostList posts={recent} />
+    </section>
+
+    <section class="mt-10 grid grid-cols-2 gap-6 text-sm">
       <div>
-        <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Featured</div>
-        <a href={`/posts/${slugOf(featured)}/`} class="card p-4 block" style="background: linear-gradient(135deg, #e6f0ff 0%, #d9e8ff 50%, #c2d6f0 100%); border-color: var(--color-primary)">
-          <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">
-            {featured.data.category} · {featured.data.pubDate.toLocaleDateString()} · {featured.data.tags.slice(0,2).join(', ')}
-          </div>
-          <div class="font-bold" style="font-family: var(--font-heading); font-size: 1.15rem; line-height: 1.2">{featured.data.title}</div>
-          <div class="text-sm mt-1" style="color: var(--color-text-muted)">{featured.data.description}</div>
-        </a>
+        <h2 class="font-semibold mb-2 before-hash-2">On the web</h2>
+        <ul class="space-y-1">
+          <li><a class={linkCls} href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank">Bluesky</a></li>
+          <li><a class={linkCls} href="https://github.com/arcestia" rel="me noopener" target="_blank">GitHub</a></li>
+          <li><a class={linkCls} href="https://www.instagram.com/skiddle.id" rel="noopener" target="_blank">Instagram</a></li>
+          <li><a class={linkCls} href="mailto:jeff@skiddle.id">Email</a></li>
+        </ul>
       </div>
-    )}
-
-    <!-- Shelves — infra / atproto / homelab -->
-    <section>
-      <div class="flex items-baseline justify-between mb-1">
-        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">Infra & Delivery</h2>
-        <a href="/topics/#infra" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
-      </div>
-      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Pipelines, Workers, KV — the 9.46M plumbing.</p>
-      <div class="grid sm:grid-cols-2 gap-3">
-        {infra.slice(0, 2).map((p: any) => (
-          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
-            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()} · {Math.max(1, Math.ceil(p.body.split(/\s+/).length / 200))} min</div>
-            <div class="font-semibold text-sm">{p.data.title}</div>
-            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
-          </a>
-        ))}
+      <div>
+        <h2 class="font-semibold mb-2 before-hash-2">On this site</h2>
+        <ul class="space-y-1">
+          <li><a class={linkCls} href="/about/">About me</a></li>
+          <li><a class={linkCls} href="/works/">Works</a></li>
+          <li><a class={linkCls} href="/projects/">Projects</a></li>
+          <li><a class={linkCls} href="/uses/">Uses</a></li>
+          <li><a class={linkCls} href="/services/">Services</a></li>
+        </ul>
       </div>
     </section>
-
-    <section>
-      <div class="flex items-baseline justify-between mb-1">
-        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">ATProto & Open</h2>
-        <a href="/topics/#atproto" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
-      </div>
-      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Building in the open — skiddle.blue, PDS, WhiteWind → local MD.</p>
-      <div class="grid sm:grid-cols-2 gap-3">
-        {atproto.slice(0, 2).map((p: any) => (
-          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
-            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()}</div>
-            <div class="font-semibold text-sm">{p.data.title}</div>
-            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
-          </a>
-        ))}
-        {atproto.length === 0 && (
-          <div class="card p-4 text-sm" style="background: white; color: var(--color-text-muted)">More ATProto posts coming — see timeline above.</div>
-        )}
-      </div>
-    </section>
-
-    <section>
-      <div class="flex items-baseline justify-between mb-1">
-        <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">Homelab & Life</h2>
-        <a href="/topics/#homelab" class="mono text-xs" style="color: var(--color-primary)">View all →</a>
-      </div>
-      <p class="text-sm mb-3" style="color: var(--color-text-muted)">Self-hosted notes — Purelymail, Aerialite, Bangkok.</p>
-      <div class="grid sm:grid-cols-2 gap-3">
-        {homelab.slice(0, 2).map((p: any) => (
-          <a href={`/posts/${slugOf(p)}/`} class="card p-4 block" style="background: white">
-            <div class="mono text-xs mb-1" style="color: var(--color-text-muted)">{p.data.category} · {p.data.pubDate.toLocaleDateString()}</div>
-            <div class="font-semibold text-sm">{p.data.title}</div>
-            <div class="text-xs mt-1" style="color: var(--color-text-muted)">{p.data.description}</div>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <!-- Links -->
-    <div class="card p-4">
-      <div class="grid sm:grid-cols-2 gap-6 text-sm">
-        <div>
-          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">Elsewhere</div>
-          <ul class="space-y-1">
-            <li><a class="text-[var(--color-primary)] hover:underline" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer">bsky.social</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="https://github.com/arcestia" target="_blank" rel="noopener noreferrer">github</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="https://www.instagram.com/skiddle.id" target="_blank" rel="noopener noreferrer">instagram</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="mailto:jeff@skiddle.id">email</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-text-muted)">On this site</div>
-          <ul class="space-y-1">
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/about">about</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/works">works</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/services">services</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/uses">uses</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/posts">blog</a></li>
-            <li><a class="text-[var(--color-primary)] hover:underline" href="/topics/">topics</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
   </div>
 </Shell>
