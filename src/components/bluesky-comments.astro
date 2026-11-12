@@ -1,0 +1,216 @@
+---
+/**
+ * Comments from Bluesky: renders the replies to the Bluesky post that
+ * announced this blog post. Loaded in the browser from the public AppView
+ * (no account, no tracking) only when the section scrolls into view.
+ */
+import Icon from './icon.astro';
+
+interface Props {
+  /** at://did/app.bsky.feed.post/rkey of the announcing post */
+  uri?: string;
+  /** Used for the "start the conversation" link when there's no thread yet */
+  title: string;
+  url: string;
+}
+const { uri, title, url } = Astro.props;
+
+const toBskyUrl = (atUri: string) => {
+  const m = /^at:\/\/([^/]+)\/app\.bsky\.feed\.post\/([^/]+)$/.exec(atUri);
+  return m ? `https://bsky.app/profile/${m[1]}/post/${m[2]}` : 'https://bsky.app/profile/skiddle.blue';
+};
+const threadUrl = uri ? toBskyUrl(uri) : undefined;
+const composeUrl = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${title} ${url}`)}`;
+---
+
+<section id="comments" aria-labelledby="comments-title" class="mt-12 print:hidden" lang="en">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h2 id="comments-title" class="font-semibold before-hash-2">Comments</h2>
+    {threadUrl && <p id="bskyStats" class="text-xs text-[var(--color-muted)]" aria-live="polite"></p>}
+  </div>
+
+  {threadUrl ? (
+    <div id="bskyComments" data-uri={uri} data-thread-url={threadUrl}>
+      <p class="text-sm text-[var(--color-muted)] mt-2">
+        Comments are replies to <a href={threadUrl} class="link" target="_blank" rel="noopener">this post on Bluesky</a>.
+        Reply there and it shows up here.
+      </p>
+      <ul id="bskyList" class="mt-4 flex flex-col gap-4" aria-busy="true">
+        <li class="text-sm text-[var(--color-muted)]" data-placeholder>Loading replies…</li>
+      </ul>
+      <a href={threadUrl} target="_blank" rel="noopener" class="btn mt-5"><Icon name="bluesky" size={14} /> Reply on Bluesky</a>
+    </div>
+  ) : (
+    <p class="text-sm text-[var(--color-muted)] mt-2">
+      There's no Bluesky thread for this post yet.
+      <a href={composeUrl} class="link" target="_blank" rel="noopener">Start the conversation on Bluesky</a>
+      and mention <a href="https://bsky.app/profile/skiddle.blue" class="link" target="_blank" rel="noopener">@skiddle.blue</a>.
+    </p>
+  )}
+</section>
+
+<script>
+  type Author = { did: string; handle: string; displayName?: string; avatar?: string };
+  type PostView = {
+    uri: string;
+    author: Author;
+    record: { text?: string; createdAt?: string };
+    embed?: unknown;
+    likeCount?: number;
+    replyCount?: number;
+    repostCount?: number;
+  };
+  type ThreadNode = { $type?: string; post?: PostView; replies?: ThreadNode[] };
+
+  const root = document.getElementById('bskyComments');
+  const list = document.getElementById('bskyList');
+  const stats = document.getElementById('bskyStats');
+
+  const API = 'https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread';
+  const MAX_DEPTH = 3;
+  const MAX_TOP_LEVEL = 20;
+
+  const postUrl = (p: PostView) => {
+    const rkey = p.uri.split('/').pop();
+    return `https://bsky.app/profile/${p.author.did}/post/${rkey}`;
+  };
+  const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const fmtDate = (iso?: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return Number.isNaN(d.valueOf()) ? '' : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text?: string) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function renderReply(node: ThreadNode, hidden: Set<string>, depth: number): HTMLLIElement | null {
+    const p = node.post;
+    if (!p || node.$type !== 'app.bsky.feed.defs#threadViewPost' || hidden.has(p.uri)) return null;
+
+    const li = el('li', depth > 0 ? 'pl-4 border-l border-dashed' : '');
+    const head = el('div', 'flex items-center gap-2 text-xs');
+    const avatar = el('img', 'size-6 rounded-full border shrink-0 bg-[var(--color-bg-alt)]') as HTMLImageElement;
+    avatar.alt = '';
+    avatar.width = 24;
+    avatar.height = 24;
+    avatar.loading = 'lazy';
+    // Use Bluesky's small thumbnail instead of the full-size avatar
+    if (p.author.avatar) avatar.src = p.author.avatar.replace('/img/avatar/plain/', '/img/avatar_thumbnail/plain/');
+    const who = el('a', 'font-semibold hover:text-[var(--color-primary)] truncate', p.author.displayName || p.author.handle) as HTMLAnchorElement;
+    who.href = `https://bsky.app/profile/${p.author.did}`;
+    who.target = '_blank';
+    who.rel = 'noopener';
+    const handle = el('span', 'text-[var(--color-muted)] truncate', `@${p.author.handle}`);
+    const when = el('a', 'text-[var(--color-muted)] hover:text-[var(--color-primary)] ml-auto shrink-0', fmtDate(p.record.createdAt)) as HTMLAnchorElement;
+    when.href = postUrl(p);
+    when.target = '_blank';
+    when.rel = 'noopener';
+    head.append(avatar, who, handle, when);
+
+    li.append(head);
+    const text = (p.record.text ?? '').trim();
+    if (text) {
+      li.append(el('p', 'text-sm mt-1.5 whitespace-pre-wrap break-words', text));
+    } else {
+      // Image, video or link-only replies have no text to show here
+      const note = el('a', 'link text-xs mt-1.5 inline-block', p.embed ? 'Shared media · view on Bluesky' : 'View on Bluesky') as HTMLAnchorElement;
+      note.href = postUrl(p);
+      note.target = '_blank';
+      note.rel = 'noopener';
+      li.append(note);
+    }
+    if (p.likeCount) li.append(el('p', 'text-xs text-[var(--color-muted)] mt-1', `♥ ${p.likeCount}`));
+
+    const kids = (node.replies ?? [])
+      .filter((r) => r.post)
+      .sort((a, b) => (a.post!.record.createdAt ?? '').localeCompare(b.post!.record.createdAt ?? ''));
+    if (kids.length && depth < MAX_DEPTH) {
+      const ul = el('ul', 'mt-3 flex flex-col gap-3');
+      kids.forEach((k) => {
+        const child = renderReply(k, hidden, depth + 1);
+        if (child) ul.append(child);
+      });
+      if (ul.childElementCount) li.append(ul);
+    } else if (kids.length) {
+      const more = el('a', 'link text-xs mt-2 inline-block', `${plural(kids.length, 'more reply', 'more replies')} on Bluesky`) as HTMLAnchorElement;
+      more.href = postUrl(p);
+      more.target = '_blank';
+      more.rel = 'noopener';
+      li.append(more);
+    }
+    return li;
+  }
+
+  async function load() {
+    if (!root || !list) return;
+    const uri = root.dataset.uri!;
+    try {
+      const res = await fetch(`${API}?uri=${encodeURIComponent(uri)}&depth=${MAX_DEPTH + 1}&parentHeight=0`);
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      const thread: ThreadNode = data.thread;
+      const hidden = new Set<string>(data.threadgate?.record?.hiddenReplies ?? []);
+      const top = thread.post;
+      if (stats && top) {
+        stats.textContent = [plural(top.replyCount ?? 0, 'reply', 'replies'), plural(top.likeCount ?? 0, 'like'), plural(top.repostCount ?? 0, 'repost')].join(' · ');
+      }
+      list.textContent = '';
+      const replies = (thread.replies ?? [])
+        .filter((r) => r.post)
+        .sort((a, b) => (b.post!.likeCount ?? 0) - (a.post!.likeCount ?? 0) || (a.post!.record.createdAt ?? '').localeCompare(b.post!.record.createdAt ?? ''));
+      let shown = 0;
+      for (const r of replies) {
+        if (shown >= MAX_TOP_LEVEL) break;
+        const li = renderReply(r, hidden, 0);
+        if (li) {
+          list.append(li);
+          shown++;
+        }
+      }
+      const rest = replies.length - shown;
+      if (shown >= MAX_TOP_LEVEL && rest > 0) {
+        const li = el('li', 'text-sm');
+        const a = el('a', 'link', `${plural(rest, 'more reply', 'more replies')} on Bluesky →`) as HTMLAnchorElement;
+        a.href = root.dataset.threadUrl!;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        li.append(a);
+        list.append(li);
+      }
+      if (!list.childElementCount) {
+        list.append(el('li', 'text-sm text-[var(--color-muted)]', 'No replies yet. Be the first!'));
+      }
+    } catch {
+      list.textContent = '';
+      const li = el('li', 'text-sm text-[var(--color-muted)]', "Couldn't load replies right now. ");
+      const a = el('a', 'link', 'Read them on Bluesky') as HTMLAnchorElement;
+      a.href = root.dataset.threadUrl!;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      li.append(a);
+      list.append(li);
+    } finally {
+      list.setAttribute('aria-busy', 'false');
+    }
+  }
+
+  if (root) {
+    // Only hit the API when the reader gets near the comments
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load();
+        }
+      }, { rootMargin: '400px' });
+      io.observe(root);
+    } else {
+      load();
+    }
+  }
+</script>

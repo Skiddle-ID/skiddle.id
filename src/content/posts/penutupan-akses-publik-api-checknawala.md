@@ -10,6 +10,7 @@ featured: true
 series: checkdomain
 order: 2
 rkey: 3m6cn7p77of2o
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3m6m4nkiofk2c
 draft: false
 ---
 
