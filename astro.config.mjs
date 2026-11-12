@@ -4,34 +4,38 @@ import mdx from '@astrojs/mdx';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
 
-// obtain Git commit hash
-const hash = childProcess
-  .execSync("git rev-parse --short HEAD")
-  .toString()
-  .trim();
+// Run a git command and return its trimmed output, or '' if it fails (no git, no repo, no tag…)
+const git = (args) => {
+  try {
+    return childProcess
+      .execSync(`git ${args}`, {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+        timeout: 60_000,
+      })
+      .toString()
+      .trim();
+  } catch {
+    return '';
+  }
+};
 
-// obtain Git tag if current commit is exactly at a tag; otherwise leave empty
-let tag = "";
-try {
-  tag = childProcess
-    .execSync("git describe --tags --exact-match")
-    .toString()
-    .trim();
-} catch (e) {
-  // Not on a tagged commit; leave tag as empty string
+// Cloudflare Workers Builds (WORKERS_CI=1) may check out a shallow clone without tags.
+// Fetch history and tags so the footer can still show the release, e.g. "v3.1+abc1234".
+if (process.env.WORKERS_CI) {
+  if (git('rev-parse --is-shallow-repository') === 'true') git('fetch --quiet --unshallow --tags');
+  else if (!git('tag --list')) git('fetch --quiet --tags');
 }
 
-// obtain nearest tag description (e.g., v1.0.0-4-gabc123).
+// Git commit hash; falls back to the CI commit, then "dev" outside a git checkout
+const hash = git('rev-parse --short HEAD') || (process.env.WORKERS_CI_COMMIT_SHA ?? '').slice(0, 7) || 'dev';
+
+// Git tag if the current commit is exactly at a tag; otherwise empty
+const tag = git('describe --tags --exact-match');
+
+// Nearest tag description (e.g., v1.0.0-4-gabc123).
 // With --long, exact tags become v1.0.0-0-g<hash>. With --always, fallback is just the hash.
-let describe = hash;
-try {
-  describe = childProcess
-    .execSync("git describe --tags --always --long")
-    .toString()
-    .trim();
-} catch (e) {
-  // Fallback remains the short hash
-}
+const describe = git('describe --tags --always --long') || hash;
 
 export default defineConfig({
   site: 'https://skiddle.id',
