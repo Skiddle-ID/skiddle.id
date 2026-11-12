@@ -2,6 +2,7 @@
 import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
 import data from '../data/services';
+import proof from '../data/highlights';
 
 const site = Astro.site!;
 const pageUrl = new URL('/services/', site).toString();
@@ -24,13 +25,6 @@ const briefTemplate = [
   '',
 ].join('\n');
 
-// Proof points — all from the CV, projects and posts on this site.
-const proof = [
-  { value: 'since 2020', label: 'helping clients through Skiddle ID' },
-  { value: '3 years', label: 'as co-founder and DevOps engineer at Aerialite, a security startup' },
-  { value: '60%', label: 'less deployment time after automating Aerialite’s releases' },
-  { value: '~500M', label: 'requests a month served by my free CheckDomain API', href: '/posts/the-story-behind-taking-down-my-free-checkdomain-api/' },
-];
 
 const steps = [
   { title: 'Tell me about it', body: 'Email what you need, your goal, timeline and constraints. The template below helps.' },

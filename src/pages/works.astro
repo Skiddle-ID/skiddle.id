@@ -1,101 +1,208 @@
 ---
 import Shell from '../layouts/shell.astro';
+import Icon from '../components/icon.astro';
 import works from '../data/works';
+import projects from '../data/projects';
+import highlights from '../data/highlights';
 
-const h2 = 'font-semibold before-hash-2 mt-10 mb-3';
+const h2 = 'font-semibold before-hash-2 print:before:content-none';
+
+// Earliest start year across all roles, for the "x+ years" line
+const startYears = works.experience.flatMap((e) => e.positions.map((p) => Number(p.start))).filter(Number.isFinite);
+const firstYear = startYears.length ? Math.min(...startYears) : undefined;
+const yearsExp = firstYear ? new Date().getFullYear() - firstYear : undefined;
+
+const companyRange = (positions: { start: string; end: string }[]) => {
+  const starts = positions.map((p) => p.start).sort();
+  const ends = positions.map((p) => p.end);
+  return `${starts[0]} – ${ends.includes('Present') ? 'Present' : ends.sort().at(-1)}`;
+};
+
+const skillGroups = [
+  { title: 'Languages', items: works.skills.programmingLanguages },
+  { title: 'DevOps & infrastructure', items: works.skills.devopsInfrastructure },
+  { title: 'Frameworks & tools', items: works.skills.frameworksTools },
+  { title: 'Interests', items: works.skills.interests },
+];
+
+const selectedProjects = ['checkdomain', 'shortlink', 'blocklist']
+  .map((id) => projects.find((p) => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
 ---
 
-<Shell title="Works & CV — Skiddle" description="Jeff's CV — DevOps and platform engineer building platforms, automation and networks across cloud and self-hosted infrastructure.">
-  <div class="max-w-[70ch] w-full print-urls">
-    <header>
+<Shell title="Works & CV — Skiddle" description="CV of Laurensius Jeffrey (Skiddle) — DevOps and platform engineer in Bangkok: experience, skills, projects, education and certifications.">
+  <div class="max-w-[56rem] w-full print-urls">
+
+    <!-- CV header -->
+    <header class="card p-5 sm:p-6 print:border-0 print:p-0">
       <div class="flex flex-wrap items-start justify-between gap-3">
-        <h1 class="font-semibold text-xl before-hash-1 print:before:content-none">{works.header.name}</h1>
-        <button type="button" id="printCv" class="btn print:hidden">Print / save as PDF</button>
+        <div>
+          <p class="text-xs text-[var(--color-muted)] print:hidden" aria-hidden="true">
+            <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ cat cv.md
+          </p>
+          <h1 class="text-2xl font-semibold mt-2 print:mt-0">{works.header.name}</h1>
+          <p class="text-[var(--color-primary)] mt-1">{works.header.title} · {works.header.location}</p>
+        </div>
+        <button type="button" id="printCv" class="btn print:hidden"><Icon name="print" size={14} /> Print / save as PDF</button>
       </div>
-      <p class="text-[var(--color-primary)] mt-1">{works.header.title} · {works.header.location}</p>
-      <p class="text-sm mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <a href={`mailto:${works.header.email}`} class="link">{works.header.email}</a>
-        <a href="https://skiddle.id" class="link hidden print:inline">skiddle.id</a>
-        {works.header.links.github && (<a href={works.header.links.github} class="link" target="_blank" rel="me noopener">GitHub</a>)}
-        {works.header.links.bluesky && (<a href={works.header.links.bluesky} class="link" target="_blank" rel="me noopener">Bluesky</a>)}
-        <a href="/projects/" class="link print:hidden">Open-source projects</a>
-        <a href="/services/" class="link print:hidden">Hire me</a>
+
+      <p class="text-sm mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+        <a href={`mailto:${works.header.email}`} class="link inline-flex items-center gap-1.5"><Icon name="mail" size={13} class="print:hidden" />{works.header.email}</a>
+        <a href="https://skiddle.id" class="link" data-plain>skiddle.id</a>
+        {works.header.links.github && (<a href={works.header.links.github} class="link inline-flex items-center gap-1.5" target="_blank" rel="me noopener"><Icon name="github" size={13} class="print:hidden" />GitHub</a>)}
+        {works.header.links.bluesky && (<a href={works.header.links.bluesky} class="link inline-flex items-center gap-1.5" target="_blank" rel="me noopener"><Icon name="bluesky" size={13} class="print:hidden" />Bluesky</a>)}
+      </p>
+
+      <div class="mt-4 pt-4 border-t border-dashed text-sm leading-relaxed flex flex-col gap-2">
+        {works.summary.map((p) => (<p>{p}</p>))}
+      </div>
+
+      <p class="text-xs text-[var(--color-muted)] mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+        {yearsExp && <span>{yearsExp}+ years in infrastructure</span>}
+        <span class="inline-flex items-center gap-1.5 print:hidden">
+          <span class="size-2 rounded-full bg-[var(--color-ok)]" aria-hidden="true"></span>
+          open to consulting · <a href="/services/" class="link">services</a>
+        </span>
       </p>
     </header>
 
-    <h2 class={h2}>Summary</h2>
-    <div class="text-sm leading-relaxed flex flex-col gap-3">
-      {works.summary.map((p) => (<p>{p}</p>))}
-    </div>
-
-    <h2 class={h2}>Experience</h2>
-    <div class="flex flex-col gap-8">
-      {works.experience.map((exp) => (
-        <section>
-          <h3 class="font-semibold">{exp.company}</h3>
-          <div class="mt-2 flex flex-col gap-4 border-l pl-4">
-            {exp.positions.map((pos) => (
-              <div>
-                <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-                  <span class="text-sm text-[var(--color-primary)]">{pos.role}</span>
-                  <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {pos.end}</span>
-                </div>
-                <ul class="mt-1.5 text-sm text-[var(--color-muted)] flex flex-col gap-1">
-                  {pos.highlights.map((h) => (<li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{h}</span></li>))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-
-    <h2 class={h2}>Education</h2>
-    <div class="flex flex-col gap-3 text-sm">
-      {works.education.map((ed) => (
-        <div>
-          <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-            <span>{ed.degree}</span>
-            <span class="text-xs text-[var(--color-muted)] tabular-nums">{ed.start}{ed.end ? ` – ${ed.end}` : ''}</span>
-          </div>
-          <div class="text-[var(--color-muted)]">{ed.school}</div>
-          {ed.description && (<p class="text-xs text-[var(--color-muted)] mt-1">{ed.description}</p>)}
+    <!-- Highlights -->
+    <section aria-label="Highlights" class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {highlights.map((h) => (
+        <div class="card p-4">
+          <p class="text-lg font-semibold text-[var(--color-primary)]">{h.value}</p>
+          <p class="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">{h.label}</p>
         </div>
       ))}
-    </div>
+    </section>
 
-    <h2 class={h2}>Skills</h2>
-    <dl class="text-sm grid sm:grid-cols-[9rem_1fr] gap-x-4 gap-y-2">
-      <dt class="text-[var(--color-muted)]">Languages</dt><dd>{works.skills.programmingLanguages.join(', ')}</dd>
-      <dt class="text-[var(--color-muted)]">DevOps & infra</dt><dd>{works.skills.devopsInfrastructure.join(', ')}</dd>
-      <dt class="text-[var(--color-muted)]">Frameworks</dt><dd>{works.skills.frameworksTools.join(', ')}</dd>
-      <dt class="text-[var(--color-muted)]">Interests</dt><dd>{works.skills.interests.join(', ')}</dd>
-    </dl>
+    <!-- Experience -->
+    <section aria-labelledby="experience" class="mt-12">
+      <h2 id="experience" class={h2}>Experience</h2>
+      <ol class="mt-5 flex flex-col gap-8">
+        {works.experience.map((exp) => (
+          <li class="sm:grid sm:grid-cols-[10rem_1fr] sm:gap-6">
+            <div class="mb-2 sm:mb-0">
+              <h3 class="font-semibold">{exp.company}</h3>
+              <p class="text-xs text-[var(--color-muted)] tabular-nums mt-0.5">{companyRange(exp.positions)}</p>
+            </div>
+            <ol class="relative border-l ml-1 flex flex-col gap-5">
+              {exp.positions.map((pos, i) => (
+                <li class="relative pl-5">
+                  <span class:list={['absolute -left-[5px] top-[0.45em] size-2.5 rounded-full border-2 border-[var(--color-primary)]', i === 0 && pos.end === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+                  <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                    <h4 class="text-[var(--color-primary)]">{pos.role}</h4>
+                    <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {pos.end}</span>
+                  </div>
+                  <ul class="mt-2 text-sm flex flex-col gap-1">
+                    {pos.highlights.map((h) => (
+                      <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{h}</span></li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </li>
+        ))}
+      </ol>
+    </section>
 
-    <h2 class={h2}>Notable projects</h2>
-    <div class="flex flex-col gap-5 text-sm">
-      {works.projects.map((prj) => (
-        <div>
-          <div class="flex flex-wrap items-baseline gap-x-3">
-            <span class="font-semibold">{prj.title}</span>
-            {prj.live && (<a href={prj.live} class="link text-xs" target="_blank" rel="noopener">live</a>)}
-            {prj.github && (<a href={prj.github} class="link text-xs" target="_blank" rel="noopener">source</a>)}
+    <!-- Skills -->
+    <section aria-labelledby="skills" class="mt-12">
+      <h2 id="skills" class={h2}>Skills</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        {skillGroups.map((g) => (
+          <div class="card p-4">
+            <h3 class="text-xs uppercase tracking-wider text-[var(--color-primary)]">{g.title}</h3>
+            <p class="mt-2.5 flex flex-wrap gap-1.5">
+              {g.items.map((s) => <span class="text-xs px-2 py-0.5 rounded border">{s}</span>)}
+            </p>
           </div>
-          <p class="text-[var(--color-muted)] mt-1">{prj.description}</p>
-          <p class="text-xs text-[var(--color-muted)] mt-1">{prj.labels.join(' · ')}</p>
-        </div>
-      ))}
+        ))}
+      </div>
+    </section>
+
+    <!-- Selected projects -->
+    <section aria-labelledby="cv-projects" class="mt-12">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 id="cv-projects" class={h2}>Selected projects</h2>
+        <a href="/projects/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] print:hidden">all projects →</a>
+      </div>
+      <div class="mt-4 grid gap-3 md:grid-cols-3">
+        {selectedProjects.map((p) => (
+          <article class="card p-4 flex flex-col">
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="font-semibold text-[var(--color-primary)]">{p.name}</h3>
+              <span class="text-xs text-[var(--color-muted)]">{p.year}</span>
+            </div>
+            <p class="text-xs mt-2 leading-relaxed">{p.impact ?? p.description}</p>
+            <p class="mt-auto pt-3 text-xs flex flex-wrap gap-x-3">
+              {p.writeup && <a href={p.writeup} class="link print:hidden">story</a>}
+              {p.homepage && <a href={p.homepage} class="link" target="_blank" rel="noopener noreferrer">live</a>}
+              {p.github && <a href={p.github} class="link" target="_blank" rel="noopener noreferrer">source</a>}
+            </p>
+          </article>
+        ))}
+      </div>
+      {works.projects.length > 0 && (
+        <ul class="mt-4 text-sm flex flex-col gap-2">
+          {works.projects.map((prj) => (
+            <li class="flex flex-col sm:flex-row sm:gap-3">
+              <span class="font-semibold shrink-0">{prj.title}{prj.status && <span class="text-xs font-normal text-[var(--color-muted)]"> · {prj.status.toLowerCase()}</span>}</span>
+              <span class="text-[var(--color-muted)]">
+                {prj.description}
+                {prj.live && <a href={prj.live} class="link ml-2 text-xs" target="_blank" rel="noopener">live</a>}
+                {prj.github && <a href={prj.github} class="link ml-2 text-xs" target="_blank" rel="noopener">source</a>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    <div class="mt-12 grid gap-10 md:grid-cols-2">
+      <!-- Education -->
+      <section aria-labelledby="education">
+        <h2 id="education" class={h2}>Education</h2>
+        <ol class="mt-4 relative border-l ml-1 flex flex-col gap-5">
+          {works.education.map((ed, i) => (
+            <li class="relative pl-5">
+              <span class:list={['absolute -left-[5px] top-[0.45em] size-2.5 rounded-full border-2 border-[var(--color-primary)]', i === 0 && ed.end === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+              <h3 class="text-sm font-semibold">{ed.degree}</h3>
+              <p class="text-xs text-[var(--color-muted)] mt-0.5">{ed.school} · <span class="tabular-nums">{ed.start}{ed.end ? ` – ${ed.end}` : ''}</span></p>
+              {ed.description && (<p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{ed.description}</p>)}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <!-- Certifications -->
+      <section aria-labelledby="certs">
+        <h2 id="certs" class={h2}>Certifications</h2>
+        <ul class="mt-4 flex flex-col text-sm">
+          {works.certifications.map((c) => (
+            <li class="flex justify-between gap-3 py-1.5 border-b border-dashed last:border-b-0">
+              <span>{c.title}</span>
+              <span class:list={['text-xs shrink-0 tabular-nums', /progress/i.test(c.yearOrStatus) ? 'text-[var(--color-warn)]' : 'text-[var(--color-muted)]']}>{c.yearOrStatus}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
 
-    <h2 class={h2}>Certifications</h2>
-    <ul class="flex flex-col gap-1.5 text-sm">
-      {works.certifications.map((c) => (
-        <li class="flex justify-between gap-3"><span>{c.title}</span><span class="text-xs text-[var(--color-muted)] shrink-0">{c.yearOrStatus}</span></li>
-      ))}
-    </ul>
+    <!-- Contact (screen only) -->
+    <section aria-labelledby="cv-contact" class="mt-12 card p-5 print:hidden">
+      <h2 id="cv-contact" class="font-semibold">Want to work together?</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-1.5">Roles, consulting or a quick question: email is the fastest way to reach me.</p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id?subject=Hello%20from%20your%20CV"><Icon name="mail" size={14} /> work@skiddle.id</a>
+        <a class="btn" href="/services/">See services</a>
+        <button type="button" class="btn" data-print><Icon name="print" size={14} /> Print / save as PDF</button>
+      </div>
+    </section>
   </div>
 </Shell>
 
 <script>
-  document.getElementById('printCv')?.addEventListener('click', () => window.print());
+  document.querySelectorAll('#printCv, [data-print]').forEach((b) => b.addEventListener('click', () => window.print()));
 </script>

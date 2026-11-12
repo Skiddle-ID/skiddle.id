@@ -12,7 +12,7 @@ const works: WorksData = {
     },
   },
   summary: [
-    'DevOps engineer who codes end‑to‑end: building platforms, automating delivery and operations, and running networks across cloud and self‑hosted. Passionate about AI, and outside of work I love aviation and am working toward a first solo flight.'
+    'DevOps engineer who codes end‑to‑end: building platforms, automating delivery and operations, and running networks across cloud and self‑hosted. Passionate about AI, and outside of work I’m a licensed private pilot (PPL, 2026).'
   ],
   experience: [
     {
@@ -23,8 +23,8 @@ const works: WorksData = {
           start: '2025',
           end: 'Present',
           highlights: [
-            'Switching to Advisory Board Member, Not directly involved in day-to-day operations',
-            'Supporting company to get their certification on ISO 9001 and ISO 27001',
+            'Moved to the advisory board; no longer involved in day-to-day operations',
+            'Advising on the company’s ISO 9001 and ISO 27001 certification',
           ],
         },
         {
@@ -32,11 +32,11 @@ const works: WorksData = {
           start: '2022',
           end: '2025',
           highlights: [
-            'Building and maintaining CI/CD pipelines for multiple applications',
+            'Built and maintained CI/CD pipelines for multiple applications',
             'Managed infrastructure using Infrastructure as Code (IaC)',
-            'Implemented monitoring and logging solutions',
-            'Automated deployment processes and reduced deployment time by 60%',
-            'Supporting company to get their certification on ISO 9001 and ISO 27001',
+            'Implemented monitoring and logging',
+            'Automated deployments, cutting deployment time by 60%',
+            'Supported the company’s ISO 9001 and ISO 27001 certification work',
           ],
         },
       ],
@@ -50,8 +50,8 @@ const works: WorksData = {
           end: 'Present',
           highlights: [
             'Developed and maintained web applications using multiple frameworks and technologies',
-            'Supported infrastructure including server management, backup, and deployment',
-            'Managed cloud services such as AWS, Cloudflare, and Proxmox',
+            'Supported infrastructure, including server management, backups and deployment',
+            'Managed cloud and virtualisation platforms such as AWS, Cloudflare and Proxmox',
             'Coordinated and supported client projects from start to finish',
           ],
         },
@@ -66,9 +66,9 @@ const works: WorksData = {
           end: '2020',
           highlights: [
             'Implemented LDAP integration for user authentication',
-            'Configured multi-device management (MDM) for company device management',
-            'Automated backup processes and reduced backup time',
-            'Setting up and maintaining company infrastructure',
+            'Configured mobile device management (MDM) for company devices',
+            'Automated backups and reduced backup time',
+            'Set up and maintained company infrastructure',
           ],
         },
       ],
@@ -112,7 +112,7 @@ const works: WorksData = {
     },
   ],
   certifications: [
-    { title: 'Private Pilot License (PPL)', yearOrStatus: 'In progress' },
+    { title: 'Private Pilot License (PPL)', yearOrStatus: '2026' },
     { title: 'AWS Certified Machine Learning - Specialty', yearOrStatus: '2024' },
     { title: 'CompTIA Security+', yearOrStatus: '2023' },
     { title: 'Microsoft Certified: DevOps Engineer Expert', yearOrStatus: '2022' },

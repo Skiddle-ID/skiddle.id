@@ -172,7 +172,7 @@ const uses: UsesSection[] = [
   {
     id: 'aviation',
     title: 'Aviation',
-    blurb: "Working toward my Private Pilot License. Here's what's in the flight bag.",
+    blurb: "Private pilot since early 2026. Here's what's in the flight bag.",
     groups: [
       {
         title: 'Planning',

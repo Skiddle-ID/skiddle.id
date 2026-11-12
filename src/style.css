@@ -266,7 +266,7 @@ html .prose {
   body { font-size: 10.5pt; }
   .cursor-blink { display: none; }
   /* Show where links go on paper (mailto links already show the address) */
-  .print-urls a[href^="http"]::after {
+  .print-urls a[href^="http"]:not([data-plain])::after {
     content: ' <' attr(href) '>';
     color: var(--color-muted);
     font-size: 0.85em;
