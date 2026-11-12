@@ -15,7 +15,7 @@ interface Props {
 
 const {
   title = 'Skiddle',
-  description = 'Jeff (Skiddle) — night-shift platform engineer in Bangkok, writing about infra, open protocols, homelab and life.',
+  description = 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.',
   image = '/android-chrome-512x512.png',
   type = 'website',
 } = Astro.props;
@@ -40,8 +40,9 @@ const jsonLd = {
       '@type': 'Person',
       name: 'Laurensius Jeffrey',
       alternateName: 'Skiddle',
-      jobTitle: 'Platform Engineer',
-      knowsAbout: ['DevOps', 'Platform engineering', 'CI/CD', 'Cloudflare Workers', 'Kubernetes', 'Self-hosting', 'ATProto'],
+      jobTitle: ['Founder', 'Protocol Engineer'],
+      worksFor: { '@type': 'Organization', name: 'Skiddle Labs Pte. Ltd.' },
+      knowsAbout: ['Protocol engineering', 'DevOps', 'Platform engineering', 'CI/CD', 'Cloudflare Workers', 'Kubernetes', 'Self-hosting', 'ATProto'],
       homeLocation: { '@type': 'Place', name: 'Bangkok, Thailand' },
       url: site.toString(),
       image: new URL('/android-chrome-512x512.png', site).toString(),
