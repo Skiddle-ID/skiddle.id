@@ -34,6 +34,15 @@ Secrets live in Cloudflare, not in the repo: `LASTFM_API_KEY` (`npx wrangler sec
 
 Manual deploy and rollback still work from any machine logged in with `npx wrangler login`: `npm run build && npm run deploy`, `npx wrangler rollback`.
 
+### Releases
+
+The footer shows the latest release tag reachable from the deployed commit (e.g. `v3.2`), linked to its GitHub release.
+
+Publishing a release only creates a tag, and tags don't trigger Workers Builds. So the footer picks up the new version on the next merge into `v3`. To show it straight away, either:
+
+- re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
+- `git pull --tags && npm run build && npm run deploy` on a machine logged in with `npx wrangler login`.
+
 ## Credits & inspiration
 
 This site started in 2025 from **[Hayden Young](https://bsky.app/profile/hayden.moe)'s** personal site, [hayden.moe](https://web.archive.org/web/2025/https://hayden.moe/) ([source](https://github.com/hbjydev/hayden.moe)). The terminal-style `@web ~` header, the blinking cursor and the original ATProto blog setup come from there. It has since been rewritten, but the spirit is Hayden's. Thank you! Hayden now writes at [hayden.leaflet.pub](https://hayden.leaflet.pub/).
