@@ -86,8 +86,11 @@ const isActive = (href: string) => {
   const save = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} };
 
   const themeBtn = document.getElementById('themeToggle');
-  const syncThemeLabel = () =>
-    themeBtn?.setAttribute('aria-label', root.dataset.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+  const syncThemeLabel = () => {
+    const light = root.dataset.theme === 'light';
+    themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+    document.getElementById('themeColor')?.setAttribute('content', light ? '#ffffff' : '#161616');
+  };
   syncThemeLabel();
   themeBtn?.addEventListener('click', () => {
     const next = root.dataset.theme === 'light' ? 'dark' : 'light';

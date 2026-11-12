@@ -69,6 +69,12 @@ const jsonLd = {
       })();
     </script>
     <BaseHead title={title} description={description} image={image} type={type} />
+    <script is:inline>
+      (function () {
+        var m = document.getElementById('themeColor');
+        if (m && document.documentElement.dataset.theme === 'light') m.setAttribute('content', '#ffffff');
+      })();
+    </script>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="antialiased font-mono tracking-normal leading-normal min-h-screen text-[15px]">
@@ -86,7 +92,7 @@ const jsonLd = {
 
     <Sidebar />
 
-    <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-black/50 z-30 hidden"></div>
+    <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-[#000]/50 z-30 hidden"></div>
 
     <div class="lg:pl-56 pt-12 lg:pt-0 flex flex-col min-h-screen">
       <main id="main" class="flex flex-col px-5 lg:px-10 py-8 lg:py-12 grow">

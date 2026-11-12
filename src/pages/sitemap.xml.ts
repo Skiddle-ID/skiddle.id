@@ -20,10 +20,10 @@ function discoverStaticRoutes(): string[] {
     .map((p) => {
       let route = p.replace(/^\.{1}\//, '/');
       route = route.replace(/\/index\.(astro|md)$/, '/');
-      route = route.replace(/\.(astro|md)$/, '');
+      route = route.replace(/\.(astro|md)$/, '/');
       return route;
     })
-    .filter((r) => r !== '/404');
+    .filter((r) => r !== '/404/');
 
   return Array.from(new Set(routes)).sort();
 }

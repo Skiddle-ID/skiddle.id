@@ -13,7 +13,7 @@ if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birth
       <img src="https://github.com/arcestia.png?size=160" alt="Jeff's avatar" width="72" height="72" class="size-18 rounded-full border shrink-0" />
       <div>
         <h1 class="font-semibold text-xl before-hash-1">About me</h1>
-        <p class="text-sm text-[var(--color-muted)] mt-1">Bangkok · {age} · night person</p>
+        <p class="text-sm text-[var(--color-muted)] mt-1">Bangkok · <span id="age" data-birthdate={birthdate.toISOString()}>{age}</span> · night person</p>
       </div>
     </div>
 
@@ -62,3 +62,15 @@ if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birth
     </div>
   </div>
 </Shell>
+
+<script>
+  // The page is static, so refresh the age in the browser (the build-time value is the fallback).
+  const el = document.getElementById('age');
+  const born = el?.dataset.birthdate ? new Date(el.dataset.birthdate) : null;
+  if (el && born) {
+    const now = new Date();
+    let age = now.getUTCFullYear() - born.getUTCFullYear();
+    if (now < new Date(Date.UTC(now.getUTCFullYear(), born.getUTCMonth(), born.getUTCDate()))) age--;
+    el.textContent = String(age);
+  }
+</script>

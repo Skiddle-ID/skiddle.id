@@ -18,8 +18,8 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <link rel="canonical" href={canonical} />
 <meta name="robots" content="index,follow" />
 <meta name="author" content="Laurensius Jeffrey (Skiddle)" />
-<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+<!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
+<meta name="theme-color" content="#161616" id="themeColor" />
 <link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />
 <link rel="me" href="https://bsky.app/profile/skiddle.blue" />
 <link rel="me" href="https://github.com/arcestia" />

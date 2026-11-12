@@ -99,9 +99,6 @@
 /* ── Prose / post content ── */
 @utility prose {
   color: var(--color-text) !important;
-  max-width: 70ch;
-  font-size: 0.95rem;
-  line-height: 1.85;
 
   a {
     color: var(--color-primary);
@@ -165,14 +162,20 @@
   th { background: var(--color-bg-alt); color: var(--color-text); font-weight: 600; }
 }
 
+/* Size/measure overrides. Unlayered + extra specificity so they beat
+   @tailwindcss/typography's own `.prose { max-width: 65ch; font-size: 1rem }`. */
+html .prose {
+  max-width: 70ch;
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+
 /* ── Shiki: dual themes, dark inline by default ── */
 :root[data-theme='light'] .astro-code,
 :root[data-theme='light'] .astro-code span {
   color: var(--shiki-light) !important;
-  background-color: var(--shiki-light-bg) !important;
 }
 .astro-code { background-color: var(--color-bg-alt) !important; }
-:root[data-theme='light'] .astro-code { background-color: var(--color-bg-alt) !important; }
 
 /* ── Small shared pieces ── */
 @utility before-hash-1 { &::before { content: '# ' / ''; color: var(--color-muted); } }
