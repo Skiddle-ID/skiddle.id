@@ -85,6 +85,7 @@ const selectedProjects = ['checkdomain', 'shortlink', 'blocklist']
             <div class="mb-2 sm:mb-0">
               <h3 class="font-semibold">{exp.company}</h3>
               <p class="text-xs text-[var(--color-muted)] tabular-nums mt-0.5">{companyRange(exp.positions)}</p>
+              {exp.description && <p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{exp.description}</p>}
             </div>
             <ol class="relative border-l ml-1 flex flex-col gap-5">
               {exp.positions.map((pos, i) => (

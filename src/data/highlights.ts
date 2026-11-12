@@ -9,7 +9,7 @@ export interface Highlight {
 }
 
 const highlights: Highlight[] = [
-  { value: 'since 2020', label: 'helping clients through Skiddle ID' },
+  { value: 'since 2020', label: 'helping clients through Skiddle ID, now part of Skiddle Labs' },
   { value: '3 years', label: 'as co-founder and DevOps engineer at Aerialite, a security startup' },
   { value: '60%', label: 'less deployment time after automating Aerialite’s releases' },
   {

@@ -18,6 +18,8 @@ export interface WorkPosition {
 
 export interface WorkExperience {
   company: string;
+  /** One line under the company name, e.g. what the company is */
+  description?: string;
   positions: WorkPosition[];
 }
 

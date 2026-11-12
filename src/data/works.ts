@@ -42,13 +42,15 @@ const works: WorksData = {
       ],
     },
     {
-      company: 'Skiddle ID',
+      company: 'Skiddle Labs Pte. Ltd.',
+      description: 'My own company for personal projects and long-term clients. Skiddle ID is part of Skiddle Labs.',
       positions: [
         {
           role: 'Founder & CEO',
           start: '2020',
           end: 'Present',
           highlights: [
+            'Run my personal projects and long-term client work under one company, including the Skiddle ID brand',
             'Developed and maintained web applications using multiple frameworks and technologies',
             'Supported infrastructure, including server management, backups and deployment',
             'Managed cloud and virtualisation platforms such as AWS, Cloudflare and Proxmox',
