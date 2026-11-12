@@ -14,7 +14,8 @@ function discoverStaticRoutes(): string[] {
       !p.endsWith('/sitemap.xml.ts') &&
       !p.endsWith('/rss.xml.ts') &&
       !p.endsWith('/robots.txt') &&
-      !p.match(/\[[^\]]+\]/)
+      !p.match(/\[[^\]]+\]/) &&
+      !p.endsWith('/lastfm.svg.ts')
     )
     .map((p) => {
       let route = p.replace(/^\.{1}\//, '/');
@@ -35,7 +36,7 @@ export const GET: APIRoute = async ({ site, request }) => {
   try {
     const posts = await getCollection('posts', ({ data }: any) => !data.draft);
     for (const p of posts as any[]) {
-      if (p?.slug) urls.push(`/posts/${p.slug}`);
+      if (p?.id) urls.push(`/posts/${p.id}/`);
     }
   } catch (_) {}
 

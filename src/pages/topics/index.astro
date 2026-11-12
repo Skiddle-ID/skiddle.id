@@ -1,73 +1,38 @@
 ---
 export const prerender = true;
 import Shell from '~/layouts/shell.astro';
-import { getCollection } from 'astro:content';
+import PostList from '~/components/post-list.astro';
+import { getPosts, categoryLabels } from '~/lib/posts';
 
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
+const posts = await getPosts();
+const cats = (Object.keys(categoryLabels) as (keyof typeof categoryLabels)[])
+  .map((id) => ({ id, label: categoryLabels[id], posts: posts.filter((p) => p.data.category === id) }))
+  .filter((c) => c.posts.length > 0);
 
-const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
-  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
-const byCat = (cat: string) => all.filter((p: any) => p.data.category === cat);
-const infra = byCat('infra');
-const atproto = byCat('atproto');
-const homelab = byCat('homelab');
-const cats = [
-  { id: 'infra', label: 'Infra & Delivery', desc: 'Pipelines, Workers, KV — the 9.46M plumbing.', posts: infra },
-  { id: 'atproto', label: 'ATProto & Open', desc: 'Building in the open — skiddle.blue, PDS, WhiteWind → local MD.', posts: atproto },
-  { id: 'homelab', label: 'Homelab & Life', desc: 'Self-hosted notes — Purelymail, Aerialite, Bangkok.', posts: homelab },
-];
-// tag cloud
 const tagCount = new Map<string, number>();
-for (const p of all) for (const t of (p.data.tags as string[])) tagCount.set(t.toLowerCase(), (tagCount.get(t.toLowerCase()) || 0) + 1);
-const tags = [...tagCount.entries()].sort((a,b) => b[1]-a[1]);
+for (const p of posts) for (const t of p.data.tags) tagCount.set(t.toLowerCase(), (tagCount.get(t.toLowerCase()) || 0) + 1);
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<Shell title="Topics — Skiddle" description="Topics — browse posts by category and tags">
-  <div class="max-w-[900px] mx-auto w-full flex flex-col gap-6">
-    <header>
-      <h1 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--color-text)">Topics</h1>
-      <p class="text-sm mt-1" style="color: var(--color-text-muted)">
-        Browse {all.length} posts by category. From <code class="mono text-xs px-1 py-0.5 rounded" style="background:#eef6ff; border:1px solid var(--color-border)">src/content/posts/*.md</code> — shiki at build.
-      </p>
-      <nav class="mono text-xs flex flex-wrap gap-2 mt-3" style="color: var(--color-text-muted)">
-        {cats.map(c => (<a href={`#${c.id}`} class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border); background:#eef6ff">#{c.id} · {c.posts.length}</a>))}
-        <a href="/posts/" class="px-2 py-1 rounded-full" style="border:1px solid var(--color-border)">all →</a>
-      </nav>
-      {tags.length > 0 && (
-        <div class="mt-3">
-          <div class="mono text-xs uppercase tracking-widest mb-2" style="color: var(--color-muted)">Tags</div>
-          <div class="flex flex-wrap gap-1.5">
-            {tags.map(([tag, n]) => (<a href={`/topics/tag/${tag}/`} class="tag">#{tag} · {n}</a>))}
-          </div>
-        </div>
-      )}
-    </header>
+<Shell title="Topics — Skiddle" description="Browse posts by topic and tag.">
+  <div class="max-w-[70ch] w-full">
+    <h1 class="font-semibold text-xl before-hash-1">Topics</h1>
+    <p class="text-sm text-[var(--color-muted)] mt-2">
+      {cats.map((c, i) => (<>{i > 0 && ' · '}<a href={`#${c.id}`} class="hover:text-[var(--color-primary)]">{c.label.toLowerCase()} ({c.posts.length})</a></>))}
+    </p>
 
-    {cats.map(cat => (
-      <section id={cat.id} class="card p-4" style="background:white">
-        <div class="flex items-baseline justify-between gap-2">
-          <h2 style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-text)">{cat.label}</h2>
-          <span class="mono text-xs px-2 py-1 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border)">{cat.posts.length}</span>
-        </div>
-        <p class="text-sm mt-1" style="color: var(--color-text-muted)">{cat.desc}</p>
-        <div class="mt-3 flex flex-col gap-2">
-          {cat.posts.length === 0 && (<div class="text-sm" style="color: var(--color-text-muted)">No posts yet.</div>)}
-          {cat.posts.map((p: any) => (
-            <a href={`/posts/${slugOf(p)}/`} class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 text-sm hover:underline" style="color: var(--color-primary)">
-              <span>{p.data.title}</span>
-              <span class="mono text-xs flex items-center gap-2" style="color: var(--color-text-muted)">
-                {p.data.pubDate.toLocaleDateString()} · {Math.max(1, Math.ceil(p.body.split(/\s+/).length / 200))} min
-                {p.data.featured && (<span class="tag">featured</span>)}
-              </span>
-            </a>
-          ))}
-        </div>
+    {cats.map((c) => (
+      <section id={c.id} class="mt-10">
+        <h2 class="font-semibold before-hash-2 mb-1">{c.label}</h2>
+        <PostList posts={c.posts} />
       </section>
     ))}
 
-    <div class="card p-3 mono text-xs" style="color: var(--color-text-muted); background:white">
-      Source: <code>src/content/posts/*.md</code> — <a href="https://github.com/Skiddle-ID/skiddle.id" style="color: var(--color-primary)">Edit on GitHub</a>
-    </div>
+    <section class="mt-10">
+      <h2 class="font-semibold before-hash-2 mb-2">Tags</h2>
+      <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        {tags.map(([t, n]) => <a href={`/topics/tag/${t}/`} class="tag">#{t}<span class="opacity-60"> {n}</span></a>)}
+      </p>
+    </section>
   </div>
 </Shell>

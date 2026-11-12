@@ -14,7 +14,7 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'WebPage',
-      name: 'Services ~ Skiddle',
+      name: 'Services — Skiddle',
       url: pageUrl,
       breadcrumb: {
         '@type': 'BreadcrumbList',
@@ -45,110 +45,51 @@ const jsonLd = {
 };
 ---
 
-<Shell title="Services ~ Skiddle" description="Public services I offer: DevOps, automation, self‑hosting, and more.">
-  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-  <div class="max-w-[900px] mx-auto w-full mb-6">
-    <h1 class="font-bold text-3xl mb-2">Services</h1>
-    <p class="text-base leading-relaxed">
-      I offer a selection of public services around DevOps, automation, and self‑hosting.
-      If you don’t see exactly what you need, reach out and we can tailor an engagement.
+<Shell title="Services — Skiddle" description="DevOps, automation, self-hosting and infrastructure help from Jeff (Skiddle).">
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="max-w-[70ch] w-full">
+    <h1 class="font-semibold text-xl before-hash-1">Services</h1>
+    <p class="text-sm mt-3 leading-relaxed">
+      Need a hand with infrastructure? I help with DevOps, automation and self-hosting.
+      If you don't see exactly what you need, <a href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id" class="link">send me an email</a> and we'll figure it out.
     </p>
-  </div>
 
-  <div class="max-w-3xl mx-auto grid gap-4 sm:grid-cols-2">
-    {servicesData.map((svc) => (
-      <section class="border border-muted rounded-lg p-4 flex flex-col gap-2">
-        <h2 class="font-semibold text-xl text-[var(--color-primary)]">{svc.name}</h2>
-        <p class="text-sm text-base04">{svc.description}</p>
-        {svc.features && svc.features.length ? (
-          <ul class="list-disc list-inside text-sm">
-            {svc.features.map((f) => (<li>{f}</li>))}
-          </ul>
-        ) : null}
-      </section>
-    ))}
-  </div>
+    <div class="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-7">
+      {servicesData.map((svc) => (
+        <section>
+          <h2 class="font-semibold text-[var(--color-primary)]">{svc.name}</h2>
+          <p class="text-sm text-[var(--color-muted)] mt-1">{svc.description}</p>
+          {svc.features && svc.features.length > 0 && (
+            <ul class="text-sm mt-2 flex flex-col gap-1">
+              {svc.features.map((f) => (<li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{f}</span></li>))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </div>
 
-  <div id="testimonials" class="max-w-3xl mx-auto mt-8" role="region" aria-label="Client testimonials">
-    <h2 class="font-semibold text-2xl mb-4 text-[var(--color-primary)]">Testimonials</h2>
-
-    <div class="relative overflow-hidden rounded-xl border border-muted bg-[color:oklch(var(--color-gray)_/_0.06)]">
-      <div class="absolute inset-x-0 top-0 h-1 bg-[var(--color-primary)]/70"></div>
-
-      <div class="marquee group">
-        <div class="marquee-track">
-          {[...testimonials, ...testimonials].map((t, idx) => (
-            <figure class="marquee-item p-6 flex flex-col gap-5" data-dup={idx >= testimonials.length ? 'true' : 'false'}>
-              <div class="flex items-start justify-between gap-4 mt-1">
-                <div class="inline-flex items-center gap-4">
-                  <div class="size-10 shrink-0 rounded-full bg-gradient-to-tr from-[var(--color-primary)]/30 to-transparent ring-1 ring-muted flex items-center justify-center">
-                    <span class="text-xs">{t.author.split(' ').map((s) => s[0]).join('').slice(0,2)}</span>
-                  </div>
-                  <figcaption class="flex flex-col">
-                    <span class="font-medium leading-none">{t.author}</span>
-                    <span class="text-xs text-base04 mt-1">{t.role}</span>
-                  </figcaption>
-                </div>
-                <div class="inline-flex items-center gap-2" aria-label={`Rating: ${t.rating} out of 5`} role="img">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <svg viewBox="0 0 20 20" class={"size-4 " + (i < t.rating ? 'text-[var(--color-primary)]' : 'text-base03')} fill="currentColor" aria-hidden="true">
-                      <path d="M10 15.27l-5.18 3.05 1.64-5.64L1 7.97l5.91-.51L10 2l3.09 5.46 5.91.51-5.46 4.71 1.64 5.64z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-
-              <blockquote class="relative">
-                <svg aria-hidden="true" class="absolute -left-1 -top-1 size-5 text-[var(--color-primary)]/60" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7.17 6A5.17 5.17 0 0 0 2 11.17V22h8V10a4 4 0 0 0-2.83-3.83ZM19.17 6A5.17 5.17 0 0 0 14 11.17V22h8V10a4 4 0 0 0-2.83-3.83Z" />
-                </svg>
-                <p class="pl-8 leading-relaxed">{t.quote}</p>
-              </blockquote>
-
-              <div class="flex items-center gap-3 mt-3">
-                <span class="text-xs px-2 py-1 rounded-full border border-muted">{t.serviceName}</span>
-              </div>
+    {testimonials.length > 0 && (
+      <section class="mt-12" aria-label="Client testimonials">
+        <h2 class="font-semibold before-hash-2 mb-4">What people say</h2>
+        <div class="flex flex-col gap-6">
+          {testimonials.map((t) => (
+            <figure class="border-l-2 border-[var(--color-primary)] pl-4">
+              <blockquote class="text-sm leading-relaxed">“{t.quote}”</blockquote>
+              <figcaption class="text-xs text-[var(--color-muted)] mt-2">
+                — <span class="text-[var(--color-text)]">{t.author}</span>, {t.role} · {t.serviceName}
+              </figcaption>
             </figure>
           ))}
         </div>
-      </div>
-    </div>
+      </section>
+    )}
 
-    <style>
-      .marquee { position: relative; overflow: hidden; padding: 0.75rem; }
-      .marquee-track {
-        display: flex;
-        gap: 2.5rem; /* 40px */
-        width: max-content;
-        animation: marquee-scroll 35s linear infinite;
-        will-change: transform;
-      }
-      .marquee-item {
-        width: 30rem; /* ~480px card width */
-        flex: 0 0 auto;
-      }
-      .group:hover .marquee-track { animation-play-state: paused; }
-      @keyframes marquee-scroll {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .marquee-track { animation: none; }
-      }
-    </style>
-  </div>
-
-  <div class="max-w-[900px] mx-auto mt-6">
-    <div class="border border-muted rounded-lg p-4">
-      <h2 class="font-semibold text-xl mb-1">Get in touch</h2>
-      <p class="text-sm mb-3">
-        Tell me about your project, goals, timeline, and constraints. I'll reply with
-        next steps and a lightweight plan.
+    <section class="mt-12 card p-5">
+      <h2 class="font-semibold">Get in touch</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-1">
+        Tell me about your project, goals, timeline and constraints. I'll reply with next steps and a lightweight plan.
       </p>
-      <a class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-muted hover:bg-[color:oklch(var(--color-gray)_/_0.2)] text-[var(--color-primary)] underline"
-         href="mailto:work@skiddle.id?subject=Service%20Inquiry%20from%20skiddle.id">
-        Email work@skiddle.id
-      </a>
-    </div>
+      <a class="btn mt-4" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id">Email work@skiddle.id →</a>
+    </section>
   </div>
 </Shell>

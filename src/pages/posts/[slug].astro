@@ -1,239 +1,195 @@
 ---
 export const prerender = true;
-import { getCollection, getEntry } from 'astro:content';
 import { render } from 'astro:content';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
+import Icon from '~/components/icon.astro';
+import PostList from '~/components/post-list.astro';
+import { getPosts, postUrl, readingMinutes, categoryLabels, type Post } from '~/lib/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }: any) => !data.draft);
-  return posts.map((entry: any) => ({
-    params: { slug: entry.slug || entry.id.replace(/\.mdx?$/, '') },
-    props: { entry },
-  }));
+  const posts = await getPosts();
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
-function slugOf(entry: any): string { return entry.slug || entry.id.replace(/\.mdx?$/, ''); }
 
-const { entry } = Astro.props as { entry: Awaited<ReturnType<typeof getEntry>> & any };
-if (!entry) throw new Error('Post not found');
+const { entry } = Astro.props as { entry: Post };
 const { Content, headings } = await render(entry);
 
-const site = Astro.site;
-const slug = slugOf(entry);
-const canonical = new URL(Astro.url.pathname, site).toString();
-const ogImage = `/og/posts/${slug}.svg`;
-const shortContent = entry.data.description || entry.body.slice(0, 200).trimEnd() + '…';
-const wordCount = entry.body.split(/\s+/).length;
-const readingMin = Math.max(1, Math.ceil(wordCount / 200));
+const site = Astro.site!;
+const canonical = new URL(postUrl(entry), site).toString();
+const description = entry.data.description || (entry.body ?? '').slice(0, 160).trimEnd() + '…';
+const minutes = readingMinutes(entry);
+const toc = headings.filter((h) => h.depth <= 3);
+const repoFile = entry.filePath ?? `src/content/posts/${entry.id}.md`;
+const editUrl = `https://github.com/Skiddle-ID/skiddle.id/blob/v3/${repoFile}`;
 
-const all = (await getCollection('posts', ({ data }: any) => !data.draft)).sort(
-  (a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
-let prev: typeof all[number] | null = null;
-let next: typeof all[number] | null = null;
+const all = await getPosts();
+
+// Series navigation
+let prev: Post | null = null;
+let next: Post | null = null;
 if (entry.data.series) {
-  const seriesPosts = all
-    .filter((p: any) => p.data.series === entry.data.series)
-    .sort((a: any, b: any) => (a.data.order ?? 0) - (b.data.order ?? 0));
-  const idx = seriesPosts.findIndex((p: any) => slugOf(p) === slug);
-  if (idx > 0) prev = seriesPosts[idx - 1];
-  if (idx >= 0 && idx < seriesPosts.length - 1) next = seriesPosts[idx + 1];
+  const series = all
+    .filter((p) => p.data.series === entry.data.series)
+    .sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+  const idx = series.findIndex((p) => p.id === entry.id);
+  if (idx > 0) prev = series[idx - 1];
+  if (idx >= 0 && idx < series.length - 1) next = series[idx + 1];
 }
 
-// Related: same category + tag overlap, exclude self + series prev/next, top 3
+// Related: score by shared tags (2pts) and same category (1pt); skip series neighbours
+const myTags = new Set(entry.data.tags.map((t) => t.toLowerCase()));
 const related = all
-  .filter((p: any) => slugOf(p) !== slug)
-  .filter((p: any) => p.data.category === entry.data.category || (p.data.tags as string[]).some((t: string) => (entry.data.tags as string[]).map((x:string)=>x.toLowerCase()).includes(t.toLowerCase())))
-  .filter((p: any) => p !== prev && p !== next)
-  .slice(0, 3);
+  .filter((p) => p.id !== entry.id && p.id !== prev?.id && p.id !== next?.id)
+  .map((p) => ({
+    p,
+    score: p.data.tags.filter((t) => myTags.has(t.toLowerCase())).length * 2 + (p.data.category === entry.data.category ? 1 : 0),
+  }))
+  .filter((r) => r.score > 0)
+  .sort((a, b) => b.score - a.score || b.p.data.pubDate.valueOf() - a.p.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((r) => r.p);
+// Nothing related? Suggest the latest posts instead so readers always have somewhere to go.
+if (related.length === 0) {
+  related.push(...all.filter((p) => p.id !== entry.id && p.id !== prev?.id && p.id !== next?.id).slice(0, 3));
+}
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: entry.data.title,
+  inLanguage: entry.data.lang,
   datePublished: entry.data.pubDate.toISOString(),
   dateModified: (entry.data.updatedDate || entry.data.pubDate).toISOString(),
-  author: { '@type': 'Person', name: 'Jeff (Skiddle)' },
-  publisher: { '@type': 'Organization', name: 'Skiddle', url: site },
+  author: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle', url: site.toString() },
   mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-  description: shortContent,
+  description,
   url: canonical,
-  image: new URL(ogImage, site).toString(),
+  keywords: entry.data.tags.join(', '),
 };
 ---
 
-<Shell title={entry.data.title} description={shortContent} image={ogImage}>
-  <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article">
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-  <!-- Breadcrumbs -->
-  <nav class="max-w-[900px] mx-auto w-full mono text-xs flex items-center gap-2 mb-3" style="color: var(--color-text-muted)">
-    <a href="/posts/">Posts</a>
-    <span>›</span>
-    <span style="color: var(--color-text)">{entry.data.category}</span>
-    {entry.data.series && (
-      <>
-        <span>›</span>
-        <span class="tag">{entry.data.series}</span>
-      </>
-    )}
-  </nav>
-
-  <div class="max-w-[900px] mx-auto w-full flex gap-6">
-    <article class="flex-1 min-w-0">
-      <header class="flex flex-col gap-2">
-        <h1 class="font-bold before-hash-1" style="font-family: var(--font-heading)">{entry.data.title}</h1>
-        <p class="mono text-xs flex flex-wrap gap-2 items-center" style="color: var(--color-text-muted)">
-          <FormattedDate date={entry.data.pubDate} />
-          {entry.data.updatedDate && (
-            <span>· Updated <FormattedDate date={entry.data.updatedDate} /></span>
-          )}
-          <span>· {readingMin} min · {wordCount.toLocaleString()} words</span>
-          <span class="tag">{entry.data.category}</span>
-          {entry.data.tags.map((t: string) => (<span class="tag">#{t}</span>))}
-        </p>
-      </header>
-
-      <hr />
-
-      <!-- C: cover hero if cover exists -->
-      {entry.data.cover && (
-        <div class="card overflow-hidden mb-4" style="background: linear-gradient(135deg, #0f2854 0%, #2a67a5 45%, #8ac6ff 100%); color: white; padding: 18px 20px;">
-          <div class="mono text-xs px-2 py-1 rounded-full inline-block mb-2" style="background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25)">Cover · {entry.data.cover}</div>
-          <div class="font-bold" style="font-size: 1.15rem; line-height: 1.2">{entry.data.title}</div>
-          <div class="mono text-xs mt-1 opacity-90">{entry.data.description}</div>
-        </div>
-      )}
-
-      <!-- B optional: series banner -->
-      {entry.data.series && (prev || next) && (
-        <div class="mono text-xs px-3 py-2 rounded-lg mb-4 flex flex-wrap gap-2 items-center" style="background: #eef6ff; border: 1px solid var(--color-border); color: var(--color-primary)">
-          <i class="fa-solid fa-layer-group"></i>
-          <b>Series: {entry.data.series}</b>
-          {prev && (<a href={`/posts/${slugOf(prev)}/`} style="color: var(--color-primary); text-decoration: underline">← {prev.data.title}</a>)}
-          {next && (<a href={`/posts/${slugOf(next)}/`} style="color: var(--color-primary); text-decoration: underline">{next.data.title} →</a>)}
-        </div>
-      )}
-
-      <!-- A: mobile ToC — collapsible -->
-      {headings.length > 0 && (
-        <details class="lg:hidden max-w-[900px] mx-auto mb-4 card p-3" style="background:white">
-          <summary class="mono text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer" style="color: var(--color-text)"><i class="fa-solid fa-list"></i> On this page — {headings.length} · {readingMin} min</summary>
-          <nav class="flex flex-col gap-1 mt-3">
-            {headings.map((h: any) => (<a href={`#${h.slug}`} class="mono text-xs px-2 py-1 rounded" style="color: var(--color-primary)">{h.text}</a>))}
-          </nav>
-        </details>
-      )}
-
-      <div class="prose max-w-[900px] mx-auto pb-5">
-        <Content />
-      </div>
-      <script>
-        (function(){
-          function init(){
-            document.querySelectorAll('.prose pre').forEach(function(pre){
-              if(pre.querySelector('.code-copy')) return;
-              var btn = document.createElement('button');
-              btn.className = 'code-copy mono'; btn.type = 'button'; btn.textContent = 'Copy';
-              btn.addEventListener('click', function(){
-                var code = pre.querySelector('code');
-                var text = code ? code.innerText : pre.innerText;
-                navigator.clipboard.writeText(text).then(function(){
-                  var o = btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=o},1200);
-                });
-              });
-              pre.appendChild(btn);
-            });
-          }
-          if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-        })();
-      </script>
-
-      <!-- B prev/next -->
-      {(prev || next) && (
-        <div class="grid sm:grid-cols-2 gap-3 mt-6 max-w-[900px] mx-auto">
-          {prev ? (
-            <a href={`/posts/${slugOf(prev)}/`} class="card p-3 block">
-              <div class="mono text-xs" style="color: var(--color-text-muted)">← Prev in series</div>
-              <div class="text-sm font-semibold">{prev.data.title}</div>
-            </a>
-          ) : (<div />)}
-          {next ? (
-            <a href={`/posts/${slugOf(next)}/`} class="card p-3 block text-right sm:text-left">
-              <div class="mono text-xs" style="color: var(--color-text-muted)">Next →</div>
-              <div class="text-sm font-semibold">{next.data.title}</div>
-            </a>
-          ) : (<div />)}
-        </div>
-      )}
-
-      <hr />
-
-      {related.length > 0 && (
-        <div class="max-w-[900px] mx-auto w-full mt-4">
-          <div class="mono text-xs font-bold uppercase mb-2" style="color: var(--color-text-muted)">Related</div>
-          <div class="grid gap-3 sm:grid-cols-3">
-            {related.map((p: any) => (
-              <a href={`/posts/${slugOf(p)}/`} class="card p-3 block no-underline" style="background:white">
-                <div class="mono text-xs" style="color: var(--color-muted)">{p.data.category} · {p.data.tags.slice(0,2).map((t:string)=>`#${t}`).join(' ')}</div>
-                <div class="text-sm font-bold mt-1" style="font-family: var(--font-heading)">{p.data.title}</div>
-                <div class="text-xs mt-1 line-clamp-2" style="color: var(--color-text-muted)">{p.data.description}</div>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <p class="max-w-[900px] mx-auto pb-5 prose">
-        Thanks for reading along, I hope you enjoyed this post.
-        If you did, maybe consider following me on <a href="https://bsky.app/profile/skiddle.blue">Bluesky</a>,
-        I'm trying to write more this year, so I'll see you in the next post. 👋
+  <article class="max-w-[70ch] w-full" lang={entry.data.lang}>
+    <header class="mb-8">
+      <p class="text-xs text-[var(--color-muted)] mb-3">
+        <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>
+        <span aria-hidden="true"> / </span>
+        <a href={`/topics/#${entry.data.category}`} class="hover:text-[var(--color-primary)]" lang="en">{categoryLabels[entry.data.category].toLowerCase()}</a>
       </p>
-    </article>
+      <h1 class="text-2xl font-semibold leading-snug">{entry.data.title}</h1>
+      <p class="text-xs text-[var(--color-muted)] mt-3 flex flex-wrap gap-x-2 gap-y-1" lang="en">
+        <FormattedDate date={entry.data.pubDate} />
+        {entry.data.updatedDate && (<span>· updated <FormattedDate date={entry.data.updatedDate} /></span>)}
+        <span>· {minutes} min read</span>
+        {entry.data.tags.length > 0 && <span>·</span>}
+        {entry.data.tags.map((t) => (<a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>))}
+      </p>
+    </header>
 
-    <!-- A: ToC + post sidebar meta -->
-    {(headings.length > 0 || entry.data.tags.length > 0) && (
-      <aside class="hidden lg:block" style="width: 200px; flex-shrink: 0">
-        {headings.length > 0 && (
-          <div class="card p-3" style="background: white; position: sticky; top: 72px">
-            <div class="mono text-xs font-bold uppercase mb-2 flex items-center gap-1.5">
-              <i class="fa-solid fa-list"></i> On this page
-            </div>
-            <nav class="flex flex-col gap-1">
-              {headings.map((h: any) => (
-                <a href={`#${h.slug}`} class="mono text-xs px-2 py-1 rounded" style="color: var(--color-text-muted)">{h.text}</a>
-              ))}
-            </nav>
-            <div class="mono text-xs mt-3 pt-2" style="border-top: 1px solid var(--color-border); color: var(--color-text-muted)">
-              {readingMin} min
-            </div>
-          </div>
-        )}
-        <div class="card p-3 mt-3" style="background: white">
-          <div class="mono text-xs font-bold uppercase mb-2" style="color: var(--color-text-muted)">Tags</div>
-          <div class="flex flex-wrap gap-1.5">
-            {entry.data.tags.map((t: string) => (<a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>))}
-          </div>
-          <div class="mono text-xs font-bold uppercase mt-3 mb-1.5" style="color: var(--color-text-muted)">Share</div>
-          <div class="flex flex-col gap-1.5">
-            <button
-              class="btn text-xs !justify-start"
-              data-copy={canonical}
-              onclick={`navigator.clipboard.writeText(this.dataset.copy).then(()=>{const o=this.innerHTML; this.innerHTML='Copied!'; setTimeout(()=>this.innerHTML=o,1200)})`}
-            >
-              <i class="fa-regular fa-copy"></i> Copy link
-            </button>
-            <a href={`https://bsky.app/intent/compose?text=${encodeURIComponent(entry.data.title + ' ' + canonical)}`} target="_blank" class="btn text-xs !justify-start">
-              <i class="fa-brands fa-bluesky"></i> Bluesky
-            </a>
-            <a href={`https://github.com/Skiddle-ID/skiddle.id/blob/main/src/content/posts/${slug}.md`} class="btn text-xs !justify-start">
-              <i class="fa-brands fa-github"></i> Edit on GitHub
-            </a>
-          </div>
-          <div class="mono text-xs mt-3 pt-2" style="border-top: 1px solid var(--color-border); color: var(--color-text-muted)">
-            src/content/posts/{slug}.md
-          </div>
-        </div>
+    {entry.data.series && (prev || next) && (
+      <aside class="card px-4 py-3 mb-8 text-sm" lang="en">
+        <p class="text-xs text-[var(--color-muted)] mb-1">Part of a series: <span class="text-[var(--color-text)]">{entry.data.series}</span></p>
+        {prev && (<p>← <a href={postUrl(prev)} class="link">{prev.data.title}</a></p>)}
+        {next && (<p>→ <a href={postUrl(next)} class="link">{next.data.title}</a></p>)}
       </aside>
     )}
-  </div>
+
+    {entry.data.cover && /^(https?:)?\//.test(entry.data.cover) && (
+      <img src={entry.data.cover} alt="" class="w-full rounded-md border mb-8" loading="eager" />
+    )}
+
+    {toc.length >= 3 && (
+      <details class="card px-4 py-3 mb-8 text-sm group" lang="en">
+        <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span class="opacity-60">({toc.length})</span></summary>
+        <ol class="mt-2 flex flex-col gap-1">
+          {toc.map((h) => (
+            <li class={h.depth === 3 ? 'pl-4' : ''}>
+              <a href={`#${h.slug}`} class="text-[var(--color-muted)] hover:text-[var(--color-primary)]" lang={entry.data.lang}>{h.text}</a>
+            </li>
+          ))}
+        </ol>
+      </details>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {(prev || next) && (
+      <nav aria-label="Series" class="grid sm:grid-cols-2 gap-3 mt-10 text-sm" lang="en">
+        {prev ? (
+          <a href={postUrl(prev)} class="card p-3 hover:border-[var(--color-primary)]">
+            <span class="block text-xs text-[var(--color-muted)]">← previous</span>
+            <span lang={prev.data.lang}>{prev.data.title}</span>
+          </a>
+        ) : <span />}
+        {next && (
+          <a href={postUrl(next)} class="card p-3 sm:text-right hover:border-[var(--color-primary)]">
+            <span class="block text-xs text-[var(--color-muted)]">next →</span>
+            <span lang={next.data.lang}>{next.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+
+    <footer class="mt-12 pt-6 border-t text-sm" lang="en">
+      <div class="flex gap-4 items-start">
+        <img src="https://github.com/arcestia.png?size=96" alt="" width="48" height="48" class="size-12 rounded-full border shrink-0" loading="lazy" />
+        <div>
+          <p>Thanks for reading! I'm <a href="/about/" class="link">Jeff</a>, a night-shift platform engineer in Bangkok.</p>
+          <p class="text-[var(--color-muted)] mt-1">
+            If you enjoyed this, follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a>
+            or grab the <a href="/rss.xml" class="link">RSS feed</a>. See you in the next post. 👋
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-6">
+        <button type="button" class="btn" id="copyLink" data-url={canonical}><Icon name="copy" size={14} /> <span>Copy link</span></button>
+        <a class="btn" target="_blank" rel="noopener" href={`https://bsky.app/intent/compose?text=${encodeURIComponent(entry.data.title + ' ' + canonical)}`}><Icon name="bluesky" size={14} /> Share on Bluesky</a>
+        <a class="btn" target="_blank" rel="noopener" href={editUrl}><Icon name="github" size={14} /> Suggest an edit</a>
+      </div>
+    </footer>
+
+    {related.length > 0 && (
+      <section class="mt-12" lang="en">
+        <h2 class="font-semibold before-hash-2 mb-2">Keep reading</h2>
+        <PostList posts={related} />
+      </section>
+    )}
+  </article>
 </Shell>
+
+<script>
+  // Copy buttons on code blocks
+  document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
+    if (pre.querySelector('.code-copy')) return;
+    const btn = document.createElement('button');
+    btn.className = 'code-copy';
+    btn.type = 'button';
+    btn.textContent = 'copy';
+    btn.setAttribute('aria-label', 'Copy code');
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code');
+      try {
+        await navigator.clipboard.writeText((code ?? pre).innerText);
+        btn.textContent = 'copied';
+        setTimeout(() => (btn.textContent = 'copy'), 1200);
+      } catch {}
+    });
+    pre.appendChild(btn);
+  });
+
+  // Copy page link
+  const copyLink = document.getElementById('copyLink');
+  copyLink?.addEventListener('click', async () => {
+    const label = copyLink.querySelector('span');
+    try {
+      await navigator.clipboard.writeText(copyLink.dataset.url || location.href);
+      if (label) { label.textContent = 'Copied!'; setTimeout(() => (label.textContent = 'Copy link'), 1200); }
+    } catch {}
+  });
+</script>

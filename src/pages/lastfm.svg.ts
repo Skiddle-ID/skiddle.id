@@ -14,6 +14,7 @@
 */
 
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 const THEMES = {
   dark: {
@@ -41,7 +42,6 @@ export const prerender = false;
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
     const url = new URL(request.url);
-    const env = (locals as any)?.runtime?.env as Env | undefined;
     const username = url.searchParams.get('user') || env?.LASTFM_USERNAME || '';
     const apiKey = env?.LASTFM_API_KEY || '';
     const limitParam = Number(url.searchParams.get('limit') || '1');

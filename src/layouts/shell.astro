@@ -2,8 +2,7 @@
 import BaseHead from '../components/base-head.astro';
 import Sidebar from '../components/sidebar.astro';
 import Footer from '../components/footer.astro';
-
-import '@fontsource/geist-mono';
+import Icon from '../components/icon.astro';
 
 import '../style.css';
 
@@ -11,25 +10,23 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
-  children: any;
+  type?: 'website' | 'article';
 }
 
 const {
-  title = 'Skiddle — Systems Architecture',
-  description = "Jeff (Skiddle) — night-shift DevOps engineer in Bangkok, building platforms, automation, and open internet infrastructure.",
+  title = 'Skiddle',
+  description = 'Jeff (Skiddle) — night-shift platform engineer in Bangkok, writing about infra, open protocols, homelab and life.',
   image = '/android-chrome-512x512.png',
+  type = 'website',
 } = Astro.props;
-const site = Astro.site;
+const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
 
-// Build BreadcrumbList from the path segments
-const segments = Astro.url.pathname
-  .split('/')
-  .filter(Boolean);
+const segments = Astro.url.pathname.split('/').filter(Boolean);
 const breadcrumbItems = [
-  { '@type': 'ListItem', position: 1, name: 'Home', item: site },
+  { '@type': 'ListItem', position: 1, name: 'Home', item: site.toString() },
   ...segments.map((seg, idx) => {
-    const url = new URL('/' + segments.slice(0, idx + 1).join('/'), site).toString();
+    const url = new URL('/' + segments.slice(0, idx + 1).join('/') + '/', site).toString();
     const name = seg.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
     return { '@type': 'ListItem', position: idx + 2, name, item: url };
   }),
@@ -38,110 +35,91 @@ const breadcrumbItems = [
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
+    { '@type': 'WebSite', name: 'Skiddle', url: site.toString(), inLanguage: 'en' },
     {
-      '@type': 'WebSite',
-      name: 'Skiddle',
-      url: site,
-      inLanguage: 'en',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: `${site}posts?q={search_term_string}`,
-        'query-input': 'required name=search_term_string',
-      },
+      '@type': 'Person',
+      name: 'Laurensius Jeffrey',
+      alternateName: 'Skiddle',
+      url: site.toString(),
+      image: new URL('/android-chrome-512x512.png', site).toString(),
+      sameAs: ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
     },
-    {
-      '@type': 'Organization',
-      name: 'Skiddle',
-      url: site,
-      logo: '/android-chrome-512x512.png',
-    },
-    {
-      '@type': 'WebPage',
-      url: canonical,
-      name: title,
-      description: description,
-    },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: breadcrumbItems,
-    },
+    { '@type': 'WebPage', url: canonical, name: title, description },
+    { '@type': 'BreadcrumbList', itemListElement: breadcrumbItems },
   ],
 };
 ---
 
-<html lang="en">
+<html lang="en" data-theme="dark" data-accent="blue">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <BaseHead title={title} description={description} image={image} />
-    <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+    <!-- Apply saved theme/accent before first paint (no flash). Dark is the default. -->
+    <script is:inline>
+      (function () {
+        try {
+          var d = document.documentElement;
+          var t = localStorage.getItem('theme');
+          var a = localStorage.getItem('accent');
+          if (t === 'light' || t === 'dark') d.dataset.theme = t;
+          if (a) d.dataset.accent = a;
+        } catch (e) {}
+      })();
+    </script>
+    <BaseHead title={title} description={description} image={image} type={type} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="antialiased font-mono tracking-normal leading-normal min-h-screen selection:bg-base0A selection:text-base00">
-    <!-- Mobile top bar — editorial -->
-    <div class="lg:hidden fixed top-0 left-0 right-0 h-12 border-b z-40 flex items-center px-4 gap-3" style="background: var(--color-bg); border-color: var(--color-border)">
-      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors" style="border-color: var(--color-border)" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true">
-          <path fill-rule="evenodd" d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-      <a href="/" class="flex items-center gap-2 no-underline">
-        <img src="https://github.com/arcestia.png" alt="avatar" class="size-6 rounded-full" style="border:1px solid var(--color-border)" />
-        <span style="font-family: var(--font-heading); font-weight:700; color: var(--color-text)">Skiddle</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full" style="background:#eef6ff; border:1px solid var(--color-border); color: var(--color-text-muted)">{__GIT_TAG__ || __GIT_DESCRIBE__ || "v3.1"}</span>
+  <body class="antialiased font-mono tracking-normal leading-normal min-h-screen text-[15px]">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-[var(--color-bg)] focus:border focus:rounded">Skip to content</a>
+
+    <!-- Mobile top bar -->
+    <div class="lg:hidden fixed top-0 inset-x-0 h-12 border-b z-40 flex items-center justify-between px-4 bg-[var(--color-bg)]">
+      <a href="/" class="flex items-center gap-1.5 text-[var(--color-primary)]">
+        <span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span>
       </a>
+      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md hover:text-[var(--color-primary)]" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+        <Icon name="menu" size={20} />
+      </button>
     </div>
 
-    <!-- Sidebar (off-canvas on mobile) -->
     <Sidebar />
 
-    <!-- Backdrop for mobile sidebar -->
-    <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-black/30 z-30 hidden"></div>
+    <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-black/50 z-30 hidden"></div>
 
     <div class="lg:pl-56 pt-12 lg:pt-0 flex flex-col min-h-screen">
-      <main class="flex flex-col gap-3 px-4 lg:px-6 py-4 grow">
+      <main id="main" class="flex flex-col px-5 lg:px-10 py-8 lg:py-12 grow">
         <slot />
       </main>
-
-      <footer class="page__footer px-4 lg:px-6 pb-4">
-        <Footer />
-      </footer>
+      <Footer />
     </div>
 
     <script>
-      (function() {
-        function setupMobileSidebar() {
-          const btn = document.getElementById('mobileMenuButton');
-          const sidebar = document.getElementById('sidebar');
-          const backdrop = document.getElementById('sidebarBackdrop');
-          if (!btn || !sidebar || !backdrop) return;
-
-          function open() {
-            sidebar.classList.remove('-translate-x-full');
-            backdrop.classList.remove('hidden');
-            btn.setAttribute('aria-expanded', 'true');
-            document.documentElement.classList.add('overflow-hidden');
-          }
-          function close() {
-            sidebar.classList.add('-translate-x-full');
-            backdrop.classList.add('hidden');
-            btn.setAttribute('aria-expanded', 'false');
-            document.documentElement.classList.remove('overflow-hidden');
-          }
-          function toggle() {
-            if (sidebar.classList.contains('-translate-x-full')) open(); else close();
-          }
-          btn.addEventListener('click', toggle);
-          backdrop.addEventListener('click', close);
-          document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', setupMobileSidebar);
-        } else {
-          setupMobileSidebar();
-        }
-      })();
+      function setupMobileSidebar() {
+        const btn = document.getElementById('mobileMenuButton');
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (!btn || !sidebar || !backdrop) return;
+        const open = () => {
+          sidebar.classList.remove('-translate-x-full');
+          backdrop.classList.remove('hidden');
+          btn.setAttribute('aria-expanded', 'true');
+          btn.setAttribute('aria-label', 'Close menu');
+          document.documentElement.classList.add('overflow-hidden');
+        };
+        const close = () => {
+          sidebar.classList.add('-translate-x-full');
+          backdrop.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Open menu');
+          document.documentElement.classList.remove('overflow-hidden');
+        };
+        btn.addEventListener('click', () => (sidebar.classList.contains('-translate-x-full') ? open() : close()));
+        backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      }
+      setupMobileSidebar();
     </script>
   </body>
 </html>
