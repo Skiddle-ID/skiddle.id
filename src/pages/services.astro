@@ -46,7 +46,12 @@ const jsonLd = {
       name: s.name,
       description: s.description,
       serviceType: s.category,
-      provider: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle', url: site.toString() },
+      provider: {
+        '@type': 'Organization',
+        name: 'Skiddle Labs Pte. Ltd.',
+        url: site.toString(),
+        founder: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle' },
+      },
     })),
   },
 };
@@ -65,6 +70,9 @@ const jsonLd = {
       <p class="text-sm text-[var(--color-muted)] mt-2 leading-relaxed">
         I help small teams and individuals with servers, pipelines, monitoring and self-hosting. If you don't see exactly
         what you need, ask anyway and we'll figure it out.
+      </p>
+      <p class="text-sm text-[var(--color-muted)] mt-2 leading-relaxed">
+        Client work runs through <span class="text-[var(--color-text)]">Skiddle Labs Pte. Ltd.</span>, my own company.
       </p>
       <p class="text-xs text-[var(--color-muted)] mt-4 flex items-center gap-2">
         <span class="size-2 rounded-full bg-[var(--color-ok)] shrink-0" aria-hidden="true"></span>
