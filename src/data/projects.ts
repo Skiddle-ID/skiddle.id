@@ -74,7 +74,7 @@ const projects: Project[] = [
     status: 'completed',
     category: 'service',
     featured: true,
-    impact: 'An edge URL shortener running at skiddle.link on Cloudflare Workers and Turso.',
+    impact: 'A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link, including the DomainChecker tool.',
     highlights: [
       'Built with Hono for optimal performance',
       'Deployed on Cloudflare Workers for global edge distribution',
@@ -113,7 +113,7 @@ const projects: Project[] = [
     status: 'completed',
     category: 'api',
     featured: true,
-    impact: 'A free public API that grew from 2–5M to ~500M requests a month before I closed it to the public.',
+    impact: "A free public API for checking whether a domain is blocked by Indonesia's Trust+ list. It grew from 2–5M to ~500M requests a month before I closed it to the public.",
     writeup: '/posts/the-story-behind-taking-down-my-free-checkdomain-api/',
     highlights: [
       'Simple API for checking domain status',

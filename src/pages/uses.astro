@@ -1,91 +1,59 @@
 ---
 import Shell from '../layouts/shell.astro';
-const h2 = 'font-semibold before-hash-2 mt-10 mb-3';
-const h3 = 'text-sm text-[var(--color-primary)] mb-1.5';
-const list = 'text-sm flex flex-col gap-1.5';
+import uses, { usesUpdated } from '../data/uses';
+
+const itemCount = uses.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.items.length, 0), 0);
 ---
 
-<Shell title="Uses — Skiddle" description="The hardware, software and tools Jeff (Skiddle) uses every day.">
-  <div class="max-w-[70ch] w-full">
-    <h1 class="font-semibold text-xl before-hash-1">Uses</h1>
-    <p class="text-sm text-[var(--color-muted)] mt-2">
-      Hardware, software and tools I use daily. Inspired by <a href="https://uses.tech" class="link" target="_blank" rel="noopener">uses.tech</a>.
-      Last updated September 2025.
-    </p>
+<Shell title="Uses — Skiddle" description="The hardware, software and tools Jeff (Skiddle) uses every day: machines, homelab, dev setup, creative tools and the flight bag.">
+  <div class="max-w-[56rem] w-full">
+    <header class="max-w-[70ch]">
+      <h1 class="font-semibold text-xl before-hash-1">Uses</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        The hardware, software and tools I use every day, from the dev box to the flight bag.
+        Inspired by <a href="https://uses.tech" class="link" target="_blank" rel="noopener">uses.tech</a>.
+      </p>
+      <p class="text-xs text-[var(--color-muted)] mt-3">{itemCount} things · last updated {usesUpdated}</p>
+    </header>
 
-    <h2 class={h2}>Machines</h2>
-    <div class="grid sm:grid-cols-2 gap-x-8 gap-y-6">
-      <section>
-        <h3 class={h3}>Desktops</h3>
-        <ul class={list}>
-          <li>Dev box <span class="text-[var(--color-muted)]">— Arch Linux · Ryzen 9 7950X · RTX 4090</span></li>
-          <li>Gaming PC <span class="text-[var(--color-muted)]">— Windows 11 · Ryzen 9 9950X3D · RTX 5090</span></li>
-        </ul>
+    <!-- Jump links -->
+    <nav aria-label="Sections" class="sticky top-12 lg:top-0 z-10 -mx-5 lg:-mx-10 px-5 lg:px-10 py-3 mt-6 bg-[var(--color-bg)]/95 backdrop-blur border-b border-dashed print:hidden">
+      <p class="text-xs flex flex-wrap gap-x-1 gap-y-1.5">
+        <span class="text-[var(--color-muted)] mr-1" aria-hidden="true">cd</span>
+        {uses.map((s) => (
+          <a href={`#${s.id}`} class="px-2 py-0.5 rounded border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">{s.id}/</a>
+        ))}
+      </p>
+    </nav>
+
+    {uses.map((section) => (
+      <section id={section.id} aria-labelledby={`${section.id}-title`} class="mt-10 scroll-mt-28 lg:scroll-mt-16">
+        <h2 id={`${section.id}-title`} class="font-semibold before-hash-2">{section.title}</h2>
+        {section.blurb && <p class="text-sm text-[var(--color-muted)] mt-1">{section.blurb}</p>}
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          {section.groups.map((group) => (
+            <div class="card p-4">
+              <h3 class="text-xs uppercase tracking-wider text-[var(--color-primary)]">{group.title}</h3>
+              <ul class="mt-2.5 flex flex-col gap-2 text-sm">
+                {group.items.map((item) => (
+                  <li>
+                    {item.href
+                      ? <a href={item.href} class="link" target="_blank" rel="noopener noreferrer">{item.name}</a>
+                      : <span>{item.name}</span>}
+                    {item.note && <span class="block text-xs text-[var(--color-muted)] mt-0.5">{item.note}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </section>
-      <section>
-        <h3 class={h3}>Laptops</h3>
-        <ul class={list}>
-          <li>Daily driver <span class="text-[var(--color-muted)]">— MacBook Pro 16" · M3 Pro</span></li>
-          <li>On the go <span class="text-[var(--color-muted)]">— ASUS ProArt P16 · AMD HX 370 · RTX 5070</span></li>
-        </ul>
-      </section>
-      <section>
-        <h3 class={h3}>Storage</h3>
-        <ul class={list}>
-          <li>Home NAS <span class="text-[var(--color-muted)]">— Unraid · NVMe cache + HDD array</span></li>
-          <li>Off-site NAS <span class="text-[var(--color-muted)]">— Unraid · backed up to Backblaze</span></li>
-        </ul>
-      </section>
-      <section>
-        <h3 class={h3}>Cluster & servers</h3>
-        <ul class={list}>
-          <li>Pi cluster <span class="text-[var(--color-muted)]">— 8× Raspberry Pi 4B · Kubernetes</span></li>
-          <li>Workstation <span class="text-[var(--color-muted)]">— Threadripper PRO 9985WX · RTX 6000 Ada · Proxmox VE (now with Aerialite)</span></li>
-        </ul>
-      </section>
-    </div>
+    ))}
 
-    <h2 class={h2}>Software</h2>
-    <dl class="text-sm grid sm:grid-cols-[9rem_1fr] gap-x-4 gap-y-2.5">
-      <dt class="text-[var(--color-muted)]">Editor</dt>
-      <dd><a href="https://zed.dev" class="link" target="_blank" rel="noopener">Zed</a>, plus <a href="https://neovim.io" class="link" target="_blank" rel="noopener">Neovim</a> for quick edits</dd>
-      <dt class="text-[var(--color-muted)]">Terminal</dt>
-      <dd><a href="https://ghostty.org/" class="link" target="_blank" rel="noopener">Ghostty</a> on macOS/Linux, Windows Terminal + WSL</dd>
-      <dt class="text-[var(--color-muted)]">OS</dt>
-      <dd>Arch Linux for dev, macOS daily, Windows 11 for games</dd>
-      <dt class="text-[var(--color-muted)]">Browser</dt>
-      <dd>Zen Browser, Chrome Canary, Firefox Nightly</dd>
-      <dt class="text-[var(--color-muted)]">DevOps & infra</dt>
-      <dd>Docker, Kubernetes, Proxmox VE, Unraid, ZFS, Prometheus, Grafana, GitHub Actions, Backblaze</dd>
-      <dt class="text-[var(--color-muted)]">Cloud</dt>
-      <dd>Cloudflare, AWS, GCP, Vercel, Render</dd>
-      <dt class="text-[var(--color-muted)]">Web & data</dt>
-      <dd>Astro, Vue, React, Svelte, Nuxt · Node, Go, PHP, Python, Ruby · Postgres, MySQL, Redis, Mongo</dd>
-      <dt class="text-[var(--color-muted)]">Writing</dt>
-      <dd>This site is Astro + Markdown. Notes live in Obsidian.</dd>
-      <dt class="text-[var(--color-muted)]">Design & video</dt>
-      <dd>Adobe CC, DaVinci Resolve, OBS</dd>
-    </dl>
-
-    <h2 class={h2}>Audio</h2>
-    <dl class="text-sm grid sm:grid-cols-[9rem_1fr] gap-x-4 gap-y-2.5">
-      <dt class="text-[var(--color-muted)]">Listening</dt><dd>Sony WH-1000XM4, Sennheiser HD600</dd>
-      <dt class="text-[var(--color-muted)]">Recording</dt><dd>AT2020, SM58, Audient iD14</dd>
-      <dt class="text-[var(--color-muted)]">Software</dt><dd>Logic Pro, Audacity</dd>
-    </dl>
-
-    <h2 class={h2}>Fun</h2>
-    <dl class="text-sm grid sm:grid-cols-[9rem_1fr] gap-x-4 gap-y-2.5">
-      <dt class="text-[var(--color-muted)]">Gaming</dt><dd>Steam, Epic</dd>
-      <dt class="text-[var(--color-muted)]">Watching</dt><dd>Netflix, YouTube</dd>
-      <dt class="text-[var(--color-muted)]">Reading</dt><dd>Kindle, Prime Reading, Audible</dd>
-      <dt class="text-[var(--color-muted)]">Music</dt><dd>Spotify, scrobbled to <a href="https://www.last.fm/user/arcestia" class="link" target="_blank" rel="noopener">Last.fm</a></dd>
-    </dl>
-
-    <h2 class={h2}>Aviation</h2>
-    <p class="text-sm">
-      Working toward my Private Pilot License. Tools: ForeFlight, SkyVector, Aviation Weather Center, Windy and
-      simulators, and the Cirrus SR22. <a href="/topics/tag/aviation/" class="link">Read the journey →</a>
+    <p class="mt-12 text-sm text-[var(--color-muted)]">
+      Want to know more about any of this? Ask me on
+      <a href="https://bsky.app/profile/skiddle.blue" class="link" target="_blank" rel="noopener">Bluesky</a>,
+      or read <a href="/topics/tag/homelab/" class="link">my homelab posts</a>.
     </p>
   </div>
 </Shell>

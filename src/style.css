@@ -29,6 +29,11 @@
   --color-muted: #a8a8a8;
   --color-primary: #82cfff;
 
+  /* Status colours (project status dots, terminal errors) */
+  --color-ok: #42be65;
+  --color-warn: #f1c21b;
+  --color-err: #fa4d56;
+
   /* Legacy aliases so nothing old breaks */
   --color-text-muted: var(--color-muted);
   --color-white: var(--color-text);
@@ -55,6 +60,9 @@
   --color-text: #161616;
   --color-muted: #525252;
   --color-primary: #0f62fe;
+  --color-ok: #198038;
+  --color-warn: #8e6a00;
+  --color-err: #da1e28;
   color-scheme: light;
 }
 
