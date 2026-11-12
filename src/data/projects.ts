@@ -74,6 +74,7 @@ const projects: Project[] = [
     status: 'completed',
     category: 'service',
     featured: true,
+    impact: 'An edge URL shortener running at skiddle.link on Cloudflare Workers and Turso.',
     highlights: [
       'Built with Hono for optimal performance',
       'Deployed on Cloudflare Workers for global edge distribution',
@@ -111,6 +112,9 @@ const projects: Project[] = [
     year: 2024,
     status: 'completed',
     category: 'api',
+    featured: true,
+    impact: 'A free public API that grew from 2–5M to ~500M requests a month before I closed it to the public.',
+    writeup: '/posts/the-story-behind-taking-down-my-free-checkdomain-api/',
     highlights: [
       'Simple API for checking domain status',
       'Written in Node.js',
@@ -130,6 +134,8 @@ const projects: Project[] = [
     year: 2024,
     status: 'in-services',
     category: 'tool',
+    featured: true,
+    impact: 'Keeps a public copy of the Kominfo blocklist fresh, automatically, every hour.',
     highlights: [
       'Simple script for updating blocklist',
       'Written in Bash',

@@ -99,10 +99,10 @@ const works: WorksData = {
   projects: [
     {
       title: 'Personal Website & Blog',
-      description: 'Built with Astro, integrated with ATProtocol for federated blogging',
-      labels: ['Astro', 'TypeScript', 'ATProtocol', 'Cloudflare'],
+      description: 'This site: Astro and Markdown, deployed to Cloudflare Workers, with a terminal-inspired design',
+      labels: ['Astro', 'TypeScript', 'Tailwind CSS', 'Cloudflare Workers'],
       live: 'https://skiddle.id',
-      github: 'https://github.com/arcestia',
+      github: 'https://github.com/Skiddle-ID/skiddle.id',
     },
     {
       title: 'Home Lab Infrastructure',
@@ -112,7 +112,7 @@ const works: WorksData = {
     },
   ],
   certifications: [
-    { title: 'Private Pilot License (PPL) - In Progress', yearOrStatus: 'Expected Q1 2025' },
+    { title: 'Private Pilot License (PPL)', yearOrStatus: 'In progress' },
     { title: 'AWS Certified Machine Learning - Specialty', yearOrStatus: '2024' },
     { title: 'CompTIA Security+', yearOrStatus: '2023' },
     { title: 'Microsoft Certified: DevOps Engineer Expert', yearOrStatus: '2022' },

@@ -2,14 +2,31 @@
 import Shell from '../layouts/shell.astro';
 ---
 
-<Shell title="Not Found — Skiddle">
-  <div class="prose max-w-[820px] mx-auto">
-    <h1>404 Not Found</h1>
-    <p>
-      The page you’re looking for doesn’t exist or may have been moved.
+<Shell title="Page not found — Skiddle" description="This page doesn't exist.">
+  <div class="max-w-[70ch] w-full">
+    <h1 class="sr-only">Page not found</h1>
+    <div class="card p-5 text-sm leading-relaxed" role="status">
+      <p><span class="text-[var(--color-primary)]">skiddle@web</span>:<span class="text-[var(--color-muted)]">~</span>$ cd <span id="missingPath">this-page</span></p>
+      <p class="text-[#fa4d56]">bash: cd: <span id="missingPath2">this-page</span>: No such file or directory</p>
+      <p class="mt-3"><span class="text-[var(--color-primary)]">skiddle@web</span>:<span class="text-[var(--color-muted)]">~</span>$ <span class="cursor-blink" aria-hidden="true"></span></p>
+    </div>
+
+    <p class="mt-6 text-sm">
+      This page doesn't exist, or it moved. Try one of these instead:
     </p>
-    <p>
-      <a href="/">Go back home</a> or try visiting the <a href="/posts">posts</a> page.
-    </p>
+    <ul class="mt-3 text-sm flex flex-col gap-1.5">
+      <li><a href="/" class="link">cd ~</a> <span class="text-[var(--color-muted)]">— home</span></li>
+      <li><a href="/posts/" class="link">ls posts/</a> <span class="text-[var(--color-muted)]">— everything I've written (with search)</span></li>
+      <li><a href="/projects/" class="link">ls projects/</a> <span class="text-[var(--color-muted)]">— things I've built</span></li>
+    </ul>
   </div>
 </Shell>
+
+<script>
+  // The 404 page is static, so fill in the path the visitor actually asked for.
+  const path = decodeURIComponent(location.pathname).slice(0, 80);
+  for (const id of ['missingPath', 'missingPath2']) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = path;
+  }
+</script>

@@ -40,6 +40,9 @@ const jsonLd = {
       '@type': 'Person',
       name: 'Laurensius Jeffrey',
       alternateName: 'Skiddle',
+      jobTitle: 'Platform Engineer',
+      knowsAbout: ['DevOps', 'Platform engineering', 'CI/CD', 'Cloudflare Workers', 'Kubernetes', 'Self-hosting', 'ATProto'],
+      homeLocation: { '@type': 'Place', name: 'Bangkok, Thailand' },
       url: site.toString(),
       image: new URL('/android-chrome-512x512.png', site).toString(),
       sameAs: ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
@@ -81,7 +84,7 @@ const jsonLd = {
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-[var(--color-bg)] focus:border focus:rounded">Skip to content</a>
 
     <!-- Mobile top bar -->
-    <div class="lg:hidden fixed top-0 inset-x-0 h-12 border-b z-40 flex items-center justify-between px-4 bg-[var(--color-bg)]">
+    <div class="lg:hidden print:hidden fixed top-0 inset-x-0 h-12 border-b z-40 flex items-center justify-between px-4 bg-[var(--color-bg)]">
       <a href="/" class="flex items-center gap-1.5 text-[var(--color-primary)]">
         <span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span>
       </a>
@@ -94,8 +97,8 @@ const jsonLd = {
 
     <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-[#000]/50 z-30 hidden"></div>
 
-    <div class="lg:pl-56 pt-12 lg:pt-0 flex flex-col min-h-screen">
-      <main id="main" class="flex flex-col px-5 lg:px-10 py-8 lg:py-12 grow">
+    <div class="lg:pl-56 pt-12 lg:pt-0 print:p-0 flex flex-col min-h-screen">
+      <main id="main" class="flex flex-col px-5 lg:px-10 py-8 lg:py-12 print:p-0 grow">
         <slot />
       </main>
       <Footer />

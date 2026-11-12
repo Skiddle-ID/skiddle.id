@@ -1,19 +1,14 @@
 ---
 import Shell from '../layouts/shell.astro';
-
-const birthdate = new Date('1997-08-09T07:00:00Z');
-const now = new Date();
-let age = now.getUTCFullYear() - birthdate.getUTCFullYear();
-if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birthdate.getUTCDate()))) age--;
 ---
 
-<Shell title="About — Skiddle" description="About Jeff (Skiddle) — night-shift platform engineer in Bangkok, homelabber, open-web fan and student pilot.">
+<Shell title="About — Skiddle" description="About Jeff (Skiddle) — platform engineer in Bangkok, homelabber, open-web fan and student pilot.">
   <div class="max-w-[70ch] w-full">
     <div class="flex items-center gap-4 mb-8">
       <img src="https://github.com/arcestia.png?size=160" alt="Jeff's avatar" width="72" height="72" class="size-18 rounded-full border shrink-0" />
       <div>
         <h1 class="font-semibold text-xl before-hash-1">About me</h1>
-        <p class="text-sm text-[var(--color-muted)] mt-1">Bangkok · <span id="age" data-birthdate={birthdate.toISOString()}>{age}</span> · night person</p>
+        <p class="text-sm text-[var(--color-muted)] mt-1">Platform engineer · Bangkok · night person</p>
       </div>
     </div>
 
@@ -31,10 +26,19 @@ if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birth
         on <code>Cloudflare</code>, <code>AWS</code> and self-hosted hardware.
       </p>
       <p>
-        I like shipping small tools that remove toil. Reliability, security and cost all matter to me, and my default
-        answer is usually "can we automate that?". The longer version is on my <a href="/works/">works</a> page, and
-        the open-source bits are on <a href="/projects/">projects</a>.
+        I co-founded <strong>Aerialite</strong>, a security and privacy startup here in Bangkok, and now sit on its
+        advisory board. I also run <strong>Skiddle ID</strong>, where I build web apps and look after infrastructure
+        for clients. The full version is on my <a href="/works/">CV</a>, and the open-source bits are on
+        <a href="/projects/">projects</a>.
       </p>
+
+      <h2>How I work</h2>
+      <ul>
+        <li><strong>Automate the toil.</strong> A small tool beats doing the same manual step twice.</li>
+        <li><strong>Reliability, security, cost.</strong> I weigh all three on every change, not just the first one.</li>
+        <li><strong>Own your data.</strong> Open protocols and self-hosting, where it makes sense.</li>
+        <li><strong>Share what I learn.</strong> I write up what I build here, including the parts that went wrong.</li>
+      </ul>
 
       <h2>The open web</h2>
       <p>
@@ -47,7 +51,7 @@ if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birth
       <h2>Outside of work</h2>
       <p>
         I have ADHD, and it doesn't stop me doing the work. I game, I read, and I keep odd hours. Right now I'm also
-        working toward my Private Pilot License, and I'm writing about that journey on the blog too.
+        working toward my Private Pilot License, and I'm <a href="/topics/tag/aviation/">writing about that journey</a> too.
       </p>
       <p>
         Curious what hardware and software I use? It's all on the <a href="/uses/">uses</a> page.
@@ -55,22 +59,11 @@ if (now < new Date(Date.UTC(now.getUTCFullYear(), birthdate.getUTCMonth(), birth
 
       <h2>Say hi</h2>
       <p>
-        <a href="https://bsky.app/profile/skiddle.blue" rel="me">Bluesky</a> ·
-        <a href="https://github.com/arcestia" rel="me">GitHub</a> ·
-        <a href="mailto:jeff@skiddle.id">jeff@skiddle.id</a>
+        For work: <a href="mailto:work@skiddle.id">work@skiddle.id</a>. For everything else:
+        <a href="https://bsky.app/profile/skiddle.blue" rel="me">Bluesky</a>,
+        <a href="https://github.com/arcestia" rel="me">GitHub</a> or
+        <a href="mailto:jeff@skiddle.id">jeff@skiddle.id</a>.
       </p>
     </div>
   </div>
 </Shell>
-
-<script>
-  // The page is static, so refresh the age in the browser (the build-time value is the fallback).
-  const el = document.getElementById('age');
-  const born = el?.dataset.birthdate ? new Date(el.dataset.birthdate) : null;
-  if (el && born) {
-    const now = new Date();
-    let age = now.getUTCFullYear() - born.getUTCFullYear();
-    if (now < new Date(Date.UTC(now.getUTCFullYear(), born.getUTCMonth(), born.getUTCDate()))) age--;
-    el.textContent = String(age);
-  }
-</script>

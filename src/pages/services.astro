@@ -33,14 +33,6 @@ const jsonLd = {
         })),
       },
     },
-    ...testimonials.map((t) => ({
-      '@type': 'Review',
-      reviewBody: t.quote,
-      reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: 5 },
-      author: { '@type': 'Person', name: t.author },
-      itemReviewed: { '@type': 'Service', name: t.serviceName },
-      publisher: { '@type': 'Person', name: 'Jeff (Skiddle)' },
-    })),
   ],
 };
 ---

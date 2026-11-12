@@ -8,7 +8,7 @@ const versionTag = m?.groups?.tag || tag;
 const repo = 'https://github.com/Skiddle-ID/skiddle.id';
 const linkCls = 'decoration-wavy underline underline-offset-2 hover:text-[var(--color-primary)]';
 ---
-<footer class="px-5 lg:px-10 py-6 text-xs text-[var(--color-muted)]">
+<footer class="px-5 lg:px-10 py-6 text-xs text-[var(--color-muted)] print:hidden">
   <div class="max-w-[70ch] lg:mx-0 flex flex-wrap gap-x-3 gap-y-1">
     <span>© {year} Laurensius Jeffrey</span>
     <span aria-hidden="true">·</span>
@@ -19,7 +19,7 @@ const linkCls = 'decoration-wavy underline underline-offset-2 hover:text-[var(--
     </span>
     <span aria-hidden="true">·</span>
     <a href="/rss.xml" class={linkCls}>rss</a>
-    <a href="/services/" class={linkCls}>services</a>
+    <a href="mailto:work@skiddle.id" class={linkCls}>work@skiddle.id</a>
     <a href={repo} target="_blank" rel="noopener" class={linkCls}>source</a>
   </div>
 </footer>

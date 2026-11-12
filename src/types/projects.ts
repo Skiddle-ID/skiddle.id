@@ -33,4 +33,8 @@ export interface Project {
   featured?: boolean;
   highlights?: string[];
   tags?: string[];
+  /** One-line outcome shown on the homepage and projects page */
+  impact?: string;
+  /** Link to a blog post about the project */
+  writeup?: string;
 }
