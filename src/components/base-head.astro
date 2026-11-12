@@ -10,7 +10,7 @@ const { title, description, image, type = 'website' } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle';
-const ogDesc = description ?? 'Jeff (Skiddle) — night-shift platform engineer in Bangkok, writing about infra, open protocols, homelab and life.';
+const ogDesc = description ?? 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.';
 const ogImage = image ?? '/android-chrome-512x512.png';
 const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, site).toString();
 ---

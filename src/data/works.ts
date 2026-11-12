@@ -3,7 +3,7 @@ import type { WorksData } from '../types/works';
 const works: WorksData = {
   header: {
     name: 'Laurensius Jeffrey (Jeff)',
-    title: 'DevOps Engineer',
+    title: 'Protocol Engineer & Founder, Skiddle Labs',
     location: 'Bangkok, Thailand',
     email: 'jeff@skiddle.id',
     links: {
@@ -12,9 +12,37 @@ const works: WorksData = {
     },
   },
   summary: [
-    'DevOps engineer who codes end‑to‑end: building platforms, automating delivery and operations, and running networks across cloud and self‑hosted. Passionate about AI, and outside of work I’m a licensed private pilot (PPL, 2026).'
+    'Founder of Skiddle Labs and protocol engineer with a DevOps background, who codes end‑to‑end: building platforms, automating delivery and operations, and running networks across cloud and self‑hosted. Passionate about AI, and outside of work I’m a licensed private pilot (PPL, 2026).'
   ],
   experience: [
+    {
+      company: 'Skiddle Labs Pte. Ltd.',
+      description: 'My own company for personal projects and long-term clients. Skiddle ID is part of Skiddle Labs.',
+      positions: [
+        {
+          role: 'Founder & CEO',
+          start: '2020',
+          end: 'Present',
+          highlights: [
+            'Run my personal projects and long-term client work under one company, including the Skiddle ID brand',
+            'Developed and maintained web applications using multiple frameworks and technologies',
+            'Supported infrastructure, including server management, backups and deployment',
+            'Managed cloud and virtualisation platforms such as AWS, Cloudflare and Proxmox',
+            'Coordinated and supported client projects from start to finish',
+          ],
+        },
+        {
+          role: 'Protocol Engineer',
+          employment: 'Contract',
+          client: 'an undisclosed client',
+          start: 'Q3 2026',
+          end: 'Present',
+          highlights: [
+            'Protocol engineering on contract, delivered by me and my Skiddle Labs team',
+          ],
+        },
+      ],
+    },
     {
       company: 'Aerialite',
       positions: [
@@ -37,24 +65,6 @@ const works: WorksData = {
             'Implemented monitoring and logging',
             'Automated deployments, cutting deployment time by 60%',
             'Supported the company’s ISO 9001 and ISO 27001 certification work',
-          ],
-        },
-      ],
-    },
-    {
-      company: 'Skiddle Labs Pte. Ltd.',
-      description: 'My own company for personal projects and long-term clients. Skiddle ID is part of Skiddle Labs.',
-      positions: [
-        {
-          role: 'Founder & CEO',
-          start: '2020',
-          end: 'Present',
-          highlights: [
-            'Run my personal projects and long-term client work under one company, including the Skiddle ID brand',
-            'Developed and maintained web applications using multiple frameworks and technologies',
-            'Supported infrastructure, including server management, backups and deployment',
-            'Managed cloud and virtualisation platforms such as AWS, Cloudflare and Proxmox',
-            'Coordinated and supported client projects from start to finish',
           ],
         },
       ],

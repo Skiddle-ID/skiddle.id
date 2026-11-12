@@ -14,6 +14,10 @@ export interface WorkPosition {
   start: string; // e.g. "2022"
   end: string;   // e.g. "Present" or "2020"
   highlights: string[];
+  /** e.g. "Contract". Shown as a small badge next to the role. */
+  employment?: string;
+  /** Set when this is work done for a client through the company, e.g. "Undisclosed client" */
+  client?: string;
 }
 
 export interface WorkExperience {

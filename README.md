@@ -1,6 +1,6 @@
 # skiddle.id
 
-My corner of the internet — [skiddle.id](https://skiddle.id) — by Jeff (Skiddle). Night‑shift platform engineer in Bangkok, writing about infra, open protocols, and homelab.
+My corner of the internet — [skiddle.id](https://skiddle.id) — by Jeff (Skiddle). Protocol engineer in Bangkok (Skiddle Labs), writing about infra, open protocols, homelab and life.
 
 Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https://workers.cloudflare.com), 6 posts in `src/content/posts` with Shiki at build.
 

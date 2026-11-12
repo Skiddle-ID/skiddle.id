@@ -4,9 +4,10 @@ import Icon from '../components/icon.astro';
 
 // neofetch-style profile. Keep it to things you're happy to have public.
 const profile = [
-  ['Role', 'Platform engineer'],
+  ['Role', 'Protocol engineer (contract)'],
+  ['Company', 'Skiddle Labs (founder)'],
   ['Based', 'Bangkok, Thailand'],
-  ['Hours', 'Night shift'],
+  ['Hours', 'Night owl'],
   ['Langs', 'Go, TypeScript, PHP, Python'],
   ['Infra', 'Kubernetes, Proxmox, Cloudflare'],
   ['Editor', 'Zed + Neovim'],
@@ -41,11 +42,11 @@ const timeline: { year: string; text: string; href?: string }[] = [
   { year: '2022', text: 'Co-founded Aerialite, a security & privacy startup in Bangkok, as DevOps engineer.' },
   { year: '2024', text: "Launched CheckDomain and Blocklist, and started my master's." },
   { year: '2025', text: 'Moved to Aerialite\'s advisory board and started pilot ground school.', href: '/posts/how-it-all-started-1/' },
-  { year: '2026', text: 'Earned my Private Pilot License.' },
+  { year: '2026', text: 'Earned my Private Pilot License, then took on a protocol-engineering contract with my Skiddle Labs team.' },
 ];
 ---
 
-<Shell title="About — Skiddle" description="About Jeff (Skiddle) — platform engineer in Bangkok, homelabber, open-web fan and private pilot.">
+<Shell title="About — Skiddle" description="About Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, homelabber, open-web fan and private pilot.">
   <div class="max-w-[70ch] w-full">
     <h1 class="font-semibold text-xl before-hash-1">About me</h1>
 
@@ -85,14 +86,15 @@ const timeline: { year: string; text: string; href?: string }[] = [
 
     <div class="prose mt-10">
       <p>
-        I'm <strong>Jeff</strong>, known online as <strong>Skiddle</strong>. I work the night shift as a platform
-        engineer in Bangkok: building platforms, automating ops, and keeping infrastructure running across cloud
-        and my homelab.
+        I'm <strong>Jeff</strong>, known online as <strong>Skiddle</strong>. I'm based in Bangkok and run
+        <strong>Skiddle Labs Pte. Ltd.</strong>, my own company. Since Q3 2026, my team and I have been on a
+        protocol-engineering contract for a client I can't name. My background is in platforms and infrastructure:
+        building pipelines, automating ops, and keeping things running across cloud and my homelab.
       </p>
       <p>
         I co-founded <strong>Aerialite</strong>, a security and privacy startup here in Bangkok, and now sit on its
-        advisory board. I also run <strong>Skiddle Labs Pte. Ltd.</strong>, my own company for personal projects and the clients
-        I've worked with for years. Skiddle ID is part of it. The full version is on my <a href="/works/">CV</a>, and the open-source bits are on
+        advisory board. Skiddle Labs is also home to my personal projects and the clients I've worked with for years,
+        and Skiddle ID is part of it. The full version is on my <a href="/works/">CV</a>, and the open-source bits are on
         <a href="/projects/">projects</a>.
       </p>
     </div>
@@ -129,7 +131,7 @@ const timeline: { year: string; text: string; href?: string }[] = [
         ))}
         <li class="relative pl-6">
           <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
-          <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>Night-shift platform work, my master's, and flying. <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
+          <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>Protocol engineering, my master's, and flying. <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
         </li>
       </ol>
     </section>

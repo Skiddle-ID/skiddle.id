@@ -30,7 +30,7 @@ const selectedProjects = ['checkdomain', 'shortlink', 'blocklist']
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 ---
 
-<Shell title="Works & CV — Skiddle" description="CV of Laurensius Jeffrey (Skiddle) — DevOps and platform engineer in Bangkok: experience, skills, projects, education and certifications.">
+<Shell title="Works & CV — Skiddle" description="CV of Laurensius Jeffrey (Skiddle) — protocol engineer in Bangkok with a DevOps background: experience, skills, projects, education and certifications.">
   <div class="max-w-[56rem] w-full print-urls">
 
     <!-- CV header -->
@@ -88,18 +88,25 @@ const selectedProjects = ['checkdomain', 'shortlink', 'blocklist']
               {exp.description && <p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{exp.description}</p>}
             </div>
             <ol class="relative border-l ml-1 flex flex-col gap-5">
-              {exp.positions.map((pos, i) => (
+              {exp.positions.map((pos) => (
                 <li class="relative pl-5">
-                  <span class:list={['absolute -left-[5px] top-[0.45em] size-2.5 rounded-full border-2 border-[var(--color-primary)]', i === 0 && pos.end === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+                  <span class:list={['absolute -left-[5px] size-2.5 rounded-full border-2 border-[var(--color-primary)]', pos.client ? 'top-[1.35em]' : 'top-[0.45em]', pos.end === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+                  <div class:list={[pos.client && 'border border-dashed rounded-md p-3 sm:p-4']}>
+                  {pos.client && <p class="text-[11px] uppercase tracking-wider text-[var(--color-muted)] mb-1">Client engagement</p>}
                   <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-                    <h4 class="text-[var(--color-primary)]">{pos.role}</h4>
+                    <h4 class="text-[var(--color-primary)]">
+                      {pos.role}
+                      {pos.employment && <span class="ml-2 align-middle text-[11px] px-1.5 py-0.5 rounded border text-[var(--color-muted)]">{pos.employment.toLowerCase()}</span>}
+                    </h4>
                     <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {pos.end}</span>
                   </div>
+                  {pos.client && <p class="text-xs text-[var(--color-muted)] mt-0.5">for {pos.client} · via {exp.company.replace(/ Pte\. Ltd\.$/, '')}</p>}
                   <ul class="mt-2 text-sm flex flex-col gap-1">
                     {pos.highlights.map((h) => (
                       <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{h}</span></li>
                     ))}
                   </ul>
+                  </div>
                 </li>
               ))}
             </ol>
