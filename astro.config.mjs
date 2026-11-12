@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import mdx from '@astrojs/mdx';
-import remarkGfm from 'remark-gfm';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
 
@@ -36,16 +35,16 @@ try {
 
 export default defineConfig({
   site: 'https://skiddle.id',
+  // Keep Astro 6's HTML-aware whitespace handling. Astro 7 defaults to 'jsx',
+  // which drops the space between adjacent inline elements in templates.
+  compressHTML: true,
 
   adapter: cloudflare({
     imageService: 'cloudflare',
-    platformProxy: {
-      enabled: true,
-    },
-    entrypointResolution: "auto",
   }),
+  // Markdown and MDX are rendered by Sätteri (Astro 7's default processor),
+  // which has GitHub-Flavored Markdown and smart punctuation built in.
   markdown: {
-    remarkPlugins: [remarkGfm],
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
       defaultColor: 'dark',
@@ -53,7 +52,7 @@ export default defineConfig({
     },
   },
   integrations: [
-    mdx({ remarkPlugins: [remarkGfm] }),
+    mdx(),
   ],
   vite: {
     plugins: [tailwindcss()],
