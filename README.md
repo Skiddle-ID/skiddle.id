@@ -43,6 +43,21 @@ Publishing a release only creates a tag, and tags don't trigger Workers Builds. 
 - re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
 - `git pull --tags && npm run build && npm run deploy` on a machine logged in with `npx wrangler login`.
 
+## Last.fm card
+
+`/lastfm.svg` is a "now playing" card in the site's terminal style, made for profile READMEs and other sites:
+
+```html
+<a href="https://www.last.fm/user/arcestia">
+  <img src="https://skiddle.id/lastfm.svg" alt="Last.fm: now playing" width="540">
+</a>
+```
+
+- `?theme=auto` (default; follows the viewer's light / dark setting), `dark` or `light`
+- `?accent=blue` (default), `teal`, `purple`, `pink` or `green`
+
+It always shows `LASTFM_USERNAME`, embeds the album art so it works inside `<img>`, and caches Last.fm for 30 seconds (artwork for 7 days). If Last.fm is down it shows "Nothing playing right now" instead of a broken image. The code is in `src/lib/lastfm.ts` (data) and `src/lib/lastfm-card.ts` (drawing).
+
 ## Credits & inspiration
 
 This site started in 2025 from **[Hayden Young](https://bsky.app/profile/hayden.moe)'s** personal site, [hayden.moe](https://web.archive.org/web/2025/https://hayden.moe/) ([source](https://github.com/hbjydev/hayden.moe)). The terminal-style `@web ~` header, the blinking cursor and the original ATProto blog setup come from there. It has since been rewritten, but the spirit is Hayden's. Thank you! Hayden now writes at [hayden.leaflet.pub](https://hayden.leaflet.pub/).

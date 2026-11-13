@@ -1,168 +1,67 @@
 /*
-  Astro API Route: /lastfm.svg
-  Returns a dynamic SVG showing your Last.fm recent track(s).
-  Configuration via environment variables:
-    - LASTFM_USERNAME
-    - LASTFM_API_KEY
+  /lastfm.svg: "now playing" card for Last.fm, made for embedding
+  (GitHub profile README, other profile pages):
+
+    <a href="https://www.last.fm/user/arcestia">
+      <img src="https://skiddle.id/lastfm.svg" alt="Last.fm: now playing" width="540">
+    </a>
+
   Optional query params:
-    - user: override username
-    - limit: number of tracks to show (default 1, max 5)
-    - theme: light | dark (default dark)
+    - theme:  auto (default, follows the viewer's light/dark setting) | dark | light
+    - accent: blue (default) | teal | purple | pink | green
 
-  Example embed (GitHub README):
-  ![Last.fm](https://<your-domain>/lastfm.svg)
+  Always shows the configured account (LASTFM_USERNAME). On any error it
+  still returns 200 with a "nothing playing" card, so embeds never show a
+  broken image.
 */
-
 import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
-
-const THEMES = {
-  dark: {
-    bg: '#0d1117',
-    card: '#161b22',
-    text: '#c9d1d9',
-    accent: '#58a6ff',
-    muted: '#8b949e',
-    border: '#30363d',
-  },
-  light: {
-    bg: '#ffffff',
-    card: '#f6f8fa',
-    text: '#1f2328',
-    accent: '#0969da',
-    muted: '#57606a',
-    border: '#d0d7de',
-  },
-} as const;
-
-type Theme = (typeof THEMES)[keyof typeof THEMES];
+import { getAlbumArt, getRecentTrack, type LastfmTrack } from '~/lib/lastfm';
+import { ACCENTS, THEMES, renderCard, type CardAccent, type CardTheme } from '~/lib/lastfm-card';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, locals }) => {
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  const theme = pick<CardTheme>(url.searchParams.get('theme'), THEMES, 'auto');
+  const accent = pick<CardAccent>(url.searchParams.get('accent'), ACCENTS, 'blue');
+
+  let track: LastfmTrack | null = null;
+  let art: string | undefined;
   try {
-    const url = new URL(request.url);
-    const username = url.searchParams.get('user') || env?.LASTFM_USERNAME || '';
-    const apiKey = env?.LASTFM_API_KEY || '';
-    const limitParam = Number(url.searchParams.get('limit') || '1');
-    const limit = Number.isFinite(limitParam) ? Math.max(1, Math.min(5, limitParam)) : 1;
-    const themeKey = (url.searchParams.get('theme') || 'dark').toLowerCase() as keyof typeof THEMES;
-    const theme = THEMES[themeKey] || THEMES.dark;
-
-    if (!username || !apiKey) {
-      return svgResponse(renderErrorSvg('Missing LASTFM_USERNAME or LASTFM_API_KEY env'), 400);
-    }
-
-    const endpoint = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${encodeURIComponent(
-      username
-    )}&api_key=${apiKey}&limit=${limit}&format=json`;
-
-    const res = await fetch(endpoint, { headers: { 'User-Agent': 'Astro-LastFM-Route' } });
-    if (!res.ok) {
-      return svgResponse(renderErrorSvg(`Last.fm API error ${res.status}`), 502);
-    }
-    const data: any = await res.json();
-    const tracks = (data?.recenttracks?.track || []).map((t: any) => ({
-      artist: t?.artist?.['#text'] || 'Unknown Artist',
-      name: t?.name || 'Unknown Track',
-      album: t?.album?.['#text'] || '',
-      nowPlaying: Boolean(t?.['@attr']?.nowplaying),
-      url: t?.url || `https://www.last.fm/user/${username}`,
-    }));
-
-    const svg = renderTracksSvg({ username, tracks, theme });
-    return svgResponse(svg, 200);
-  } catch (err: any) {
-    return svgResponse(renderErrorSvg('Unexpected error generating SVG'), 500);
+    track = await getRecentTrack(url.origin);
+    if (track?.imageUrl) art = await getAlbumArt(url.origin, track.imageUrl);
+  } catch (err) {
+    console.error('lastfm.svg:', err);
+    track = null;
   }
+
+  const svg = renderCard(
+    track && { name: track.name, artist: track.artist, album: track.album, isCurrent: track.isCurrent, playedAt: track.playedAt, art },
+    { theme, accent },
+  );
+
+  const etag = `"${await digest(svg)}"`;
+  const headers = {
+    'Content-Type': 'image/svg+xml; charset=utf-8',
+    // Embeds (e.g. GitHub's image proxy) revalidate on every view; Last.fm data is cached for 30s server-side
+    'Cache-Control': 'no-cache, max-age=0',
+    ETag: etag,
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
+  };
+  const ifNoneMatch = request.headers.get('If-None-Match') ?? '';
+  if (ifNoneMatch.split(',').some((tag) => tag.trim().replace(/^W\//, '') === etag)) {
+    return new Response(null, { status: 304, headers });
+  }
+  return new Response(svg, { status: 200, headers });
 };
 
-function svgResponse(svg: string, status = 200) {
-  return new Response(svg, {
-    status,
-    headers: {
-      'Content-Type': 'image/svg+xml; charset=utf-8',
-      // Cache for 5 minutes at the edge; allow stale for 10 minutes
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-    },
-  });
+function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
+  const v = (value ?? '').toLowerCase();
+  return (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
 }
 
-function renderTracksSvg({
-  username,
-  tracks,
-  theme,
-}: {
-  username: string;
-  tracks: Array<{ artist: string; name: string; album: string; nowPlaying: boolean; url: string }>;
-  theme: Theme;
-}) {
-  const width = 600;
-  const rowHeight = 54;
-  const padding = 16;
-  const titleHeight = 28;
-  const height = padding * 2 + titleHeight + tracks.length * rowHeight;
-
-  const rows = tracks
-    .map((item, idx) => {
-      const y = padding + titleHeight + idx * rowHeight + 10;
-      const status = item.nowPlaying ? 'Now Playing' : 'Recently Played';
-      return `
-        <a href="${escapeXml(item.url)}" target="_blank">
-          <text x="${padding}" y="${y}" fill="${theme.accent}" font-size="14" font-weight="600">${escapeXml(
-        status
-      )}</text>
-          <text x="${padding}" y="${y + 18}" fill="${theme.text}" font-size="16" font-weight="700">${escapeXml(
-        item.name
-      )}</text>
-          <text x="${padding}" y="${y + 36}" fill="${theme.muted}" font-size="13">${escapeXml(
-        item.artist
-      )}${item.album ? ' — ' + escapeXml(item.album) : ''}</text>
-        </a>
-      `;
-    })
-    .join('\n');
-
-  return `
-<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Last.fm Recently Played">
-  <style>
-    .card { fill: ${theme.card}; stroke: ${theme.border}; stroke-width: 1px; }
-    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji','Segoe UI Emoji'; }
-    a { text-decoration: none; }
-  </style>
-  <rect x="0" y="0" width="${width}" height="${height}" rx="12" class="card"/>
-  <rect x="0" y="0" width="${width}" height="${height}" fill="${theme.bg}" opacity="0.6" rx="12"/>
-  <text x="${padding}" y="${padding + 18}" fill="${theme.text}" font-size="16" font-weight="700">
-    ♪ Last.fm: ${escapeXml(username)}
-  </text>
-  ${rows}
-</svg>
-  `.trim();
-}
-
-function renderErrorSvg(message: string) {
-  const theme = THEMES.dark;
-  const width = 600;
-  const height = 90;
-  const padding = 16;
-  return `
-<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Last.fm Error">
-  <style>
-    .card { fill: ${theme.card}; stroke: ${theme.border}; stroke-width: 1px; }
-    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji','Segoe UI Emoji'; }
-  </style>
-  <rect x="0" y="0" width="${width}" height="${height}" rx="12" class="card"/>
-  <rect x="0" y="0" width="${width}" height="${height}" fill="${theme.bg}" opacity="0.6" rx="12"/>
-  <text x="${padding}" y="${padding + 24}" fill="#f85149" font-size="18" font-weight="700">Last.fm Integration Error</text>
-  <text x="${padding}" y="${padding + 48}" fill="#c9d1d9" font-size="14">${escapeXml(message)}</text>
-</svg>
-  `.trim();
-}
-
-function escapeXml(s: string) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+async function digest(text: string): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 20);
 }
