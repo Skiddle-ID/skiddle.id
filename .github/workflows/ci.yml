@@ -1,0 +1,32 @@
+name: CI
+
+# Lints every PR (and v3 after merges). The build itself is checked by Cloudflare's
+# preview build ("Workers Builds: skiddle-id"), so this only runs ESLint.
+on:
+  pull_request:
+  push:
+    branches: [v3]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
