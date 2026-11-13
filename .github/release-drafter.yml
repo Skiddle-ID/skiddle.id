@@ -1,39 +1,53 @@
-name-template: "v$RESOLVED_VERSION — $CHANGES"
+# Release Drafter keeps a draft of the next release up to date as PRs merge into v3.
+# Publish it from GitHub → Releases (rename it, e.g. "v3.3 — <codename>", if you like).
+name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
+# Two-part versions like the existing tags (v3.1, v3.2)
+version-template: "$MAJOR.$MINOR"
+version-resolver:
+  major:
+    labels: ["major"]
+  default: minor
+
+# Label PRs from their title prefix (feat:, fix:, chore:, docs:, post:) or branch name
+autolabeler:
+  - label: "feat"
+    title: ["/^feat(\\(.+\\))?!?:/i"]
+    branch: ["/^feat\\//i"]
+  - label: "fix"
+    title: ["/^fix(\\(.+\\))?!?:/i"]
+    branch: ["/^fix\\//i"]
+  - label: "chore"
+    title: ["/^chore(\\(.+\\))?!?:/i"]
+    branch: ["/^chore\\//i"]
+  - label: "docs"
+    title: ["/^docs(\\(.+\\))?!?:/i"]
+    branch: ["/^docs\\//i"]
+  - label: "post"
+    title: ["/^post(\\(.+\\))?!?:/i"]
+    branch: ["/^post\\//i"]
+
 categories:
   - title: "🚀 Added"
-    labels:
-      - "feat"
-      - "feature"
-      - "enhancement"
-  - title: "✨ Changed"
-    labels:
-      - "change"
-      - "chore"
-      - "refactor"
-      - "perf"
+    labels: ["feat", "feature", "enhancement"]
   - title: "🐛 Fixed"
-    labels:
-      - "fix"
-      - "bug"
-      - "hotfix"
+    labels: ["fix", "bug", "hotfix"]
+  - title: "📝 Posts"
+    labels: ["post"]
+  - title: "✨ Changed"
+    labels: ["change", "chore", "refactor", "perf"]
   - title: "📦 Dependencies"
-    labels:
-      - "dependencies"
-      - "deps"
-  - title: "📝 Docs"
-    labels:
-      - "docs"
-      - "documentation"
-change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+    labels: ["dependencies", "deps"]
+  - title: "📚 Docs"
+    labels: ["docs", "documentation"]
+change-template: "- $TITLE (#$NUMBER)"
 change-title-escapes: "\\<*_&"
 template: |
   ## What's changed
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$CURRENT_TAG
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 exclude-labels:
   - "skip-changelog"
-autocategorize: true

@@ -3,8 +3,8 @@ export const prerender = true;
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }: any) => !data.draft && !!data.rkey);
-  return posts.map((entry: any) => ({
+  const posts = await getCollection('posts', ({ data }) => !data.draft && !!data.rkey);
+  return posts.map((entry) => ({
     params: { rkey: entry.data.rkey! },
     props: { slug: entry.id },
   }));

@@ -27,11 +27,11 @@ function wrapText(text: string, maxChars: number) {
   return lines.slice(0, 5); // cap lines to avoid overflow
 }
 
-export const GET: APIRoute = async ({ params, site, locals }) => {
+export const GET: APIRoute = async ({ params, locals }) => {
   const rkey = params.rkey!;
   let title = 'Post';
   try {
-    const post = await getPost(locals as any, rkey);
+    const post = await getPost(locals, rkey);
     title = post.title || title;
   } catch {}
 

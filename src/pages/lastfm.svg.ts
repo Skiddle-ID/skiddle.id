@@ -31,8 +31,8 @@ export const GET: APIRoute = async ({ request }) => {
     track = await getRecentTrack(url.origin);
     if (track?.imageUrl) art = await getAlbumArt(url.origin, track.imageUrl);
   } catch (err) {
+    // track stays null: the card shows "nothing playing"
     console.error('lastfm.svg:', err);
-    track = null;
   }
 
   const svg = renderCard(

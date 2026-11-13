@@ -34,9 +34,9 @@ export const GET: APIRoute = async ({ site, request }) => {
   const urls = discoverStaticRoutes();
 
   try {
-    const posts = await getCollection('posts', ({ data }: any) => !data.draft);
-    for (const p of posts as any[]) {
-      if (p?.id) urls.push(`/posts/${p.id}/`);
+    const posts = await getCollection('posts', ({ data }) => !data.draft);
+    for (const p of posts) {
+      if (p.id) urls.push(`/posts/${p.id}/`);
     }
   } catch (_) {}
 

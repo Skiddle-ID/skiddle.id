@@ -64,9 +64,9 @@ const jsonLd = {
     <script is:inline>
       (function () {
         try {
-          var d = document.documentElement;
-          var t = localStorage.getItem('theme');
-          var a = localStorage.getItem('accent');
+          const d = document.documentElement;
+          const t = localStorage.getItem('theme');
+          const a = localStorage.getItem('accent');
           if (t === 'light' || t === 'dark') d.dataset.theme = t;
           if (a) d.dataset.accent = a;
         } catch (e) {}
@@ -75,7 +75,7 @@ const jsonLd = {
     <BaseHead title={title} description={description} image={image} type={type} />
     <script is:inline>
       (function () {
-        var m = document.getElementById('themeColor');
+        const m = document.getElementById('themeColor');
         if (m && document.documentElement.dataset.theme === 'light') m.setAttribute('content', '#ffffff');
       })();
     </script>
