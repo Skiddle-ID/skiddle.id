@@ -99,7 +99,8 @@ const jsonLd = {
     <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-[#000]/50 z-30 hidden"></div>
 
     <div class="lg:pl-56 pt-12 lg:pt-0 print:p-0 flex flex-col min-h-screen">
-      <main id="main" class="flex flex-col px-5 lg:px-10 py-8 lg:py-12 print:p-0 grow">
+      <!-- Desktop: centre the page column in the space next to the sidebar -->
+      <main id="main" class="flex flex-col lg:items-center px-5 lg:px-10 py-8 lg:py-12 print:p-0 grow">
         <slot />
       </main>
       <Footer />

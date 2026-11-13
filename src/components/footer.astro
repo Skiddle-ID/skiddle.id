@@ -8,9 +8,9 @@ const versionTag = m?.groups?.tag || tag;
 const repo = 'https://github.com/Skiddle-ID/skiddle.id';
 const linkCls = 'decoration-wavy underline underline-offset-2 hover:text-[var(--color-primary)]';
 ---
-<footer class="px-5 lg:px-10 py-6 text-xs text-[var(--color-muted)] print:hidden">
+<footer class="px-5 lg:px-10 py-6 text-xs text-[var(--color-muted)] lg:text-center print:hidden">
   <p>© {year} Laurensius Jeffrey · <span class="whitespace-nowrap">Skiddle Labs Pte. Ltd.</span></p>
-  <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+  <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 lg:justify-center">
     <span>
       {versionTag ? (
         <a target="_blank" rel="noopener" href={`${repo}/releases/tag/${versionTag}`} class={linkCls}>{versionTag}</a>

@@ -83,7 +83,9 @@ const jsonLd = {
 <Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage}>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-  <article class="max-w-[70ch] w-full" lang={entry.data.lang}>
+  <!-- Wide screens: article plus a sticky "On this page" column, centred together -->
+  <div class="w-full xl:flex xl:justify-center xl:gap-14">
+  <article class="max-w-[70ch] w-full min-w-0 mx-auto xl:mx-0" lang={entry.data.lang}>
     <header class="mb-8">
       <p class="text-xs text-[var(--color-muted)] mb-3">
         <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>
@@ -113,7 +115,7 @@ const jsonLd = {
     )}
 
     {toc.length >= 3 && (
-      <details class="card px-4 py-3 mb-8 text-sm group" lang="en">
+      <details class="card px-4 py-3 mb-8 text-sm group xl:hidden" lang="en">
         <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span class="opacity-60">({toc.length})</span></summary>
         <ol class="mt-2 flex flex-col gap-1">
           {toc.map((h) => (
@@ -181,9 +183,60 @@ const jsonLd = {
       </section>
     )}
   </article>
+
+  {toc.length >= 3 && (
+    <aside class="hidden xl:block w-56 shrink-0 print:hidden" aria-label="On this page" lang="en">
+      <nav class="sticky top-12 text-sm">
+        <p class="text-xs text-[var(--color-muted)] mb-3">On this page</p>
+        <ol id="tocRail" class="flex flex-col gap-1.5 border-l">
+          {toc.map((h) => (
+            <li>
+              <a
+                href={`#${h.slug}`}
+                data-toc={h.slug}
+                class:list={['block -ml-px border-l-2 border-transparent leading-snug text-[var(--color-muted)] hover:text-[var(--color-primary)]', h.depth === 3 ? 'pl-6' : 'pl-3']}
+                lang={entry.data.lang}
+              >{h.text}</a>
+            </li>
+          ))}
+        </ol>
+        <a href="#main" class="inline-block mt-5 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">↑ back to top</a>
+      </nav>
+    </aside>
+  )}
+  </div>
 </Shell>
 
 <script>
+  // "On this page" column (wide screens): highlight the section being read
+  const rail = document.getElementById('tocRail');
+  if (rail) {
+    const links = [...rail.querySelectorAll<HTMLAnchorElement>('a[data-toc]')];
+    const headings = links
+      .map((a) => document.getElementById(a.dataset.toc!))
+      .filter((h): h is HTMLElement => h !== null);
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      // The last heading above the top quarter of the screen is the current section
+      let current = headings[0]?.id;
+      for (const h of headings) {
+        if (h.getBoundingClientRect().top <= window.innerHeight * 0.25) current = h.id;
+        else break;
+      }
+      for (const a of links) {
+        const on = a.dataset.toc === current;
+        a.classList.toggle('toc-active', on);
+        if (on) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      }
+    };
+    addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  }
+
   // Copy buttons on code blocks
   document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
     if (pre.querySelector('.code-copy')) return;
