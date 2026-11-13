@@ -1,0 +1,11 @@
+# Security headers for every static page and asset (Cloudflare Workers static assets).
+# The Content-Security-Policy is added to the built file by src/integrations/security-headers.ts,
+# because it needs the hashes of the inline scripts. Server-rendered routes (/lastfm.svg,
+# /api/*, robots.txt, webfinger) get the same headers from src/middleware.ts.
+# Don't add Cross-Origin-Resource-Policy: /lastfm.svg and the /og/ share cards are embedded on other sites.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=(), browsing-topics=()

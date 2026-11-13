@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
 import shareCards from './src/integrations/share-cards';
+import securityHeaders from './src/integrations/security-headers';
 
 // Run a git command and return its trimmed output, or '' if it fails (no git, no repo, no tag…)
 const git = (args) => {
@@ -65,6 +66,8 @@ export default defineConfig({
     mdx(),
     // Share cards (Open Graph images) for posts and the site, rendered after the build
     shareCards(),
+    // Content-Security-Policy with hashes of the inline scripts, appended to _headers
+    securityHeaders(),
   ],
   vite: {
     plugins: [tailwindcss()],
