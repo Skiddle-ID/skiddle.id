@@ -1,0 +1,66 @@
+name: Announce posts on Bluesky
+
+# After a push to v3 that touches posts, announce newly published posts on Bluesky and add
+# `bluesky: at://…` to them so replies show as comments. See scripts/bluesky-announce.mjs.
+# Needs the repository secret BLUESKY_APP_PASSWORD (a Bluesky app password for skiddle.blue).
+
+on:
+  push:
+    branches: [v3]
+    paths: ['src/content/posts/**']
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Announce this post (file name without .md), e.g. how-it-all-started-1. Empty: posts from the latest push.'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run: show what would be posted, change nothing'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bluesky-announce
+  cancel-in-progress: false
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    # Only on v3: the commit step pushes to v3
+    if: github.repository == 'Skiddle-ID/skiddle.id' && github.ref == 'refs/heads/v3'
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Announce new posts
+        env:
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          BLUESKY_IDENTIFIER: skiddle.blue
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          SLUG: ${{ inputs.slug }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node scripts/bluesky-announce.mjs
+
+      - name: Commit the Bluesky links
+        run: |
+          git add src/content/posts
+          if git diff --cached --quiet; then
+            echo "No post files changed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "post: link to the Bluesky announcement (comments on)"
+          git pull --rebase origin v3
+          git push origin HEAD:v3
