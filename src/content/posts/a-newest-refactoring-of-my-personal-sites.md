@@ -8,7 +8,7 @@ rkey: 3lyutoqgvqh2k
 draft: false
 ---
 
-### This is my dozens time changing design and even framework to my personal sites.
+## This is my dozens time changing design and even framework to my personal sites.
 
 I've been blogging since 2015, and over the years my personal site has gone through countless redesigns and framework migrations. Here's a little journey of how it evolved:
 
@@ -20,7 +20,7 @@ I've been blogging since 2015, and over the years my personal site has gone thro
 
 ---
 
-### Why the Change Again?
+## Why the Change Again?
 
 For me, personal sites are not just about publishing content—they're also a playground for trying out new tech. Each migration has taught me something new about performance, scalability, and developer experience.
 
@@ -32,7 +32,7 @@ Astro fits perfectly with this mindset because:
 
 ---
 
-### Inspirations
+## Inspirations
 
 There are a few personal sites that inspired me in this new refactoring:
 
@@ -44,7 +44,7 @@ Especially **Hayden's site** - I even used his original code as the initial setu
 
 ---
 
-### A Small Dream
+## A Small Dream
 
 Looking further ahead, I sometimes think about **building my own framework** one day. Not because I want to compete with existing ones, but simply because it sounds cool and would be a great learning experience.
 
@@ -52,7 +52,7 @@ It's just a dream for now, but who knows—maybe someday I'll give it a try.
 
 ---
 
-### What's Next?
+## What's Next?
 
 This newest version of my site is built with **Remix + Astro**, and I'm excited to see how it performs long-term. But knowing myself, this probably won't be the last refactor.
 

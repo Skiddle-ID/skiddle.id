@@ -116,7 +116,7 @@ const jsonLd = {
 
     {toc.length >= 3 && (
       <details class="card px-4 py-3 mb-8 text-sm group xl:hidden" lang="en">
-        <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span class="opacity-60">({toc.length})</span></summary>
+        <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span>({toc.length})</span></summary>
         <ol class="mt-2 flex flex-col gap-1">
           {toc.map((h) => (
             <li class={h.depth === 3 ? 'pl-4' : ''}>

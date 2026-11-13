@@ -33,15 +33,16 @@ const principles = [
 ];
 
 // Facts from the CV, projects and posts on this site.
-const timeline: { year: string; text: string; href?: string }[] = [
-  { year: '2015', text: 'Started blogging, on Jekyll and GitHub Pages.', href: '/posts/a-newest-refactoring-of-my-personal-sites/' },
+// `link` is the visible text of the post link, so it says where it goes
+const timeline: { year: string; text: string; href?: string; link?: string }[] = [
+  { year: '2015', text: 'Started blogging, on Jekyll and GitHub Pages.', href: '/posts/a-newest-refactoring-of-my-personal-sites/', link: 'how the site evolved' },
   { year: '2016', text: 'Built Klasemate, my first app from scratch: open-source forum software in PHP.' },
   { year: '2019', text: 'First infra engineer role: LDAP, device management, backups.' },
   { year: '2020', text: 'Founded Skiddle ID, building web apps and running infrastructure for clients. It’s now part of Skiddle Labs.' },
   { year: '2021', text: "Started a bachelor's in AI & machine learning at Chulalongkorn." },
   { year: '2022', text: 'Co-founded Aerialite, a security & privacy startup in Bangkok, as DevOps engineer.' },
   { year: '2024', text: "Launched CheckDomain and Blocklist, and started my master's." },
-  { year: '2025', text: 'Moved to Aerialite\'s advisory board and started pilot ground school.', href: '/posts/how-it-all-started-1/' },
+  { year: '2025', text: 'Moved to Aerialite\'s advisory board and started pilot ground school.', href: '/posts/how-it-all-started-1/', link: 'the flying story' },
   { year: '2026', text: 'Earned my Private Pilot License, then took on a protocol-engineering contract with my Skiddle Labs team.' },
 ];
 ---
@@ -56,7 +57,7 @@ const timeline: { year: string; text: string; href?: string }[] = [
         <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ neofetch
       </p>
       <div class="mt-4 flex flex-col sm:flex-row gap-6">
-        <img src="https://github.com/arcestia.png?size=280" alt="Jeff's avatar" width="140" height="140" class="size-28 sm:size-36 rounded-lg border shrink-0" />
+        <img src="/avatars/github.jpg" alt="Jeff's avatar" width="140" height="140" class="size-28 sm:size-36 rounded-lg border shrink-0" />
         <div class="min-w-0">
           <p class="font-semibold"><span class="text-[var(--color-primary)]">jeff</span>@<span class="text-[var(--color-primary)]">skiddle</span></p>
           <p class="text-[var(--color-muted)]" aria-hidden="true">------------</p>
@@ -124,7 +125,7 @@ const timeline: { year: string; text: string; href?: string }[] = [
               <span class="text-[var(--color-primary)] font-semibold tabular-nums">{t.year}</span>
               <span>
                 {t.text}
-                {t.href && <a href={t.href} class="link ml-1 text-xs">read more</a>}
+                {t.href && <a href={t.href} class="link ml-1 text-xs">{t.link ?? 'read the post'} →</a>}
               </span>
             </p>
           </li>
