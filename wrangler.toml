@@ -17,6 +17,17 @@ ATP_SERVICE = "https://rhizopogon.us-west.host.bsky.network/"
 LASTFM_USERNAME = "arcestia"
 # LASTFM_API_KEY is a secret, not a var: set it with `npx wrangler secret put LASTFM_API_KEY` (local dev: .dev.vars)
 
+# Worker Previews (builds of PR branches) don't inherit vars or KV bindings from production.
+# The Last.fm key is deliberately not given to previews, so the card there shows "nothing playing".
+[previews.vars]
+ATP_IDENTIFIER = "skiddle.blue"
+ATP_SERVICE = "https://rhizopogon.us-west.host.bsky.network/"
+
+# CACHE only holds copies of public posts (used by /og/posts/*.svg), so previews share it
+[[previews.kv_namespaces]]
+binding = "CACHE"
+id = "da6e604bb2a44825ae5d4c26503dd112"
+
 [observability]
 enabled = true
 
