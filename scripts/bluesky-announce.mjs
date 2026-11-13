@@ -16,7 +16,8 @@
  *   BLUESKY_IDENTIFIER    handle or DID, default skiddle.blue
  *   BEFORE, AFTER         git range of the push (defaults: HEAD~1, HEAD)
  *   SLUG                  announce this post instead (manual run; no age limit)
- *   DRY_RUN=1             show what would happen; no login, post or file change
+ *   DRY_RUN=1             show what would happen; no post or file change (logs in to
+ *                         check the app password if it's set)
  *   SKIP_WAIT=1           don't wait for the post to be live (testing)
  * No dependencies: Node 20+ (fetch, Intl.Segmenter).
  */
@@ -42,14 +43,20 @@ const log = (msg) => {
 };
 
 async function main() {
+  const did = await resolveDid(identifier);
+  let session; // created on first use
+
+  // A dry run with the password available checks the login too (logging in posts nothing)
+  if (dryRun && env.BLUESKY_APP_PASSWORD) {
+    session = await createSession(did);
+    log(`Login OK: ${identifier} (${did}) on ${session.pds}`);
+  }
+
   const posts = candidatePosts();
   if (!posts.length) {
     log('No new published posts without a Bluesky link. Nothing to do.');
     return;
   }
-
-  const did = await resolveDid(identifier);
-  let session; // created on first use
 
   for (const post of posts) {
     const url = `${SITE}/posts/${post.slug}/`;
