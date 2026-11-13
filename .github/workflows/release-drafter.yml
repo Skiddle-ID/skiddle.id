@@ -2,7 +2,7 @@ name: Release Drafter
 
 on:
   push:
-    branches: [v3, develop]
+    branches: [v3]
   pull_request:
     types: [opened, reopened, synchronize, labeled, unlabeled]
   workflow_dispatch:
@@ -20,6 +20,8 @@ jobs:
       - uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter.yml
-          disable-releaser: false
+          # PRs: only label them (a draft can't target a PR's merge ref). Pushes to v3: update the draft.
+          disable-releaser: ${{ github.event_name == 'pull_request' }}
+          disable-autolabeler: ${{ github.event_name != 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
