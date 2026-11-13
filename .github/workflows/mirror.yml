@@ -4,6 +4,9 @@ on:
   delete:
   workflow_dispatch: # This adds a "Run workflow" button in the UI
 
+permissions:
+  contents: read
+
 jobs:
   codeberg:
     runs-on: ubuntu-latest
