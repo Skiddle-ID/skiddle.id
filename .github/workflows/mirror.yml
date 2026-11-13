@@ -4,6 +4,10 @@ on:
   delete:
   workflow_dispatch: # This adds a "Run workflow" button in the UI
 
+# Only reads the repo; the push to Tangled uses its own SSH key (TANGLED_SSH)
+permissions:
+  contents: read
+
 jobs:
   codeberg:
     runs-on: ubuntu-latest
