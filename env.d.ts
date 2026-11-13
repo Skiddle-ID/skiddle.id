@@ -9,12 +9,6 @@ declare var __GIT_DESCRIBE__: string;
 interface Env {
   // Static assets binding (Cloudflare Pages/Workers)
   ASSETS: any;
-  // KV namespace for caching or storage
-  CACHE: any;
-
-  // Existing app config
-  ATP_IDENTIFIER: string;
-  ATP_SERVICE: string;
 
   // Last.fm integration
   LASTFM_USERNAME: string;
