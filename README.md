@@ -13,7 +13,19 @@ Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https:
 | Projects, services, uses, highlights | `src/data/*.ts` |
 | Pages and layout | `src/pages/`, `src/components/` |
 
-New posts start with `draft: true`. They stay off the live site until it's `false`. After sharing a post on Bluesky, add `bluesky: at://…` to its frontmatter to show replies as comments.
+New posts start with `draft: true`. They stay off the live site until it's `false`. Once a published post is merged into `v3`, it's announced on Bluesky automatically and gets its `bluesky: at://…` line, which shows replies as comments (see [Bluesky announcements](#bluesky-announcements)).
+
+### Bluesky announcements
+
+`.github/workflows/bluesky-announce.yml` runs `scripts/bluesky-announce.mjs` after each push to `v3` that touches posts. For every post in the push that is published, has no `bluesky:` line and is at most 14 days old, it:
+
+1. waits until the post is live
+2. reuses a Bluesky post that already links to it (if you shared it by hand), or else posts the title and link with the share card as a link card
+3. commits `bluesky: at://…` to the post, so comments turn on with the next deploy
+
+To announce an older post, or try it safely: Actions → "Announce posts on Bluesky" → Run workflow, then enter the slug. Dry run is on by default.
+
+Setup (once): create an app password in Bluesky (Settings → Privacy and security → App passwords), then store it with `gh secret set BLUESKY_APP_PASSWORD`.
 
 Every post gets a share card (the preview image on Bluesky, X, LinkedIn, chat apps) at `/og/posts/<slug>.png`, made at build time from its title, description, date and reading time. Other pages use `/og/site.png`. A post with a `.png`/`.jpg`/`.webp` `cover` uses that instead. The code is in `src/lib/share-card.ts` and `src/integrations/share-cards.ts`.
 
