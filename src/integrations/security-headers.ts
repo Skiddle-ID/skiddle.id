@@ -10,7 +10,9 @@
  * Cloudflare injects Zaraz and the Web Analytics beacon into browser HTML responses at the
  * edge and adds a 'nonce-…' to script-src for them, so their scripts run without hashes here.
  * Zaraz reports to /cdn-cgi/zaraz/* on this origin ('self'); the beacon reports to
- * cloudflareinsights.com, which connect-src must allow.
+ * cloudflareinsights.com, which connect-src must allow. Zaraz's Google Analytics tool also
+ * makes a browser-side request to stats.g.doubleclick.net (Google signals / audiences),
+ * allowed on purpose.
  */
 import type { AstroIntegration } from 'astro';
 import { createHash } from 'node:crypto';
@@ -49,7 +51,7 @@ export default function securityHeaders(): AstroIntegration {
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
-            "connect-src 'self' https://public.api.bsky.app https://cloudflareinsights.com",
+            "connect-src 'self' https://public.api.bsky.app https://cloudflareinsights.com https://stats.g.doubleclick.net",
             "form-action 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
