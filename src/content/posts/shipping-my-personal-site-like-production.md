@@ -6,6 +6,7 @@ category: infra
 tags: [cloudflare, github-actions, astro, ci-cd]
 series: "Rebuilding skiddle.id"
 order: 3
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n26v6bar7p2z
 draft: false
 ---
 
