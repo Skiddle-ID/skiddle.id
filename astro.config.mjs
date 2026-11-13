@@ -3,6 +3,7 @@ import cloudflare from '@astrojs/cloudflare';
 import mdx from '@astrojs/mdx';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
+import shareCards from './src/integrations/share-cards';
 
 // Run a git command and return its trimmed output, or '' if it fails (no git, no repo, no tag…)
 const git = (args) => {
@@ -62,6 +63,8 @@ export default defineConfig({
   },
   integrations: [
     mdx(),
+    // Share cards (Open Graph images) for posts and the site, rendered after the build
+    shareCards(),
   ],
   vite: {
     plugins: [tailwindcss()],

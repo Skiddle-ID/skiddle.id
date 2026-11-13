@@ -60,9 +60,14 @@ if (related.length === 0) {
   related.push(...all.filter((p) => ![entry.id, prev?.id, next?.id, older?.id, newer?.id].includes(p.id)).slice(0, 3));
 }
 
+// Share image: a raster cover photo if the post has one, otherwise its generated card
+const cover = entry.data.cover;
+const shareImage = cover && /\.(png|jpe?g|webp)$/i.test(cover) ? cover : `/og/posts/${entry.id}.png`;
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
+  image: new URL(shareImage, site).toString(),
   headline: entry.data.title,
   inLanguage: entry.data.lang,
   datePublished: entry.data.pubDate.toISOString(),
@@ -75,7 +80,7 @@ const jsonLd = {
 };
 ---
 
-<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article">
+<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage}>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
   <article class="max-w-[70ch] w-full" lang={entry.data.lang}>
