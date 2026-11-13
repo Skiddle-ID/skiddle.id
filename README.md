@@ -33,6 +33,7 @@ Every post gets a share card (the preview image on Bluesky, X, LinkedIn, chat ap
 npm ci          # Node 24 (see .node-version), npm (see packageManager)
 npm run dev     # http://localhost:4321
 npm run build   # production build into dist/
+npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/workflows/ci.yml)
 ```
 
 ### Deploying
