@@ -15,6 +15,8 @@ Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https:
 
 New posts start with `draft: true`. They stay off the live site until it's `false`. After sharing a post on Bluesky, add `bluesky: at://…` to its frontmatter to show replies as comments.
 
+Every post gets a share card (the preview image on Bluesky, X, LinkedIn, chat apps) at `/og/posts/<slug>.png`, made at build time from its title, description, date and reading time. Other pages use `/og/site.png`. A post with a `.png`/`.jpg`/`.webp` `cover` uses that instead. The code is in `src/lib/share-card.ts` and `src/integrations/share-cards.ts`.
+
 ```sh
 npm ci          # Node 24 (see .node-version), npm (see packageManager)
 npm run dev     # http://localhost:4321

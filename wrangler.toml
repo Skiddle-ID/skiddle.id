@@ -3,6 +3,12 @@ name = "skiddle-id"
 compatibility_date = "2025-07-18"
 compatibility_flags = [ "nodejs_compat" ]
 
+# Production is only served on the custom domains below, not on *.workers.dev
+workers_dev = false
+# Keep Preview URLs on for PR preview builds (https://<branch>-skiddle-id.skiddle.workers.dev).
+# Unset, they default to workers_dev, so every production deploy switched them off again.
+preview_urls = true
+
 [[routes]]
 pattern = "skiddle.id"
 custom_domain = true
