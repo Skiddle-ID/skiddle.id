@@ -43,6 +43,11 @@ export default defineConfig({
   // which drops the space between adjacent inline elements in templates.
   compressHTML: true,
 
+  // The site doesn't use Astro sessions. Without this, the Cloudflare adapter adds a
+  // SESSION KV binding with no namespace id: production deploys inherit the old one,
+  // but Worker Previews reject it ("binding SESSION ... must have a namespace_id").
+  session: false,
+
   adapter: cloudflare({
     imageService: 'cloudflare',
   }),
