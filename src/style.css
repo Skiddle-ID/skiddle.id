@@ -275,3 +275,9 @@ html .prose {
   section, article, li { break-inside: avoid; }
   @page { margin: 14mm; }
 }
+
+/* Current section in the post's "On this page" column (set by the script in posts/[slug].astro) */
+.toc-active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
