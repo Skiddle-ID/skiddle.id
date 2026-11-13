@@ -1,13 +1,12 @@
 ---
 title: "Shipping My Personal Site Like Production"
 description: "Merge to deploy, a preview for every pull request, checks that run themselves - and the day a post disappeared."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-13T09:00:00.000Z
+pubDate: 2026-11-13T11:29:00.000Z
 category: infra
 tags: [cloudflare, github-actions, astro, ci-cd]
 series: "Rebuilding skiddle.id"
 order: 3
-draft: true
+draft: false
 ---
 
 ## The boring part, finally done properly
