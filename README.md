@@ -50,7 +50,7 @@ Manual deploy and rollback still work from any machine logged in with `npx wrang
 
 ### Releases
 
-The footer shows the latest release tag reachable from the deployed commit (e.g. `v3.2`), linked to its GitHub release.
+The footer shows the latest release tag reachable from the deployed commit (e.g. `v3.2`), linked to its GitHub release. [Release Drafter](.github/release-drafter.yml) keeps a draft of the next release (`v3.3`, …) under GitHub → Releases, with PRs sorted by their title prefix (`feat:`, `fix:`, `post:`, `chore:`, `docs:`). Rename and publish it when you're ready. Add a `major` label to a PR for a new major version.
 
 Publishing a release only creates a tag, and tags don't trigger Workers Builds. So the footer picks up the new version on the next merge into `v3`. To show it straight away, either:
 
@@ -83,4 +83,4 @@ Other sites that shaped it:
 
 ---
 
-*Dev: `develop` → `v3` (default, last major) · releases auto‑composed per PR — see Releases. [`v1` `v2` archival]*
+*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v1` and `v2` are archived majors.*

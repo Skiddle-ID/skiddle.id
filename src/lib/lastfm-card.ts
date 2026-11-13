@@ -178,7 +178,8 @@ export function fit(text: string, max: number): string {
 function clean(value: string | undefined): string {
   let s = String(value ?? '');
   if (typeof s.toWellFormed === 'function') s = s.toWellFormed();
-  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F￾￿]/g, '').replace(/\s+/g, ' ').trim();
+  // eslint-disable-next-line no-control-regex -- stripping control characters is the point
+  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function esc(s: string): string {
