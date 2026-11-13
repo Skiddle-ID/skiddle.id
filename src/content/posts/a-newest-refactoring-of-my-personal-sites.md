@@ -5,6 +5,8 @@ pubDate: 2025-09-15T15:06:13.146Z
 category: infra
 tags: [astro, design, refactoring]
 rkey: 3lyutoqgvqh2k
+series: "Rebuilding skiddle.id"
+order: 1
 draft: false
 ---
 

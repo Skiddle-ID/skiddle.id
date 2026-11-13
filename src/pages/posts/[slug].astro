@@ -6,7 +6,7 @@ import FormattedDate from '~/components/formatted-date.astro';
 import Icon from '~/components/icon.astro';
 import PostList from '~/components/post-list.astro';
 import BlueskyComments from '~/components/bluesky-comments.astro';
-import { getPosts, postUrl, readingMinutes, categoryLabels, type Post } from '~/lib/posts';
+import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, type Post } from '~/lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -29,13 +29,15 @@ const all = await getPosts();
 // Series navigation
 let prev: Post | null = null;
 let next: Post | null = null;
+let partNumber = 0;
+let partCount = 0;
 if (entry.data.series) {
-  const series = all
-    .filter((p) => p.data.series === entry.data.series)
-    .sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+  const series = groupSeries(all).find((s) => s.name === entry.data.series)?.parts ?? [];
   const idx = series.findIndex((p) => p.id === entry.id);
   if (idx > 0) prev = series[idx - 1];
   if (idx >= 0 && idx < series.length - 1) next = series[idx + 1];
+  partNumber = idx + 1;
+  partCount = series.length;
 }
 
 // Chronological neighbours for the older / newer links (all is newest first)
@@ -104,7 +106,7 @@ const jsonLd = {
 
     {entry.data.series && (prev || next) && (
       <aside class="card px-4 py-3 mb-8 text-sm" lang="en">
-        <p class="text-xs text-[var(--color-muted)] mb-1">Part of a series: <span class="text-[var(--color-text)]">{entry.data.series}</span></p>
+        <p class="text-xs text-[var(--color-muted)] mb-1">Part {partNumber} of {partCount} in the series <a href={seriesUrl(entry.data.series)} class="link">{entry.data.series}</a></p>
         {prev && (<p>← <a href={postUrl(prev)} class="link">{prev.data.title}</a></p>)}
         {next && (<p>→ <a href={postUrl(next)} class="link">{next.data.title}</a></p>)}
       </aside>

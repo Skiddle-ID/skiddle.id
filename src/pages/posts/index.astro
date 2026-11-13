@@ -31,7 +31,7 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCo
       <p class="flex flex-wrap gap-x-3 gap-y-1 text-sm">
         {tags.map(([t, n]) => <a href={`/topics/tag/${t}/`} class="tag">#{t}<span class="opacity-60"> {n}</span></a>)}
       </p>
-      <p class="text-sm mt-3"><a href="/topics/" class="link">or by topic →</a></p>
+      <p class="text-sm mt-3"><a href="/topics/" class="link">or by topic →</a> · <a href="/series/" class="link">or by series →</a></p>
     </section>
   </div>
 </Shell>
