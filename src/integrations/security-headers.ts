@@ -27,10 +27,11 @@ export default function securityHeaders(): AstroIntegration {
         for (const file of await htmlFiles(root)) {
           pages++;
           const html = await readFile(file, 'utf8');
-          for (const m of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
+          // Case-insensitive, and tolerant of `</script >`-style end tags, like the HTML parser
+          for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)) {
             const attrs = m[1] ?? '';
-            if (/\ssrc=/.test(attrs)) continue; // external: covered by 'self'
-            const type = /\stype="([^"]*)"/.exec(attrs)?.[1];
+            if (/\ssrc\s*=/i.test(attrs)) continue; // external: covered by 'self'
+            const type = /\stype\s*=\s*["']?([^"'\s>]*)/i.exec(attrs)?.[1];
             if (type && !/^(module|text\/javascript)$/i.test(type)) continue; // JSON-LD and other data blocks don't run
             hashes.add(`'sha256-${createHash('sha256').update(m[2]).digest('base64')}'`);
           }
