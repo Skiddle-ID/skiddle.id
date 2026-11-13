@@ -6,16 +6,8 @@ import projects from '../data/projects';
 import services from '../data/services';
 export const prerender = true;
 
-const handle = 'skiddle.blue';
-let avatarUrl: string | undefined;
-try {
-  const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${handle}`);
-  if (res.ok) {
-    const data = (await res.json()) as { avatar?: string };
-    avatarUrl = typeof data?.avatar === 'string' ? data.avatar : undefined;
-  }
-} catch (_) {}
-const profileImg = avatarUrl || 'https://github.com/arcestia.png';
+// Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
+const profileImg = '/avatars/bluesky.jpg';
 
 const posts = await getPosts();
 const recent = posts.slice(0, 4);

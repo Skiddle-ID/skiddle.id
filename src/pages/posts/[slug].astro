@@ -116,7 +116,7 @@ const jsonLd = {
 
     {toc.length >= 3 && (
       <details class="card px-4 py-3 mb-8 text-sm group xl:hidden" lang="en">
-        <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span class="opacity-60">({toc.length})</span></summary>
+        <summary class="cursor-pointer text-[var(--color-muted)] select-none">On this page <span>({toc.length})</span></summary>
         <ol class="mt-2 flex flex-col gap-1">
           {toc.map((h) => (
             <li class={h.depth === 3 ? 'pl-4' : ''}>
@@ -157,7 +157,7 @@ const jsonLd = {
 
     <footer class="mt-12 pt-6 border-t text-sm" lang="en">
       <div class="flex gap-4 items-start">
-        <img src="https://github.com/arcestia.png?size=96" alt="" width="48" height="48" class="size-12 rounded-full border shrink-0" loading="lazy" />
+        <img src="/avatars/github-96.jpg" alt="" width="48" height="48" class="size-12 rounded-full border shrink-0" loading="lazy" />
         <div>
           <p>Thanks for reading! I'm <a href="/about/" class="link">Jeff</a>, a protocol engineer and the founder of Skiddle Labs, based in Bangkok.</p>
           <p class="text-[var(--color-muted)] mt-1">

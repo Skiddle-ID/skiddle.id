@@ -8,7 +8,7 @@ bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n25xr6yvo22i
 draft: false
 ---
 
-### Yes, I redesigned my site again.
+## Yes, I redesigned my site again.
 
 If you read [my last refactoring post](/posts/a-newest-refactoring-of-my-personal-sites/), you knew this would happen sooner or later. 😅
 
@@ -18,13 +18,13 @@ So for **v3.2, "v1 soul"**, I went back to it. Not a copy-paste of the old site,
 
 ---
 
-### What Came Back
+## What Came Back
 
 - The `skiddle@web ~` terminal header with the blinking cursor
 - Monospace everywhere, dark by default (light mode and accent colours are still in the sidebar)
 - A simple, writing-first layout
 
-### What's New
+## What's New
 
 The site is now a **portfolio** too, not only a blog:
 
@@ -40,7 +40,7 @@ There are also two blog features I've wanted for a long time:
 
 ---
 
-### A Bit More Professional
+## A Bit More Professional
 
 Redesigning also made me look at what I was sharing. I removed some personal details that didn't need to be on the internet, and cleaned up a few pages so they say what I actually do.
 
@@ -48,7 +48,7 @@ The CV now shows how I work today: through **Skiddle Labs Pte. Ltd.**, my own co
 
 ---
 
-### Under the Hood
+## Under the Hood
 
 - Upgraded to **Astro 7**, which also took care of a bunch of security alerts
 - Moved my Last.fm API key out of the repo (oops) and into a Cloudflare secret
@@ -57,7 +57,7 @@ The CV now shows how I work today: through **Skiddle Labs Pte. Ltd.**, my own co
 
 ---
 
-### Thank You
+## Thank You
 
 The site still owes a lot to [Hayden](https://bsky.app/profile/hayden.moe), whose code I started from in 2025, and to ideas from [hailey.at](https://hailey.at/) and [tania.dev](https://tania.dev/).
 
