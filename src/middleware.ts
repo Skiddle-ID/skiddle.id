@@ -1,6 +1,6 @@
 /**
  * Security headers for server-rendered responses (/lastfm.svg, /api/lastfm.json, robots.txt,
- * webfinger, /og/posts/*.svg). Static pages and assets get the same headers from public/_headers.
+ * webfinger). Static pages and assets get the same headers from public/_headers.
  * Headers a route sets itself (e.g. the Last.fm card's own CSP) are left alone.
  */
 import { defineMiddleware } from 'astro:middleware';
