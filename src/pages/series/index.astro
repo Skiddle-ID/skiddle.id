@@ -1,0 +1,38 @@
+---
+export const prerender = true;
+import Shell from '~/layouts/shell.astro';
+import FormattedDate from '~/components/formatted-date.astro';
+import { getPosts, groupSeries, postUrl, readingMinutes } from '~/lib/posts';
+
+// Posts with `series:` in their frontmatter, grouped and in reading order (`order:`)
+const series = groupSeries(await getPosts());
+---
+
+<Shell title="Series — Skiddle" description="Multi-part posts on skiddle.id, in reading order.">
+  <div class="max-w-[70ch] w-full">
+    <h1 class="font-semibold text-xl before-hash-1">Series</h1>
+    <p class="text-sm text-[var(--color-muted)] mt-2">Posts that belong together, in reading order.</p>
+
+    {series.map((s) => (
+      <section id={s.slug} class="mt-10" aria-labelledby={`${s.slug}-title`}>
+        <h2 id={`${s.slug}-title`} class="font-semibold before-hash-2 mb-3">
+          {s.name}
+          <span class="text-sm font-normal text-[var(--color-muted)]"> · {s.parts.length} {s.parts.length === 1 ? 'part' : 'parts'}</span>
+        </h2>
+        <ol class="flex flex-col gap-3">
+          {s.parts.map((p, i) => (
+            <li class="grid grid-cols-[2rem_1fr] gap-2">
+              <span class="text-[var(--color-primary)] tabular-nums" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <a href={postUrl(p)} class="link" lang={p.data.lang}>{p.data.title}</a>
+                <span class="block text-xs text-[var(--color-muted)] mt-0.5">
+                  <FormattedDate date={p.data.pubDate} /> · {readingMinutes(p)} min read
+                </span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </div>
+</Shell>

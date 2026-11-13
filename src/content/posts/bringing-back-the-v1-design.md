@@ -5,6 +5,8 @@ pubDate: 2026-11-12T15:55:00.000Z
 category: infra
 tags: [astro, design, refactoring, cloudflare]
 bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n25xr6yvo22i
+series: "Rebuilding skiddle.id"
+order: 2
 draft: false
 ---
 
