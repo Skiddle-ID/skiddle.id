@@ -1,0 +1,55 @@
+name: Publish posts to AT Protocol
+
+# Keeps skiddle.id's Standard.site records (one publication + a document per published post) in
+# the skiddle.blue repo up to date, so readers such as Leaflet, pckt and docs.surf find the posts.
+# See scripts/standard-site-sync.mjs and src/lib/standard-site.mjs.
+#
+# Runs after "Announce posts on Bluesky" finishes on v3 (that runs on every push that touches
+# posts), so a new post's announcement is already linked. Read-only on the repo: it changes no
+# files, only records on Bluesky. Needs the repository secret BLUESKY_APP_PASSWORD.
+
+on:
+  workflow_run:
+    workflows: ['Announce posts on Bluesky']
+    types: [completed]
+    branches: [v3]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: show what would change, write nothing'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: standard-site
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: >-
+      github.repository == 'Skiddle-ID/skiddle.id' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    timeout-minutes: 20
+    steps:
+      # Latest v3, including the `bluesky:` line the announce run may just have committed
+      - uses: actions/checkout@v7
+        with:
+          ref: v3
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          # The script only uses Node's built-in modules (no npm ci), so there's nothing to cache
+          package-manager-cache: false
+
+      - name: Sync Standard.site records
+        env:
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          BLUESKY_IDENTIFIER: skiddle.blue
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || '' }}
+        run: node scripts/standard-site-sync.mjs

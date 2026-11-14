@@ -12,6 +12,8 @@ interface Props {
   description?: string;
   image?: string;
   type?: 'website' | 'article';
+  /** at:// URI of the page's site.standard.document record (posts only) */
+  atDocument?: string;
 }
 
 const {
@@ -19,6 +21,7 @@ const {
   description = 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.',
   image = '/og/site.png',
   type = 'website',
+  atDocument,
 } = Astro.props;
 const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
@@ -73,7 +76,7 @@ const jsonLd = {
         } catch (e) {}
       })();
     </script>
-    <BaseHead title={title} description={description} image={image} type={type} />
+    <BaseHead title={title} description={description} image={image} type={type} atDocument={atDocument} />
     <script is:inline>
       (function () {
         const m = document.getElementById('themeColor');

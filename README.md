@@ -27,6 +27,15 @@ To announce an older post, or try it safely: Actions → "Announce posts on Blue
 
 Setup (once): create an app password in Bluesky (Settings → Privacy and security → App passwords), then store it with `gh secret set BLUESKY_APP_PASSWORD`.
 
+### AT Protocol (Standard.site)
+
+The posts are also published as AT Protocol records with the [Standard.site](https://standard.site) lexicons, so readers like Leaflet, pckt and docs.surf can find them: one `site.standard.publication` for skiddle.id and a `site.standard.document` per published post (title, path, description, dates, tags, plain text, share card and the Bluesky announcement).
+
+- `.github/workflows/standard-site.yml` runs `scripts/standard-site-sync.mjs` after each "Announce posts on Bluesky" run on `v3`. It creates, updates or deletes records to match the published posts, and leaves records of other publications alone. It uses the same app password.
+- The site proves it owns the records with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post. Record keys are worked out from the posts (see `src/lib/standard-site.mjs`), so pages can link to a record before it exists.
+- The six older posts with an `rkey:` were already published on pckt.blog under those keys. `MOVE_PCKT_DOCUMENTS` in `src/lib/standard-site.mjs` decides whether skiddle.id leaves them to pckt or takes them over.
+- To check what would change: Actions → "Publish posts to AT Protocol" → Run workflow (dry run is on by default), or locally `DRY_RUN=1 SKIP_WAIT=1 node scripts/standard-site-sync.mjs` (no password needed).
+
 **Avatars** are local, resized copies, so pages don't load full-size images from other sites. `public/avatars/bluesky.jpg` (224px, on the home page) comes from the Bluesky profile picture, and `public/avatars/github.jpg` (280px, on the about page) and `github-96.jpg` (96px, end of each post) from the GitHub one. To update one, save the new picture and resize it, e.g. `sips -z 224 224 -s format jpeg -s formatOptions 82 new.jpg --out public/avatars/bluesky.jpg`.
 
 Every post gets a share card (the preview image on Bluesky, X, LinkedIn, chat apps) at `/og/posts/<slug>.png`, made at build time from its title, description, date and reading time. Other pages use `/og/site.png`. A post with a `.png`/`.jpg`/`.webp` `cover` uses that instead. The code is in `src/lib/share-card.ts` and `src/integrations/share-cards.ts`.
