@@ -4,6 +4,7 @@ description: "My posts now also live as records in my own AT Protocol repo, wher
 pubDate: 2026-11-14T07:58:00.000Z
 category: atproto
 tags: [atproto, bluesky, standard-site, astro]
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2aztysnzk27
 draft: false
 ---
 
