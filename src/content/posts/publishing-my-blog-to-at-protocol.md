@@ -1,11 +1,10 @@
 ---
 title: "Publishing My Blog to AT Protocol"
 description: "My posts now also live as records in my own AT Protocol repo, where Standard.site readers can find them."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-14T09:00:00.000Z
+pubDate: 2026-11-14T07:58:00.000Z
 category: atproto
 tags: [atproto, bluesky, standard-site, astro]
-draft: true
+draft: false
 ---
 
 ## My posts, in my own repo
