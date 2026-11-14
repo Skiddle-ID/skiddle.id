@@ -70,6 +70,6 @@ And none of it needs a server of mine: the cards are files made at build time, a
 ## Next in this series
 
 - **Locking it down:** security headers, a content security policy, and how I accidentally blocked my own analytics.
-- **Fast and accessible:** what a Lighthouse audit found, and how the home page went from 274 KB to 80 KB.
+- **Fast and accessible:** what a Lighthouse audit found, and how the home page went from 274 KB to 82 KB.
 
 If you've read this far, the comments are right below. Say hi on Bluesky. 👋
