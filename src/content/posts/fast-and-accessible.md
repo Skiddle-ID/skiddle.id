@@ -52,10 +52,20 @@ While I was at it, I added page transitions: when you move between pages, the co
 
 It's also switched off for anyone whose device asks for reduced motion. Accessibility includes not making people feel sick.
 
+## Search that works for everyone
+
+Later I swapped the search box in the sidebar for a command bar. Press ⌘K (Ctrl+K on Windows) or / on any page, or tap the search icon on a phone, to search posts, jump to a page or switch the theme. I tried to build it the way the audit taught me:
+
+- **Keyboard and screen readers first.** It's the browser's own `<dialog>`, so focus stays inside it and Esc closes it. The arrow keys move through the results, and screen readers hear how many there are as you type.
+- **Phones get a full-screen sheet.** The text field uses 16 px text, because iPhones zoom in on anything smaller. The results stop above the keyboard, and the back gesture closes the sheet instead of leaving the page.
+- **It stays light.** The script is 3.8 KB, and the search data (13 KB) is only downloaded the first time you open it.
+
+Then I ran Lighthouse again. Still 100 for accessibility, best practices and search, speed 99–100, and nothing shifts. The home page went from 82 KB to 87 KB, which feels like a fair price for search on every page.
+
 ---
 
 ## That's the series
 
-Six parts later, this little site deploys itself, previews every change, announces new posts, collects comments without a backend, locks down its scripts and scores 100 where it counts. Building a personal site really is half the fun.
+Six parts later, this little site deploys itself, previews every change, announces new posts on Bluesky, publishes them to AT Protocol, collects comments without a backend, locks down its scripts and scores 100 where it counts. Building a personal site really is half the fun.
 
 Thanks for reading along. If you have questions about any part, the comments are right below. 🚀
