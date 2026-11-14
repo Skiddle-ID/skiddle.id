@@ -7,6 +7,7 @@ import Icon from '~/components/icon.astro';
 import PostList from '~/components/post-list.astro';
 import BlueskyComments from '~/components/bluesky-comments.astro';
 import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, type Post } from '~/lib/posts';
+import { documentUri } from '~/lib/standard-site.mjs';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -23,6 +24,8 @@ const minutes = readingMinutes(entry);
 const toc = headings.filter((h) => h.depth <= 3);
 const repoFile = entry.filePath ?? `src/content/posts/${entry.id}.md`;
 const editUrl = `https://github.com/Skiddle-ID/skiddle.id/blob/v3/${repoFile}`;
+// This post's site.standard.document record on AT Protocol (written by scripts/standard-site-sync.mjs)
+const atDocument = documentUri({ slug: entry.id, pubDate: entry.data.pubDate, rkey: entry.data.rkey });
 
 const all = await getPosts();
 
@@ -82,7 +85,7 @@ const jsonLd = {
 };
 ---
 
-<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage}>
+<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage} atDocument={atDocument}>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
   <!-- Wide screens: article plus a sticky "On this page" column, centred together -->

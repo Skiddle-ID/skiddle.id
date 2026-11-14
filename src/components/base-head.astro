@@ -2,15 +2,18 @@
 // Preload the site font (the same files src/style.css imports) so text doesn't reflow when it arrives
 import geistMono400 from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
 import geistMono600 from '@fontsource/geist-mono/files/geist-mono-latin-600-normal.woff2?url';
+import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
 
 interface Props {
   title?: string;
   description?: string;
   image?: string;
   type?: 'website' | 'article';
+  /** at:// URI of the page's site.standard.document record (posts only) */
+  atDocument?: string;
 }
 
-const { title, description, image, type = 'website' } = Astro.props as Props;
+const { title, description, image, type = 'website', atDocument } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle';
@@ -31,6 +34,10 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />
 <link rel="me" href="https://bsky.app/profile/skiddle.blue" />
 <link rel="me" href="https://github.com/arcestia" />
+<!-- Standard.site (AT Protocol): this site's publication record and, on posts, the post's document
+     record. See src/lib/standard-site.mjs. -->
+<link rel="site.standard.publication" href={PUBLICATION_URI} />
+{atDocument && <link rel="site.standard.document" href={atDocument} />}
 
 <!-- Open Graph -->
 <meta property="og:type" content={type} />
