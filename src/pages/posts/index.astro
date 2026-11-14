@@ -37,7 +37,7 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCo
 </Shell>
 
 <script>
-  // Static page, so search runs in the browser (works for ?q= links from the sidebar too).
+  // Static page, so search runs in the browser (works for ?q= links from the command bar too).
   const input = document.getElementById('postsSearch') as HTMLInputElement | null;
   const items = Array.from(document.querySelectorAll<HTMLElement>('.post-item'));
   const summary = document.getElementById('postsSummary');
@@ -68,7 +68,5 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCo
     });
   }
   document.getElementById('postsSearchForm')?.addEventListener('submit', (e) => e.preventDefault());
-  const sidebarSearch = document.getElementById('siteSearch') as HTMLInputElement | null;
-  if (sidebarSearch) sidebarSearch.value = initial;
   apply(initial);
 </script>
