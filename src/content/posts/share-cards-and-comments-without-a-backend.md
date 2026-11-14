@@ -1,6 +1,6 @@
 ---
 title: "Share Cards and Comments Without a Backend"
-description: "A preview image for every post, made at build time, and Bluesky replies as a comment section - no database, no accounts, no tracking."
+description: "Preview images made at build time, and Bluesky replies as comments - no database, accounts or tracking."
 # Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
 pubDate: 2026-11-14T09:00:00.000Z
 category: infra
