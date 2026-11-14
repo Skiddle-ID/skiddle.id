@@ -6,6 +6,7 @@ category: infra
 tags: [security, cloudflare, csp, github]
 series: "Rebuilding skiddle.id"
 order: 5
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2aqpbyn6i2z
 draft: false
 ---
 
