@@ -84,8 +84,13 @@ const isActive = (href: string) => {
   const root = document.documentElement;
   const ACCENTS = ['blue', 'teal', 'purple', 'pink', 'green'];
   const save = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} };
+  const load = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const forget = (k: string) => { try { localStorage.removeItem(k); } catch {} };
 
   const themeBtn = document.getElementById('themeToggle');
+  const systemLight = matchMedia('(prefers-color-scheme: light)');
+  const systemTheme = () => (systemLight.matches ? 'light' : 'dark');
+  const picked = () => ['light', 'dark'].includes(load('theme') ?? '');
   const syncThemeLabel = () => {
     const light = root.dataset.theme === 'light';
     themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
@@ -95,7 +100,15 @@ const isActive = (href: string) => {
   themeBtn?.addEventListener('click', () => {
     const next = root.dataset.theme === 'light' ? 'dark' : 'light';
     root.dataset.theme = next;
-    save('theme', next);
+    // Switching back to the device's own theme means "follow the device" again; otherwise remember it.
+    if (next === systemTheme()) forget('theme');
+    else save('theme', next);
+    syncThemeLabel();
+  });
+  // Follow the device when it switches light/dark (e.g. automatic at sunset), unless a theme was picked here.
+  systemLight.addEventListener('change', () => {
+    if (picked()) return;
+    root.dataset.theme = systemTheme();
     syncThemeLabel();
   });
 
