@@ -6,7 +6,8 @@
 
 /*
   skiddle.id — v1 soul, v3 features.
-  IBM Carbon palette. Dark is the default; light via <html data-theme="light">.
+  IBM Carbon palette. Dark tokens are the base; light via <html data-theme="light">, which the
+  head script sets from the visitor's pick or, failing that, the device's light/dark setting.
   Accent colour via <html data-accent="blue|teal|purple|pink|green">.
 */
 @theme {

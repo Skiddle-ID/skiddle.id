@@ -64,16 +64,20 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <!-- Apply saved theme/accent before first paint (no flash). Dark is the default. -->
+    <!-- Apply the theme and accent before first paint (no flash). A theme picked on the site wins;
+         otherwise follow the device's light/dark setting. Without JavaScript it stays dark. -->
     <script is:inline>
       (function () {
+        const d = document.documentElement;
+        let t = null;
+        let a = null;
         try {
-          const d = document.documentElement;
-          const t = localStorage.getItem('theme');
-          const a = localStorage.getItem('accent');
-          if (t === 'light' || t === 'dark') d.dataset.theme = t;
-          if (a) d.dataset.accent = a;
+          t = localStorage.getItem('theme');
+          a = localStorage.getItem('accent');
         } catch (e) {}
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        d.dataset.theme = t;
+        if (a) d.dataset.accent = a;
       })();
     </script>
     <BaseHead title={title} description={description} image={image} type={type} atDocument={atDocument} />
