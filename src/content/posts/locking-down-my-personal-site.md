@@ -1,13 +1,12 @@
 ---
 title: "Locking Down My Personal Site"
 description: "Security headers, a script-locking CSP, secret scanning - and how I accidentally blocked my own analytics."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-14T09:00:00.000Z
+pubDate: 2026-11-14T05:15:00.000Z
 category: infra
 tags: [security, cloudflare, csp, github]
 series: "Rebuilding skiddle.id"
 order: 5
-draft: true
+draft: false
 ---
 
 ## Why lock down a blog?
