@@ -34,13 +34,16 @@ jobs:
     if: github.repository == 'Skiddle-ID/skiddle.id' && github.ref == 'refs/heads/v3'
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
+          # The script only uses Node's built-in modules (no npm ci), so there's nothing to cache.
+          # setup-node caches npm by default since v5; off here, as this job can push to v3.
+          package-manager-cache: false
 
       - name: Announce new posts
         env:
