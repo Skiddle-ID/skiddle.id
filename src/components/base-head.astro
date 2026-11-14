@@ -18,7 +18,8 @@ const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle';
 const ogDesc = description ?? 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.';
-// Share cards (1200×630 PNG) are rendered at build time by src/integrations/share-cards.ts
+// Share cards (1200×630 PNG) are rendered at build time by src/integrations/share-cards.ts;
+// the shell layout picks the page's card (see shareImage there)
 const ogImage = image ?? '/og/site.png';
 const isCard = ogImage.startsWith('/og/');
 const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, site).toString();

@@ -19,12 +19,16 @@ interface Props {
 const {
   title = 'Skiddle',
   description = 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.',
-  image = '/og/site.png',
+  image,
   type = 'website',
   atDocument,
 } = Astro.props;
 const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
+// Share card: the home page uses the site card; every other page gets its own, rendered after
+// the build by src/integrations/share-cards.ts (e.g. /uses/ -> /og/pages/uses.png)
+const path = Astro.url.pathname.replace(/^\/+|\/+$/g, '');
+const shareImage = image ?? (path ? `/og/pages/${path}.png` : '/og/site.png');
 
 const segments = Astro.url.pathname.split('/').filter(Boolean);
 const breadcrumbItems = [
@@ -80,7 +84,7 @@ const jsonLd = {
         if (a) d.dataset.accent = a;
       })();
     </script>
-    <BaseHead title={title} description={description} image={image} type={type} atDocument={atDocument} />
+    <BaseHead title={title} description={description} image={shareImage} type={type} atDocument={atDocument} />
     <script is:inline>
       (function () {
         const m = document.getElementById('themeColor');
