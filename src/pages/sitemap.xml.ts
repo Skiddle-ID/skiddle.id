@@ -32,12 +32,20 @@ export const GET: APIRoute = async ({ site, request }) => {
   const requestUrl = new URL(request.url);
   const base = site ? site.toString() : `${requestUrl.origin}/`;
   const urls = discoverStaticRoutes();
+  // <lastmod> only where the date is real: each post (updated, else published), and the posts
+  // list (its newest change). Other pages get none rather than a made-up date.
+  const lastmod = new Map<string, Date>();
 
   try {
     const posts = await getCollection('posts', ({ data }) => !data.draft);
     for (const p of posts) {
-      if (p.id) urls.push(`/posts/${p.id}/`);
+      if (!p.id) continue;
+      const path = `/posts/${p.id}/`;
+      urls.push(path);
+      lastmod.set(path, p.data.updatedDate ?? p.data.pubDate);
     }
+    const newest = Math.max(...[...lastmod.values()].map((d) => d.valueOf()));
+    if (Number.isFinite(newest)) lastmod.set('/posts/', new Date(newest));
   } catch (_) {}
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n` +
@@ -45,7 +53,8 @@ export const GET: APIRoute = async ({ site, request }) => {
     urls
       .map((path) => {
         const loc = new URL(path, base).toString();
-        return `<url><loc>${loc}</loc></url>`;
+        const date = lastmod.get(path);
+        return `<url><loc>${loc}</loc>${date ? `<lastmod>${date.toISOString()}</lastmod>` : ''}</url>`;
       })
       .join('') +
     `</urlset>`;
