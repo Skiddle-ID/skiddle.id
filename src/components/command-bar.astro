@@ -1,0 +1,504 @@
+---
+/*
+  Command bar: search posts, jump to pages, run a few actions.
+  Opens with ⌘K / Ctrl+K or / on desktop, or anything with [data-cmdk-open] (the sidebar's
+  "search" row, the search icon in the mobile top bar). Those are links to /posts/, so search
+  still works without JavaScript. Desktop: a box near the top. Mobile: a full-screen sheet.
+  Post data comes from /search.json, fetched the first time the bar opens.
+*/
+---
+
+<dialog id="commandBar" class="cmdk print:hidden" aria-label="Search posts, pages and commands">
+  <div class="cmdk-panel">
+    <div class="cmdk-head">
+      <span class="cmdk-prompt" aria-hidden="true"><span class="text-[var(--color-primary)]">skiddle@web</span>:~$</span>
+      <input
+        id="cmdkInput"
+        type="text"
+        role="combobox"
+        aria-label="Search posts, pages and commands"
+        aria-expanded="true"
+        aria-controls="cmdkList"
+        aria-autocomplete="list"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="search"
+        placeholder="search…"
+        autofocus
+      />
+      <button type="button" id="cmdkCancel" class="cmdk-cancel">Cancel</button>
+    </div>
+    <ul id="cmdkList" class="cmdk-list" role="listbox" aria-label="Results"></ul>
+    <p id="cmdkStatus" class="sr-only" aria-live="polite"></p>
+    <p class="cmdk-foot" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span>
+    </p>
+  </div>
+</dialog>
+
+<style is:global>
+  .cmdk {
+    padding: 0;
+    width: min(40rem, calc(100vw - 2rem));
+    max-width: none;
+    max-height: min(34rem, 76vh);
+    margin: 12vh auto auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.35);
+    overflow: hidden;
+  }
+  .cmdk[open] { display: flex; }
+  .cmdk::backdrop { background: rgb(0 0 0 / 0.5); }
+  html:has(.cmdk[open]) { overflow: hidden; }
+  .cmdk-panel { display: flex; flex-direction: column; width: 100%; min-height: 0; }
+  .cmdk-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .cmdk-prompt { flex: none; color: var(--color-muted); }
+  /* 16px so iPhones don't zoom in when the input gets focus */
+  #cmdkInput {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    font-size: 16px;
+    outline: none;
+    caret-color: var(--color-primary);
+  }
+  #cmdkInput::placeholder { color: var(--color-muted); }
+  .cmdk-cancel { display: none; flex: none; color: var(--color-primary); font-size: 0.875rem; padding: 0.25rem 0; }
+  .cmdk-list { overflow-y: auto; overscroll-behavior: contain; padding: 0.4rem 0.5rem 0.6rem; flex: 1; min-height: 0; }
+  .cmdk-group-label { padding: 0.6rem 0.5rem 0.25rem; font-size: 0.75rem; color: var(--color-muted); }
+  .cmdk-note { padding: 0.6rem 0.5rem; font-size: 0.875rem; color: var(--color-muted); }
+  .cmdk-item {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .cmdk-item[aria-selected='true'] { background: var(--color-bg-alt); color: var(--color-primary); }
+  .cmdk-caret { flex: none; opacity: 0; color: var(--color-primary); }
+  .cmdk-item[aria-selected='true'] .cmdk-caret { opacity: 1; }
+  .cmdk-body { flex: 1; min-width: 0; }
+  .cmdk-line { display: flex; gap: 0.75rem; align-items: baseline; }
+  .cmdk-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmdk-meta { flex: none; font-size: 0.75rem; color: var(--color-muted); }
+  .cmdk-detail {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cmdk mark { background: transparent; color: var(--color-primary); font-weight: 600; }
+  .cmdk-foot {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+  .cmdk kbd {
+    display: inline-block;
+    min-width: 1.3em;
+    margin-right: 0.2em;
+    padding: 0 0.3em;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font: inherit;
+    text-align: center;
+  }
+
+  /* Mobile and tablet: a full-screen sheet. Its height follows the visible area, so results end
+     above the on-screen keyboard (--cmdk-vh is set from visualViewport by the script). */
+  @media (max-width: 1023px) {
+    .cmdk {
+      width: 100%;
+      height: var(--cmdk-vh, 100dvh);
+      max-height: none;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .cmdk-head { padding: 0.5rem 1rem; min-height: 3rem; }
+    .cmdk-cancel { display: block; }
+    .cmdk-item { min-height: 44px; align-items: center; padding: 0.55rem 0.5rem; }
+    .cmdk-title { white-space: normal; }
+    .cmdk-foot { display: none; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cmdk[open] { animation: cmdk-in 140ms cubic-bezier(0.2, 0, 0, 1); }
+    .cmdk[open]::backdrop { animation: cmdk-fade 140ms ease-out; }
+  }
+  @keyframes cmdk-in { from { opacity: 0; transform: translateY(-6px); } }
+  @keyframes cmdk-fade { from { opacity: 0; } }
+</style>
+
+<script>
+  interface IndexedPost {
+    title: string;
+    url: string;
+    description: string;
+    tags: string[];
+    category: string;
+    series: string;
+    date: string;
+    text: string;
+  }
+  interface Item {
+    label: string;
+    href?: string;
+    meta?: string;
+    detail?: string;
+    /** Return true to keep the bar open (theme and accent, so you can see the change) */
+    run?: () => boolean | void;
+  }
+  type Group = { label: string; items: Item[]; note?: string };
+
+  const dialogEl = document.getElementById('commandBar') as HTMLDialogElement | null;
+  const inputEl = document.getElementById('cmdkInput') as HTMLInputElement | null;
+  const listEl = document.getElementById('cmdkList');
+  const statusEl = document.getElementById('cmdkStatus');
+  if (dialogEl && inputEl && listEl && statusEl) setup(dialogEl, inputEl, listEl, statusEl);
+
+  function setup(dialog: HTMLDialogElement, input: HTMLInputElement, list: HTMLElement, status: HTMLElement) {
+    // `keywords` are only for matching (taken from each page's description), not shown
+    const PAGES: { path: string; label: string; hint: string; keywords: string }[] = [
+      { path: '/', label: 'home', hint: 'start here', keywords: 'index start' },
+      { path: '/posts/', label: 'posts', hint: 'everything I have written', keywords: 'blog articles writing archive' },
+      { path: '/series/', label: 'series', hint: 'multi-part posts, in reading order', keywords: 'parts' },
+      { path: '/topics/', label: 'topics', hint: 'posts by topic and tag', keywords: 'tags categories' },
+      { path: '/about/', label: 'about', hint: 'who I am', keywords: 'me protocol engineer founder skiddle labs bangkok homelab open web private pilot flying' },
+      { path: '/works/', label: 'works', hint: 'CV: experience, skills, certifications', keywords: 'resume cv experience skills projects education certifications jobs' },
+      { path: '/projects/', label: 'projects', hint: 'open-source projects', keywords: 'open source apis automation tools code demos' },
+      { path: '/uses/', label: 'uses', hint: 'hardware, software and tools', keywords: 'setup machines homelab dev creative tools flight bag gear' },
+      { path: '/services/', label: 'services', hint: 'infrastructure help', keywords: 'hire server hardening ci/cd ansible automation monitoring self-hosting website setup' },
+    ];
+
+    let posts: IndexedPost[] | null = null;
+    let loading: Promise<void> | null = null;
+    let failed = false;
+    let items: Item[] = [];
+    let active = 0;
+    let copied = false;
+    let navigating = false;
+
+    const load = () => {
+      loading ??= fetch('/search.json')
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((data: IndexedPost[]) => {
+          posts = data;
+          failed = false;
+          if (dialog.open) render();
+        })
+        .catch(() => {
+          failed = true;
+          loading = null; // try again next time
+          if (dialog.open) render();
+        });
+      return loading;
+    };
+
+    const actions = (): (Item & { keywords: string })[] => {
+      const light = document.documentElement.dataset.theme === 'light';
+      return [
+        {
+          label: `Switch to ${light ? 'dark' : 'light'} theme`,
+          keywords: 'theme dark light mode toggle',
+          run: () => { document.getElementById('themeToggle')?.click(); return true; },
+        },
+        {
+          label: 'Next accent colour',
+          keywords: 'accent colour color palette',
+          run: () => { document.getElementById('accentToggle')?.click(); return true; },
+        },
+        {
+          label: copied ? 'Link copied ✓' : 'Copy link to this page',
+          keywords: 'copy link url share',
+          run: () => {
+            navigator.clipboard?.writeText(location.href).then(() => {
+              copied = true;
+              status.textContent = 'Link copied';
+              render();
+              setTimeout(close, 700);
+            });
+            return true;
+          },
+        },
+        { label: 'RSS feed', href: '/rss.xml', keywords: 'rss feed subscribe atom' },
+      ];
+    };
+
+    const monthYear = (iso: string) =>
+      new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+    /** Score a post for the search terms; 0 = not every term matches. Title > tags > description > text. */
+    function score(p: IndexedPost, terms: string[]): number {
+      const title = p.title.toLowerCase();
+      const tags = p.tags.map((t) => t.toLowerCase());
+      const desc = p.description.toLowerCase();
+      const other = `${p.category} ${p.series}`.toLowerCase();
+      const text = p.text.toLowerCase();
+      let total = 0;
+      for (const t of terms) {
+        let s = 0;
+        if (title.includes(t)) s += title.split(/[^\p{L}\p{N}]+/u).some((w) => w.startsWith(t)) ? 12 : 8;
+        if (tags.includes(t)) s += 6;
+        else if (tags.some((g) => g.includes(t))) s += 4;
+        if (desc.includes(t)) s += 3;
+        if (other.includes(t)) s += 2;
+        if (text.includes(t)) s += 1;
+        if (s === 0) return 0;
+        total += s;
+      }
+      return total;
+    }
+
+    /** A short piece of the post text around the first match, for posts that match only in their text */
+    function snippet(p: IndexedPost, terms: string[]): string {
+      const lower = p.text.toLowerCase();
+      const at = Math.min(...terms.map((t) => lower.indexOf(t)).filter((i) => i >= 0));
+      if (!Number.isFinite(at)) return p.description;
+      const start = Math.max(0, p.text.lastIndexOf(' ', Math.max(0, at - 30)) + 1);
+      return (start > 0 ? '…' : '') + p.text.slice(start, start + 110).trim() + '…';
+    }
+
+    function groups(query: string): Group[] {
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const out: Group[] = [];
+      const postItem = (p: IndexedPost): Item => {
+        const inTitleOrDesc = terms.every((t) => p.title.toLowerCase().includes(t) || p.description.toLowerCase().includes(t));
+        return { label: p.title, href: p.url, meta: monthYear(p.date), detail: terms.length && !inTitleOrDesc ? snippet(p, terms) : p.description };
+      };
+      const note = failed ? "Couldn't load posts." : 'Loading posts…';
+
+      if (!terms.length) {
+        out.push({ label: 'latest posts', items: posts ? posts.slice(0, 5).map(postItem) : [], note: posts ? undefined : note });
+        out.push({ label: 'pages', items: PAGES.map((pg) => ({ label: pg.label, href: pg.path, meta: pg.path, detail: pg.hint })) });
+        out.push({ label: 'actions', items: actions() });
+        return out;
+      }
+
+      const has = (hay: string) => terms.every((t) => hay.toLowerCase().includes(t));
+      const found = posts
+        ? posts.map((p) => ({ p, s: score(p, terms) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s || b.p.date.localeCompare(a.p.date))
+        : [];
+      const postItems = found.slice(0, 8).map((x) => postItem(x.p));
+      if (found.length) postItems.push({ label: 'See all results on the posts page →', href: `/posts/?q=${encodeURIComponent(query.trim())}` });
+      out.push({ label: 'posts', items: postItems, note: posts ? undefined : note });
+      out.push({ label: 'pages', items: PAGES.filter((pg) => has(`${pg.label} ${pg.path} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.path, meta: pg.path, detail: pg.hint })) });
+      out.push({ label: 'actions', items: actions().filter((a) => has(`${a.label} ${a.keywords}`)) });
+      return out.filter((g) => g.items.length || g.note);
+    }
+
+    /** Text with the search terms wrapped in <mark> (built as DOM nodes, never as HTML) */
+    function highlight(text: string, terms: string[]): Node {
+      const frag = document.createDocumentFragment();
+      if (!terms.length) { frag.append(text); return frag; }
+      const re = new RegExp(`(${terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+      for (const part of text.split(re)) {
+        if (!part) continue;
+        if (terms.includes(part.toLowerCase())) {
+          const m = document.createElement('mark');
+          m.textContent = part;
+          frag.append(m);
+        } else frag.append(part);
+      }
+      return frag;
+    }
+
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text) e.textContent = text;
+      return e;
+    };
+
+    function render() {
+      const query = input.value;
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const gs = groups(query);
+      items = gs.flatMap((g) => g.items);
+      active = Math.min(active, Math.max(0, items.length - 1));
+      list.replaceChildren();
+      let n = 0;
+      gs.forEach((g, gi) => {
+        const wrap = el('li');
+        wrap.setAttribute('role', 'presentation');
+        const label = el('div', 'cmdk-group-label', g.label);
+        label.id = `cmdk-g${gi}`;
+        label.setAttribute('role', 'presentation');
+        const ul = el('ul');
+        ul.setAttribute('role', 'group');
+        ul.setAttribute('aria-labelledby', label.id);
+        for (const it of g.items) {
+          const i = n++;
+          const row = it.href ? el('a') : el('div');
+          if (row instanceof HTMLAnchorElement && it.href) row.href = it.href;
+          row.className = 'cmdk-item';
+          row.id = `cmdk-o${i}`;
+          row.tabIndex = -1;
+          row.setAttribute('role', 'option');
+          row.setAttribute('aria-selected', 'false');
+          row.append(el('span', 'cmdk-caret', '>'));
+          const body = el('span', 'cmdk-body');
+          const line = el('span', 'cmdk-line');
+          const title = el('span', 'cmdk-title');
+          title.append(highlight(it.label, terms));
+          line.append(title);
+          if (it.meta) line.append(el('span', 'cmdk-meta', it.meta));
+          body.append(line);
+          if (it.detail) {
+            const d = el('span', 'cmdk-detail');
+            d.append(highlight(it.detail, terms));
+            body.append(d);
+          }
+          row.append(body);
+          row.addEventListener('mousemove', () => { if (active !== i) setActive(i, false); });
+          row.addEventListener('click', (e) => {
+            // ⌘/Ctrl/Shift/middle click on a link: let the browser open it in a new tab or window
+            if (it.href && (e.metaKey || e.ctrlKey || e.shiftKey)) return;
+            e.preventDefault();
+            activate(it);
+          });
+          const li = el('li');
+          li.setAttribute('role', 'presentation');
+          li.append(row);
+          ul.append(li);
+        }
+        if (!g.items.length && g.note) {
+          const li = el('li', 'cmdk-note', g.note);
+          li.setAttribute('role', 'presentation');
+          ul.append(li);
+        }
+        wrap.append(label, ul);
+        list.append(wrap);
+      });
+      if (terms.length && !items.length && posts) {
+        const li = el('li', 'cmdk-note', `Nothing matches “${query.trim()}”.`);
+        li.setAttribute('role', 'presentation');
+        list.append(li);
+      }
+      status.textContent = terms.length ? `${items.length || 'No'} result${items.length === 1 ? '' : 's'}` : '';
+      setActive(active, true);
+    }
+
+    function setActive(i: number, scroll: boolean) {
+      active = i;
+      list.querySelectorAll('[role="option"]').forEach((o, idx) => o.setAttribute('aria-selected', String(idx === i)));
+      const cur = document.getElementById(`cmdk-o${i}`);
+      if (cur) {
+        input.setAttribute('aria-activedescendant', cur.id);
+        if (scroll) cur.scrollIntoView({ block: 'nearest' });
+      } else input.removeAttribute('aria-activedescendant');
+    }
+
+    function activate(it: Item, newTab = false) {
+      if (it.run) {
+        if (it.run()) render();
+        else close();
+        return;
+      }
+      if (!it.href) return;
+      const url = new URL(it.href, location.href);
+      if (newTab) { window.open(url, '_blank', 'noopener'); return; }
+      if (url.pathname === location.pathname && url.search === location.search) { close(); return; }
+      // Replace the history entry the bar added, so Back from the new page returns here, not to the open bar
+      navigating = true;
+      const replace = history.state?.cmdk === true;
+      dialog.close();
+      if (replace) location.replace(url);
+      else location.assign(url);
+    }
+
+    const fitToViewport = () => {
+      if (window.visualViewport) dialog.style.setProperty('--cmdk-vh', `${window.visualViewport.height}px`);
+    };
+
+    function open() {
+      if (dialog.open) return;
+      input.value = '';
+      active = 0;
+      copied = false;
+      navigating = false;
+      fitToViewport();
+      dialog.showModal();
+      // Back (button or gesture) closes the bar instead of leaving the page
+      history.pushState({ ...(history.state ?? {}), cmdk: true }, '');
+      render();
+      input.focus();
+      load();
+    }
+
+    function close() {
+      if (dialog.open) dialog.close();
+    }
+
+    dialog.addEventListener('close', () => {
+      if (!navigating && history.state?.cmdk === true) history.back();
+    });
+    window.addEventListener('popstate', () => {
+      if (dialog.open && history.state?.cmdk !== true) dialog.close();
+    });
+    // Click on the dimmed backdrop closes (the panel fills the whole dialog box)
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
+    document.getElementById('cmdkCancel')?.addEventListener('click', close);
+    window.visualViewport?.addEventListener('resize', () => { if (dialog.open) fitToViewport(); });
+
+    input.addEventListener('input', () => { active = 0; render(); });
+    input.addEventListener('keydown', (e) => {
+      if (e.isComposing) return; // typing with an input method (e.g. Thai): Enter confirms the text
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (items.length) setActive((active + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length, true);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const it = items[active];
+        if (it) activate(it, Boolean(it.href) && (e.metaKey || e.ctrlKey));
+      }
+    });
+
+    const typing = (t: EventTarget | null) =>
+      t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (dialog.open) close();
+        else open();
+      } else if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !dialog.open && !typing(e.target)) {
+        e.preventDefault();
+        open();
+      }
+    });
+
+    // Buttons and links that open the bar. They point at /posts/ for visitors without JavaScript.
+    for (const trigger of document.querySelectorAll<HTMLElement>('[data-cmdk-open]')) {
+      trigger.addEventListener('click', (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        open();
+      });
+      // Start downloading the search data as soon as someone is about to open the bar
+      trigger.addEventListener('pointerenter', () => void load(), { once: true });
+      trigger.addEventListener('focus', () => void load(), { once: true });
+    }
+
+    // Show the right shortcut: ⌘K on Apple devices, Ctrl K elsewhere
+    const apple = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    for (const k of document.querySelectorAll('[data-cmdk-key]')) k.textContent = apple ? '⌘K' : 'Ctrl K';
+  }
+</script>

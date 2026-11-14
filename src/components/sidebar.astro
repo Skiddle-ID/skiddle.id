@@ -38,19 +38,18 @@ const isActive = (href: string) => {
     ))}
   </ul>
 
-  <form action="/posts/" method="get" role="search" class="mt-4">
-    <label class="sr-only" for="siteSearch">Search posts</label>
-    <div class="relative">
-      <input
-        id="siteSearch"
-        type="search"
-        name="q"
-        placeholder="search posts"
-        class="h-8 w-full bg-transparent border rounded-md pl-2 pr-7 text-sm placeholder:text-[var(--color-muted)] focus:outline-none focus:border-[var(--color-primary)]"
-      />
-      <Icon name="search" size={14} class="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-muted)] pointer-events-none" />
-    </div>
-  </form>
+  <!-- Desktop: opens the command bar (components/command-bar.astro); without JavaScript it's a link to /posts/.
+       On mobile the search icon in the top bar does this instead. -->
+  <a
+    href="/posts/"
+    data-cmdk-open
+    aria-haspopup="dialog"
+    aria-keyshortcuts="Meta+K Control+K /"
+    class="hidden lg:flex items-center mt-3 py-1 px-2 -mx-2 rounded text-[var(--color-muted)] transition-colors hover:text-[var(--color-primary)]"
+  >
+    <span aria-hidden="true" class="opacity-0">&gt; </span>search
+    <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5">⌘K</kbd>
+  </a>
 
   <!-- Now playing (Last.fm) — stays hidden unless a track loads -->
   <a id="nowPlaying" href="https://www.last.fm/user/arcestia" target="_blank" rel="noopener noreferrer" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">

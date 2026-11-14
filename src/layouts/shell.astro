@@ -3,6 +3,7 @@ import BaseHead from '../components/base-head.astro';
 import Sidebar from '../components/sidebar.astro';
 import Footer from '../components/footer.astro';
 import Icon from '../components/icon.astro';
+import CommandBar from '../components/command-bar.astro';
 
 import '../style.css';
 
@@ -89,9 +90,15 @@ const jsonLd = {
       <a href="/" class="flex items-center gap-1.5 text-[var(--color-primary)]">
         <span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span>
       </a>
-      <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md hover:text-[var(--color-primary)]" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
-        <Icon name="menu" size={20} />
-      </button>
+      <div class="flex items-center gap-1">
+        <!-- Opens the command bar as a full-screen sheet; a link to /posts/ without JavaScript -->
+        <a href="/posts/" data-cmdk-open aria-haspopup="dialog" class="inline-flex items-center justify-center size-9 rounded-md hover:text-[var(--color-primary)]" aria-label="Search">
+          <Icon name="search" size={18} />
+        </a>
+        <button id="mobileMenuButton" type="button" class="inline-flex items-center justify-center size-9 rounded-md hover:text-[var(--color-primary)]" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+          <Icon name="menu" size={20} />
+        </button>
+      </div>
     </div>
 
     <Sidebar />
@@ -105,6 +112,8 @@ const jsonLd = {
       </main>
       <Footer />
     </div>
+
+    <CommandBar />
 
     <script>
       function setupMobileSidebar() {
