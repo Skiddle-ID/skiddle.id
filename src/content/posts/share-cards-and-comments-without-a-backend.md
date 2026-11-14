@@ -6,6 +6,7 @@ category: infra
 tags: [astro, bluesky, atproto, open-graph]
 series: "Rebuilding skiddle.id"
 order: 4
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2abbw6omt2o
 draft: false
 ---
 
