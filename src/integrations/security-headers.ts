@@ -5,14 +5,13 @@
  * hashed (SHA-256), so only those exact scripts (plus /_astro/*.js from this origin) can run.
  * Styles keep 'unsafe-inline' because Shiki code blocks and a few elements use style attributes.
  * Other sources match what the site loads today: images from any HTTPS host (avatars, post
- * images), Bluesky's public API for comments, and Cloudflare Web Analytics' endpoint.
+ * images), Bluesky's public API for comments, and Cloudflare Web Analytics.
  *
- * Cloudflare injects Zaraz and the Web Analytics beacon into browser HTML responses at the
- * edge and adds a 'nonce-…' to script-src for them, so their scripts run without hashes here.
- * Zaraz reports to /cdn-cgi/zaraz/* on this origin ('self'); the beacon reports to
- * cloudflareinsights.com, which connect-src must allow. Zaraz's Google Analytics tool also
- * makes a browser-side request to stats.g.doubleclick.net (Google signals / audiences),
- * allowed on purpose.
+ * Cloudflare injects the Web Analytics beacon into browser HTML responses at the edge (not
+ * into curl's, so test with a real browser). It loads from static.cloudflareinsights.com
+ * (script-src, with an integrity hash) and reports to cloudflareinsights.com (connect-src).
+ * Zaraz used to add a 'nonce-…' to script-src that covered the beacon too; with Zaraz and
+ * Google Analytics removed there is no nonce, so the beacon's host has to be listed here.
  */
 import type { AstroIntegration } from 'astro';
 import { createHash } from 'node:crypto';
@@ -47,11 +46,11 @@ export default function securityHeaders(): AstroIntegration {
         const directives = (scriptSrc: string) =>
           [
             "default-src 'self'",
-            `script-src 'self' ${scriptSrc}`,
+            `script-src 'self' https://static.cloudflareinsights.com ${scriptSrc}`,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
-            "connect-src 'self' https://public.api.bsky.app https://cloudflareinsights.com https://stats.g.doubleclick.net",
+            "connect-src 'self' https://public.api.bsky.app https://cloudflareinsights.com",
             "form-action 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
