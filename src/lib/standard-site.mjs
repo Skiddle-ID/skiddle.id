@@ -21,6 +21,32 @@ export const PUBLICATION_DESCRIPTION =
   'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.';
 
 /**
+ * Colours readers may use when showing the publication (`basicTheme`): the site's dark theme from
+ * src/style.css. accentForeground is text on accent-coloured buttons.
+ */
+export const PUBLICATION_COLORS = {
+  background: '#161616',
+  foreground: '#f2f4f8',
+  accent: '#82cfff',
+  accentForeground: '#161616',
+};
+
+/** PUBLICATION_COLORS as a site.standard.theme.basic object */
+export function basicTheme() {
+  /** @param {string} hex */
+  const rgb = (hex) => ({
+    $type: 'site.standard.theme.color#rgb',
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16),
+  });
+  return {
+    $type: 'site.standard.theme.basic',
+    ...Object.fromEntries(Object.entries(PUBLICATION_COLORS).map(([k, v]) => [k, rgb(v)])),
+  };
+}
+
+/**
  * The six posts with an `rkey:` already have a site.standard.document under that key, written by
  * pckt.blog for its "Skiddle Blog" publication (skiddle-blog.pckt.blog), which shows those posts
  * from these records.
