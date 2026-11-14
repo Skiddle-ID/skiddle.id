@@ -8,7 +8,7 @@
  * Run by .github/workflows/standard-site.yml after the Bluesky announcement (so a new post's
  * announcement can be linked as `bskyPostRef`), or by hand. Each run:
  *   1. waits until skiddle.id serves /.well-known/site.standard.publication with the right URI
- *   2. creates or updates the publication record (name, description, icon)
+ *   2. creates or updates the publication record (name, description, colours, icon)
  *   3. creates or updates a document for every published post that changed, after its page is live
  *      (title, path, description, dates, tags, plain text, share card, Bluesky announcement)
  *   4. deletes skiddle.id documents whose post is gone (drafted again or removed)
@@ -34,6 +34,7 @@ import {
   PUBLICATION_RKEY,
   PUBLICATION_URI,
   MOVE_PCKT_DOCUMENTS,
+  basicTheme,
   documentRkey,
 } from '../src/lib/standard-site.mjs';
 
@@ -66,9 +67,9 @@ async function main() {
   }
 
   // 1. The publication
-  const pub = { $type: PUB, url: SITE_URL, name: truncate(PUBLICATION_NAME, 128), description: truncate(PUBLICATION_DESCRIPTION, 300), preferences: { showInDiscover: true } };
+  const pub = { $type: PUB, url: SITE_URL, name: truncate(PUBLICATION_NAME, 128), description: truncate(PUBLICATION_DESCRIPTION, 300), basicTheme: basicTheme(), preferences: { showInDiscover: true } };
   const oldPub = await getRecord(pds, PUB, PUBLICATION_RKEY);
-  if (oldPub && same(oldPub, pub, ['url', 'name', 'description', 'preferences']) && oldPub.icon) {
+  if (oldPub && same(oldPub, pub, ['url', 'name', 'description', 'basicTheme', 'preferences']) && oldPub.icon) {
     counts.unchanged++;
     log(`publication: unchanged`);
   } else {

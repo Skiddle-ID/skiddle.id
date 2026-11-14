@@ -309,7 +309,9 @@
     function highlight(text: string, terms: string[]): Node {
       const frag = document.createDocumentFragment();
       if (!terms.length) { frag.append(text); return frag; }
-      const re = new RegExp(`(${terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+      // Words of one or two letters ("it", "a") only at the start of a word, so "it" doesn't light up "kitchen"
+      const pattern = (t: string) => (t.length < 3 ? '(?<![\\p{L}\\p{N}])' : '') + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(${terms.map(pattern).join('|')})`, 'giu');
       for (const part of text.split(re)) {
         if (!part) continue;
         if (terms.includes(part.toLowerCase())) {
@@ -429,9 +431,10 @@
       if (window.visualViewport) dialog.style.setProperty('--cmdk-vh', `${window.visualViewport.height}px`);
     };
 
-    function open() {
+    /** @param query start with this search (the 404 page passes the words from the missing URL) */
+    function open(query = '') {
       if (dialog.open) return;
-      input.value = '';
+      input.value = query;
       active = 0;
       copied = false;
       navigating = false;
@@ -486,11 +489,12 @@
     });
 
     // Buttons and links that open the bar. They point at /posts/ for visitors without JavaScript.
+    // data-cmdk-query="…" opens it with that search already typed.
     for (const trigger of document.querySelectorAll<HTMLElement>('[data-cmdk-open]')) {
       trigger.addEventListener('click', (e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey) return;
         e.preventDefault();
-        open();
+        open(trigger.dataset.cmdkQuery ?? '');
       });
       // Start downloading the search data as soon as someone is about to open the bar
       trigger.addEventListener('pointerenter', () => void load(), { once: true });

@@ -1,6 +1,7 @@
 ---
 import FormattedDate from './formatted-date.astro';
 import { postUrl, readingMinutes, type Post } from '~/lib/posts';
+import { plainText } from '~/lib/plain-text.mjs';
 
 interface Props {
   posts: Post[];
@@ -12,10 +13,11 @@ interface Props {
 const { posts, descriptions = false, searchable = false } = Astro.props;
 ---
 <ul class="flex flex-col">
+  {/* data-search: plain text (no Markdown or HTML), so a post that mentions <script> can't look like a script tag to the CSP builder */}
   {posts.map((p) => (
     <li
       class="post-item py-3 border-b border-dashed last:border-b-0"
-      data-search={searchable ? [p.data.title, p.data.description ?? '', p.data.tags.join(' '), p.data.category, p.body ?? ''].join(' ').toLowerCase() : undefined}
+      data-search={searchable ? [p.data.title, p.data.description ?? '', p.data.tags.join(' '), p.data.category, plainText(p.body ?? '')].join(' ').toLowerCase() : undefined}
     >
       <div class="flex flex-col sm:flex-row sm:items-baseline gap-x-4 gap-y-0.5">
         <span class="text-xs text-[var(--color-muted)] shrink-0 sm:w-28 tabular-nums"><FormattedDate date={p.data.pubDate} /></span>
