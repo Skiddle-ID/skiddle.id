@@ -17,8 +17,10 @@ autolabeler:
   - label: "fix"
     title: ["/^fix(\\(.+\\))?!?:/i"]
     branch: ["/^fix\\//i"]
+  # Not Dependabot's "chore(deps): …" / "chore(deps-dev): …": those have the "dependencies"
+  # label already, and a second label would list them under both Changed and Dependencies
   - label: "chore"
-    title: ["/^chore(\\(.+\\))?!?:/i"]
+    title: ["/^chore(?!\\((deps|deps-dev)\\))(\\(.+\\))?!?:/i"]
     branch: ["/^chore\\//i"]
   - label: "docs"
     title: ["/^docs(\\(.+\\))?!?:/i"]
