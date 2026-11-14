@@ -1,13 +1,12 @@
 ---
 title: "Fast and Accessible"
 description: "What a Lighthouse audit found on my site, and how the home page went from 274 KB to 82 KB."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-14T09:00:00.000Z
+pubDate: 2026-11-14T05:27:00.000Z
 category: infra
 tags: [performance, accessibility, lighthouse, css]
 series: "Rebuilding skiddle.id"
 order: 6
-draft: true
+draft: false
 ---
 
 ## Measuring instead of guessing
