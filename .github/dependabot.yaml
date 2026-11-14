@@ -1,7 +1,18 @@
 version: 2
-enable-beta-ecosystems: true
 updates:
-  - package-ecosystem: bun
+  # npm packages. (This used to say `bun`, but the site moved to npm and bun.lock is gone,
+  # so Dependabot had nothing to update.)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # One PR for all minor and patch updates; each major update still gets its own PR
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # The actions used in .github/workflows (checkout, setup-node, release-drafter, ...)
+  - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly

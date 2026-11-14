@@ -17,11 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'Skiddle-ID/skiddle.id'
     steps:
-      - uses: release-drafter/release-drafter@v6
+      # Pushes to v3: update the draft release. Both steps read .github/release-drafter.yml.
+      - if: github.event_name != 'pull_request'
+        uses: release-drafter/release-drafter@v7
         with:
           config-name: release-drafter.yml
-          # PRs: only label them (a draft can't target a PR's merge ref). Pushes to v3: update the draft.
-          disable-releaser: ${{ github.event_name == 'pull_request' }}
-          disable-autolabeler: ${{ github.event_name != 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # PRs: only label them from their title or branch (a draft can't target a PR's merge ref)
+      - if: github.event_name == 'pull_request'
+        uses: release-drafter/release-drafter/autolabeler@v7
+        with:
+          config-name: release-drafter.yml
