@@ -51,8 +51,16 @@ export default defineConfig({
   session: false,
 
   adapter: cloudflare({
-    imageService: 'cloudflare',
+    // Optimize images at build time with sharp (prerendered pages): a post's local image, e.g.
+    // ![alt](../../assets/posts/photo.jpg), becomes a small WebP with its width and height set.
+    // Not 'cloudflare': that needs Cloudflare Images resizing, which isn't enabled on this account.
+    imageService: 'compile',
   }),
+  // Images in posts get several widths (srcset), so phones download a small one.
+  // 'constrained': never wider than the original, and shrinks to fit the 70ch column.
+  image: {
+    layout: 'constrained',
+  },
   // Markdown and MDX are rendered by Sätteri (Astro 7's default processor),
   // which has GitHub-Flavored Markdown and smart punctuation built in.
   markdown: {

@@ -11,7 +11,7 @@ draft: false
 
 This is the first part of a series where I'll be sharing my journey toward earning a **Private Pilot License (PPL)**. Unlike many who dreamed of being pilots since childhood, my story is a little different. Aviation always fascinated me, but for a long time I actually **hated heights, and flying** along with them.
 
-![Illustration of flight together](https://cdn.skiddle.id/images/sharex/2025/09/Our-Flight.png)
+![Illustration of a couple looking out of an airplane window at a sunset above the clouds](../../assets/posts/our-flight.jpg)
 
 My journey with airplanes began as a passenger. Over the years, I've flown on everything from short-haul workhorses like the **Airbus A320** and **Boeing 737**, to modern upgrades like the **A320neo**, and even wide-bodies such as the **A330** and the double-deck **A380**. One aircraft still on my wishlist, though, is the **Boeing 777**.
 
