@@ -74,7 +74,7 @@ const projects: Project[] = [
     status: 'completed',
     category: 'service',
     featured: true,
-    impact: 'A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link, including the DomainChecker tool.',
+    impact: 'A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.',
     highlights: [
       'Built with Hono for optimal performance',
       'Deployed on Cloudflare Workers for global edge distribution',
@@ -86,7 +86,7 @@ const projects: Project[] = [
     id: 'klasemate',
     name: 'Klasemate',
     description: 'Klasemate Open Source discussion board (Forum) Software.',
-    github: 'https://github.com/Skiddle-ID/klasemate',
+    github: 'https://github.com/skiddle-archives/klasemate',
     tags: ['PHP', 'Native', 'Self-Learning', 'Open-Source'],
     tech: {
       languages: ['php', 'mysql'],
@@ -166,8 +166,7 @@ const projects: Project[] = [
     id: 'domainchecker',
     name: 'DomainChecker',
     description: 'A Fast Domain Block Checker /w Hono & Turso deployed on Cloudflare Workers.',
-    homepage: 'https://skiddle.link/checkdomain',
-    github: 'https://github.com/Skiddle-ID/domainchecker',
+    github: 'https://github.com/skiddle-archives/domainchecker',
     tags: ['domain-checker', 'hono', 'turso', 'cloudflare-workers'],
     tech: {
       languages: ['typescript'],
@@ -176,8 +175,10 @@ const projects: Project[] = [
       databases: ['turso'],
     },
     year: 2024,
-    status: 'in-services',
+    status: 'archived',
     category: 'tool',
+    // The web tool (nawalacheck.skiddle.id) closed for good on 31 December 2025, as the post announced
+    writeup: '/posts/penutupan-akses-publik-api-checknawala/',
     highlights: [
       'Web application for checking domain status',
       'Written in TypeScript',
