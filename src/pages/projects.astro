@@ -127,6 +127,7 @@ const stats = [
                   </span>
                   <span class="block sm:inline text-[var(--color-muted)] mt-0.5 sm:mt-0">
                     {p.description}
+                    {p.writeup && <a href={p.writeup} class="link ml-2 text-xs">story</a>}
                     {p.github && p.homepage && (
                       <a href={p.github} class="link ml-2 text-xs" target="_blank" rel="noopener noreferrer">source ↗</a>
                     )}
