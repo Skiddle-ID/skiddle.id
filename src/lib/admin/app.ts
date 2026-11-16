@@ -138,7 +138,8 @@ function renderPreview() {
   el('previewDot').style.background = toneColour(info.tone);
   el('previewText').textContent = `${info.label}: ${v.text || '…'} · ${v.location}, ${time}`;
   const device = el<HTMLButtonElement>('useDeviceZone');
-  device.hidden = !DEVICE_ZONE || v.timeZone === DEVICE_ZONE;
+  // Only when the device's clock differs (Asia/Phnom_Penh and Asia/Bangkok are both UTC+7)
+  device.hidden = !DEVICE_ZONE || !validTimeZone(v.timeZone) || zoneOffset(v.timeZone) === zoneOffset(DEVICE_ZONE);
   device.textContent = `Use this device’s time zone (${DEVICE_ZONE})`;
 }
 
