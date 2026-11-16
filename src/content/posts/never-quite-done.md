@@ -70,6 +70,6 @@ It's the same lesson as part 5, with a twist. Cloudflare only adds the analytics
 
 The site still isn't finished, and it never will be. But this is the last part of Rebuilding skiddle.id.
 
-What comes next is bigger: v4, a redesign. The first pieces are already live, like the new font for post text and the series box on this page. I'll write about them in a new series, **Lab Notes**. Each post will be one experiment: what I tried, what happened and what I kept. The site comes first, but it won't be the only experiment.
+What comes next is bigger: v4, a redesign. The first pieces are already live, like the new font for post text and the series box on this page. From now on, I'll write about changes like these in a new weekly series, **Lab Notes**: one or two posts every week about what's going on at Skiddle Labs. This site is just the start.
 
 If you spot something on the site that could be better, tell me. The comments are right below. 🛠️
