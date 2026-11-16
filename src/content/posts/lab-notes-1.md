@@ -1,12 +1,12 @@
 ---
 title: "Lab Notes #1: Where Am I in This Series?"
 description: "A new weekly series about Skiddle Labs. First up: series on this site now show where you are, what's next and what's planned."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-16T09:00:00.000Z
+pubDate: 2026-11-17T02:00:00.000Z
 category: infra
 tags: [astro, design]
 series: "Lab Notes"
 order: 1
+publishAt: 2026-11-17T09:00:00+07:00
 draft: true
 ---
 
