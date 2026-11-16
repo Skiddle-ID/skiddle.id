@@ -69,9 +69,33 @@ Publishing a release only creates a tag, and tags don't trigger Workers Builds. 
 - re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
 - `git pull --tags && npm run build && npm run deploy` on a machine logged in with `npx wrangler login`.
 
-## Last.fm card
+## Embeds
 
-`/lastfm.svg` is a "now playing" card in the site's terminal style, made for profile READMEs and other sites:
+Cards and badges in the site's terminal style, for a GitHub profile README, other sites or an email signature. The SVG cards take `?theme=auto` (default; follows the viewer's light / dark setting), `dark` or `light`, and `?accent=blue` (default), `teal`, `purple`, `pink` or `green`. They never show a broken image, and embeds revalidate on every view (no-cache plus an ETag). The shared drawing code is in `src/lib/embed-card.ts`.
+
+### Latest post
+
+`/latest.svg` shows the newest post: date, read time, series, title and description, with "new" for a week. It's drawn from `/latest.json`, which is built with the site, so it changes with each deploy.
+
+```html
+<a href="https://skiddle.id/posts/">
+  <img src="https://skiddle.id/latest.svg" alt="Latest post on skiddle.id" width="540">
+</a>
+```
+
+### Status badge
+
+`/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. Change the status in `src/data/status.ts` (`available: false` turns the dot grey).
+
+```html
+<a href="https://skiddle.id/services/">
+  <img src="https://skiddle.id/status.svg" alt="Open to consulting" height="28">
+</a>
+```
+
+### Last.fm card
+
+`/lastfm.svg` is a "now playing" card:
 
 ```html
 <a href="https://www.last.fm/user/arcestia">
@@ -79,10 +103,15 @@ Publishing a release only creates a tag, and tags don't trigger Workers Builds. 
 </a>
 ```
 
-- `?theme=auto` (default; follows the viewer's light / dark setting), `dark` or `light`
-- `?accent=blue` (default), `teal`, `purple`, `pink` or `green`
-
 It always shows `LASTFM_USERNAME`, embeds the album art so it works inside `<img>`, and caches Last.fm for 30 seconds (artwork for 7 days). If Last.fm is down it shows "Nothing playing right now" instead of a broken image. The code is in `src/lib/lastfm.ts` (data) and `src/lib/lastfm-card.ts` (drawing).
+
+### 88×31 button
+
+The classic small web badge, for other sites to link here. It's rendered at build time with the site's font (`src/lib/share-card.ts`), at 1× and 2×:
+
+```html
+<a href="https://skiddle.id/"><img src="https://skiddle.id/88x31.png" srcset="https://skiddle.id/88x31@2x.png 2x" width="88" height="31" alt="skiddle.id"></a>
+```
 
 ## License
 

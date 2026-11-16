@@ -1,19 +1,15 @@
 /**
  * SVG renderer for the Last.fm "now playing" card served at /lastfm.svg.
  *
- * The card is mostly shown through an <img> tag (GitHub profile README and
- * other profile pages). An SVG inside <img> can't load anything external,
- * so album art comes in as a data: URI and the text uses the system
- * monospace fonts. Colours are the site's IBM Carbon tokens (src/style.css).
- *
- * This module has no runtime imports, so it can be rendered and tested
- * outside the Worker.
+ * Album art comes in as a data: URI, because an SVG inside <img> can't load
+ * anything external. Themes, colours and text helpers are shared with the
+ * other cards in ./embed-card.ts.
  */
 
-export const THEMES = ['auto', 'dark', 'light'] as const;
-export const ACCENTS = ['blue', 'teal', 'purple', 'pink', 'green'] as const;
-export type CardTheme = (typeof THEMES)[number];
-export type CardAccent = (typeof ACCENTS)[number];
+import { CHAR_EM, FONT, cardStyle, clean, colourVars, esc, fit } from './embed-card';
+
+export { ACCENTS, THEMES, fit, type CardAccent, type CardTheme } from './embed-card';
+import type { CardAccent, CardTheme } from './embed-card';
 
 export interface CardTrack {
   name: string;
@@ -33,17 +29,6 @@ export interface CardOptions {
   now?: number;
 }
 
-const PALETTE = {
-  dark: {
-    bg: '#161616', alt: '#1f1f1f', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', ok: '#42be65',
-    accent: { blue: '#82cfff', teal: '#3ddbd9', purple: '#be95ff', pink: '#ff7eb6', green: '#42be65' },
-  },
-  light: {
-    bg: '#ffffff', alt: '#f4f4f4', line: '#e0e0e0', fg: '#161616', mute: '#525252', ok: '#198038',
-    accent: { blue: '#0f62fe', teal: '#007d79', purple: '#8a3ffc', pink: '#d02670', green: '#198038' },
-  },
-} as const;
-
 // Layout (px)
 const W = 540;
 const H = 130;
@@ -52,17 +37,12 @@ const ART = 60;
 const ART_Y = 54;
 const TEXT_X = PAD + ART + 14;
 const TEXT_W = W - PAD - TEXT_X;
-// Monospace glyphs are ~0.6em wide; round up a little for Consolas/Menlo differences
-const CHAR_EM = 0.61;
 const TITLE_PX = 15;
 const SUB_PX = 12.5;
 
-const FONT = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'DejaVu Sans Mono', monospace";
-
 /** Renders the card. `track` null means nothing to show (no scrobbles yet, or Last.fm unavailable). */
 export function renderCard(track: CardTrack | null, options: CardOptions = {}): string {
-  const theme = THEMES.includes(options.theme as CardTheme) ? (options.theme as CardTheme) : 'auto';
-  const accent = ACCENTS.includes(options.accent as CardAccent) ? (options.accent as CardAccent) : 'blue';
+  const { theme, accent } = cardStyle(options);
   const now = options.now ?? Date.now() / 1000;
 
   const name = clean(track?.name);
@@ -82,14 +62,7 @@ export function renderCard(track: CardTrack | null, options: CardOptions = {}): 
     ? 'Last.fm: nothing playing right now'
     : `${track.isCurrent ? 'Now playing' : 'Last played'} on Last.fm: ${name} by ${artist}${when ? ` (${when})` : ''}`;
 
-  const vars = (mode: 'dark' | 'light') => {
-    const p = PALETTE[mode];
-    return `--bg:${p.bg};--alt:${p.alt};--line:${p.line};--fg:${p.fg};--mute:${p.mute};--ok:${p.ok};--acc:${p.accent[accent]}`;
-  };
-  const colours =
-    theme === 'auto'
-      ? `svg{${vars('dark')}}@media (prefers-color-scheme:light){svg{${vars('light')}}}`
-      : `svg{${vars(theme)}}`;
+  const colours = colourVars(theme, accent);
 
   const statusY = 67;
   let status: string;
@@ -145,43 +118,4 @@ export function ago(playedAt: number, now: number): string {
   if (d === 1) return 'yesterday';
   if (d < 30) return `${d} days ago`;
   return new Date(playedAt * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-}
-
-const segmenter =
-  typeof Intl !== 'undefined' && 'Segmenter' in Intl ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
-const graphemes = (s: string): string[] => (segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s));
-
-// Approximate width of one grapheme in monospace columns (~0.6em each), from browser measurements:
-// Latin/Cyrillic 1; CJK, Hangul and emoji ~1.4-1.7 (counted as 2); Thai ~1.05, and the other
-// scripts that fall back to proportional fonts vary by platform (counted as 1.2)
-const WIDE =
-  /[ᄀ-ᅟ⺀-〾ぁ-㏿㐀-䶿一-鿿ꀀ-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{1F000}-\u{1FAFF}\u{20000}-\u{3FFFD}]|\p{Extended_Pictographic}/u;
-const PROPORTIONAL = /[֐-ࣿऀ-෿฀-໿ༀ-႟ក-៿]/u;
-const columns = (g: string) => (WIDE.test(g) ? 2 : PROPORTIONAL.test(g) ? 1.2 : 1);
-
-/** Shortens text to roughly `max` monospace columns, ending with an ellipsis */
-export function fit(text: string, max: number): string {
-  const parts = graphemes(text);
-  if (parts.reduce((n, g) => n + columns(g), 0) <= max) return text;
-  let out = '';
-  let used = 0;
-  for (const g of parts) {
-    const c = columns(g);
-    if (used + c > max - 1) break;
-    out += g;
-    used += c;
-  }
-  return `${out.trimEnd()}…`;
-}
-
-/** Collapses whitespace and drops characters that aren't allowed in XML */
-function clean(value: string | undefined): string {
-  let s = String(value ?? '');
-  if (typeof s.toWellFormed === 'function') s = s.toWellFormed();
-  // eslint-disable-next-line no-control-regex -- stripping control characters is the point
-  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/g, '').replace(/\s+/g, ' ').trim();
-}
-
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
