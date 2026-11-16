@@ -97,6 +97,11 @@ const jsonLd = {
   <!-- Wide screens: article plus a sticky "On this page" column, centred together -->
   <div class="w-full xl:flex xl:justify-center xl:gap-14">
   <article class="max-w-[70ch] w-full min-w-0 mx-auto xl:mx-0" lang={entry.data.lang}>
+    {entry.data.draft && (
+      <p class="card border-[var(--color-warn)] text-[var(--color-warn)] px-4 py-2.5 mb-6 text-sm" role="note" lang="en">
+        Draft: only on this preview, not on skiddle.id.
+      </p>
+    )}
     <header class="mb-8">
       <p class="text-xs text-[var(--color-muted)] mb-3">
         <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>

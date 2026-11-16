@@ -3,6 +3,8 @@
 declare var __GIT_HASH__: string;
 declare var __GIT_TAG__: string;
 declare var __GIT_DESCRIBE__: string;
+/** A Workers Builds preview of a non-production branch: drafts are shown and pages are noindex */
+declare var __PREVIEW__: boolean;
 
 // Cloudflare Worker environment bindings and variables
 // Loosely typed for portability across environments.

@@ -23,6 +23,7 @@ const { posts, descriptions = false, searchable = false } = Astro.props;
         <span class="text-xs text-[var(--color-muted)] shrink-0 sm:w-28 tabular-nums"><FormattedDate date={p.data.pubDate} /></span>
         <div class="min-w-0">
           <a href={postUrl(p)} class="hover:text-[var(--color-primary)] hover:underline underline-offset-4" lang={p.data.lang}>{p.data.title}</a>
+          {p.data.draft && <span class="ml-2 text-xs text-[var(--color-warn)]" lang="en">draft</span>}
           {descriptions && p.data.description && (
             <p class="text-sm text-[var(--color-muted)] mt-0.5">{p.data.description}</p>
           )}

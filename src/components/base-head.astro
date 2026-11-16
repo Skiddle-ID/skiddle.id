@@ -33,7 +33,8 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 {type === 'article' && <link rel="preload" href={geist400} as="font" type="font/woff2" crossorigin />}
 {type === 'article' && <link rel="preload" href={geist600} as="font" type="font/woff2" crossorigin />}
 <link rel="canonical" href={canonical} />
-<meta name="robots" content="index,follow" />
+<!-- Preview builds (pull requests, which can show drafts) stay out of search engines -->
+<meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : 'index,follow'} />
 <meta name="author" content="Laurensius Jeffrey (Skiddle)" />
 <!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
 <meta name="theme-color" content="#161616" id="themeColor" />

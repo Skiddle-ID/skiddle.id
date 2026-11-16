@@ -18,6 +18,7 @@ export default [
         __GIT_HASH__: 'readonly',
         __GIT_TAG__: 'readonly',
         __GIT_DESCRIBE__: 'readonly',
+        __PREVIEW__: 'readonly',
       },
     },
     rules: {
