@@ -110,7 +110,7 @@ It always shows `LASTFM_USERNAME`, embeds the album art so it works inside `<img
 The classic small web badge, for other sites to link here. It's rendered at build time with the site's font (`src/lib/share-card.ts`), at 1× and 2×:
 
 ```html
-<a href="https://skiddle.id/"><img src="https://skiddle.id/88x31.png" srcset="https://skiddle.id/88x31@2x.png 2x" width="88" height="31" alt="skiddle.id"></a>
+<a href="https://skiddle.id/"><img src="https://skiddle.id/88x31.png" srcset="https://skiddle.id/88x31-2x.png 2x" width="88" height="31" alt="skiddle.id"></a>
 ```
 
 ## License
