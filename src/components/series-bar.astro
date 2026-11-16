@@ -1,0 +1,15 @@
+---
+/* A series' progress: one segment per part, filled for the parts that are out */
+import type { Series } from '~/lib/posts';
+
+interface Props {
+  series: Series;
+  class?: string;
+}
+const { series, class: className = '' } = Astro.props;
+---
+<span class:list={['flex gap-[3px]', className]} aria-hidden="true">
+  {series.entries.map((e) => (
+    <span class:list={['h-1 flex-1 rounded-sm', e.post ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]']}></span>
+  ))}
+</span>

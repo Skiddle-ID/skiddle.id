@@ -1,0 +1,35 @@
+---
+/* A series' parts in reading order: published ones link to the post, planned ones show as "coming" */
+import { postUrl, type Series } from '~/lib/posts';
+
+interface Props {
+  series: Series;
+  /** The post being read, marked as "you're here" */
+  currentId?: string;
+  /** Show the "you're here" and "coming" labels (off in the narrow side column) */
+  labels?: boolean;
+  class?: string;
+}
+const { series, currentId, labels = true, class: className = '' } = Astro.props;
+---
+<ol class:list={['flex flex-col gap-1', className]}>
+  {series.entries.map((e, i) => {
+    const current = e.post?.id === currentId;
+    return (
+      <li class="flex gap-2.5 leading-snug">
+        <span class:list={['w-5 shrink-0 text-right tabular-nums', current ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted)]']} aria-hidden="true">{current ? '>' : `${i + 1}.`}</span>
+        {e.post ? (
+          current ? (
+            <span class="text-[var(--color-primary)]" aria-current="page" lang={e.post.data.lang}>{e.title}</span>
+          ) : (
+            <a href={postUrl(e.post)} class="hover:text-[var(--color-primary)] hover:underline underline-offset-4" lang={e.post.data.lang}>{e.title}</a>
+          )
+        ) : (
+          <span class="text-[var(--color-muted)]">{e.title}</span>
+        )}
+        {labels && current && <span class="ml-auto pl-2 text-xs text-[var(--color-muted)] whitespace-nowrap">you're here</span>}
+        {!e.post && (labels ? <span class="ml-auto pl-2 text-xs text-[var(--color-muted)] whitespace-nowrap">coming</span> : <span class="sr-only">(coming)</span>)}
+      </li>
+    );
+  })}
+</ol>
