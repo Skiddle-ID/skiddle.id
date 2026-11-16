@@ -6,6 +6,7 @@ category: infra
 tags: [astro, cloudflare, csp, open-graph]
 series: "Rebuilding skiddle.id"
 order: 7
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2g7ktlhnh27
 draft: false
 ---
 
