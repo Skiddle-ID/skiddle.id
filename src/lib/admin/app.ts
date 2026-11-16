@@ -323,9 +323,15 @@ async function main() {
   }
   registerServiceWorker();
 
+  let session: OAuthSession | undefined;
+  let ready = false;
   const options = {
     handleResolver: HANDLE_RESOLVER,
-    onSessionDeleted: () => {
+    // Only for the session in use, once the app has started: while a sign-in finishes, the client
+    // clears any older session for the account and reports that as a deletion too
+    onSessionDeleted: (sub: string) => {
+      if (!ready || !session || sub !== session.sub) return;
+      session = undefined;
       show('signedOut');
       notice('You were signed out (the sign-in expired or was revoked). Sign in again to keep going.');
     },
@@ -334,7 +340,6 @@ async function main() {
     ? await BrowserOAuthClient.load({ clientId: loopbackClientId(location.port), ...options })
     : new BrowserOAuthClient({ clientMetadata: clientMetadata(location.origin), ...options });
 
-  let session: OAuthSession | undefined;
   try {
     session = (await client.init())?.session;
   } catch (err) {
@@ -359,17 +364,19 @@ async function main() {
   });
 
   const signOut = async () => {
+    const current = session;
+    session = undefined;
     try {
-      await session?.signOut();
+      await current?.signOut();
     } catch {
       // Already gone on the server; forget it here anyway
     }
-    session = undefined;
     location.reload();
   };
   el('signOut').addEventListener('click', signOut);
   for (const b of document.querySelectorAll('[data-sign-out]')) b.addEventListener('click', signOut);
 
+  ready = true;
   if (!session) return show('signedOut');
   if (session.sub !== DID) {
     el('wrongDid').textContent = session.sub;
