@@ -11,6 +11,7 @@ function discoverStaticRoutes(): string[] {
     .filter((p) =>
       !p.includes('/_') &&
       !p.includes('/api/') &&
+      !p.includes('/admin/') &&
       !p.endsWith('/sitemap.xml.ts') &&
       !p.endsWith('/rss.xml.ts') &&
       !p.endsWith('/robots.txt') &&

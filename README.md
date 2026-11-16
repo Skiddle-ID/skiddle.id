@@ -62,6 +62,17 @@ npm run build   # production build into dist/
 npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/workflows/ci.yml)
 ```
 
+### Admin app
+
+`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status, publish its lexicon, and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
+
+- It runs entirely in the browser (`src/lib/admin/app.ts`, with `@atproto/oauth-client-browser`). There's no server or database: the sign-in tokens stay on the device, and the app writes straight to the PDS.
+- It may only write `id.skiddle.status` and `com.atproto.lexicon.schema` records; Bluesky's sign-in page shows that. The list is `COLLECTIONS` in `src/lib/admin/oauth.ts`. Adding a collection there means signing in again.
+- Only @skiddle.blue can change the site: anyone else who signs in is told it's the wrong account, and couldn't write to Jeff's repo anyway.
+- `/oauth-client-metadata.json` is the app's OAuth client ID. It's built from the host, so the app works on skiddle.id, the v4 staging site and previews. With `npm run dev`, open `http://127.0.0.1:4321/admin/`: the app uses AT Protocol's local-development client there, and its sign-in lasts a day.
+- It has its own Content-Security-Policy, which also allows plc.directory, bsky.social and Bluesky's PDS hosts (`src/integrations/security-headers.ts`). After a move to another PDS, add its host there.
+- Kept out of search engines (noindex, robots.txt) and the sitemap.
+
 ### Deploying
 
 Merging into `v3` deploys automatically through [Cloudflare Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/). Settings for the `skiddle-id` Worker (Workers & Pages → skiddle-id → Settings → Build):
@@ -119,7 +130,7 @@ Cards and badges in the site's terminal style, for a GitHub profile README, othe
 
 `/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
 
-To set it, from a computer (with `BLUESKY_APP_PASSWORD` set):
+To set it, open [`/admin/`](#admin-app) and sign in with Bluesky. Or, from a computer (with `BLUESKY_APP_PASSWORD` set):
 
 ```bash
 npm run status -- --available --text "open to consulting"

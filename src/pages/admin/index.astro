@@ -1,0 +1,319 @@
+---
+/*
+  /admin/: the admin app. Jeff signs in with his Bluesky account (AT Protocol OAuth) and changes
+  the site's records in his own repo: today the status, and publishing its lexicon. All of it
+  runs in the browser (src/lib/admin/app.ts); there's no server or database behind it. Installs
+  as a PWA. Kept out of search engines and the sitemap.
+*/
+import Admin from '~/layouts/admin.astro';
+---
+
+<Admin title="Admin · Skiddle">
+  <div class="admin">
+    <header class="admin-bar">
+      <a href="/" class="admin-home"><span>skiddle@admin</span><span class="cursor-blink" aria-hidden="true"></span></a>
+      <div id="account" class="admin-account" hidden>
+        <span id="accountHandle" class="admin-muted"></span>
+        <button id="signOut" type="button" class="admin-btn admin-btn-ghost">Sign out</button>
+      </div>
+    </header>
+
+    <main id="main" class="admin-main">
+      <h1 class="sr-only">skiddle.id admin</h1>
+      <p id="loading" class="admin-muted" role="status">Loading…</p>
+      <p id="notice" class="admin-notice" role="alert" hidden></p>
+
+      <section id="signedOut" class="admin-card" aria-labelledby="signInTitle" hidden>
+        <h2 id="signInTitle">Sign in</h2>
+        <p>
+          Sign in with your Bluesky account, <strong>@skiddle.blue</strong>. On Bluesky's page you approve what this app may
+          change: your status and the lexicons you publish. Nothing else, not even posts.
+        </p>
+        <button id="signIn" type="button" class="admin-btn admin-btn-primary">Sign in with Bluesky</button>
+        <p class="admin-small">
+          You stay signed in on this device only. What the app saves are public records in your AT Protocol repo.
+        </p>
+      </section>
+
+      <section id="wrongAccount" class="admin-card" aria-labelledby="wrongTitle" hidden>
+        <h2 id="wrongTitle">Not this account</h2>
+        <p>You signed in as <code id="wrongDid"></code>. This admin only changes skiddle.id, which belongs to @skiddle.blue.</p>
+        <button type="button" class="admin-btn" data-sign-out>Sign out</button>
+      </section>
+
+      <div id="signedIn" class="admin-stack" hidden>
+        <section class="admin-card" aria-labelledby="statusTitle">
+          <h2 id="statusTitle">Status</h2>
+          <p class="admin-preview" aria-live="polite">
+            <span id="previewDot" class="admin-dot" aria-hidden="true"></span>
+            <span id="previewText"></span>
+          </p>
+          <form id="statusForm" class="admin-form" novalidate>
+            <fieldset class="admin-segment">
+              <legend>Availability</legend>
+              <label><input type="radio" name="available" value="yes" checked /> <span>Available</span></label>
+              <label><input type="radio" name="available" value="no" /> <span>Busy</span></label>
+            </fieldset>
+            <div class="admin-field">
+              <div class="admin-label-row">
+                <label for="statusText">What it says</label>
+                <span id="statusCount" class="admin-muted" aria-live="polite">0/64</span>
+              </div>
+              <input id="statusText" name="text" type="text" required maxlength="640" autocomplete="off" placeholder="open to consulting" aria-describedby="statusCount" />
+            </div>
+            <div class="admin-field">
+              <label for="statusLocation">Location</label>
+              <input id="statusLocation" name="location" type="text" maxlength="640" autocomplete="off" placeholder="Bangkok" />
+            </div>
+            <div class="admin-field">
+              <label for="statusTimeZone">Time zone</label>
+              <input id="statusTimeZone" name="timeZone" type="text" list="timeZones" autocomplete="off" spellcheck="false" placeholder="Asia/Bangkok" />
+              <datalist id="timeZones"></datalist>
+            </div>
+            <button id="statusSave" type="submit" class="admin-btn admin-btn-primary">Save status</button>
+            <p id="statusMessage" class="admin-message" role="status"></p>
+          </form>
+          <p id="statusUpdated" class="admin-small"></p>
+        </section>
+
+        <section class="admin-card" aria-labelledby="lexiconTitle">
+          <h2 id="lexiconTitle">Lexicon</h2>
+          <p>
+            <code>id.skiddle.status</code> describes the status record. Publishing it lets other apps look up and check the
+            record's shape.
+          </p>
+          <p id="lexiconState" class="admin-muted">Checking…</p>
+          <p id="lexiconDns" class="admin-small"></p>
+          <button id="lexiconPublish" type="button" class="admin-btn" hidden>Publish lexicon</button>
+          <p id="lexiconMessage" class="admin-message" role="status"></p>
+        </section>
+
+        <section class="admin-card" aria-labelledby="recordsTitle">
+          <h2 id="recordsTitle">Records</h2>
+          <p>What the site keeps in your repo. Read-only here for now: posts still come from git and sync on publish.</p>
+          <ul id="records" class="admin-records"><li class="admin-muted">Loading…</li></ul>
+        </section>
+      </div>
+    </main>
+
+    <noscript><p class="admin-card">The admin app needs JavaScript.</p></noscript>
+  </div>
+</Admin>
+
+<style is:global>
+  .admin {
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(3rem, env(safe-area-inset-bottom))
+      max(1rem, env(safe-area-inset-left));
+  }
+  .admin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .admin-home {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+  .admin-account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.875rem;
+  }
+  .admin-account[hidden],
+  .admin [hidden] {
+    display: none;
+  }
+  .admin-account > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .admin-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .admin-card {
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-bg-alt);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .admin-card h2 {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .admin-muted {
+    color: var(--color-muted);
+  }
+  .admin-small {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+  }
+  .admin-notice {
+    border: 1px solid var(--color-warn);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  .admin-message:empty {
+    display: none;
+  }
+  .admin-message[data-kind='error'] {
+    color: var(--color-err);
+  }
+  .admin-message[data-kind='ok'] {
+    color: var(--color-ok);
+  }
+  .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .admin-btn:hover {
+    border-color: var(--color-primary);
+  }
+  .admin-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .admin-btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-bg);
+  }
+  .admin-btn-ghost {
+    flex: none;
+    white-space: nowrap;
+    min-height: 2.25rem;
+    padding: 0.25rem 0.625rem;
+    font-weight: 400;
+  }
+  .admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .admin-label-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .admin-label-row [data-over] {
+    color: var(--color-err);
+  }
+  .admin input[type='text'] {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 1rem; /* 16px: iOS doesn't zoom into the field */
+  }
+  .admin input[type='text']:focus-visible,
+  .admin-btn:focus-visible,
+  .admin-segment label:has(input:focus-visible) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .admin-segment {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .admin-segment legend {
+    margin-bottom: 0.375rem;
+  }
+  .admin-segment label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    cursor: pointer;
+  }
+  .admin-segment label:has(input:checked) {
+    border-color: var(--color-primary);
+  }
+  .admin-segment input {
+    accent-color: var(--color-primary);
+  }
+  .admin-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 0.375rem;
+  }
+  .admin-dot {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 999px;
+    background: var(--color-ok);
+  }
+  .admin-dot[data-busy] {
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--color-muted);
+  }
+  .admin-records {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .admin-records li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .admin-records a {
+    color: var(--color-primary);
+    overflow-wrap: anywhere;
+  }
+  .admin code {
+    overflow-wrap: anywhere;
+  }
+</style>
+
+<script>
+  import '~/lib/admin/app';
+</script>

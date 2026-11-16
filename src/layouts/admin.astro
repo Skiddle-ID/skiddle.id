@@ -1,0 +1,61 @@
+---
+/**
+ * Layout for the admin app (/admin/): a small, mobile-first app, without the site's sidebar,
+ * footer or command bar. Installable as a PWA (public/admin/manifest.webmanifest). Never indexed.
+ */
+import geistMono400 from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
+import geistMono600 from '@fontsource/geist-mono/files/geist-mono-latin-600-normal.woff2?url';
+
+import '../style.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<html lang="en" data-theme="dark" data-accent="blue">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content="Manage skiddle.id from your Bluesky account." />
+    <!-- Same theme script as src/layouts/shell.astro (identical text, so the CSP hash is shared) -->
+    <script is:inline>
+      (function () {
+        const d = document.documentElement;
+        let t = null;
+        let a = null;
+        try {
+          t = localStorage.getItem('theme');
+          a = localStorage.getItem('accent');
+        } catch (e) {}
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        d.dataset.theme = t;
+        if (a) d.dataset.accent = a;
+      })();
+    </script>
+    <link rel="preload" href={geistMono400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={geistMono600} as="font" type="font/woff2" crossorigin />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#161616" id="themeColor" />
+    <script is:inline>
+      (function () {
+        const m = document.getElementById('themeColor');
+        if (m && document.documentElement.dataset.theme === 'light') m.setAttribute('content', '#ffffff');
+      })();
+    </script>
+    <link rel="manifest" href="/admin/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Skiddle admin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body class="antialiased font-mono tracking-normal leading-normal min-h-screen text-[15px]">
+    <slot />
+  </body>
+</html>

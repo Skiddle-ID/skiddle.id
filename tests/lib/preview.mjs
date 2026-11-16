@@ -32,6 +32,7 @@ export async function pagePaths() {
   const posts = await (await fetch(`${BASE}/posts/`)).text();
   for (const m of posts.matchAll(/href="(\/posts\/[a-z0-9-]+\/)"/g)) paths.add(m[1]);
   paths.add('/this-page-does-not-exist/');
+  paths.add('/admin/'); // not in the sitemap, but checked like any page (signed out)
   return [...paths].sort();
 }
 
