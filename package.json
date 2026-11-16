@@ -10,7 +10,8 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler dev",
     "typegen": "wrangler types",
-    "test:preview": "node --test --test-concurrency=1 \"tests/*.test.mjs\""
+    "test:preview": "node --test --test-concurrency=1 \"tests/*.test.mjs\"",
+    "status": "node scripts/status.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.8",

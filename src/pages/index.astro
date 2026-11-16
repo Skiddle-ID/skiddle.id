@@ -5,6 +5,7 @@ import SeriesBar from '../components/series-bar.astro';
 import { getPosts, groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import projects from '../data/projects';
 import services from '../data/services';
+import { status } from '../data/status';
 export const prerender = true;
 
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
@@ -39,6 +40,8 @@ const selected = selectedIds
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const testimonial = services.testimonials[0];
+// The status line starts from src/data/status.ts and updates from /api/status.json (the AT Protocol record)
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const h2 = 'font-semibold before-hash-2';
 ---
 
@@ -52,8 +55,8 @@ const h2 = 'font-semibold before-hash-2';
         <h1 id="intro" class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
         <p class="text-[var(--color-primary)]">Protocol engineer · Founder of Skiddle Labs · Bangkok</p>
         <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
-          <span class="size-2 rounded-full bg-[#42be65] shrink-0" aria-hidden="true"></span>
-          Open to consulting and interesting conversations
+          <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.available ? 'bg-[var(--color-ok)]' : 'bg-[var(--color-muted)]']} aria-hidden="true"></span>
+          <span id="statusText">{capitalise(status.label)}</span>
         </p>
       </div>
     </section>
@@ -182,3 +185,23 @@ const h2 = 'font-semibold before-hash-2';
     </p>
   </div>
 </Shell>
+
+<script>
+  // Keep the status line current from the id.skiddle.status record (see src/lib/at-status.ts)
+  (async () => {
+    const text = document.getElementById('statusText');
+    const dot = document.getElementById('statusDot');
+    if (!text || !dot) return;
+    try {
+      const res = await fetch('/api/status.json');
+      if (!res.ok) return;
+      const s = (await res.json()) as { available?: boolean; text?: string };
+      if (typeof s.text !== 'string' || !s.text) return;
+      text.textContent = s.text.charAt(0).toUpperCase() + s.text.slice(1);
+      dot.classList.toggle('bg-[var(--color-ok)]', s.available === true);
+      dot.classList.toggle('bg-[var(--color-muted)]', s.available !== true);
+    } catch {
+      // keep the status from the build
+    }
+  })();
+</script>

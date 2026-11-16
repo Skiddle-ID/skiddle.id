@@ -1,0 +1,67 @@
+name: Set status
+
+# Sets the status on skiddle.id from the GitHub app or website (Actions → Set status → Run workflow):
+# writes the id.skiddle.status record to Jeff's AT Protocol repo with scripts/status.mjs. The site
+# shows it within a minute. Until the v4 admin app exists, this is the way to update it from a phone.
+# GitHub only offers "Run workflow" for workflows on the default branch, so the button appears once
+# this file is on it.
+on:
+  workflow_dispatch:
+    inputs:
+      available:
+        description: 'Open to new work (green dot)'
+        type: boolean
+        default: true
+      text:
+        description: 'What the status says, e.g. "open to consulting" (up to 64 characters)'
+        type: string
+        required: true
+      location:
+        description: 'Where you are (empty: keep the current one)'
+        type: string
+        required: false
+      time_zone:
+        description: 'IANA time zone, e.g. Asia/Bangkok (empty: keep the current one)'
+        type: string
+        required: false
+      dry_run:
+        description: 'Dry run: show the record, write nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: set-status
+  cancel-in-progress: false
+
+jobs:
+  set:
+    if: github.repository == 'Skiddle-ID/skiddle.id'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Set the status
+        env:
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          BLUESKY_IDENTIFIER: skiddle.blue
+          AVAILABLE: ${{ inputs.available }}
+          TEXT: ${{ inputs.text }}
+          LOCATION: ${{ inputs.location }}
+          TIME_ZONE: ${{ inputs.time_zone }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(--text "$TEXT")
+          if [ "$AVAILABLE" = "true" ]; then args+=(--available); else args+=(--busy); fi
+          if [ -n "$LOCATION" ]; then args+=(--location "$LOCATION"); fi
+          if [ -n "$TIME_ZONE" ]; then args+=(--time-zone "$TIME_ZONE"); fi
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          node scripts/status.mjs "${args[@]}"
