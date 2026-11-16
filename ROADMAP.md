@@ -74,6 +74,23 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 - [ ] A Bluesky custom feed for Lab Notes
 - [ ] Flying logbook card, `/flying.svg`, together with /flying
 
+## The v4 branch
+
+v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while the redesign takes shape.
+
+- **Staging site:** every push to `v4` gets its own Cloudflare preview at `https://v4-skiddle-id.skiddle.workers.dev`. It shows drafts and isn't indexed, like any preview.
+- **v4 work:** branch from `v4` and open PRs into `v4`. They get the same checks as v3 PRs (lint, preview checks, Lighthouse).
+- **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
+- **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
+
+**Launch checklist,** when v4 is ready:
+
+- [ ] Merge `v3` into `v4` one last time
+- [ ] Cloudflare: make `v4` the production branch in the skiddle-id Worker's build settings
+- [ ] GitHub: make `v4` the default branch
+- [ ] Switch everything that names `v3` to `v4`: the workflows (`branches`, `ref`, `HEAD:v3`, `--ref v3`), the "Suggest an edit", history and license links (`blob/v3/…`, `commits/v3/…`), robots.txt, the README
+- [ ] Release v4.0, then keep `v3` as an archived major, like `v1` and `v2`
+
 ## AT Protocol backend (v4 to v6)
 
 **Goal:** the site's data lives as records in Jeff's own AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), and a small admin app updates all of it by signing in with the Bluesky account (AT Protocol OAuth). There's no database of our own. It keeps working after a move to another PDS, because the site always looks up the PDS from the DID (the Standard.site sync already does).

@@ -47,8 +47,8 @@ for (const file of files) {
   const o = frontmatter(old);
   const n = frontmatter(cur);
   const skip = (why) => console.log(`skip ${file}: ${why}`);
+  if (n.draft === true) { skip('still a draft'); continue; }
   if (o.draft === true) { skip('published in this push, not updated'); continue; }
-  if (n.draft === true) { skip('a draft again'); continue; }
   if (o.updatedDate !== n.updatedDate) { skip('updatedDate set in this push'); continue; }
   if (body(old) === body(cur) && o.title === n.title && o.description === n.description) {
     skip('only other frontmatter changed');

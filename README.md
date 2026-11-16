@@ -162,4 +162,4 @@ Other sites that shaped it:
 
 ---
 
-*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v1` and `v2` are archived majors · what's next: [ROADMAP.md](ROADMAP.md)*
+*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v4` is the next major, in progress (staging at `v4-skiddle-id.skiddle.workers.dev`, see [ROADMAP.md](ROADMAP.md#the-v4-branch)) · `v1` and `v2` are archived majors*
