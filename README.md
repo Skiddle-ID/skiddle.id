@@ -69,6 +69,23 @@ Publishing a release only creates a tag, and tags don't trigger Workers Builds. 
 - re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
 - `git pull --tags && npm run build && npm run deploy` on a machine logged in with `npx wrangler login`.
 
+## Checks
+
+Every PR is checked on its own Cloudflare preview (the build of exactly that commit, drafts included) by [`.github/workflows/preview-checks.yml`](.github/workflows/preview-checks.yml). It waits for Cloudflare's bot comment to list the preview, then runs:
+
+- `tests/theme.test.mjs`: the light / dark theme follows the device, remembers a pick, survives blocked storage
+- `tests/pages.test.mjs`: every page (the sitemap, drafts and the 404 page) has no browser or CSP errors and no serious accessibility problems (axe, WCAG 2.1 AA); the home page and a post are also checked in dark
+- `tests/links.test.mjs`: every same-site link, image, script and share card works (links to other sites aren't checked)
+- Lighthouse ([`lighthouserc.json`](lighthouserc.json)): accessibility ≥ 95 and best practices ≥ 90 must pass; performance under 80 is a warning, because CI machines vary. SEO is skipped, since previews are noindex. The scores show in the job summary.
+
+To run the tests yourself against any copy of the site (Chrome needed; set `CHROME_PATH` if it isn't found):
+
+```bash
+PREVIEW_URL=https://skiddle.id npm run test:preview
+```
+
+Or after a build, with `npm start` running, `npm run test:preview` checks http://localhost:8787.
+
 ## Embeds
 
 Cards and badges in the site's terminal style, for a GitHub profile README, other sites or an email signature. The SVG cards take `?theme=auto` (default; follows the viewer's light / dark setting), `dark` or `light`, and `?accent=blue` (default), `teal`, `purple`, `pink` or `green`. They never show a broken image, and embeds revalidate on every view (no-cache plus an ETag). The shared drawing code is in `src/lib/embed-card.ts`.

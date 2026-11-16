@@ -7,7 +7,7 @@ import Shell from '../layouts/shell.astro';
     <h1 class="sr-only">Page not found</h1>
     <div class="card p-5 text-sm leading-relaxed" role="status">
       <p><span class="text-[var(--color-primary)]">skiddle@web</span>:<span class="text-[var(--color-muted)]">~</span>$ cd <span id="missingPath">this-page</span></p>
-      <p class="text-[#fa4d56]">bash: cd: <span id="missingPath2">this-page</span>: No such file or directory</p>
+      <p class="text-[var(--color-err)]">bash: cd: <span id="missingPath2">this-page</span>: No such file or directory</p>
       <p class="mt-3"><span class="text-[var(--color-primary)]">skiddle@web</span>:<span class="text-[var(--color-muted)]">~</span>$ <span class="cursor-blink" aria-hidden="true"></span></p>
     </div>
 
