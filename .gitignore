@@ -10,3 +10,6 @@ node_modules
 
 bun.lock
 /sketches/
+
+# Lighthouse CI reports (npx @lhci/cli autorun)
+.lighthouseci/

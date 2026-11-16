@@ -13,7 +13,7 @@ Where skiddle.id is going and what's done. Tick a box when its PR merges.
 
 ## Writing
 
-- [ ] Publish "Never Quite Done", part 7 and the end of Rebuilding skiddle.id (draft)
+- [x] Publish "Never Quite Done", part 7 and the end of Rebuilding skiddle.id ([#107](https://github.com/Skiddle-ID/skiddle.id/pull/107))
 - [ ] Publish Lab Notes #1, after part 7 (draft)
 - [ ] Lab Notes: one or two posts every week about what's going on at Skiddle Labs
 - From Fear to Flight, 6 parts (planned parts are in `src/data/series.ts`):
@@ -39,7 +39,7 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 ### v4.0-pre: a safety net first
 
-- [ ] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe)
+- [x] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe)
 - [ ] TypeScript 7, once typescript-eslint supports it ([#78](https://github.com/Skiddle-ID/skiddle.id/pull/78))
 
 ### v4.0: the redesign

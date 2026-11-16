@@ -73,7 +73,9 @@ export default defineConfig({
   // which has GitHub-Flavored Markdown and smart punctuation built in.
   markdown: {
     shikiConfig: {
-      themes: { light: 'github-light', dark: 'github-dark-dimmed' },
+      // High-contrast variants: the regular ones miss WCAG AA (4.5:1) for comments and keywords
+      // on the code background (checked by tests/pages.test.mjs)
+      themes: { light: 'github-light-high-contrast', dark: 'github-dark-high-contrast' },
       defaultColor: 'dark',
       wrap: true,
     },

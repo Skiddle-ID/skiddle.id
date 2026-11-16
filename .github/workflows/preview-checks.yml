@@ -1,0 +1,61 @@
+name: Preview checks
+
+# Checks every PR on its Cloudflare preview: the build of exactly this commit, drafts included.
+# Waits for Cloudflare's bot comment to list a successful deployment of the head commit, then runs:
+#   - tests/theme.test.mjs   light / dark theme behaviour
+#   - tests/pages.test.mjs   every page: no browser or CSP errors, no serious accessibility problems (axe)
+#   - tests/links.test.mjs   every same-site link, image, script and share card works
+#   - Lighthouse             accessibility and best practices (must pass), performance (warning only)
+on:
+  pull_request:
+    branches: [v3]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: preview-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Preview checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - name: Wait for this commit's preview
+        id: preview
+        run: node tests/wait-for-preview.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Theme, pages, accessibility and links
+        run: npm run test:preview
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+
+      - name: Lighthouse
+        if: ${{ !cancelled() && steps.preview.outputs.url != '' }}
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          latest=$(curl -s "$URL/latest.json" | jq -r '.url // empty' | sed -E 's#^https?://[^/]+##')
+          npx --yes @lhci/cli@0.16.1 autorun --config=lighthouserc.json \
+            --collect.url="$URL/" --collect.url="$URL/posts/" ${latest:+--collect.url="$URL$latest"}
+
+      - name: Lighthouse scores
+        if: ${{ !cancelled() && hashFiles('.lighthouseci/manifest.json') != '' }}
+        run: node tests/lighthouse-summary.mjs >> "$GITHUB_STEP_SUMMARY"

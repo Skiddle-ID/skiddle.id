@@ -35,11 +35,18 @@ const ART_URL = /^https:\/\/(?:lastfm(?:-img\d?)?\.freetls\.fastly\.net|lastfm-i
 
 const edgeCache = (): Cache | undefined => (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
 
-/** The track playing now, or else the last one scrobbled. Throws if Last.fm can't be reached. */
+/**
+ * The track playing now, or else the last one scrobbled; null when there's nothing to show,
+ * including when no API key is set (Worker Previews don't get the secret). Throws if Last.fm
+ * can't be reached.
+ */
 export async function getRecentTrack(origin: string): Promise<LastfmTrack | null> {
   const username = env.LASTFM_USERNAME;
   const apiKey = env.LASTFM_API_KEY;
-  if (!username || !apiKey) throw new Error('LASTFM_USERNAME or LASTFM_API_KEY is not set');
+  if (!username || !apiKey) {
+    console.warn('Last.fm: LASTFM_USERNAME or LASTFM_API_KEY is not set, so nothing is shown');
+    return null;
+  }
 
   const cache = edgeCache();
   const key = new Request(`${origin}/__cache/lastfm/recent`);
