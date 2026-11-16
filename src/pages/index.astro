@@ -1,7 +1,8 @@
 ---
 import Shell from '../layouts/shell.astro';
 import PostList from '../components/post-list.astro';
-import { getPosts } from '~/lib/posts';
+import SeriesBar from '../components/series-bar.astro';
+import { getPosts, groupSeries, seriesUrl, type Series } from '~/lib/posts';
 import projects from '../data/projects';
 import services from '../data/services';
 export const prerender = true;
@@ -10,7 +11,25 @@ export const prerender = true;
 const profileImg = '/avatars/bluesky.jpg';
 
 const posts = await getPosts();
-const recent = posts.slice(0, 4);
+const series = groupSeries(posts);
+
+// Recent posts: everything not in a series, plus only the newest part of each series (the series cards cover the rest)
+const seen = new Set<string>();
+const recent = posts
+  .filter((p) => {
+    if (!p.data.series) return true;
+    if (seen.has(p.data.series)) return false;
+    seen.add(p.data.series);
+    return true;
+  })
+  .slice(0, 4);
+
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const seriesMeta = (s: Series) =>
+  s.planned.length
+    ? `${s.parts.length} of ${s.entries.length} parts · next: ${s.planned[0].title}`
+    : `${s.parts.length} parts · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
+const seriesLangs = (s: Series) => [...new Set(s.parts.map((p) => p.data.lang))];
 
 // Hand-picked order for the homepage; everything else lives on /projects/
 const selectedIds = ['checkdomain', 'shortlink', 'blocklist'];
@@ -97,6 +116,28 @@ const h2 = 'font-semibold before-hash-2';
         <h2 id="writing" class={h2}>Writing</h2>
         <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
       </div>
+      {series.length > 0 && (
+        <>
+          <h3 class="text-xs text-[var(--color-muted)] mt-4">series</h3>
+          <ul class="grid sm:grid-cols-3 gap-2.5 mt-2">
+            {series.map((s) => (
+              <li class="flex">
+                <a href={seriesUrl(s.name)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">
+                  <span class="text-sm font-semibold leading-snug group-hover:text-[var(--color-primary)]">{s.name}</span>
+                  <SeriesBar series={s} />
+                  <span class="text-xs text-[var(--color-muted)] leading-normal">
+                    {seriesMeta(s)}
+                    {seriesLangs(s).length > 1 && seriesLangs(s).map((l) => (
+                      <span class="ml-1.5 inline-block border rounded px-1 text-[10px] leading-4 uppercase">{l}</span>
+                    ))}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <h3 class="text-xs text-[var(--color-muted)] mt-6">recent</h3>
+        </>
+      )}
       <div class="mt-2">
         <PostList posts={recent} />
       </div>

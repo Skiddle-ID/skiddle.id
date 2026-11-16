@@ -6,6 +6,8 @@ updatedDate: 2026-11-14T00:00:00.000Z
 category: life
 tags: [aviation, ppl]
 rkey: 3lzyaaxwvgg2e
+series: "From Fear to Flight"
+order: 1
 draft: false
 ---
 
