@@ -68,6 +68,39 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 - [ ] A Bluesky custom feed for Lab Notes
 - [ ] Flying logbook card, `/flying.svg`, together with /flying
 
+## AT Protocol backend (v4 to v6)
+
+**Goal:** the site's data lives as records in Jeff's own AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), and a small admin app updates all of it by signing in with the Bluesky account (AT Protocol OAuth). There's no database of our own. It keeps working after a move to another PDS, because the site always looks up the PDS from the DID (the Standard.site sync already does).
+
+It starts simple in v4 and grows over the next two major versions.
+
+- **Lexicons:** under `id.skiddle.*`, reusing existing ones where they fit (Standard.site for posts, maybe teal.fm for music). Lexicons can only gain optional fields once they're in use, so each one is designed before it ships.
+- **Reading:** live data (like the status) is read by the Worker per request with a short cache. Page content is built from records, with a rebuild when the repo changes.
+- **The admin app:** mobile-first, and installable as a PWA.
+- **Everything in an AT Protocol repo is public.** That includes drafts, and every change goes out on the network.
+
+### v4: the beginning
+
+- [ ] `id.skiddle.status`: one record (available, label, city, time zone), with its schema published in the repo and a `_lexicon.skiddle.id` DNS record
+- [ ] `/status.svg` and the home page read the status from the PDS, falling back to `src/data/status.ts`
+- [ ] Admin app, first version: sign in with Bluesky, edit the status; works on a phone and installs as a PWA
+- [ ] Rebuild the site when the repo changes (a scheduled Worker checks the repo's latest commit)
+
+### v5: more of the site
+
+v4.1 builds /now and /flying from data files in the repo; v5 moves their data into records.
+
+- [ ] `id.skiddle.now` for the Now list and /now
+- [ ] `id.skiddle.flight` for the logbook, /flying and the flying card
+- [ ] Admin app: update Now and log a flight from the phone
+- [ ] Notes from Bluesky posts; music from teal.fm, if it replaces Last.fm
+
+### v6: everything
+
+- [ ] Projects, uses and the CV as records
+- [ ] Posts: decide whether the PDS replaces git as their source (drafts would then be public; the PWA could keep drafts on the device until they're published)
+- [ ] Admin app: everything editable
+
 ## Parked
 
 - The Shortlink card on the projects page still has template text; update it after you change the shortlink itself
