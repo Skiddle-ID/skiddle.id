@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="blue" data-page="editorial">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B · Editorial · skiddle.id v4 mockup</title>
+  <script>
+    (function () {
+      const d = document.documentElement, q = new URLSearchParams(location.search);
+      const get = (k) => { try { return localStorage.getItem('v4mock.' + k); } catch (e) { return null; } };
+      const pick = (k, ok, def) => { const v = q.get(k) ?? get(k); return ok.includes(v) ? v : def; };
+      d.dataset.theme = pick('theme', ['dark', 'light'], matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      d.dataset.body = pick('body', ['sans', 'mono'], 'sans');
+      d.dataset.notes = pick('notes', ['on', 'off'], 'off');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="mock.css">
+  <link rel="icon" href="data:,">
+  <style>
+    .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    .top { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--color-bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border); }
+    .top-in { height: 60px; display: flex; align-items: center; gap: 24px; }
+    .top .home { color: var(--color-primary); display: flex; align-items: center; gap: 6px; margin-right: auto; }
+    .top-nav { display: none; gap: 22px; font-size: 14px; }
+    .top-nav a:hover, .top-nav a[aria-current] { color: var(--color-primary); }
+    .top-nav .soon { font-size: 10px; color: var(--color-muted); margin-left: 3px; }
+    .top-tools { display: flex; align-items: center; gap: 6px; color: var(--color-muted); }
+    .top-tools kbd { display: none; font: inherit; font-size: 12px; border: 1px solid var(--color-border); border-radius: 4px; padding: 0 6px; line-height: 20px; }
+    #sidebar.top-nav.open { display: flex; position: absolute; top: 60px; left: 0; right: 0; flex-direction: column; gap: 4px; padding: 12px 20px 16px; background: var(--color-bg); border-bottom: 1px solid var(--color-border); font-size: 15px; }
+    @media (min-width: 900px) {
+      .top-nav { display: flex; }
+      .top-tools kbd { display: inline-block; }
+      #menuBtn { display: none; }
+    }
+
+    main.ed { padding: 0 20px 72px; display: block; }
+    .hero { padding: 56px 0 48px; display: grid; gap: 40px; border-bottom: 1px solid var(--color-border); }
+    .statement { font-family: var(--font-sans); letter-spacing: -0.02em; font-size: 26px; line-height: 1.3; font-weight: 500; margin-top: 16px; text-wrap: balance; }
+    .statement .m { color: var(--color-muted); }
+    :root[data-body='mono'] .statement { font-family: var(--font-mono); letter-spacing: -0.04em; }
+    .hero .hero-links { margin-top: 28px; }
+    .now-box { align-self: start; }
+    .now-box .dash { font-size: 13.5px; }
+    @media (min-width: 900px) {
+      .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 64px; padding: 88px 0 72px; }
+      .statement { font-size: 38px; }
+      .now-box { border-left: 1px solid var(--color-border); padding-left: 32px; margin-top: 34px; }
+    }
+
+    .row2 { padding: 48px 0; display: grid; gap: 40px; border-bottom: 1px solid var(--color-border); }
+    @media (min-width: 900px) { .row2 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 56px; padding: 64px 0; } }
+    .feat { display: block; }
+    .feat img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border); }
+    .feat .kicker { margin-top: 18px; font-size: 12px; color: var(--color-primary); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .feat .kicker .bar { width: 96px; }
+    .feat h2 { margin-top: 10px; font-size: 26px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 600; }
+    .feat:hover h2 { color: var(--color-primary); }
+    .feat p.d { margin-top: 10px; font-size: 17px; line-height: 1.55; color: var(--color-muted); }
+    .latest li { padding: 18px 0; border-bottom: 1px solid var(--color-border); }
+    .latest li:first-child { padding-top: 14px; }
+    .latest li:last-child { border-bottom: 0; }
+    .latest a.t { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; display: block; }
+    .latest a.t:hover { color: var(--color-primary); }
+    .latest p.d { margin-top: 6px; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+    .latest .meta { margin-top: 8px; }
+
+    .block { padding: 48px 0; border-bottom: 1px solid var(--color-border); }
+    @media (min-width: 900px) { .block { padding: 64px 0; } }
+    .grid3 { margin-top: 20px; display: grid; gap: 16px; }
+    @media (min-width: 700px) { .grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .tile { display: flex; flex-direction: column; gap: 10px; padding: 20px; }
+    .tile:hover { border-color: var(--color-primary); }
+    .tile .n { font-size: 12px; color: var(--color-muted); }
+    .tile .name { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+    .tile:hover .name { color: var(--color-primary); }
+    .tile .d { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+    .tile .links { margin-top: auto; padding-top: 4px; font-size: 12px; display: flex; gap: 14px; }
+
+    .big-cta { padding: 64px 0 8px; }
+    .big-cta p { font-size: 15px; color: var(--color-muted); }
+    .big-cta a.mail { display: inline-block; margin-top: 10px; font-size: 26px; font-weight: 600; letter-spacing: -0.03em; color: var(--color-primary); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; overflow-wrap: anywhere; }
+    .big-cta a.mail:hover { text-decoration-style: wavy; }
+    @media (min-width: 900px) { .big-cta a.mail { font-size: 40px; } }
+
+    .ed-foot { border-top: 1px solid var(--color-border); padding: 32px 0 40px; font-size: 13px; color: var(--color-muted); }
+    .ed-foot .cols { display: grid; gap: 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 700px) { .ed-foot .cols { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+    .ed-foot h3 { font-size: 12px; font-weight: 600; color: var(--color-text); margin-bottom: 8px; }
+    .ed-foot li { margin: 3px 0; }
+    .ed-foot a:hover { color: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-in">
+      <a href="editorial.html" class="home"><span>skiddle@web ~</span><span class="cursor-blink" aria-hidden="true"></span></a>
+      <nav class="top-nav" id="sidebar" aria-label="Main">
+        <a href="#">writing</a><a href="#">about</a><a href="#">work</a><a href="#">flying<span class="soon">v4.1</span></a><a href="#">uses</a>
+      </nav>
+      <div class="top-tools">
+        <a href="#" class="icon-btn" aria-label="Search"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg></a>
+        <kbd>⌘K</kbd>
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg><svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></button>
+        <button class="icon-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <div class="backdrop" id="backdrop"></div>
+
+  <main class="ed wrap">
+    <section class="hero" aria-labelledby="intro">
+      <div>
+        <p class="prompt"><span class="user">skiddle@web</span>:~$ whoami</p>
+        <h1 id="intro" class="statement">I'm Jeff, a protocol engineer in Bangkok. <span class="m">I run Skiddle Labs, write about infrastructure, open protocols and my homelab, and fly as a private pilot.</span></h1>
+        <p class="hero-links">
+          <a href="#" class="link">more about me</a>
+          <a href="#" class="link">work with me</a>
+          <span class="status">open to consulting</span>
+        </p>
+      </div>
+      <aside class="now-box" aria-labelledby="now">
+        <div class="h2row"><h2 id="now" class="h2">Now</h2><a href="#" class="more">Nov 2026 →</a></div>
+        <ul class="dash">
+          <li><span>Protocol engineering on contract, with my Skiddle Labs team</span></li>
+          <li><span>Advising Aerialite, the startup I co-founded</span></li>
+          <li><span>Master's in AI &amp; ML at Chulalongkorn</span></li>
+          <li><span>Flying as a newly licensed private pilot</span></li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="row2" aria-label="Featured and latest">
+      <a href="post.html" class="feat">
+        <img src="img/our-flight.jpg" width="1400" height="933" alt="Illustration of a couple looking out of an airplane window at a sunset above the clouds">
+        <p class="kicker"><span>series · From Fear to Flight · part 1 of 6</span><span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span></p>
+        <h2>How It All Started #1</h2>
+        <p class="d sans">From hating heights to a surprise skydive to PPL ground school: how I ended up learning to fly.</p>
+      </a>
+      <div>
+        <div class="h2row"><h2 class="h2">Latest</h2><a href="#" class="more">all posts →</a></div>
+        <ul class="latest">
+          <li>
+            <a href="#" class="t">Publishing My Blog to AT Protocol</a>
+            <p class="d sans">My posts now also live as records in my own AT Protocol repo, where Standard.site readers can find them.</p>
+            <p class="meta"><span>Nov 14, 2026</span><span>· 3 min read</span></p>
+          </li>
+          <li>
+            <a href="#" class="t">Fast and Accessible</a>
+            <p class="d sans">What a Lighthouse audit found on my site, and how the home page went from 274 KB to 82 KB.</p>
+            <p class="meta"><span>Nov 14, 2026</span><span>· 4 min read</span><span>· Rebuilding skiddle.id #6</span></p>
+          </li>
+          <li>
+            <a href="#" class="t" lang="id">Penutupan Akses Publik API Checknawala</a>
+            <p class="d sans">500M req/mo sunset - why the public API closed and the supporter path forward.</p>
+            <p class="meta"><span>Nov 23, 2025</span><span>· checkdomain #2</span><span class="chip" title="Bahasa Indonesia">ID</span></p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="series-title">
+      <div class="h2row"><h2 id="series-title" class="h2">Series</h2><a href="#" class="more">all series →</a></div>
+      <div class="grid3">
+        <a href="#" class="tile card">
+          <span class="n">6 parts · Sep 2025 – Nov 2026</span>
+          <span class="name">Rebuilding skiddle.id</span>
+          <span class="bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+          <span class="d sans">From Jekyll in 2015 to Astro on Cloudflare: design, deploys, security and speed.</span>
+        </a>
+        <a href="post.html" class="tile card">
+          <span class="n">part 1 of 6 · next: Ground School</span>
+          <span class="name">From Fear to Flight</span>
+          <span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="d sans">From hating heights to a private pilot licence.</span>
+        </a>
+        <a href="#" class="tile card">
+          <span class="n">2 parts · <span class="chip">EN</span> <span class="chip">ID</span></span>
+          <span class="name">checkdomain</span>
+          <span class="bar" aria-hidden="true"><i class="on"></i><i class="on"></i></span>
+          <span class="d sans">Why my free domain-check API closed to the public.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="block" id="work" aria-labelledby="work-title">
+      <div class="h2row"><h2 id="work-title" class="h2">Selected work</h2><a href="#" class="more">all work →</a></div>
+      <div class="grid3">
+        <article class="tile card">
+          <span class="n">01 · 2024 · api</span>
+          <span class="name">CheckDomain</span>
+          <span class="d sans">A free public API for checking whether a domain is blocked by Indonesia's Trust+ list. It grew to ~500M requests a month before I closed it to the public.</span>
+          <span class="links"><a href="#" class="link">story</a><a href="#" class="link">source ↗</a></span>
+        </article>
+        <article class="tile card">
+          <span class="n">02 · 2025 · service</span>
+          <span class="name">Shortlink</span>
+          <span class="d sans">A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.</span>
+          <span class="links"><a href="#" class="link">live ↗</a><a href="#" class="link">source ↗</a></span>
+        </article>
+        <article class="tile card">
+          <span class="n">03 · 2024 · tool</span>
+          <span class="name">Blocklist</span>
+          <span class="d sans">Keeps a public copy of the Kominfo blocklist fresh, automatically, every hour.</span>
+          <span class="links"><a href="#" class="link">source ↗</a></span>
+        </article>
+      </div>
+    </section>
+
+    <section class="big-cta" aria-label="Work with me">
+      <p>Need a hand with server hardening, CI/CD, automation, monitoring or self-hosting?</p>
+      <a href="#" class="mail">work@skiddle.id →</a>
+    </section>
+  </main>
+
+  <footer class="ed-foot">
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <p>© 2026 Laurensius Jeffrey<br>Skiddle Labs Pte. Ltd.</p>
+          <p style="margin-top:8px"><a href="#" class="link">v4.0</a> · <a href="#" class="link">source</a></p>
+        </div>
+        <div><h3>site</h3><ul><li><a href="#">writing</a></li><li><a href="#">about</a></li><li><a href="#">work</a></li><li><a href="#">uses</a></li></ul></div>
+        <div><h3>elsewhere</h3><ul><li><a href="#">Bluesky</a></li><li><a href="#">GitHub</a></li><li><a href="#">Instagram</a></li></ul></div>
+        <div><h3>follow</h3><ul><li><a href="#">RSS</a></li><li><a href="#">Email</a></li></ul></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="mock.js"></script>
+</body>
+</html>
