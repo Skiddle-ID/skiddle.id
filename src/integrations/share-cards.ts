@@ -4,7 +4,7 @@
  *   - for every other page whose og:image points at /og/pages/<path>.png (see src/layouts/shell.astro):
  *     its title and description, its own terminal command if it shows one, and a post count on lists
  *   - for the home page (and 404): /og/site.png
- *   - the 88×31 button other sites can link here with: /88x31.png and /88x31@2x.png
+ *   - the 88×31 button other sites can link here with: /88x31.png and /88x31-2x.png
  * Reading the built pages means cards always match what's built: no drafts on skiddle.id, and cards
  * for drafts only on preview builds (see __PREVIEW__ in astro.config.mjs).
  */
@@ -55,9 +55,9 @@ export default function shareCards(): AstroIntegration {
           ),
         );
 
-        // The 88×31 button, at 1× and 2×
+        // The 88×31 button, at 1× and 2× (no "@2x" in the name: Cloudflare redirects "@" to "%40")
         await writeFile(new URL('88x31.png', dir), await renderButton(fonts, 1));
-        await writeFile(new URL('88x31@2x.png', dir), await renderButton(fonts, 2));
+        await writeFile(new URL('88x31-2x.png', dir), await renderButton(fonts, 2));
 
         const postsDir = new URL('posts/', dir);
         const slugs = (await readdir(postsDir, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
