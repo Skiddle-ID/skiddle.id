@@ -16,7 +16,8 @@
 */
 import type { APIRoute } from 'astro';
 import { getAlbumArt, getRecentTrack, type LastfmTrack } from '~/lib/lastfm';
-import { ACCENTS, THEMES, renderCard, type CardAccent, type CardTheme } from '~/lib/lastfm-card';
+import { ACCENTS, THEMES, pick, svgResponse, type CardAccent, type CardTheme } from '~/lib/embed-card';
+import { renderCard } from '~/lib/lastfm-card';
 
 export const prerender = false;
 
@@ -40,28 +41,6 @@ export const GET: APIRoute = async ({ request }) => {
     { theme, accent },
   );
 
-  const etag = `"${await digest(svg)}"`;
-  const headers = {
-    'Content-Type': 'image/svg+xml; charset=utf-8',
-    // Embeds (e.g. GitHub's image proxy) revalidate on every view; Last.fm data is cached for 30s server-side
-    'Cache-Control': 'no-cache, max-age=0',
-    ETag: etag,
-    'X-Content-Type-Options': 'nosniff',
-    'Content-Security-Policy': "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
-  };
-  const ifNoneMatch = request.headers.get('If-None-Match') ?? '';
-  if (ifNoneMatch.split(',').some((tag) => tag.trim().replace(/^W\//, '') === etag)) {
-    return new Response(null, { status: 304, headers });
-  }
-  return new Response(svg, { status: 200, headers });
+  // Embeds revalidate on every view (no-cache + ETag); Last.fm data is cached for 30s server-side
+  return svgResponse(request, svg);
 };
-
-function pick<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
-  const v = (value ?? '').toLowerCase();
-  return (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
-}
-
-async function digest(text: string): Promise<string> {
-  const hash = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 20);
-}

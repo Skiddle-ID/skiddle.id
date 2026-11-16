@@ -95,3 +95,26 @@ export async function renderShareCard(card: ShareCard, fonts: CardFont[]): Promi
   });
   return new Resvg(svg, { fitTo: { mode: 'width', value: CARD_WIDTH } }).render().asPng();
 }
+
+export const BUTTON_WIDTH = 88;
+export const BUTTON_HEIGHT = 31;
+
+/**
+ * The site's 88×31 button, the classic small web badge other sites use to link here:
+ * "skiddle.id" and the cursor in the accent colour, on the dark theme with a 1px border.
+ * `scale` 2 renders the same button at 176×62 for high-density screens.
+ */
+export async function renderButton(fonts: CardFont[], scale = 1): Promise<Buffer> {
+  const inner = h(
+    'div',
+    { display: 'flex', alignItems: 'center', justifyContent: 'center', width: BUTTON_WIDTH - 2, height: BUTTON_HEIGHT - 2, marginTop: 1, marginLeft: 1, backgroundColor: C.bg, fontSize: 11, fontWeight: 700, color: C.accent },
+    [h('span', {}, 'skiddle.id'), h('div', { width: 6, height: 12, marginLeft: 3, backgroundColor: C.accent })],
+  );
+  const root = h('div', { display: 'flex', width: BUTTON_WIDTH, height: BUTTON_HEIGHT, backgroundColor: C.line, fontFamily: 'Geist Mono' }, [inner]);
+  const svg = await satori(root as Parameters<typeof satori>[0], {
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
+    fonts: fonts.map((f) => ({ name: f.name, data: f.data, weight: f.weight, style: 'normal' as const })),
+  });
+  return new Resvg(svg, { fitTo: { mode: 'width', value: BUTTON_WIDTH * scale } }).render().asPng();
+}
