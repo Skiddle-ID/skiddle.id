@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       slug:
-        description: 'Announce this post (file name without .md), e.g. how-it-all-started-1. Empty: posts from the latest push.'
+        description: 'Announce these posts (file names without .md, comma-separated), e.g. how-it-all-started-1. Empty: posts from the latest push.'
         required: false
         type: string
       dry_run:
@@ -45,6 +45,22 @@ jobs:
           # setup-node caches npm by default since v5; off here, as this job can push to v3.
           package-manager-cache: false
 
+      # A published post whose text changed gets updatedDate (scripts/mark-updated.mjs).
+      # Committed here and pushed together with the Bluesky links below.
+      - name: Mark revised posts as updated
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          node scripts/mark-updated.mjs
+          git add src/content/posts
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "post: mark revised posts as updated"
+          fi
+
       - name: Announce new posts
         env:
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
@@ -55,15 +71,17 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
         run: node scripts/bluesky-announce.mjs
 
-      - name: Commit the Bluesky links
+      - name: Commit the Bluesky links and push
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/content/posts
-          if git diff --cached --quiet; then
+          if ! git diff --cached --quiet; then
+            git commit -m "post: link to the Bluesky announcement (comments on)"
+          fi
+          if [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ]; then
             echo "No post files changed."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "post: link to the Bluesky announcement (comments on)"
           git pull --rebase origin v3
           git push origin HEAD:v3
