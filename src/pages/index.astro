@@ -2,7 +2,7 @@
 import Shell from '../layouts/shell.astro';
 import PostList from '../components/post-list.astro';
 import SeriesBar from '../components/series-bar.astro';
-import { getPosts, groupSeries, seriesUrl, type Series } from '~/lib/posts';
+import { getPosts, groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import projects from '../data/projects';
 import services from '../data/services';
 export const prerender = true;
@@ -25,10 +25,11 @@ const recent = posts
   .slice(0, 4);
 
 const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+// Finished series also say when their latest part came out
 const seriesMeta = (s: Series) =>
-  s.planned.length
-    ? `${s.parts.length} of ${s.entries.length} parts · next: ${s.planned[0].title}`
-    : `${s.parts.length} parts · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
+  s.planned.length || s.ongoing
+    ? seriesStatus(s)
+    : `${seriesStatus(s)} · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
 const seriesLangs = (s: Series) => [...new Set(s.parts.map((p) => p.data.lang))];
 
 // Hand-picked order for the homepage; everything else lives on /projects/
@@ -119,7 +120,8 @@ const h2 = 'font-semibold before-hash-2';
       {series.length > 0 && (
         <>
           <h3 class="text-xs text-[var(--color-muted)] mt-4">series</h3>
-          <ul class="grid sm:grid-cols-3 gap-2.5 mt-2">
+          <!-- Two columns for 2 or 4 series, so no card sits alone on a row -->
+          <ul class:list={['grid gap-2.5 mt-2', series.length % 2 === 0 && series.length % 3 !== 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
             {series.map((s) => (
               <li class="flex">
                 <a href={seriesUrl(s.name)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">

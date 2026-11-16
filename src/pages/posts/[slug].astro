@@ -8,7 +8,7 @@ import PostList from '~/components/post-list.astro';
 import BlueskyComments from '~/components/bluesky-comments.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
-import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, type Post } from '~/lib/posts';
+import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
 import { documentUri } from '~/lib/standard-site.mjs';
 
 export async function getStaticPaths() {
@@ -34,7 +34,9 @@ const all = await getPosts();
 // Series: the box at the top (side column on wide screens) and the "next part" card at the end.
 // Parts count planned ones too (src/data/series.ts), so part 1 of a new series is "part 1 of 6".
 const series = entry.data.series ? groupSeries(all).find((s) => s.name === entry.data.series) : undefined;
-const hasSeries = !!series && series.entries.length > 1;
+// An ongoing series (e.g. weekly) has its box from part 1 and no "of N"
+const hasSeries = !!series && (series.entries.length > 1 || series.ongoing);
+const openEnded = !!series?.ongoing && series.planned.length === 0;
 const entryIdx = series ? series.entries.findIndex((e) => e.post?.id === entry.id) : -1;
 const partNumber = entryIdx + 1;
 const partCount = series?.entries.length ?? 0;
@@ -44,6 +46,8 @@ const partIdx = series ? series.parts.findIndex((p) => p.id === entry.id) : -1;
 const prev: Post | null = series && partIdx > 0 ? series.parts[partIdx - 1] : null;
 const next: Post | null = series && partIdx >= 0 && partIdx < series.parts.length - 1 ? series.parts[partIdx + 1] : null;
 const showRail = toc.length >= 3 || hasSeries;
+const ofCount = openEnded ? '' : ` of ${partCount}`;
+const seriesLink = partCount > SERIES_LIST_LIMIT ? `all ${partCount} parts →` : 'all series →';
 
 // Chronological neighbours for the older / newer links (all is newest first)
 const pos = all.findIndex((p) => p.id === entry.id);
@@ -113,13 +117,13 @@ const jsonLd = {
       <details class="card px-4 py-3 mb-8 text-sm group xl:hidden" lang="en">
         <summary class="cursor-pointer select-none list-none flex flex-col gap-2.5 [&::-webkit-details-marker]:hidden">
           <span class="flex items-baseline justify-between gap-3">
-            <span>Part {partNumber} of {partCount} in <span class="font-semibold">{series!.name}</span></span>
+            <span>Part {partNumber}{ofCount} in <span class="font-semibold">{series!.name}</span>{series!.ongoing && series!.cadence && <span class="text-[var(--color-muted)]"> · new {series!.cadence}</span>}</span>
             <span class="text-xs text-[var(--color-muted)] whitespace-nowrap"><span class="group-open:hidden">show parts</span><span class="hidden group-open:inline">hide parts</span></span>
           </span>
           <SeriesBar series={series!} />
         </summary>
         <SeriesParts series={series!} currentId={entry.id} class="mt-3" />
-        <a href={seriesUrl(series!.name)} class="inline-block mt-3 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">all series →</a>
+        <a href={seriesUrl(series!.name)} class="inline-block mt-3 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>
       </details>
     )}
 
@@ -144,10 +148,19 @@ const jsonLd = {
       <Content />
     </div>
 
+    {hasSeries && !nextEntry && series!.ongoing && (
+      <div class="card p-4 mt-10 text-sm" lang="en">
+        <p class="text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1}</p>
+        <p class="mt-1 font-semibold">Coming soon</p>
+        <p class="mt-1 font-reading text-[0.95rem] leading-relaxed text-[var(--color-muted)]">
+          {series!.cadence && `A new part comes out ${series!.cadence}. `}Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab the <a href="/rss.xml" class="link">RSS feed</a> to catch the next one.
+        </p>
+      </div>
+    )}
     {hasSeries && nextEntry && (
       nextEntry.post ? (
         <a href={postUrl(nextEntry.post)} class="card block p-4 mt-10 text-sm hover:border-[var(--color-primary)] transition-colors group" lang="en">
-          <span class="block text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1} of {partCount}</span>
+          <span class="block text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1}{ofCount}</span>
           <span class="block mt-1 font-semibold group-hover:text-[var(--color-primary)]" lang={nextEntry.post.data.lang}>{nextEntry.title} →</span>
           {nextEntry.post.data.description && (
             <span class="block mt-1 font-reading text-[0.95rem] leading-relaxed text-[var(--color-muted)]" lang={nextEntry.post.data.lang}>{nextEntry.post.data.description}</span>
@@ -155,7 +168,7 @@ const jsonLd = {
         </a>
       ) : (
         <div class="card p-4 mt-10 text-sm" lang="en">
-          <p class="text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1} of {partCount}</p>
+          <p class="text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1}{ofCount}</p>
           <p class="mt-1 font-semibold">{nextEntry.title}</p>
           <p class="mt-1 font-reading text-[0.95rem] leading-relaxed text-[var(--color-muted)]">
             Not out yet. Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab the <a href="/rss.xml" class="link">RSS feed</a> to catch it.
@@ -215,9 +228,10 @@ const jsonLd = {
       <div class="sticky top-12 text-sm">
         {hasSeries && (
           <nav aria-label="Series" class="mb-8">
-            <p class="text-xs text-[var(--color-muted)] mb-2.5"><a href={seriesUrl(series!.name)} class="hover:text-[var(--color-primary)]">{series!.name}</a> · {partNumber} of {partCount}</p>
+            <p class="text-xs text-[var(--color-muted)] mb-2.5"><a href={seriesUrl(series!.name)} class="hover:text-[var(--color-primary)]">{series!.name}</a> · {openEnded ? `part ${partNumber}` : `${partNumber} of ${partCount}`}</p>
             <SeriesBar series={series!} class="mb-3" />
             <SeriesParts series={series!} currentId={entry.id} labels={false} class="gap-1.5" />
+            {partCount > SERIES_LIST_LIMIT && <a href={seriesUrl(series!.name)} class="inline-block mt-2.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>}
           </nav>
         )}
         {toc.length >= 3 && (
