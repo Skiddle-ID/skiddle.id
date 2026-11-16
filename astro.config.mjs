@@ -39,6 +39,14 @@ const tag = git('describe --tags --exact-match');
 // With --long, exact tags become v1.0.0-0-g<hash>. With --always, fallback is just the hash.
 const describe = git('describe --tags --always --long') || hash;
 
+// Preview builds: Cloudflare Workers Builds of any branch except the production one. They include
+// draft posts (with a "Draft" banner) and ask search engines not to index the pages. Local builds,
+// including `npm run deploy`, don't set WORKERS_CI_BRANCH, so they never include drafts.
+const PRODUCTION_BRANCH = 'v3';
+const branch = process.env.WORKERS_CI ? (process.env.WORKERS_CI_BRANCH ?? '') : '';
+const preview = branch !== '' && branch !== PRODUCTION_BRANCH;
+if (preview) console.log(`Preview build of ${branch}: drafts included, pages set to noindex`);
+
 export default defineConfig({
   site: 'https://skiddle.id',
   // Keep Astro 6's HTML-aware whitespace handling. Astro 7 defaults to 'jsx',
@@ -83,6 +91,7 @@ export default defineConfig({
       __GIT_HASH__: JSON.stringify(hash),
       __GIT_TAG__: JSON.stringify(tag),
       __GIT_DESCRIBE__: JSON.stringify(describe),
+      __PREVIEW__: JSON.stringify(preview),
     },
   }
 });

@@ -13,7 +13,7 @@ Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https:
 | Projects, services, uses, highlights | `src/data/*.ts` |
 | Pages and layout | `src/pages/`, `src/components/` |
 
-New posts start with `draft: true`. They stay off the live site until it's `false`. Once a published post is merged into `v3`, it's announced on Bluesky automatically and gets its `bluesky: at://…` line, which shows replies as comments (see [Bluesky announcements](#bluesky-announcements)).
+New posts start with `draft: true`. They stay off the live site until it's `false`. A pull request's preview (`<branch>-skiddle-id.skiddle.workers.dev`) does show drafts, with a "Draft" banner, so you can read one before publishing it. Previews tell search engines not to index them, but anyone with the link can open them. Once a published post is merged into `v3`, it's announced on Bluesky automatically and gets its `bluesky: at://…` line, which shows replies as comments (see [Bluesky announcements](#bluesky-announcements)).
 
 ### Bluesky announcements
 

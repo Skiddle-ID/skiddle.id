@@ -3,9 +3,9 @@ import { seriesInfo, type PlannedPart } from '~/data/series';
 
 export type Post = CollectionEntry<'posts'>;
 
-/** All published posts, newest first. */
+/** All published posts, newest first. Preview builds of a pull request include drafts too. */
 export async function getPosts(): Promise<Post[]> {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getCollection('posts', ({ data }) => __PREVIEW__ || !data.draft);
   return posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 }
 

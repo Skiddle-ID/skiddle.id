@@ -4,7 +4,8 @@
  *   - for every other page whose og:image points at /og/pages/<path>.png (see src/layouts/shell.astro):
  *     its title and description, its own terminal command if it shows one, and a post count on lists
  *   - for the home page (and 404): /og/site.png
- * Reading the built pages means drafts are skipped and cards always match what's published.
+ * Reading the built pages means cards always match what's built: no drafts on skiddle.id, and cards
+ * for drafts only on preview builds (see __PREVIEW__ in astro.config.mjs).
  */
 import type { AstroIntegration } from 'astro';
 import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
