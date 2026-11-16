@@ -40,7 +40,8 @@ export const GET = async (context: APIContext) => {
         categories: post.data.tags,
       };
     }),
-    customData: `<language>en-us</language><atom:link href="${site}rss.xml" rel="self" type="application/rss+xml"/>`,
+    // The writing is all rights reserved (LICENSE-CONTENT.md): say so in the feed too
+    customData: `<language>en-us</language><copyright>© ${new Date().getFullYear()} Laurensius Jeffrey. All rights reserved. No republishing or AI training without permission.</copyright><atom:link href="${site}rss.xml" rel="self" type="application/rss+xml"/>`,
   });
 };
 
