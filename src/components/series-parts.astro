@@ -1,6 +1,7 @@
 ---
-/* A series' parts in reading order: published ones link to the post, planned ones show as "coming" */
-import { postUrl, type Series } from '~/lib/posts';
+/* A series' parts in reading order: published ones link to the post, planned ones show as "coming".
+   Long series (a weekly one, say) show only the parts around the post being read. */
+import { postUrl, SERIES_LIST_LIMIT, type Series } from '~/lib/posts';
 
 interface Props {
   series: Series;
@@ -11,13 +12,28 @@ interface Props {
   class?: string;
 }
 const { series, currentId, labels = true, class: className = '' } = Astro.props;
+
+const all = series.entries;
+let start = 0;
+let end = all.length;
+if (all.length > SERIES_LIST_LIMIT) {
+  // Five parts around the current one, kept inside the list
+  const cur = Math.max(0, all.findIndex((e) => e.post?.id === currentId));
+  start = Math.max(0, Math.min(cur - 2, all.length - 5));
+  end = start + 5;
+}
+const shown = all.slice(start, end).map((e, i) => ({ e, n: start + i + 1 }));
+const more = (count: number, word: string) => `… ${count} ${word} ${count === 1 ? 'part' : 'parts'}`;
 ---
 <ol class:list={['flex flex-col gap-1', className]}>
-  {series.entries.map((e, i) => {
+  {start > 0 && (
+    <li class="flex gap-2.5 leading-snug text-[var(--color-muted)]"><span class="w-5 shrink-0"></span><span>{more(start, 'earlier')}</span></li>
+  )}
+  {shown.map(({ e, n }) => {
     const current = e.post?.id === currentId;
     return (
       <li class="flex gap-2.5 leading-snug">
-        <span class:list={['w-5 shrink-0 text-right tabular-nums', current ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted)]']} aria-hidden="true">{current ? '>' : `${i + 1}.`}</span>
+        <span class:list={['w-5 shrink-0 text-right tabular-nums', current ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted)]']} aria-hidden="true">{current ? '>' : `${n}.`}</span>
         {e.post ? (
           current ? (
             <span class="text-[var(--color-primary)]" aria-current="page" lang={e.post.data.lang}>{e.title}</span>
@@ -32,4 +48,7 @@ const { series, currentId, labels = true, class: className = '' } = Astro.props;
       </li>
     );
   })}
+  {end < all.length && (
+    <li class="flex gap-2.5 leading-snug text-[var(--color-muted)]"><span class="w-5 shrink-0"></span><span>{more(all.length - end, 'later')}</span></li>
+  )}
 </ol>

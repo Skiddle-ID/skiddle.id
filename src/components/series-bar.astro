@@ -1,5 +1,6 @@
 ---
-/* A series' progress: one segment per part, filled for the parts that are out */
+/* A series' progress: one segment per part, filled for the parts that are out. An ongoing series
+   (no last part) gets a solid line ending in the blinking cursor instead, so it never looks finished. */
 import type { Series } from '~/lib/posts';
 
 interface Props {
@@ -7,9 +8,15 @@ interface Props {
   class?: string;
 }
 const { series, class: className = '' } = Astro.props;
+const solid = series.ongoing && series.planned.length === 0;
 ---
-<span class:list={['flex gap-[3px]', className]} aria-hidden="true">
-  {series.entries.map((e) => (
-    <span class:list={['h-1 flex-1 rounded-sm', e.post ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]']}></span>
-  ))}
+<span class:list={['flex items-center gap-[3px]', className]} aria-hidden="true">
+  {solid ? (
+    <span class="h-1 flex-1 rounded-sm bg-[var(--color-primary)]"></span>
+  ) : (
+    series.entries.map((e) => (
+      <span class:list={['h-1 flex-1 rounded-sm', e.post ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]']}></span>
+    ))
+  )}
+  {series.ongoing && <span class="cursor-blink ml-1 w-1.5! h-[11px]!"></span>}
 </span>

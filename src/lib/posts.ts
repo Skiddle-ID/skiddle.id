@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { plannedParts, type PlannedPart } from '~/data/series';
+import { seriesInfo, type PlannedPart } from '~/data/series';
 
 export type Post = CollectionEntry<'posts'>;
 
@@ -20,6 +20,10 @@ export interface Series {
   planned: PlannedPart[];
   /** Published and planned parts together, in reading order */
   entries: SeriesEntry[];
+  /** No last part (e.g. a weekly series): shown as "new every week" instead of "part 3 of 3" */
+  ongoing: boolean;
+  /** How often new parts come out, e.g. 'every week' */
+  cadence?: string;
 }
 
 /** One part of a series: a published post, or a planned part that's still to come */
@@ -43,14 +47,27 @@ export function groupSeries(posts: Post[]): Series[] {
       const parts = posts.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0) || a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
       // A published post takes the place of the planned part with the same `order`
       const taken = new Set(parts.map((p, i) => p.data.order ?? i + 1));
-      const planned = (plannedParts[name] ?? []).filter((pl) => !taken.has(pl.order)).sort((a, b) => a.order - b.order);
+      const info = seriesInfo[name] ?? {};
+      const planned = (info.planned ?? []).filter((pl) => !taken.has(pl.order)).sort((a, b) => a.order - b.order);
       const entries: SeriesEntry[] = [
         ...parts.map((post, i) => ({ post, order: post.data.order ?? i + 1, title: post.data.title })),
         ...planned.map((pl) => ({ order: pl.order, title: pl.title })),
       ].sort((a, b) => a.order - b.order);
-      return { name, slug: seriesSlug(name), parts, planned, entries };
+      return { name, slug: seriesSlug(name), parts, planned, entries, ongoing: info.ongoing ?? false, cadence: info.cadence };
     })
     .sort((a, b) => latest(b) - latest(a));
+}
+
+/** Series longer than this show only the parts around the current post in its series box */
+export const SERIES_LIST_LIMIT = 7;
+
+/** Short status for series lists: "6 parts", "1 of 6 parts · next: Ground School", "3 parts · new every week" */
+export function seriesStatus(s: Series): string {
+  const n = s.parts.length;
+  const parts = `${n} ${n === 1 ? 'part' : 'parts'}`;
+  if (s.planned.length) return `${n} of ${s.entries.length} parts · next: ${s.planned[0].title}`;
+  if (s.ongoing) return `${parts} · ${s.cadence ? `new ${s.cadence}` : 'ongoing'}`;
+  return parts;
 }
 
 export function readingMinutes(p: Post): number {
