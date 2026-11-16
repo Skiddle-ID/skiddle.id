@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="blue" data-page="home">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home · skiddle.id v4 mockup</title>
+  <script>
+    (function () {
+      const d = document.documentElement, q = new URLSearchParams(location.search);
+      const get = (k) => { try { return localStorage.getItem('v4mock.' + k); } catch (e) { return null; } };
+      const pick = (k, ok, def) => { const v = q.get(k) ?? get(k); return ok.includes(v) ? v : def; };
+      d.dataset.theme = pick('theme', ['dark', 'light'], matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      d.dataset.body = pick('body', ['sans', 'mono'], 'sans');
+      d.dataset.hero = pick('hero', ['you', 'consulting'], 'you');
+      d.dataset.notes = pick('notes', ['on', 'off'], 'off');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="mock.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <script src="shell.js"></script>
+
+  <div class="page">
+    <main id="main">
+      <div class="col">
+
+        <!-- Hero: "you" (recommended) and "consulting" variants, switched in the mockup panel -->
+        <section aria-labelledby="intro" data-note="CHANGED · shorter, leads with you">
+          <p class="prompt"><span class="user">skiddle@web</span>:~$ whoami</p>
+          <div class="hero-row">
+            <img src="img/bluesky.jpg" class="avatar" width="88" height="88" alt="Jeff's avatar">
+            <div>
+              <div class="hero-you">
+                <h1 id="intro" class="hero-title">Hi, I'm Jeff.</h1>
+                <p class="hero-lede sans">Protocol engineer and founder of Skiddle Labs, in Bangkok. I write about infrastructure, open protocols and my homelab, and I fly as a private pilot.</p>
+              </div>
+              <div class="hero-consulting">
+                <h1 class="hero-title">Infrastructure and protocol engineering, from Bangkok.</h1>
+                <p class="hero-lede sans">I'm Jeff (Skiddle), founder of Skiddle Labs. I help teams with server hardening, CI/CD, automation, monitoring and self-hosting.</p>
+              </div>
+            </div>
+          </div>
+          <p class="hero-links hero-you">
+            <a href="#" class="link">more about me</a>
+            <a href="#" class="link">work with me</a>
+            <span class="status">open to consulting</span>
+          </p>
+          <p class="hero-links hero-consulting">
+            <a href="#" class="btn primary">Work with me →</a>
+            <a href="#work" class="btn">Selected work</a>
+            <span class="status">open to consulting</span>
+          </p>
+        </section>
+
+        <!-- Latest post, shown bigger -->
+        <section aria-labelledby="latest" data-note="NEW · latest post, bigger">
+          <h2 id="latest" class="h2">Latest</h2>
+          <a href="post.html" class="feature card">
+            <p class="meta"><span>Nov 14, 2026</span><span>· 3 min read</span><span>· atproto</span></p>
+            <h3 class="feature-title">Publishing My Blog to AT Protocol</h3>
+            <p class="feature-desc sans">My posts now also live as records in my own AT Protocol repo, where Standard.site readers can find them.</p>
+            <span class="read">read post →</span>
+          </a>
+        </section>
+
+        <!-- Now -->
+        <section aria-labelledby="now" data-note="CHANGED · dated, full page at /now">
+          <div class="h2row">
+            <h2 id="now" class="h2">Now</h2>
+            <a href="#" class="more">updated Nov 2026 · /now →</a>
+          </div>
+          <ul class="dash">
+            <li><span>Protocol engineering on contract for an undisclosed client, with my Skiddle Labs team (since Q3 2026)</span></li>
+            <li><span>Advising Aerialite, the security &amp; privacy startup I co-founded</span></li>
+            <li><span>Studying for a master's in AI &amp; machine learning at Chulalongkorn</span></li>
+            <li><span>Flying as a newly licensed private pilot (PPL, early 2026). <a href="post.html" class="link">How it started</a></span></li>
+          </ul>
+        </section>
+
+        <!-- Writing: series grouped, then one post per series plus standalone posts -->
+        <section aria-labelledby="writing">
+          <div class="h2row">
+            <h2 id="writing" class="h2">Writing</h2>
+            <a href="#" class="more">all posts →</a>
+          </div>
+
+          <div data-note="NEW · series with progress">
+            <p class="label">series</p>
+            <div class="series-grid">
+              <a href="#" class="series card">
+                <span class="series-name">Rebuilding skiddle.id</span>
+                <span class="bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>
+                <span class="meta">6 parts · updated Nov 2026</span>
+              </a>
+              <a href="post.html" class="series card">
+                <span class="series-name">From Fear to Flight</span>
+                <span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="meta">part 1 of 6 · next: Ground School</span>
+              </a>
+              <a href="#" class="series card">
+                <span class="series-name">checkdomain</span>
+                <span class="bar" aria-hidden="true"><i class="on"></i><i class="on"></i></span>
+                <span class="meta">2 parts · <span class="chip">EN</span> <span class="chip">ID</span></span>
+              </a>
+            </div>
+          </div>
+
+          <div data-note="CHANGED · one post per series, language label" style="margin-top:20px">
+            <p class="label" style="margin-top:0">recent</p>
+            <ul class="post-list">
+              <li><time>Nov 14, 2026</time><span><a href="#">Fast and Accessible</a></span></li>
+              <li><time>Nov 23, 2025</time><span><a href="#" lang="id">Penutupan Akses Publik API Checknawala</a><span class="chip" title="Bahasa Indonesia">ID</span></span></li>
+              <li><time>Sep 30, 2025</time><span><a href="post.html">How It All Started #1</a></span></li>
+              <li><time>Sep 24, 2025</time><span><a href="#">I Migrate All My Email to Purelymail</a></span></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Selected work: compact rows -->
+        <section id="work" aria-labelledby="work-title" data-note="CHANGED · compact rows">
+          <div class="h2row">
+            <h2 id="work-title" class="h2">Selected work</h2>
+            <a href="#" class="more">all work →</a>
+          </div>
+          <ul class="work-list">
+            <li>
+              <div class="work-head"><a href="#" class="work-name">CheckDomain</a><span class="meta">2024 · api</span></div>
+              <p class="work-desc">A free public API for checking whether a domain is blocked by Indonesia's Trust+ list. It grew from 2–5M to ~500M requests a month before I closed it to the public.</p>
+              <p class="work-links"><a href="#" class="link">story</a><a href="#" class="link">source ↗</a></p>
+            </li>
+            <li>
+              <div class="work-head"><a href="#" class="work-name">Shortlink</a><span class="meta">2025 · service</span></div>
+              <p class="work-desc">A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.</p>
+              <p class="work-links"><a href="#" class="link">live ↗</a><a href="#" class="link">source ↗</a></p>
+            </li>
+            <li>
+              <div class="work-head"><a href="#" class="work-name">Blocklist</a><span class="meta">2024 · tool</span></div>
+              <p class="work-desc">Keeps a public copy of the Kominfo blocklist fresh, automatically, every hour.</p>
+              <p class="work-links"><a href="#" class="link">source ↗</a></p>
+            </li>
+          </ul>
+        </section>
+
+        <!-- One call to action (the testimonial and CV links move to /work) -->
+        <section class="cta card" aria-labelledby="hire" data-note="CHANGED · one call to action">
+          <p><span id="hire" style="font-weight:600">Need a hand with infrastructure?</span><br><span class="muted">Server hardening, CI/CD, automation, monitoring and self-hosting.</span></p>
+          <a href="#" class="btn primary" style="align-self:flex-start;white-space:nowrap">Work with me →</a>
+        </section>
+
+        <p class="elsewhere">
+          <span>Elsewhere:</span>
+          <a class="link" href="#">Bluesky</a>
+          <a class="link" href="#">GitHub</a>
+          <a class="link" href="#">Instagram</a>
+          <a class="link" href="#">Email</a>
+          <a class="link" href="#">RSS</a>
+        </p>
+      </div>
+    </main>
+
+    <footer class="site-foot">
+      <p>© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd.</p>
+      <p class="row"><a href="#">v4.0</a><span aria-hidden="true">·</span><a href="#">rss</a><a href="#">work@skiddle.id</a><a href="#">source</a></p>
+    </footer>
+  </div>
+
+  <script src="mock.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="blue" data-page="tmux">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C · tmux · skiddle.id v4 mockup</title>
+  <script>
+    (function () {
+      const d = document.documentElement, q = new URLSearchParams(location.search);
+      const get = (k) => { try { return localStorage.getItem('v4mock.' + k); } catch (e) { return null; } };
+      const pick = (k, ok, def) => { const v = q.get(k) ?? get(k); return ok.includes(v) ? v : def; };
+      d.dataset.theme = pick('theme', ['dark', 'light'], matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      d.dataset.body = pick('body', ['sans', 'mono'], 'sans');
+      d.dataset.notes = pick('notes', ['on', 'off'], 'off');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="mock.css">
+  <link rel="icon" href="data:,">
+  <style>
+    body { font-size: 14px; line-height: 1.6; }
+    .tabs, .sbar {
+      position: sticky; z-index: 40; display: flex; align-items: center; gap: 0; height: 30px;
+      background: var(--color-bg-alt); border-color: var(--color-border); font-size: 13px; white-space: nowrap; overflow-x: auto;
+    }
+    .tabs { top: 0; border-bottom: 1px solid var(--color-border); }
+    .sbar { bottom: 0; border-top: 1px solid var(--color-border); color: var(--color-muted); }
+    .tabs::-webkit-scrollbar, .sbar::-webkit-scrollbar { display: none; }
+    .seg { padding: 0 10px; height: 100%; display: inline-flex; align-items: center; }
+    .sess { background: var(--color-primary); color: var(--color-bg); font-weight: 600; }
+    .tabs a.seg:hover { color: var(--color-primary); }
+    .tabs a.seg[aria-current] { color: var(--color-primary); font-weight: 600; }
+    .tabs .soon { font-size: 10px; color: var(--color-muted); margin-left: 3px; }
+    .tabs .right, .sbar .right { margin-left: auto; }
+    .tabs kbd { font: inherit; font-size: 12px; border: 1px solid var(--color-border); border-radius: 3px; padding: 0 5px; line-height: 18px; margin-left: 6px; }
+    .sbar .mode { background: var(--color-text); color: var(--color-bg); font-weight: 600; }
+    .sbar .track { color: var(--color-text); }
+    .sbar .track b { color: var(--color-primary); font-weight: 400; }
+
+    main.tx { padding: 12px; display: grid; gap: 12px; grid-template-columns: 1fr; min-height: calc(100vh - 60px); align-content: start; }
+    @media (min-width: 900px) {
+      main.tx { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); padding: 16px; gap: 16px; }
+      .pane.wide { grid-column: 1; }
+      .pane.full { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1400px) { main.tx { max-width: 1400px; margin: 0 auto; width: 100%; } }
+    .pane { position: relative; border: 1px solid var(--color-border); border-radius: 4px; padding: 22px 18px 18px; min-width: 0; }
+    .pane.active { border-color: var(--color-primary); }
+    .pane-title { position: absolute; top: -9px; left: 12px; padding: 0 6px; background: var(--color-bg); font-size: 12px; line-height: 16px; color: var(--color-muted); }
+    .pane.active .pane-title { color: var(--color-primary); }
+    .cmd { color: var(--color-muted); }
+    .cmd .u { color: var(--color-primary); }
+    .cmd .c { color: var(--color-text); }
+    .cmd .cm { color: var(--color-muted); opacity: .8; }
+    .out { margin-top: 12px; }
+
+    .neo { display: flex; gap: 22px; align-items: flex-start; }
+    .neo img { width: 112px; height: 112px; border-radius: 6px; border: 1px solid var(--color-border); flex-shrink: 0; }
+    .neo .id { font-weight: 600; }
+    .neo .id span { color: var(--color-primary); }
+    .neo .rule { color: var(--color-muted); letter-spacing: 0; }
+    .neo dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 14px; }
+    .neo dt { color: var(--color-primary); }
+    .neo dd { margin: 0; }
+    .neo .ok { color: var(--color-ok); }
+    .sw { margin-top: 12px; display: flex; gap: 0; }
+    .sw i { width: 22px; height: 12px; }
+    @media (max-width: 560px) { .neo { flex-direction: column; gap: 14px; } .neo img { width: 72px; height: 72px; } }
+
+    .ls { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .ls td { padding: 3px 14px 3px 0; white-space: nowrap; vertical-align: baseline; }
+    .ls td.name { white-space: normal; width: 100%; }
+    .ls .mut { color: var(--color-muted); }
+    .ls a:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .ls .dir a { color: var(--color-primary); font-weight: 600; }
+    .ls .bar { display: inline-flex; width: 72px; vertical-align: middle; margin-left: 8px; }
+    .ls .chip { margin-left: 6px; }
+    @media (max-width: 700px) { .ls td.mode { display: none; } .ls td { padding-right: 10px; } }
+    .tot { color: var(--color-muted); }
+
+    .proj li { padding: 8px 0; border-bottom: 1px dashed var(--color-border); }
+    .proj li:last-child { border-bottom: 0; }
+    .proj .n { color: var(--color-primary); font-weight: 600; }
+    .proj .d { color: var(--color-text); margin-top: 2px; }
+    .proj .l { margin-top: 4px; font-size: 12px; display: flex; gap: 14px; }
+
+    .prompt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+    .hint { color: var(--color-muted); font-size: 12.5px; }
+    .hint code { color: var(--color-text); }
+    .now-list li { display: flex; gap: 8px; padding: 2px 0; }
+    .now-list li::before { content: '-'; color: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <header class="tabs">
+    <span class="seg sess">[skiddle]</span>
+    <nav aria-label="Main" style="display:contents">
+      <a href="tmux.html" class="seg" aria-current="page">0:home*</a>
+      <a href="#" class="seg">1:writing</a>
+      <a href="#" class="seg">2:about</a>
+      <a href="#" class="seg">3:work</a>
+      <a href="#" class="seg">4:flying<span class="soon">v4.1</span></a>
+      <a href="#" class="seg">5:uses</a>
+    </nav>
+    <span class="seg right">search<kbd>⌘K</kbd></span>
+    <button class="seg" id="themeBtn" aria-label="Toggle theme">theme</button>
+  </header>
+
+  <main class="tx">
+    <section class="pane active" aria-labelledby="who">
+      <span class="pane-title">1 whoami</span>
+      <p class="cmd"><span class="u">skiddle@web</span>:~$ <span class="c">whoami --long</span></p>
+      <div class="out neo">
+        <img src="img/bluesky.jpg" width="112" height="112" alt="Jeff's avatar">
+        <div>
+          <h1 id="who" class="id"><span>jeff</span>@<span>skiddle</span></h1>
+          <p class="rule">--------------</p>
+          <dl>
+            <dt>role</dt><dd>protocol engineer</dd>
+            <dt>company</dt><dd>Skiddle Labs, founder</dd>
+            <dt>home</dt><dd>Bangkok</dd>
+            <dt>studying</dt><dd>master's, AI &amp; ML · Chulalongkorn</dd>
+            <dt>advising</dt><dd>Aerialite</dd>
+            <dt>flying</dt><dd>private pilot since early 2026</dd>
+            <dt>status</dt><dd class="ok">● open to consulting · <a href="#" class="link">work with me</a></dd>
+          </dl>
+          <p class="sw" aria-hidden="true"><i style="background:#161616"></i><i style="background:#fa4d56"></i><i style="background:#42be65"></i><i style="background:#f1c21b"></i><i style="background:#82cfff"></i><i style="background:#be95ff"></i><i style="background:#3ddbd9"></i><i style="background:#f2f4f8"></i></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" aria-labelledby="now">
+      <span class="pane-title">2 now</span>
+      <p class="cmd"><span class="u">skiddle@web</span>:~$ <span class="c">cat now.md</span> <span class="cm"># updated Nov 2026</span></p>
+      <h2 id="now" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Now</h2>
+      <ul class="out now-list">
+        <li><span>Protocol engineering on contract for an undisclosed client, with my Skiddle Labs team (since Q3 2026)</span></li>
+        <li><span>Advising Aerialite, the security &amp; privacy startup I co-founded</span></li>
+        <li><span>Studying for a master's in AI &amp; machine learning at Chulalongkorn</span></li>
+        <li><span>Flying as a newly licensed private pilot (PPL, early 2026). <a href="post.html" class="link">How it started</a></span></li>
+      </ul>
+    </section>
+
+    <section class="pane wide" aria-labelledby="writing">
+      <span class="pane-title">3 writing</span>
+      <p class="cmd"><span class="u">skiddle@web</span>:~$ <span class="c">ls -lt writing/ | head</span></p>
+      <h2 id="writing" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Writing</h2>
+      <div class="out">
+        <p class="tot">total 12 posts, 3 series</p>
+        <table class="ls">
+          <tr><td class="mode mut">-rw-r--r--</td><td class="mut">3 min</td><td class="mut">Nov 14 2026</td><td class="name"><a href="#">Publishing My Blog to AT Protocol</a></td></tr>
+          <tr class="dir"><td class="mode mut">drwxr-xr-x</td><td class="mut">6 parts</td><td class="mut">Nov 14 2026</td><td class="name"><a href="#">rebuilding-skiddle.id/</a><span class="bar" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td></tr>
+          <tr class="dir"><td class="mode mut">drwxr-xr-x</td><td class="mut">2 parts</td><td class="mut">Nov 23 2025</td><td class="name"><a href="#">checkdomain/</a><span class="chip">EN</span><span class="chip">ID</span></td></tr>
+          <tr class="dir"><td class="mode mut">drwxr-xr-x</td><td class="mut">1 of 6</td><td class="mut">Sep 30 2025</td><td class="name"><a href="post.html">from-fear-to-flight/</a><span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+          <tr><td class="mode mut">-rw-r--r--</td><td class="mut">3 min</td><td class="mut">Sep 24 2025</td><td class="name"><a href="#">I Migrate All My Email to Purelymail</a></td></tr>
+          <tr><td class="mode mut">-rw-r--r--</td><td class="mut">2 min</td><td class="mut">Sep 19 2025</td><td class="name"><a href="#">My Last Month at Aerialite</a></td></tr>
+        </table>
+        <p class="hint" style="margin-top:10px"><a href="#" class="link">cd writing/</a> to see everything</p>
+      </div>
+    </section>
+
+    <section class="pane" aria-labelledby="proj">
+      <span class="pane-title">4 projects</span>
+      <p class="cmd"><span class="u">skiddle@web</span>:~$ <span class="c">ls projects/ --selected</span></p>
+      <h2 id="proj" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Selected work</h2>
+      <ul class="out proj">
+        <li><a href="#" class="n">checkdomain</a> <span class="muted">2024 · api</span><p class="d">Free public API for Indonesia's Trust+ blocklist. Peaked at ~500M requests a month before I closed it to the public.</p><p class="l"><a href="#" class="link">story</a><a href="#" class="link">source ↗</a></p></li>
+        <li><a href="#" class="n">shortlink</a> <span class="muted">2025 · service</span><p class="d">A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.</p><p class="l"><a href="#" class="link">live ↗</a><a href="#" class="link">source ↗</a></p></li>
+        <li><a href="#" class="n">blocklist</a> <span class="muted">2024 · tool</span><p class="d">Keeps a public copy of the Kominfo blocklist fresh, every hour.</p><p class="l"><a href="#" class="link">source ↗</a></p></li>
+      </ul>
+    </section>
+
+    <section class="pane full" aria-label="Prompt">
+      <span class="pane-title">5 zsh</span>
+      <div class="prompt-line">
+        <span class="cmd"><span class="u">skiddle@web</span>:~$ <span class="cursor-blink" aria-hidden="true"></span></span>
+        <span class="hint">try <code>help</code>, <code>ls</code> or <code>cat now.md</code>, or press <code>⌘K</code> to search</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="sbar">
+    <span class="seg mode">skiddle.id</span>
+    <span class="seg">v4.0</span>
+    <span class="seg track">♫ last played: <b>&nbsp;Ancika</b>&nbsp;· Ariel NOAH</span>
+    <span class="seg right">Bangkok <span id="bkk" style="margin-left:6px;color:var(--color-text)">--:--</span></span>
+    <a href="#" class="seg">rss</a>
+    <a href="#" class="seg">source</a>
+  </footer>
+
+  <script>
+    const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
+    const tick = () => { document.getElementById('bkk').textContent = fmt.format(new Date()); };
+    tick();
+    setInterval(tick, 30000);
+  </script>
+  <script src="mock.js"></script>
+</body>
+</html>

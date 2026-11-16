@@ -130,4 +130,4 @@ Other sites that shaped it:
 
 ---
 
-*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v1` and `v2` are archived majors.*
+*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v1` and `v2` are archived majors · what's next: [ROADMAP.md](ROADMAP.md)*

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="blue" data-page="post">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How It All Started #1 · skiddle.id v4 mockup</title>
+  <script>
+    (function () {
+      const d = document.documentElement, q = new URLSearchParams(location.search);
+      const get = (k) => { try { return localStorage.getItem('v4mock.' + k); } catch (e) { return null; } };
+      const pick = (k, ok, def) => { const v = q.get(k) ?? get(k); return ok.includes(v) ? v : def; };
+      d.dataset.theme = pick('theme', ['dark', 'light'], matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      d.dataset.body = pick('body', ['sans', 'mono'], 'sans');
+      d.dataset.hero = pick('hero', ['you', 'consulting'], 'you');
+      d.dataset.notes = pick('notes', ['on', 'off'], 'off');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="mock.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <script src="shell.js"></script>
+
+  <div class="page">
+    <main id="main">
+      <div class="post-wrap">
+        <article class="article" lang="en">
+          <header class="post-head">
+            <p class="crumbs"><a href="index.html">writing</a> / <a href="#">life</a></p>
+            <h1 class="post-title" data-note="CHANGED · bigger, tighter title">How It All Started #1</h1>
+            <p class="post-lede sans" data-note="NEW · description as the intro">From hating heights to a surprise skydive to PPL ground school: how I ended up learning to fly.</p>
+            <p class="meta"><span>Sep 30, 2025</span><span>· updated Nov 14, 2026</span><span>· 2 min read</span><span>·</span><a href="#" class="tag">#aviation</a><a href="#" class="tag">#ppl</a></p>
+          </header>
+
+          <!-- Series box: in the page on phones and laptops; in the right column on wide screens -->
+          <details class="series-box card in-flow" data-note="NEW · series progress">
+            <summary>
+              <span class="top"><span>Part 1 of 6 · <b>From Fear to Flight</b></span><span class="toggle"><span class="closed">show parts</span><span class="opened">hide parts</span></span></span>
+              <span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span>
+            </summary>
+            <ol class="parts">
+              <li class="here">How It All Started <span class="tagline">you're here</span></li>
+              <li class="soon">Ground School <span class="tagline">coming</span></li>
+              <li class="soon">First Flights</li>
+              <li class="soon">First Solo</li>
+              <li class="soon">Planning Real Flights</li>
+              <li class="soon">The Checkride</li>
+            </ol>
+          </details>
+
+          <div class="prose" data-note="CHANGED · Geist Sans for reading">
+            <p>This is the first part of a series where I'll be sharing my journey toward earning a <strong>Private Pilot License (PPL)</strong>. Unlike many who dreamed of being pilots since childhood, my story is a little different. Aviation always fascinated me, but for a long time I actually <strong>hated heights, and flying</strong> along with them.</p>
+
+            <figure class="figure wide" data-note="NEW · wide figure with caption">
+              <img src="img/our-flight.jpg" width="1400" height="933" alt="Illustration of a couple looking out of an airplane window at a sunset above the clouds">
+              <figcaption><b>fig. 1</b> — Illustration of a couple looking out of an airplane window at a sunset above the clouds</figcaption>
+            </figure>
+
+            <p>My journey with airplanes began as a passenger. Over the years, I've flown on everything from short-haul workhorses like the <strong>Airbus A320</strong> and <strong>Boeing 737</strong>, to modern upgrades like the <strong>A320neo</strong>, and even wide-bodies such as the <strong>A330</strong> and the double-deck <strong>A380</strong>. One aircraft still on my wishlist, though, is the <strong>Boeing 777</strong>.</p>
+            <p>At home, I spent countless hours on <strong>Flight Simulator</strong>, practicing takeoffs, approaches, and landings. Even during long trips, I'd pass the time with <strong>mobile flight simulators</strong> on my phone. On a screen, flying was easy. Being up high for real was another story.</p>
+
+            <h2 id="the-surprise-skydive">The surprise skydive</h2>
+            <p>What changed that was my fiancée. She took me on a <strong>surprise skydive</strong>.</p>
+            <p>After that jump, the fear was gone. I started to actually enjoy being up high and looking out at the sky, instead of dreading it.</p>
+
+            <h2 id="deciding-on-flight-school">Deciding on flight school</h2>
+            <p>That's what made me decide to go to <strong>flight school</strong>. My fiancée isn't training herself, but she has supported me through this decision from the start.</p>
+            <p>After a few years of success in <strong>trading</strong>, building <strong>businesses</strong>, and shifting into <strong>investing</strong>, I reached a point where I could finally pursue passions outside of work. And since I've always been curious and love learning new skills, flying became the perfect fit.</p>
+            <p>For years, I thought sims would be as close as I'd ever get to a cockpit. Now I'm taking the leap into actual <strong>flight training</strong>. I'm glad I can do this <strong>without worrying about financial limitations</strong>, and fully focus on learning and enjoying every step of the journey.</p>
+            <p><em>In the next part, I'll share my experience with <strong>ground school</strong> - the first step in turning this into reality.</em></p>
+          </div>
+
+          <div class="next-part card" data-note="NEW · next part, even before it's out">
+            <p class="meta">Next in From Fear to Flight · part 2 of 6</p>
+            <p class="t">Ground School</p>
+            <p class="d sans">Not written yet. Follow on <a href="#" class="link">Bluesky</a> or the <a href="#" class="link">RSS feed</a> to catch it.</p>
+          </div>
+
+          <nav class="neighbours" aria-label="More posts">
+            <a href="#" class="card"><span class="k">← older post</span>I Migrate All My Email to Purelymail</a>
+            <a href="#" class="card r"><span class="k">newer post →</span>The Story Behind Taking Down My Free checkdomain API</a>
+          </nav>
+
+          <footer class="author">
+            <div class="row">
+              <img src="img/github-96.jpg" alt="" width="48" height="48">
+              <div>
+                <p>Thanks for reading! I'm <a href="#" class="link">Jeff</a>, a protocol engineer and the founder of Skiddle Labs, based in Bangkok.</p>
+                <p class="muted" style="margin-top:4px">If you enjoyed this, follow me on <a href="#" class="link">Bluesky</a> or grab the <a href="#" class="link">RSS feed</a>. See you in the next post. 👋</p>
+              </div>
+            </div>
+            <div class="btns">
+              <button type="button" class="btn" id="copyLinkMock"></button>
+              <a href="#" class="btn" id="shareMock"></a>
+              <a href="#" class="btn" id="editMock"></a>
+            </div>
+          </footer>
+
+          <section class="comments section" aria-labelledby="comments-title">
+            <h2 id="comments-title" class="h2">Comments</h2>
+            <p>There's no Bluesky thread for this post yet. <a href="#" class="link">Start the conversation on Bluesky</a> and mention <a href="#" class="link">@skiddle.blue</a>.</p>
+          </section>
+
+          <section class="section" aria-labelledby="more-title">
+            <h2 id="more-title" class="h2">Keep reading</h2>
+            <ul class="post-list" style="margin-top:8px">
+              <li><time>Sep 19, 2025</time><span><a href="#">My Last Month at Aerialite</a></span></li>
+            </ul>
+          </section>
+        </article>
+
+        <aside class="rail" aria-label="Series and contents">
+          <div class="rail-inner">
+            <div data-note="NEW · series in the side column">
+              <p class="k">From Fear to Flight · 1 of 6</p>
+              <span class="bar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span>
+              <ol class="parts">
+                <li class="here">How It All Started</li>
+                <li class="soon">Ground School</li>
+                <li class="soon">First Flights</li>
+                <li class="soon">First Solo</li>
+                <li class="soon">Planning Real Flights</li>
+                <li class="soon">The Checkride</li>
+              </ol>
+            </div>
+            <p class="k" style="margin-top:28px">On this page</p>
+            <nav class="toc">
+              <a href="#the-surprise-skydive">The surprise skydive</a>
+              <a href="#deciding-on-flight-school">Deciding on flight school</a>
+            </nav>
+            <a href="#main" class="more" style="display:inline-block;margin-top:20px;font-size:12px">↑ back to top</a>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-foot">
+      <p>© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd.</p>
+      <p class="row"><a href="#">v4.0</a><span aria-hidden="true">·</span><a href="#">rss</a><a href="#">work@skiddle.id</a><a href="#">source</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // Footer buttons with the site's icons (from shell.js)
+    document.getElementById('copyLinkMock').innerHTML = mockIcon('copy', 14) + ' <span>Copy link</span>';
+    document.getElementById('shareMock').innerHTML = mockIcon('bluesky', 14) + ' Share on Bluesky';
+    document.getElementById('editMock').innerHTML = mockIcon('github', 14) + ' Suggest an edit';
+  </script>
+  <script src="mock.js"></script>
+</body>
+</html>

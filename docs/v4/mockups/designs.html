@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="blue" data-page="compare">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compare designs · skiddle.id v4 mockup</title>
+  <script>
+    (function () {
+      const d = document.documentElement, q = new URLSearchParams(location.search);
+      const get = (k) => { try { return localStorage.getItem('v4mock.' + k); } catch (e) { return null; } };
+      const pick = (k, ok, def) => { const v = q.get(k) ?? get(k); return ok.includes(v) ? v : def; };
+      d.dataset.theme = pick('theme', ['dark', 'light'], matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      d.dataset.body = pick('body', ['sans', 'mono'], 'sans');
+      d.dataset.notes = 'off';
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="mock.css">
+  <link rel="icon" href="data:,">
+  <style>
+    .cmp { max-width: 1240px; margin: 0 auto; padding: 40px 20px 96px; }
+    .cmp h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; }
+    .cmp .intro { margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--color-muted); max-width: 46em; }
+    .shared { margin-top: 18px; font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .shared span { border: 1px solid var(--color-border); border-radius: 999px; padding: 2px 10px; color: var(--color-muted); }
+    .grid { margin-top: 32px; display: grid; gap: 20px; }
+    @media (min-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .opt { border: 1px solid var(--color-border); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .opt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .opt h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .opt h2 .k { color: var(--color-primary); margin-right: 6px; }
+    .opt .d { font-size: 15px; line-height: 1.55; }
+    .shots { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: start; }
+    .shots a { display: block; border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden; background: var(--color-bg-alt); }
+    .shots a:hover { border-color: var(--color-primary); }
+    .shots .desk img { width: 100%; aspect-ratio: 1440 / 900; object-fit: cover; object-position: top; }
+    .shots .phone img { width: 100%; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; }
+    .pc { display: grid; gap: 4px 16px; font-size: 13px; line-height: 1.5; }
+    @media (min-width: 560px) { .pc { grid-template-columns: 1fr 1fr; } }
+    .pc li { display: flex; gap: 8px; }
+    .pc .p li::before { content: '+'; color: var(--color-ok); }
+    .pc .c li::before { content: '−'; color: #fa4d56; }
+    :root[data-theme='light'] .pc .c li::before { color: #da1e28; }
+    .pc ul { display: flex; flex-direction: column; gap: 4px; }
+    .fit { font-size: 12px; color: var(--color-muted); border-top: 1px dashed var(--color-border); padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <main class="cmp">
+    <p class="prompt"><span class="user">skiddle@web</span>:~$ diff designs/</p>
+    <h1>Four directions for the v4 home page</h1>
+    <p class="intro sans">Same content, same colours and fonts, four layouts. Click a screenshot to open the live mockup, then use the yellow panel to switch theme or fonts. All four share these v4 changes:</p>
+    <p class="shared"><span>Geist Sans for reading</span><span>menu: writing · about · work · flying · uses</span><span>series with progress</span><span>ID label on Indonesian posts</span><span>one call to action</span></p>
+
+    <div class="grid">
+      <section class="opt">
+        <div class="opt-head"><h2><span class="k">A</span>Terminal</h2><a href="index.html" class="more">open →</a></div>
+        <p class="d sans">The first mockup: v3's sidebar and single column, tightened up, with the latest post bigger and series grouped.</p>
+        <div class="shots">
+          <a class="desk" href="index.html"><img src="shots/v4-home-desktop-dark.jpg" alt="Design A on a laptop"></a>
+          <a class="phone" href="index.html"><img src="shots/v4-home-phone.jpg" alt="Design A on a phone"></a>
+        </div>
+        <div class="pc">
+          <ul class="p"><li>Closest to what people liked about v1 and v3</li><li>Smallest rebuild of the current code</li></ul>
+          <ul class="c"><li>Long scroll; reads as v3 with improvements</li><li>Least room for photos on the home page</li></ul>
+        </div>
+        <p class="fit">Post page: <a href="post.html" class="link">mocked</a> (sidebar, series in the right column)</p>
+      </section>
+
+      <section class="opt">
+        <div class="opt-head"><h2><span class="k">B</span>Editorial</h2><a href="editorial.html" class="more">open →</a></div>
+        <p class="d sans">No sidebar: a top bar, a big personal statement, a featured story with a photo, and a wide footer. Feels like a small publication.</p>
+        <div class="shots">
+          <a class="desk" href="editorial.html"><img src="shots/b-editorial-desktop-dark.jpg" alt="Design B on a laptop"></a>
+          <a class="phone" href="editorial.html"><img src="shots/b-editorial-phone.jpg" alt="Design B on a phone"></a>
+        </div>
+        <div class="pc">
+          <ul class="p"><li>The most about you; photos get real space</li><li>Fits the flying series and longer stories</li></ul>
+          <ul class="c"><li>Loses the most terminal feel</li><li>New shell for every page (no sidebar)</li></ul>
+        </div>
+        <p class="fit">Post page: centred article under the top bar, cover photo first</p>
+      </section>
+
+      <section class="opt">
+        <div class="opt-head"><h2><span class="k">C</span>tmux</h2><a href="tmux.html" class="more">open →</a></div>
+        <p class="d sans">The whole page is a terminal session: windows as the menu, panes for whoami, now, writing and projects, and a status bar with what you last played and the time in Bangkok.</p>
+        <div class="shots">
+          <a class="desk" href="tmux.html"><img src="shots/c-tmux-desktop-dark.jpg" alt="Design C on a laptop"></a>
+          <a class="phone" href="tmux.html"><img src="shots/c-tmux-phone.jpg" alt="Design C on a phone"></a>
+        </div>
+        <div class="pc">
+          <ul class="p"><li>The most distinctive; the terminal identity, all the way</li><li>Everything fits on one laptop screen</li></ul>
+          <ul class="c"><li>Dense and playful, less obvious for clients</li><li>Little room for photos; needs care for screen readers</li></ul>
+        </div>
+        <p class="fit">Post page: an article pane under the window bar, reading text in Geist Sans</p>
+      </section>
+
+      <section class="opt">
+        <div class="opt-head"><h2><span class="k">D</span>Bento</h2><a href="bento.html" class="more">open →</a></div>
+        <p class="d sans">Keeps the sidebar; the home page becomes a grid of cards: intro, latest post with its share card, now, flying, last played, series, writing, work and contact.</p>
+        <div class="shots">
+          <a class="desk" href="bento.html"><img src="shots/d-bento-desktop-dark.jpg" alt="Design D on a laptop"></a>
+          <a class="phone" href="bento.html"><img src="shots/d-bento-phone.jpg" alt="Design D on a phone"></a>
+        </div>
+        <div class="pc">
+          <ul class="p"><li>Shows the most at a glance, flying and music included</li><li>Cards can turn live later (Last.fm, logbook)</li></ul>
+          <ul class="c"><li>Busier; a popular look that may date</li><li>Becomes a long stack of cards on phones</li></ul>
+        </div>
+        <p class="fit">Post page: same as A (the sidebar stays)</p>
+      </section>
+    </div>
+  </main>
+  <script src="mock.js"></script>
+</body>
+</html>
