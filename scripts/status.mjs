@@ -6,6 +6,10 @@
  *
  *   npm run status -- --available --text "open to consulting"
  *   npm run status -- --busy --text "booked until March" --location Singapore --time-zone Asia/Singapore
+ *   npm run status -- --state away --text "on holiday"
+ *
+ * --state is available, busy, dnd (do not disturb) or away; --available and --busy are short for
+ * the first two.
  *   npm run status -- --show               print the current record
  *   npm run status -- --publish-lexicon    publish lexicons/id/skiddle/status.json as a
  *                                          com.atproto.lexicon.schema record, so other apps can find it
@@ -20,6 +24,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { DID } from '../src/lib/standard-site.mjs';
+import { STATES, isState } from '../src/lib/status-states.mjs';
 
 const COLLECTION = 'id.skiddle.status';
 const LEXICON_FILE = 'lexicons/id/skiddle/status.json';
@@ -54,13 +59,17 @@ async function main() {
     return;
   }
 
-  if (flag('available') === flag('busy')) throw new Error('Say --available or --busy');
+  const chosen = [flag('available') && 'available', flag('busy') && 'busy', option('state')].filter(Boolean);
+  if (chosen.length !== 1) throw new Error(`Say one of --available, --busy or --state <${STATES.join('|')}>`);
+  const state = chosen[0];
+  if (!isState(state)) throw new Error(`Unknown state: ${state} (use ${STATES.join(', ')})`);
   const text = option('text')?.trim();
   if (!text) throw new Error('Say what the status is: --text "open to consulting"');
   const current = (await getRecord(pds, COLLECTION, 'self'))?.value ?? {};
   const record = {
     $type: COLLECTION,
-    available: flag('available'),
+    state,
+    available: state === 'available',
     text,
     location: (option('location') ?? current.location ?? DEFAULTS.location).trim(),
     timeZone: (option('time-zone') ?? current.timeZone ?? DEFAULTS.timeZone).trim(),
@@ -76,7 +85,7 @@ async function main() {
 
   if (flag('dry-run')) return console.log(`DRY RUN: would write ${COLLECTION}/self:\n${JSON.stringify(record, null, 2)}`);
   await putRecord(pds, COLLECTION, 'self', record);
-  console.log(`Status set: ${record.available ? '●' : '○'} ${record.text} · ${record.location} (${record.timeZone})`);
+  console.log(`Status set: ${record.state} · ${record.text} · ${record.location} (${record.timeZone})`);
   console.log('skiddle.id shows it within a minute.');
 }
 

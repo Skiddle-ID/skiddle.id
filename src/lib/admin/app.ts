@@ -7,6 +7,7 @@
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
+import { STATE_INFO, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
 import statusLexicon from '../../../lexicons/id/skiddle/status.json';
 
@@ -19,6 +20,8 @@ const HANDLE_RESOLVER = 'https://bsky.social';
 
 interface StatusRecord {
   $type: typeof STATUS;
+  state: StatusState;
+  /** True only for 'available': kept for readers that don't know `state` */
   available: boolean;
   text: string;
   location?: string;
@@ -41,7 +44,7 @@ class XrpcError extends Error {
   }
 }
 
-const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+const el = <T = HTMLElement>(id: string) => document.getElementById(id) as unknown as T;
 const views = ['loading', 'signedOut', 'wrongAccount', 'signedIn'] as const;
 type View = (typeof views)[number];
 
@@ -113,8 +116,9 @@ let statusCid: string | undefined;
 function formValues() {
   const form = el<HTMLFormElement>('statusForm');
   const data = new FormData(form);
+  const state = data.get('state');
   return {
-    available: data.get('available') === 'yes',
+    state: isState(state) ? state : 'available',
     text: String(data.get('text') ?? '').trim(),
     location: String(data.get('location') ?? '').trim() || DEFAULTS.location,
     timeZone: String(data.get('timeZone') ?? '').trim() || DEFAULTS.timeZone,
@@ -130,18 +134,67 @@ function renderPreview() {
   const time = validTimeZone(v.timeZone)
     ? new Intl.DateTimeFormat('en-GB', { timeZone: v.timeZone, hour: '2-digit', minute: '2-digit' }).format(new Date())
     : '??:??';
-  el('previewDot').toggleAttribute('data-busy', !v.available);
-  el('previewText').textContent = `${v.available ? 'Available' : 'Busy'}: ${v.text || '…'} · ${v.location}, ${time}`;
+  const info = STATE_INFO[v.state];
+  el('previewDot').style.background = toneColour(info.tone);
+  el('previewText').textContent = `${info.label}: ${v.text || '…'} · ${v.location}, ${time}`;
+  const device = el<HTMLButtonElement>('useDeviceZone');
+  device.hidden = !DEVICE_ZONE || v.timeZone === DEVICE_ZONE;
+  device.textContent = `Use this device’s time zone (${DEVICE_ZONE})`;
+}
+
+// ---- Time zones: a select grouped by region, e.g. Asia → "Bangkok (UTC+7)" ----
+
+const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function zoneOffset(tz: string): string {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' })
+    .formatToParts(new Date())
+    .find((p) => p.type === 'timeZoneName')?.value;
+  return name ? name.replace('GMT', 'UTC') : 'UTC';
+}
+
+function zoneOption(tz: string): HTMLOptionElement {
+  const slash = tz.indexOf('/');
+  const place = (slash > 0 ? tz.slice(slash + 1) : tz).replaceAll('_', ' ');
+  return new Option(`${place} (${zoneOffset(tz)})`, tz);
+}
+
+function fillZones() {
+  const select = el<HTMLSelectElement>('statusTimeZone');
+  const zones = new Set(Intl.supportedValuesOf('timeZone'));
+  zones.add('UTC');
+  const groups = new Map<string, HTMLOptGroupElement>();
+  for (const tz of [...zones].sort()) {
+    const slash = tz.indexOf('/');
+    const region = slash > 0 ? tz.slice(0, slash) : 'Other';
+    let group = groups.get(region);
+    if (!group) {
+      group = document.createElement('optgroup');
+      group.label = region;
+      groups.set(region, group);
+    }
+    group.appendChild(zoneOption(tz));
+  }
+  while (select.firstChild) select.firstChild.remove();
+  const order = [...groups.keys()].sort((a, b) => (a === 'Other' ? 1 : b === 'Other' ? -1 : a.localeCompare(b)));
+  for (const region of order) select.appendChild(groups.get(region)!);
+}
+
+/** Select `tz`, adding it to the list if it's a valid zone the list doesn't have (an old alias) */
+function selectZone(tz: string) {
+  const select = el<HTMLSelectElement>('statusTimeZone');
+  if (![...select.options].some((o) => o.value === tz) && validTimeZone(tz)) select.insertBefore(zoneOption(tz), select.firstChild);
+  select.value = tz;
 }
 
 function fillStatus(record: RepoRecord<Partial<StatusRecord>> | null) {
   const form = el<HTMLFormElement>('statusForm');
   const value = record?.value ?? {};
   statusCid = record?.cid;
-  (form.elements.namedItem('available') as RadioNodeList).value = value.available === false ? 'no' : 'yes';
+  (form.elements.namedItem('state') as RadioNodeList).value = stateOf(value);
   el<HTMLInputElement>('statusText').value = value.text ?? '';
   el<HTMLInputElement>('statusLocation').value = value.location ?? DEFAULTS.location;
-  el<HTMLInputElement>('statusTimeZone').value = value.timeZone ?? DEFAULTS.timeZone;
+  selectZone(value.timeZone ?? DEFAULTS.timeZone);
   el('statusUpdated').textContent = record
     ? `Last changed ${value.updatedAt ? new Date(value.updatedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'at an unknown time'}.`
     : 'No status record yet, so the site shows its built-in status (src/data/status.ts).';
@@ -154,10 +207,11 @@ async function loadStatus(session: OAuthSession) {
 
 function setupStatus(session: OAuthSession) {
   const form = el<HTMLFormElement>('statusForm');
-  const zones = el('timeZones');
-  if (!zones.childElementCount) {
-    for (const tz of Intl.supportedValuesOf('timeZone')) zones.appendChild(new Option(tz));
-  }
+  fillZones();
+  el('useDeviceZone').addEventListener('click', () => {
+    selectZone(DEVICE_ZONE);
+    form.dispatchEvent(new Event('input'));
+  });
   form.addEventListener('input', () => {
     renderPreview();
     message('statusMessage', '');
@@ -168,9 +222,9 @@ function setupStatus(session: OAuthSession) {
     if (!v.text) return message('statusMessage', 'Say what your status is.', 'error');
     if (graphemes(v.text) > MAX) return message('statusMessage', `Keep it to ${MAX} characters.`, 'error');
     if (graphemes(v.location) > MAX) return message('statusMessage', `Keep the location to ${MAX} characters.`, 'error');
-    if (!validTimeZone(v.timeZone)) return message('statusMessage', `Unknown time zone: ${v.timeZone}. Pick one from the list, like Asia/Bangkok.`, 'error');
+    if (!validTimeZone(v.timeZone)) return message('statusMessage', `Unknown time zone: ${v.timeZone}. Pick one from the list.`, 'error');
 
-    const record: StatusRecord = { $type: STATUS, ...v, updatedAt: new Date().toISOString() };
+    const record: StatusRecord = { $type: STATUS, ...v, available: v.state === 'available', updatedAt: new Date().toISOString() };
     const button = el<HTMLButtonElement>('statusSave');
     button.disabled = true;
     message('statusMessage', 'Saving…');

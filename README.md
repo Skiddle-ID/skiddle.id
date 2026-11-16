@@ -64,7 +64,7 @@ npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/work
 
 ### Admin app
 
-`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status, publish its lexicon, and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
+`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status (available, busy, do not disturb or away, with a message, location and time zone), publish its lexicon, and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
 
 - It runs entirely in the browser (`src/lib/admin/app.ts`, with `@atproto/oauth-client-browser`). There's no server or database: the sign-in tokens stay on the device, and the app writes straight to the PDS.
 - It may only write `id.skiddle.status` and `com.atproto.lexicon.schema` records; Bluesky's sign-in page shows that. The list is `COLLECTIONS` in `src/lib/admin/oauth.ts`. Adding a collection there means signing in again.
@@ -128,7 +128,7 @@ Cards and badges in the site's terminal style, for a GitHub profile README, othe
 
 ### Status badge
 
-`/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
+`/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The dot's colour is the status: available (green), busy (amber), do not disturb (red) or away (grey). The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
 
 To set it, open [`/admin/`](#admin-app) and sign in with Bluesky. Or, from a computer (with `BLUESKY_APP_PASSWORD` set):
 
@@ -136,7 +136,7 @@ To set it, open [`/admin/`](#admin-app) and sign in with Bluesky. Or, from a com
 npm run status -- --available --text "open to consulting"
 ```
 
-`--busy` turns the dot grey. `--location` and `--time-zone` keep their current values unless given, `--show` prints the record and `--dry-run` writes nothing. From a phone, use the **Set status** workflow (GitHub → Actions → Set status → Run workflow). GitHub offers that button only for workflows on the default branch. Everything in an AT Protocol repo is public.
+`--busy` makes it busy, and `--state dnd` or `--state away` sets the others. `--location` and `--time-zone` keep their current values unless given, `--show` prints the record and `--dry-run` writes nothing. From a phone, use the **Set status** workflow (GitHub → Actions → Set status → Run workflow). GitHub offers that button only for workflows on the default branch. Everything in an AT Protocol repo is public.
 
 ```html
 <a href="https://skiddle.id/services/">

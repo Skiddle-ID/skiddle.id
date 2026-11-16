@@ -6,6 +6,7 @@
   as a PWA. Kept out of search engines and the sitemap.
 */
 import Admin from '~/layouts/admin.astro';
+import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 ---
 
 <Admin title="Admin · Skiddle">
@@ -43,16 +44,23 @@ import Admin from '~/layouts/admin.astro';
 
       <div id="signedIn" class="admin-stack" hidden>
         <section class="admin-card" aria-labelledby="statusTitle">
-          <h2 id="statusTitle">Status</h2>
+          <h2 id="statusTitle">Your status</h2>
           <p class="admin-preview" aria-live="polite">
             <span id="previewDot" class="admin-dot" aria-hidden="true"></span>
             <span id="previewText"></span>
           </p>
           <form id="statusForm" class="admin-form" novalidate>
             <fieldset class="admin-segment">
-              <legend>Availability</legend>
-              <label><input type="radio" name="available" value="yes" checked /> <span>Available</span></label>
-              <label><input type="radio" name="available" value="no" /> <span>Busy</span></label>
+              <legend>Status</legend>
+              {
+                STATES.map((state, i) => (
+                  <label>
+                    <input type="radio" name="state" value={state} checked={i === 0} />
+                    <span class="admin-dot" style={`background: ${toneColour(STATE_INFO[state].tone)}`} aria-hidden="true" />
+                    <span>{STATE_INFO[state].label}</span>
+                  </label>
+                ))
+              }
             </fieldset>
             <div class="admin-field">
               <div class="admin-label-row">
@@ -67,8 +75,10 @@ import Admin from '~/layouts/admin.astro';
             </div>
             <div class="admin-field">
               <label for="statusTimeZone">Time zone</label>
-              <input id="statusTimeZone" name="timeZone" type="text" list="timeZones" autocomplete="off" spellcheck="false" placeholder="Asia/Bangkok" />
-              <datalist id="timeZones"></datalist>
+              <select id="statusTimeZone" name="timeZone">
+                <option value="Asia/Bangkok">Asia/Bangkok</option>
+              </select>
+              <button id="useDeviceZone" type="button" class="admin-link" hidden></button>
             </div>
             <button id="statusSave" type="submit" class="admin-btn admin-btn-primary">Save status</button>
             <p id="statusMessage" class="admin-message" role="status"></p>
@@ -234,7 +244,8 @@ import Admin from '~/layouts/admin.astro';
   .admin-label-row [data-over] {
     color: var(--color-err);
   }
-  .admin input[type='text'] {
+  .admin input[type='text'],
+  .admin select {
     width: 100%;
     min-height: 2.75rem;
     padding: 0.5rem 0.75rem;
@@ -245,6 +256,8 @@ import Admin from '~/layouts/admin.astro';
     font-size: 1rem; /* 16px: iOS doesn't zoom into the field */
   }
   .admin input[type='text']:focus-visible,
+  .admin select:focus-visible,
+  .admin-link:focus-visible,
   .admin-btn:focus-visible,
   .admin-segment label:has(input:focus-visible) {
     outline: 2px solid var(--color-primary);
@@ -275,6 +288,15 @@ import Admin from '~/layouts/admin.astro';
   .admin-segment input {
     accent-color: var(--color-primary);
   }
+  .admin-link {
+    align-self: flex-start;
+    padding: 0.25rem 0;
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
   .admin-preview {
     display: flex;
     align-items: center;
@@ -289,10 +311,6 @@ import Admin from '~/layouts/admin.astro';
     height: 0.625rem;
     border-radius: 999px;
     background: var(--color-ok);
-  }
-  .admin-dot[data-busy] {
-    background: transparent;
-    box-shadow: inset 0 0 0 2px var(--color-muted);
   }
   .admin-records {
     display: flex;

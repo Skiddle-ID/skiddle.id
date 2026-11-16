@@ -6,6 +6,7 @@ import { getPosts, groupSeries, seriesStatus, seriesUrl, type Series } from '~/l
 import projects from '../data/projects';
 import services from '../data/services';
 import { status } from '../data/status';
+import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 export const prerender = true;
 
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
@@ -55,7 +56,8 @@ const h2 = 'font-semibold before-hash-2';
         <h1 id="intro" class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
         <p class="text-[var(--color-primary)]">Protocol engineer · Founder of Skiddle Labs · Bangkok</p>
         <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
-          <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.available ? 'bg-[var(--color-ok)]' : 'bg-[var(--color-muted)]']} aria-hidden="true"></span>
+          <span id="statusDot" class="size-2 rounded-full shrink-0" style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
+          <span id="statusState" class="sr-only">{STATE_INFO[status.state].label}: </span>
           <span id="statusText">{capitalise(status.label)}</span>
         </p>
       </div>
@@ -187,19 +189,23 @@ const h2 = 'font-semibold before-hash-2';
 </Shell>
 
 <script>
+  import { STATE_INFO, stateOf, toneColour } from '~/lib/status-states.mjs';
+
   // Keep the status line current from the id.skiddle.status record (see src/lib/at-status.ts)
   (async () => {
     const text = document.getElementById('statusText');
+    const label = document.getElementById('statusState');
     const dot = document.getElementById('statusDot');
-    if (!text || !dot) return;
+    if (!text || !label || !dot) return;
     try {
       const res = await fetch('/api/status.json');
       if (!res.ok) return;
-      const s = (await res.json()) as { available?: boolean; text?: string };
+      const s = (await res.json()) as { state?: string; available?: boolean; text?: string };
       if (typeof s.text !== 'string' || !s.text) return;
+      const info = STATE_INFO[stateOf(s)];
       text.textContent = s.text.charAt(0).toUpperCase() + s.text.slice(1);
-      dot.classList.toggle('bg-[var(--color-ok)]', s.available === true);
-      dot.classList.toggle('bg-[var(--color-muted)]', s.available !== true);
+      label.textContent = `${info.label}: `;
+      dot.style.background = toneColour(info.tone);
     } catch {
       // keep the status from the build
     }

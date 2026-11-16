@@ -12,7 +12,13 @@
         "properties": {
           "available": {
             "type": "boolean",
-            "description": "Open to new work: a green dot when true, grey when false."
+            "description": "Open to new work: true only when state is 'available'. Kept for readers that don't know state."
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["available", "busy", "dnd", "away"],
+            "description": "What kind of status: 'available' (open to new work, green), 'busy' (amber), 'dnd' (do not disturb, red) or 'away' (grey). Readers that don't know the value go by 'available'."
           },
           "text": {
             "type": "string",
