@@ -4,6 +4,8 @@ Where skiddle.id is going and what's done. Tick a box when its PR merges.
 
 ## Now (v3)
 
+Released as [v3.7](https://github.com/Skiddle-ID/skiddle.id/releases/tag/v3.7) on 2026-11-16.
+
 - [x] Geist Sans for post text, Geist Mono for everything else ([#98](https://github.com/Skiddle-ID/skiddle.id/pull/98))
 - [x] Series with progress bars and planned parts ([#99](https://github.com/Skiddle-ID/skiddle.id/pull/99))
 - [x] Ongoing series like Lab Notes, and shorter lists for long series ([#101](https://github.com/Skiddle-ID/skiddle.id/pull/101))
@@ -39,7 +41,7 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 ### v4.0-pre: a safety net first
 
-- [x] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe)
+- [x] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe) ([#108](https://github.com/Skiddle-ID/skiddle.id/pull/108))
 - [ ] TypeScript 7, once typescript-eslint supports it ([#78](https://github.com/Skiddle-ID/skiddle.id/pull/78))
 
 ### v4.0: the redesign
@@ -104,4 +106,3 @@ v4.1 builds /now and /flying from data files in the repo; v5 moves their data in
 ## Parked
 
 - The Shortlink card on the projects page still has template text; update it after you change the shortlink itself
-- The next v3 release: Release Drafter keeps its notes ready under GitHub → Releases

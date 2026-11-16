@@ -19,7 +19,11 @@ describe('pages', () => {
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 900 });
     page.on('console', (m) => {
-      if (m.type() === 'error') problems.push(`console: ${m.text()}`);
+      // Cloudflare Web Analytics' beacon (added on skiddle.id itself) is often blocked by ad blockers
+      // and DNS filters; that's the visitor's choice, not a problem with the site
+      if (m.type() === 'error' && !/^https:\/\/static\.cloudflareinsights\.com\//.test(m.location()?.url ?? '')) {
+        problems.push(`console: ${m.text()}`);
+      }
     });
     page.on('pageerror', (e) => problems.push(`script error: ${e.message}`));
   });
