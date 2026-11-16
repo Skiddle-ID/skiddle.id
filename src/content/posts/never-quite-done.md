@@ -1,13 +1,12 @@
 ---
 title: "Never Quite Done"
 description: "The site follows your device's theme, every page gets a share card, and I blocked my own analytics again."
-# Set pubDate to the day you publish: posts are announced on Bluesky automatically only if they're at most 14 days old
-pubDate: 2026-11-15T09:00:00.000Z
+pubDate: 2026-11-16T09:16:00.000Z
 category: infra
 tags: [astro, cloudflare, csp, open-graph]
 series: "Rebuilding skiddle.id"
 order: 7
-draft: true
+draft: false
 ---
 
 ## I said that was the series
