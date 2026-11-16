@@ -2,6 +2,9 @@
 // Preload the site font (the same files src/style.css imports) so text doesn't reflow when it arrives
 import geistMono400 from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
 import geistMono600 from '@fontsource/geist-mono/files/geist-mono-latin-600-normal.woff2?url';
+// Posts also preload Geist Sans, the font for post text (see .prose-reading in src/style.css)
+import geist400 from '@fontsource/geist/files/geist-latin-400-normal.woff2?url';
+import geist600 from '@fontsource/geist/files/geist-latin-600-normal.woff2?url';
 import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
 
 interface Props {
@@ -27,6 +30,8 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 
 <link rel="preload" href={geistMono400} as="font" type="font/woff2" crossorigin />
 <link rel="preload" href={geistMono600} as="font" type="font/woff2" crossorigin />
+{type === 'article' && <link rel="preload" href={geist400} as="font" type="font/woff2" crossorigin />}
+{type === 'article' && <link rel="preload" href={geist600} as="font" type="font/woff2" crossorigin />}
 <link rel="canonical" href={canonical} />
 <meta name="robots" content="index,follow" />
 <meta name="author" content="Laurensius Jeffrey (Skiddle)" />

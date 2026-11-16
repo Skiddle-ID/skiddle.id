@@ -1,5 +1,9 @@
 @import '@fontsource/geist-mono/latin-400.css' layer(base);
 @import '@fontsource/geist-mono/latin-600.css' layer(base);
+/* Geist Sans for post text (see .prose-reading); only downloaded on pages that use it */
+@import '@fontsource/geist/latin-400.css' layer(base);
+@import '@fontsource/geist/latin-600.css' layer(base);
+@import '@fontsource/geist/latin-400-italic.css' layer(base);
 
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
@@ -42,6 +46,7 @@
   --color-gray: var(--color-border);
 
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-reading: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-heading: var(--font-mono);
   --tracking-normal: -0.32px;
   --leading-normal: 180%;
@@ -177,6 +182,28 @@ html .prose {
   max-width: 70ch;
   font-size: 0.95rem;
   line-height: 1.85;
+}
+
+/* Post text: Geist Sans, a little larger, for long reading. Headings keep Geist Mono and their
+   "## " prefix, and code stays Geist Mono at its old size, so posts still look like the rest of the site. */
+html .prose.prose-reading {
+  font-family: var(--font-reading);
+  font-size: 1.09375rem; /* 17.5px */
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+.prose-reading :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+.prose-reading h2 { font-size: 1.2em; }
+.prose-reading h3 { font-size: 1.05em; }
+.prose-reading :where(code, kbd, samp, pre) { letter-spacing: -0.32px; }
+.prose-reading :not(pre) > code { font-size: 0.85em; }
+.prose-reading pre { font-size: 0.75em; }
+@media print {
+  html .prose.prose-reading { font-size: 11pt; line-height: 1.6; }
 }
 
 /* ── Shiki: dual themes, dark inline by default ── */
