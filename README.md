@@ -84,6 +84,12 @@ Publishing a release only creates a tag, and tags don't trigger Workers Builds. 
 
 It always shows `LASTFM_USERNAME`, embeds the album art so it works inside `<img>`, and caches Last.fm for 30 seconds (artwork for 7 days). If Last.fm is down it shows "Nothing playing right now" instead of a broken image. The code is in `src/lib/lastfm.ts` (data) and `src/lib/lastfm-card.ts` (drawing).
 
+## License
+
+- **Code:** MIT, see [LICENSE](LICENSE). Learn from it, reuse it.
+- **Writing and images** (posts, drafts, post images, photos, and the text of the pages and data files): © Laurensius Jeffrey, all rights reserved, see [LICENSE-CONTENT.md](LICENSE-CONTENT.md). Quoting short excerpts with a link is fine; ask before republishing.
+- **No AI training** on the writing. The site says so in [robots.txt](src/pages/robots.txt.ts) (a Content-Signal line, plus AI training crawlers turned away), in a `tdm-reservation` tag on every page, and in the RSS feed's copyright line. These are requests that well-behaved crawlers follow, not locks. Cloudflare's AI bot blocking (dashboard → AI Crawl Control) can enforce it at the edge.
+
 ## Credits & inspiration
 
 This site started in 2025 from **[Hayden Young](https://bsky.app/profile/hayden.moe)'s** personal site, [hayden.moe](https://web.archive.org/web/2025/https://hayden.moe/) ([source](https://github.com/hbjydev/hayden.moe)). The terminal-style `@web ~` header, the blinking cursor and the original ATProto blog setup come from there. It has since been rewritten, but the spirit is Hayden's. Thank you! Hayden now writes at [hayden.leaflet.pub](https://hayden.leaflet.pub/).

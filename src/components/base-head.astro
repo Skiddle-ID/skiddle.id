@@ -36,6 +36,8 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <!-- Preview builds (pull requests, which can show drafts) stay out of search engines -->
 <meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : 'index,follow'} />
 <meta name="author" content="Laurensius Jeffrey (Skiddle)" />
+<!-- Text and data mining reserved (W3C TDMRep): no AI training on this writing, see LICENSE-CONTENT.md -->
+<meta name="tdm-reservation" content="1" />
 <!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
 <meta name="theme-color" content="#161616" id="themeColor" />
 <link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />

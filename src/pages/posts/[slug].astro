@@ -84,6 +84,10 @@ const jsonLd = {
   datePublished: entry.data.pubDate.toISOString(),
   dateModified: (entry.data.updatedDate || entry.data.pubDate).toISOString(),
   author: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle', url: site.toString() },
+  // All rights reserved, no AI training (LICENSE-CONTENT.md)
+  copyrightHolder: { '@type': 'Person', name: 'Laurensius Jeffrey' },
+  copyrightYear: entry.data.pubDate.getUTCFullYear(),
+  license: 'https://github.com/Skiddle-ID/skiddle.id/blob/v3/LICENSE-CONTENT.md',
   mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
   description,
   url: canonical,
