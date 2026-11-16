@@ -26,6 +26,12 @@ const minutes = readingMinutes(entry);
 const toc = headings.filter((h) => h.depth <= 3);
 const repoFile = entry.filePath ?? `src/content/posts/${entry.id}.md`;
 const editUrl = `https://github.com/Skiddle-ID/skiddle.id/blob/v3/${repoFile}`;
+// "updated …" links to the post's change history
+const historyUrl = `https://github.com/Skiddle-ID/skiddle.id/commits/v3/${repoFile}`;
+// A scheduled draft (publishAt): when it goes live, in Bangkok time
+const scheduledFor = entry.data.draft && entry.data.publishAt
+  ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(entry.data.publishAt)
+  : '';
 // This post's site.standard.document record on AT Protocol (written by scripts/standard-site-sync.mjs)
 const atDocument = documentUri({ slug: entry.id, pubDate: entry.data.pubDate, rkey: entry.data.rkey });
 
@@ -103,7 +109,7 @@ const jsonLd = {
   <article class="max-w-[70ch] w-full min-w-0 mx-auto xl:mx-0" lang={entry.data.lang}>
     {entry.data.draft && (
       <p class="card border-[var(--color-warn)] text-[var(--color-warn)] px-4 py-2.5 mb-6 text-sm" role="note" lang="en">
-        Draft: only on this preview, not on skiddle.id.
+        {scheduledFor ? `Scheduled for ${scheduledFor} (Bangkok time): only on this preview until then.` : 'Draft: only on this preview, not on skiddle.id.'}
       </p>
     )}
     <header class="mb-8">
@@ -115,7 +121,7 @@ const jsonLd = {
       <h1 class="text-2xl font-semibold leading-snug">{entry.data.title}</h1>
       <p class="text-xs text-[var(--color-muted)] mt-3 flex flex-wrap gap-x-2 gap-y-1" lang="en">
         <FormattedDate date={entry.data.pubDate} />
-        {entry.data.updatedDate && (<span>· updated <FormattedDate date={entry.data.updatedDate} /></span>)}
+        {entry.data.updatedDate && (<span>· <a href={historyUrl} class="hover:text-[var(--color-primary)] hover:underline underline-offset-4" title="See what changed" target="_blank" rel="noopener">updated <FormattedDate date={entry.data.updatedDate} /></a></span>)}
         <span>· {minutes} min read</span>
         {entry.data.tags.length > 0 && <span>·</span>}
         {entry.data.tags.map((t) => (<a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>))}

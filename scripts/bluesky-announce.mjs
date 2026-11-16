@@ -15,7 +15,7 @@
  *   BLUESKY_APP_PASSWORD  app password for the account (not the account password)
  *   BLUESKY_IDENTIFIER    handle or DID, default skiddle.blue
  *   BEFORE, AFTER         git range of the push (defaults: HEAD~1, HEAD)
- *   SLUG                  announce this post instead (manual run; no age limit)
+ *   SLUG                  announce these posts instead, comma-separated (manual or scheduled run; no age limit)
  *   DRY_RUN=1             show what would happen; no post or file change (logs in to
  *                         check the app password if it's set)
  *   SKIP_WAIT=1           don't wait for the post to be live (testing)
@@ -91,7 +91,8 @@ async function main() {
 
 /** Published posts from this push (or SLUG) that still need an announcement */
 function candidatePosts() {
-  const files = env.SLUG ? [postFile(env.SLUG.trim())] : changedPostFiles();
+  // SLUG can list several posts, comma-separated (the scheduled-publish workflow does), in order
+  const files = env.SLUG ? env.SLUG.split(/[\s,]+/).filter(Boolean).map((s) => postFile(s)) : changedPostFiles();
   const now = Date.now();
   const out = [];
   for (const file of files) {

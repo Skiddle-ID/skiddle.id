@@ -15,6 +15,21 @@ Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https:
 
 New posts start with `draft: true`. They stay off the live site until it's `false`. A pull request's preview (`<branch>-skiddle-id.skiddle.workers.dev`) does show drafts, with a "Draft" banner, so you can read one before publishing it. Previews tell search engines not to index them, but anyone with the link can open them. Once a published post is merged into `v3`, it's announced on Bluesky automatically and gets its `bluesky: at://…` line, which shows replies as comments (see [Bluesky announcements](#bluesky-announcements)).
 
+### Scheduling a post
+
+Keep `draft: true` and add the time it should go live, with its offset:
+
+```yaml
+publishAt: 2026-11-20T09:00:00+07:00
+draft: true
+```
+
+Merge it any time before then; its preview shows "Scheduled for Nov 20, 2026, 9:00 AM (Bangkok time)". Every hour, [Publish scheduled posts](.github/workflows/scheduled-publish.yml) (`scripts/publish-scheduled.mjs`) publishes the posts whose time has passed, oldest first. It sets `draft: false` and `pubDate` to the scheduled time, removes `publishAt`, and pushes to `v3`, which Cloudflare deploys. Then it starts the Bluesky announcement, which waits until the post is live. GitHub can start the hourly run a few minutes late. To move or cancel a post, change or remove `publishAt` before then. To publish due posts straight away, run the workflow by hand with dry run off.
+
+### Updated dates
+
+When a published post's text, title or description changes, the Bluesky workflow sets `updatedDate` to the time of the merge (`scripts/mark-updated.mjs`). The post then shows both dates, for example "Sep 30, 2025 · updated Nov 14, 2026", with "updated" linking to the post's history. The sitemap, the JSON-LD and the AT Protocol record get the new date too. Tags, series and other frontmatter don't count, and neither does publishing a draft. For a change that shouldn't count, like a typo fix, put `[skip updated]` in the PR title. You can also set `updatedDate` yourself in the PR.
+
 ### Bluesky announcements
 
 `.github/workflows/bluesky-announce.yml` runs `scripts/bluesky-announce.mjs` after each push to `v3` that touches posts. For every post in the push that is published, has no `bluesky:` line and is at most 14 days old, it:

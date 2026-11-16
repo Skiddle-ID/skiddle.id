@@ -30,6 +30,7 @@ const { posts, descriptions = false, searchable = false } = Astro.props;
           {descriptions && (
             <p class="text-xs text-[var(--color-muted)] mt-1 flex flex-wrap gap-x-2">
               <span>{readingMinutes(p)} min read</span>
+              {p.data.updatedDate && <span>updated <FormattedDate date={p.data.updatedDate} /></span>}
               {p.data.tags.map((t) => <a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>)}
             </p>
           )}
