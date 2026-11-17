@@ -6,6 +6,7 @@ category: infra
 tags: [astro, design]
 series: "Lab Notes"
 order: 1
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2i2argadx2f
 draft: false
 ---
 
