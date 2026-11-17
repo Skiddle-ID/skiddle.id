@@ -125,7 +125,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
         </section>
       </div>
 
-      <div id="editor" class="admin-editor" data-pane="write">
+      <div id="editor" class="admin-editor" data-pane="write" data-kind="draft">
         <div class="admin-editor-bar">
           <a href="#" class="admin-btn admin-btn-ghost">← Posts</a>
           <span id="editorState" class="admin-small" aria-live="polite"></span>
@@ -216,9 +216,14 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <p id="editorProblems" class="admin-message" role="status"></p>
 
           <div class="admin-editor-actions">
-            <button type="button" class="admin-btn admin-btn-primary" disabled>Publish</button>
-            <p class="admin-small">Publishing from here starts with the v4 launch. Until then the site is built from git, and the sync would remove a post that isn’t there.</p>
-            <button id="edDelete" type="button" class="admin-btn">Delete draft</button>
+            <button id="edPublish" type="button" class="admin-btn admin-btn-primary" data-for="draft" disabled>Publish</button>
+            <label class="admin-check" data-for="post"><input id="edMinor" type="checkbox" /> Small fix: don’t mark the post as updated</label>
+            <button id="edSavePost" type="button" class="admin-btn admin-btn-primary" data-for="post" disabled>Save changes</button>
+            <p class="admin-small" data-not-live></p>
+            <p class="admin-small" data-for="post">A change to the title or description shows on the share card once share cards are drawn here, with publishing.</p>
+            <a id="edViewPost" href="/posts/" target="_blank" rel="noopener" class="admin-link" data-for="post">View the post</a>
+            <button id="edDelete" type="button" class="admin-btn" data-for="draft">Delete draft</button>
+            <button id="edUnpublish" type="button" class="admin-btn" data-for="post" disabled>Unpublish</button>
           </div>
         </form>
       </div>
@@ -512,6 +517,14 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-notice .admin-btn + .admin-btn {
     margin-top: 0.5rem;
     margin-right: 0.5rem;
+  }
+  /* Draft-only and published-only parts of the editor, by #editor[data-kind] */
+  .admin-editor[data-kind='post'] [data-for='draft'],
+  .admin-editor[data-kind='draft'] [data-for='post'] {
+    display: none;
+  }
+  .admin input[readonly] {
+    color: var(--color-muted);
   }
   .admin-editor {
     display: flex;
