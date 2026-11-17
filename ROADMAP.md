@@ -149,7 +149,7 @@ The admin app:
 
 - [x] Write drafts: Markdown with a live preview (the site's renderer), images shrunk under 1 MB, series and part, saved as you type ([#129](https://github.com/Skiddle-ID/skiddle.id/pull/129))
 - [x] Sections: Posts, Series, Status and Site, one at a time under a bar, each with its own address ([#131](https://github.com/Skiddle-ID/skiddle.id/pull/131))
-- [ ] Publish: draws the share card in the browser, writes the record, announces it on Bluesky and turns comments on
+- [x] Publish: draws the share card in the browser (byte-for-byte the build's card), writes the record, announces it on Bluesky and turns comments on; resumable if it stops part-way. Built, and switched on at the launch ([#132](https://github.com/Skiddle-ID/skiddle.id/pull/132))
 - [ ] Edit and unpublish published posts; edits set the "updated" date
 - [ ] Series: create and edit them, including planned parts; saving draws the series' share card
 - [ ] Redraw all share cards, for after a change to the card design

@@ -16,16 +16,22 @@
  * ticked as a small fix (like `[skip updated]` in a git commit), which leaves "updated" as it was. Saving, unpublishing and publishing drafts wait for the v4 launch
  * (src/lib/admin/launch.ts); until then edits are kept on this device.
  *
- *   - The preview uses the same renderer as the site (src/lib/post-html.mjs) and the site's styles.
+ *   - The preview uses the same renderer as the site (src/lib/post-html.mjs) and the site's styles,
+ *     and can show the post's share card, drawn in the browser (src/lib/admin/card.ts).
+ *   - Publishing a draft draws and uploads its share card, writes its site.standard.document, waits
+ *     for the page, announces it on Bluesky, links the thread (comments on) and deletes the draft.
+ *     Each step is remembered on this device, so a failure part-way can be finished later without
+ *     publishing twice.
  *   - Images are shrunk under 1 MB in the browser if needed, uploaded as blobs, and written into the
  *     Markdown as ![alt](image:NAME).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { categoryLabels } from '~/lib/categories.mjs';
 import { plainText } from '~/lib/plain-text.mjs';
+import { announcementRecord } from '~/lib/announcement.mjs';
 import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, seriesSlug } from '~/lib/post-record.mjs';
 import { renderPost, type PostImage } from '~/lib/post-html.mjs';
-import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
+import { DID, PUBLICATION_URI, SITE_URL, documentRkey } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
 import { el, errorText, message } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
@@ -272,6 +278,9 @@ function setupEditor() {
     onChange();
   });
   el('edDelete').addEventListener('click', deleteDraft);
+  el('edPublish').addEventListener('click', () => void publishDraft());
+  el('edFinish').addEventListener('click', () => void publishDraft());
+  el('edCard').addEventListener('click', () => void showCard());
   el('edSavePost').addEventListener('click', () => void savePost());
   el('edUnpublish').addEventListener('click', unpublish);
   el('edImage').addEventListener('change', chooseImage);
@@ -358,8 +367,10 @@ async function open(kind: Kind, rkey: string) {
     view.href = opened.value.path ?? '/posts/';
     el<HTMLButtonElement>('edSavePost').disabled = true;
     el<HTMLButtonElement>('edUnpublish').disabled = !PUBLISHING_LIVE;
-    // Publishing a draft (drawing its share card, announcing it on Bluesky) is built with the launch
-    el<HTMLButtonElement>('edPublish').disabled = true;
+    el<HTMLButtonElement>('edPublish').disabled = !PUBLISHING_LIVE;
+    el('edFinish').hidden = !(kind === 'draft' && readPublishing(rkey));
+    el('edCardImage').hidden = true;
+    message('edCardMessage', '');
     el('editorState').textContent =
       kind === 'draft'
         ? `Saved ${formatTime(opened.value.updatedAt ?? opened.value.createdAt)}`
@@ -640,6 +651,177 @@ async function unpublish() {
   } catch (err) {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') saveFailed(err);
     else message('editorMessage', `Couldn’t unpublish it: ${errorText(err)}`, 'error');
+  }
+}
+
+// ---- Share card and publishing ----
+
+const revalidate = () => fetch('/api/revalidate', { method: 'POST' }).then(() => undefined, () => undefined);
+
+/** What the card shows for the post in the editor (a draft gets today's date, as if published now) */
+function cardPost() {
+  const d = formDraft();
+  return {
+    slug: /^\/posts\/([^/]+)\/$/.exec(d.path ?? '')?.[1] ?? 'untitled',
+    title: d.title || 'Untitled',
+    description: d.description,
+    publishedAt: new Date(current?.kind === 'post' ? (current.doc?.publishedAt ?? now()) : now()),
+    markdown: d.content.markdown,
+  };
+}
+
+/** Draws the share card in the preview pane (nothing is uploaded) */
+async function showCard() {
+  const button = el<HTMLButtonElement>('edCard');
+  button.disabled = true;
+  message('edCardMessage', 'Drawing the share card…');
+  try {
+    const { drawPostCard } = await import('./card');
+    const image = el<HTMLImageElement>('edCardImage');
+    if (image.src.startsWith('blob:')) URL.revokeObjectURL(image.src);
+    image.src = URL.createObjectURL(await drawPostCard(cardPost()));
+    image.hidden = false;
+    message('edCardMessage', '');
+  } catch (err) {
+    message('edCardMessage', `Couldn’t draw it: ${errorText(err)}`, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+/** Where a draft's publishing has got to, kept on this device until it's done */
+interface Publishing {
+  draftRkey: string;
+  publishedAt: string;
+  cover?: BlobRef;
+  rkey?: string;
+  docCid?: string;
+  doc?: DocumentRecord;
+  post?: { uri: string; cid: string };
+}
+const publishingKey = (draftRkey: string) => `skiddle-admin:publishing:${draftRkey}`;
+
+function readPublishing(draftRkey: string): Publishing | undefined {
+  try {
+    const raw = localStorage.getItem(publishingKey(draftRkey));
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Waits until the post's page answers, for up to 30 seconds */
+async function waitLive(path: string) {
+  for (let i = 0; i < 15; i++) {
+    const res = await fetch(`${path}?live=${Date.now()}`, { cache: 'no-store' }).catch(() => undefined);
+    if (res?.ok) return;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`${path} didn’t come up within 30 seconds`);
+}
+
+/**
+ * Publishes the open draft, or finishes publishing it after a failure: each step that's done is
+ * remembered on this device and skipped the next time
+ */
+async function publishDraft() {
+  if (!PUBLISHING_LIVE || !current || current.kind !== 'draft') return;
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    await saveDraft();
+  } else if (saving) await saving;
+  const target = current;
+  const d = formDraft();
+  const issues = problems(d);
+  if (!d.title) issues.push('A post needs a title.');
+  if (!d.path) issues.push('A post needs an address.');
+  if (issues.length) return message('editorMessage', issues.join(' '), 'error');
+  const resuming = readPublishing(target.rkey);
+  const url = `${SITE_URL}${d.path}`;
+  if (!resuming && !confirm(`Publish “${d.title}” now? It goes live at ${url} and is announced on Bluesky.`)) return;
+
+  const p: Publishing = resuming ?? { draftRkey: target.rkey, publishedAt: now() };
+  const remember = () => {
+    try {
+      localStorage.setItem(publishingKey(p.draftRkey), JSON.stringify(p));
+    } catch {}
+  };
+  const step = (text: string) => (el('editorState').textContent = text);
+  el<HTMLButtonElement>('edPublish').disabled = true;
+  el('edFinish').hidden = true;
+  message('editorMessage', '');
+  try {
+    if (!p.cover) {
+      step('Drawing the share card…');
+      const { drawPostCard } = await import('./card');
+      const png = await drawPostCard({ ...cardPost(), publishedAt: new Date(p.publishedAt) });
+      step('Uploading the share card…');
+      p.cover = await uploadBlob(session, png);
+      remember();
+    }
+    if (!p.docCid) {
+      step('Writing the post…');
+      p.rkey = documentRkey({ slug: /^\/posts\/([^/]+)\/$/.exec(d.path!)![1], pubDate: new Date(p.publishedAt) });
+      if (await getRecord(session, DOCUMENT, p.rkey)) throw new Error(`a post already has the record key ${p.rkey}`);
+      p.doc = {
+        $type: DOCUMENT,
+        site: PUBLICATION_URI,
+        path: d.path,
+        title: d.title,
+        ...(d.description ? { description: d.description } : {}),
+        publishedAt: p.publishedAt,
+        ...(d.tags ? { tags: d.tags } : {}),
+        textContent: plainText(d.content.markdown),
+        content: d.content,
+        coverImage: p.cover,
+      };
+      p.docCid = (await putRecord(session, DOCUMENT, p.rkey, p.doc)).cid;
+      remember();
+      await revalidate();
+      step('Waiting for the page…');
+      await waitLive(d.path!);
+    }
+    if (!p.post) {
+      step('Announcing it on Bluesky…');
+      const res = await createRecord(
+        session,
+        'app.bsky.feed.post',
+        announcementRecord({ title: d.title, description: d.description, lang: d.content.lang ?? 'en', url, thumb: p.cover }),
+      );
+      p.post = { uri: res.uri, cid: res.cid };
+      remember();
+    }
+    if (!p.doc!.bskyPostRef) {
+      step('Turning comments on…');
+      p.doc = { ...p.doc!, bskyPostRef: p.post };
+      p.docCid = (await putRecord(session, DOCUMENT, p.rkey!, p.doc, p.docCid)).cid;
+      remember();
+    }
+    step('Removing the draft…');
+    await deleteRecord(session, DRAFT_COLLECTION, p.draftRkey).catch((err) => {
+      if (!(err instanceof XrpcError && /not ?found/i.test(`${err.error} ${err.message}`))) throw err;
+    });
+    try {
+      localStorage.removeItem(publishingKey(p.draftRkey));
+    } catch {}
+    removeBackup('draft', p.draftRkey);
+    await revalidate();
+    drafts = drafts.filter((x) => rkeyOf(x.uri) !== p.draftRkey);
+    documents.push({ uri: `at://${DID}/${DOCUMENT}/${p.rkey}`, cid: p.docCid!, value: p.doc! });
+    current = undefined;
+    location.hash = `#post/${p.rkey}`;
+    message('postsMessage', `Published “${d.title}” at ${url}, and announced it on Bluesky.`, 'ok');
+  } catch (err) {
+    if (current === target) {
+      step('Not finished');
+      el('edFinish').hidden = false;
+      message(
+        'editorMessage',
+        `${p.docCid ? `“${d.title}” is live, but ` : ''}publishing stopped: ${errorText(err)}. Finish publishing tries the rest again.`,
+        'error',
+      );
+    }
   }
 }
 

@@ -8,9 +8,8 @@
  *
  * At the launch (docs/v4/posts-on-atproto.md, "The switch"): set this to true, and add to the
  * sign-in's COLLECTIONS (src/lib/admin/oauth.ts) site.standard.document, id.skiddle.series and
- * app.bsky.feed.post (create, for the announcement). That turns on saving and unpublishing
- * published posts (src/lib/admin/editor.ts). Publishing a draft is built then too: drawing its
- * share card in the browser and announcing it on Bluesky.
+ * app.bsky.feed.post (create, for the announcement). That turns on publishing drafts, and saving
+ * and unpublishing published posts (src/lib/admin/editor.ts).
  */
 export const PUBLISHING_LIVE = false;
 

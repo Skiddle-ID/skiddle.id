@@ -11,8 +11,9 @@
  * into curl's, so test with a real browser). It loads from static.cloudflareinsights.com
  * (script-src, with an integrity hash) and reports to cloudflareinsights.com (connect-src).
  *
- * The admin app (/admin/) gets its own policy: the same, plus the hosts it signs in with and
- * writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
+ * The admin app (/admin/) gets its own policy: the same, plus 'wasm-unsafe-eval' (it runs
+ * WebAssembly to draw share cards, src/lib/admin/card.ts; WebAssembly only, not eval), plus the
+ * hosts it signs in with and writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
  * hosts (*.bsky.network) and Cloudflare's DNS-over-HTTPS (the lexicon DNS check). Its rule drops
  * the site-wide CSP first (`! Content-Security-Policy`), because two policies would both apply.
  * Moving the account to another PDS means adding that host to ADMIN_CONNECT (src/lib/csp.mjs).
@@ -49,13 +50,15 @@ export default function securityHeaders(): AstroIntegration {
         const directives = cspDirectives;
 
         let scriptSrc = [...hashes].sort().join(' ');
-        const longest = `  Content-Security-Policy: ${directives(scriptSrc, ADMIN_CONNECT)}`.length;
+        // The admin app runs WebAssembly when it draws a post's share card (src/lib/admin/card.ts)
+        const adminScripts = (src: string) => `${src} 'wasm-unsafe-eval'`;
+        const longest = `  Content-Security-Policy: ${directives(adminScripts(scriptSrc), ADMIN_CONNECT)}`.length;
         if (longest > MAX_LINE) {
           logger.warn(`CSP with ${hashes.size} script hashes is ${longest} chars (limit ${MAX_LINE}); falling back to 'unsafe-inline' for scripts`);
           scriptSrc = "'unsafe-inline'";
         }
         const line = `  Content-Security-Policy: ${directives(scriptSrc)}`;
-        const adminRule = ['/admin/*', '  ! Content-Security-Policy', `  Content-Security-Policy: ${directives(scriptSrc, ADMIN_CONNECT)}`];
+        const adminRule = ['/admin/*', '  ! Content-Security-Policy', `  Content-Security-Policy: ${directives(adminScripts(scriptSrc), ADMIN_CONNECT)}`];
 
         // Put the CSP inside the existing `/*` rule from public/_headers: a second rule with the
         // same pattern replaces the first instead of merging with it
