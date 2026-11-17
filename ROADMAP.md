@@ -118,16 +118,17 @@ Done so far:
 - [x] `id.skiddle.status`: one record (state: available, busy, do not disturb or away; text, location, time zone), in [`lexicons/`](lexicons/id/skiddle/status.json), set with `npm run status` or the Set status workflow
 - [x] `/status.svg`, `/api/status.json` and the home page read the status from the PDS, falling back to `src/data/status.ts`
 - [x] Admin app, first version (`/admin/`): sign in with Bluesky, edit the status, publish the lexicon, list the site's records; works on a phone and installs as a PWA
-- [ ] Publish the status lexicon: the admin app's "Publish lexicon" button (or `npm run status -- --publish-lexicon`); the `_lexicon.skiddle.id` DNS record is in place
+- [x] Publish the status lexicon, from the admin app; the `_lexicon.skiddle.id` DNS record is in place
 
 Records:
 
+- [x] The lexicons: `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` in [`lexicons/`](lexicons/id/skiddle/), checked against every post and series in CI (`npm run check:lexicons`) ([#121](https://github.com/Skiddle-ID/skiddle.id/pull/121)), and published from the admin app, which now lists every lexicon ([#122](https://github.com/Skiddle-ID/skiddle.id/pull/122))
 - [ ] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working
 - [ ] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured
 - [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card), replacing `src/data/series.ts`
 - [ ] `id.skiddle.draft` for drafts and scheduled posts
 - [ ] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch
-- [ ] Retire the MDX demo post, before the sync fills the records
+- [x] Retire the MDX demo post, before the sync fills the records ([#121](https://github.com/Skiddle-ID/skiddle.id/pull/121))
 - [ ] Move pckt.blog's six posts to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`), keeping their record keys
 
 The site:
