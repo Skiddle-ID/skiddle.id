@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.draft",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A skiddle.id post that isn't published yet, kept apart from site.standard.document so readers don't list it. Anyone can read it on the PDS. Publishing turns it into a site.standard.document and deletes the draft.",
+      "record": {
+        "type": "object",
+        "required": ["title", "content", "createdAt"],
+        "properties": {
+          "title": { "type": "string", "maxLength": 5000, "maxGraphemes": 500 },
+          "description": { "type": "string", "maxLength": 30000, "maxGraphemes": 3000 },
+          "path": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Where the post will live once published, e.g. /posts/lab-notes-2/."
+          },
+          "tags": {
+            "type": "array",
+            "maxLength": 50,
+            "items": { "type": "string", "maxLength": 1280, "maxGraphemes": 128 }
+          },
+          "content": { "type": "ref", "ref": "id.skiddle.post" },
+          "publishAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When to publish it. Absent: not scheduled."
+          },
+          "coverImage": {
+            "type": "blob",
+            "accept": ["image/*"],
+            "maxSize": 1000000,
+            "description": "The share card, drawn when the draft is scheduled, so publishing it needs no drawing."
+          },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
