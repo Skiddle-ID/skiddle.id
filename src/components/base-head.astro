@@ -35,6 +35,8 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <link rel="canonical" href={canonical} />
 <!-- Preview builds (pull requests, which can show drafts) stay out of search engines -->
 <meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : 'index,follow'} />
+<!-- The commit this page was built from: lets CI tell which commit a preview serves (tests/wait-for-preview.mjs) -->
+<meta name="build" content={__GIT_HASH__} />
 <meta name="author" content="Laurensius Jeffrey (Skiddle)" />
 <!-- Text and data mining reserved (W3C TDMRep): no AI training on this writing, see LICENSE-CONTENT.md -->
 <meta name="tdm-reservation" content="1" />
