@@ -123,13 +123,13 @@ Done so far:
 Records:
 
 - [x] The lexicons: `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` in [`lexicons/`](lexicons/id/skiddle/), checked against every post and series in CI (`npm run check:lexicons`) ([#121](https://github.com/Skiddle-ID/skiddle.id/pull/121)), and published from the admin app, which now lists every lexicon ([#122](https://github.com/Skiddle-ID/skiddle.id/pull/122))
-- [ ] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working
-- [ ] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured
-- [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card), replacing `src/data/series.ts`
+- [x] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working: all 14 are skiddle.id records ([#125](https://github.com/Skiddle-ID/skiddle.id/pull/125))
+- [x] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
+- [x] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card); the sync writes the four from `src/data/series.ts`, which goes at launch ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
 - [ ] `id.skiddle.draft` for drafts and scheduled posts
-- [ ] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch
+- [x] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
 - [x] Retire the MDX demo post, before the sync fills the records ([#121](https://github.com/Skiddle-ID/skiddle.id/pull/121))
-- [ ] Move pckt.blog's six posts to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`), keeping their record keys
+- [x] Move pckt.blog's six posts to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`), keeping their record keys ([#125](https://github.com/Skiddle-ID/skiddle.id/pull/125))
 
 The site:
 
