@@ -1,6 +1,6 @@
 # v4 mockups
 
-Static mockups of the v4 home page in four directions, plus the post page for direction A. They use the site's real content, colours and fonts. The plan and the open decisions are in [ROADMAP.md](../../ROADMAP.md).
+Static mockups of the redesign's home page in four directions, plus the post page for direction A. They use the site's real content, colours and fonts. The redesign was planned for v4 and is now v5, so v4 is only the move to AT Protocol. The plan and the open decisions are in [ROADMAP.md](../../ROADMAP.md#v5-the-redesign). The mockups' "v4" labels are from before the move.
 
 How posts and series move onto AT Protocol, with the draft lexicons, is in [posts-on-atproto.md](posts-on-atproto.md).
 

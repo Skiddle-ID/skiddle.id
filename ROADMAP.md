@@ -34,16 +34,9 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 ## v4
 
-**Direction:** posts and series move completely onto AT Protocol, written and published from the admin app. Keep the terminal identity, make reading great, and make the site more about Jeff than about the site itself.
+**Direction:** everything the site shows moves into Jeff's AT Protocol repo and is edited from the admin app: posts and series first, then the pages' content, Now, notes and flying. Git keeps the code, and the content leaves it. There's no redesign in v4. Pages keep v3's look, and the new pages (/now, /flying) use it too. The redesign is [v5](#v5-the-redesign). Decided on 2026-11-17.
 
-**Order:** v4.0 is the posts launch, so the admin app's Save and Publish work for real as soon as possible ([v4: posts and series](#v4-posts-and-series)). The redesign follows as v4.1. Decided on 2026-11-17.
-
-### Decisions
-
-- [x] Reading font: Geist Sans for post text ([#98](https://github.com/Skiddle-ID/skiddle.id/pull/98))
-- [x] Series show their planned parts ([#99](https://github.com/Skiddle-ID/skiddle.id/pull/99))
-- [ ] Home page design: A terminal, B editorial, C tmux or D bento ([mockups](docs/v4/))
-- [ ] Home intro: lead with you, or with consulting
+**Order:** v4.0 is the posts launch, so the admin app's Save and Publish work for real as soon as possible ([v4: posts and series](#v4-posts-and-series)). Each release after it moves more of the site onto AT Protocol. How the records are read and written is in [AT Protocol backend](#at-protocol-backend).
 
 ### v4.0-pre: a safety net first
 
@@ -54,31 +47,34 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 - [ ] Everything in [v4: posts and series](#v4-posts-and-series), then the [launch checklist](#the-v4-branch)
 
-### v4.1: the redesign
+### v4.1: the pages' content
 
-- [ ] New home page, in the chosen design
-- [ ] Shorter menu: writing, about, work, uses (works, projects and services become "work")
-- [ ] Post page to match: description as the intro, figures with captions
-- [ ] Indonesian posts: a language label, a filter and hreflang
+Today it's in `src/data/` and the page files. Each part becomes records, which the pages read when someone asks for them and cache, like posts.
 
-### v4.2: more about Jeff
+- [ ] Projects (`src/data/projects.ts`), the CV (`works.ts`), services (`services.ts`) and the highlights they share (`highlights.ts`)
+- [ ] Uses (`uses.ts`)
+- [ ] About: its text
+- [ ] Their lexicons, under `id.skiddle.*`, each designed before it ships, reusing existing lexicons where they fit
+- [ ] The admin app: edit them in one new section, Pages, next to Posts, Series, Status and Site
+- [ ] Remove the data files from git once the pages read the records. What stays in git:
+  - the code
+  - the list pages' titles (`list-pages.ts`)
+  - the built-in status the site falls back to when the PDS can't be read (`status.ts`)
 
-- [ ] /flying: From Fear to Flight plus logbook stats (needs your logbook data)
-- [ ] /now, with a "last updated" date
-- [ ] Notes: your Bluesky posts with a chosen hashtag, collected at build time
+### v4.2: Now, notes and music
 
-### v4.3
-
-- [ ] /changelog from the GitHub releases
-- [ ] Maybe: a newsletter (RSS to email; needs an account with an email service)
-
-### Embeds, approved and held for v4
-
-- [ ] METAR card, `/metar.svg?station=…`: live airport weather (needs your home airport's ICAO code)
-- [ ] Last.fm top of the week, `/lastfm/top.svg`
-- [ ] Latest Bluesky post, `/bluesky.svg`
+- [ ] `id.skiddle.now` and /now, with a "last updated" date; updated from the admin app
+- [ ] Notes: your Bluesky posts with a chosen hashtag, read from your repo when the page is requested
+- [ ] Latest Bluesky post card, `/bluesky.svg`
 - [ ] A Bluesky custom feed for Lab Notes
-- [ ] Flying logbook card, `/flying.svg`, together with /flying
+- [ ] Music from teal.fm's records (`fm.teal.alpha.feed.play`) instead of Last.fm, with a top-of-the-week card. Your repo has teal.fm plays up to Feb 22, 2026, when they stopped, so its scrobbler needs to run again first
+
+### v4.3: flying
+
+- [ ] `id.skiddle.flight` for the logbook (needs your logbook data)
+- [ ] /flying: From Fear to Flight plus logbook stats, from the records
+- [ ] Flying logbook card, `/flying.svg`
+- [ ] Log a flight from the admin app
 
 ## The v4 branch
 
@@ -89,7 +85,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
 - **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
 
-**Launch checklist,** for v4.0 (posts on AT Protocol; the redesign comes after, as v4.1):
+**Launch checklist,** for v4.0 (posts on AT Protocol; the rest of the site follows in v4.1 to v4.3):
 
 - [ ] Merge `v3` into `v4` one last time
 - [ ] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series))
@@ -98,14 +94,14 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - [ ] Switch everything that names `v3` to `v4`: the workflows (`branches`, `ref`, `HEAD:v3`, `--ref v3`), the "Suggest an edit", history and license links (`blob/v3/…`, `commits/v3/…`), robots.txt, the README
 - [ ] Release v4.0, then keep `v3` as an archived major, like `v1` and `v2`
 
-## AT Protocol backend (v4 to v6)
+## AT Protocol backend
 
 **Goal:** the site's data lives as records in Jeff's own AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), and a small admin app updates all of it by signing in with the Bluesky account (AT Protocol OAuth). There's no database of our own. It keeps working after a move to another PDS, because the site always looks up the PDS from the DID.
 
-v4 moves posts and series onto it completely: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. v5 and v6 bring the rest of the site.
+v4 moves all of it. Posts and series come first: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. Then the pages' content, Now, notes and flying follow (v4.1 to v4.3).
 
 - **Lexicons:** under `id.skiddle.*`, reusing existing ones where they fit (Standard.site for posts, maybe teal.fm for music). Lexicons can only gain optional fields once they're in use, so each one is designed before it ships.
-- **Reading:** the Worker reads records when a page is requested and caches the result: the status, and from v4 posts and series. Only code changes need a build.
+- **Reading:** the Worker reads records when a page is requested and caches the result: the status, posts and series, and from v4.1 the rest. Only code changes need a build.
 - **The admin app:** mobile-first and installable as a PWA. Posts are written and published there.
 - **Everything in an AT Protocol repo is public.** Every published record and every edit goes out on the network.
 
@@ -164,19 +160,31 @@ The switch, at launch:
 - [ ] Publish the last post from git, run the sync one last time, make v4 production, then run the backup once by hand and check it
 - [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, MDX support, and drawing share cards for posts and tags at build time
 
-### v5: more of the site
+## v5: the redesign
 
-v4.2 builds /now and /flying from data files in the repo; v5 moves their data into records.
+Moved out of v4 on 2026-11-17, so v4 is only about moving to AT Protocol.
 
-- [ ] `id.skiddle.now` for the Now list and /now
-- [ ] `id.skiddle.flight` for the logbook, /flying and the flying card
-- [ ] Admin app: update Now and log a flight from the phone
-- [ ] Notes from Bluesky posts; music from teal.fm, if it replaces Last.fm
+**Direction:** keep the terminal identity, make reading great, and make the site more about Jeff than about the site itself. The mockups are in [docs/v4/](docs/v4/).
 
-### v6: everything
+### Decisions
 
-- [ ] Projects, uses and the CV as records
-- [ ] Admin app: everything editable
+- [x] Reading font: Geist Sans for post text ([#98](https://github.com/Skiddle-ID/skiddle.id/pull/98))
+- [x] Series show their planned parts ([#99](https://github.com/Skiddle-ID/skiddle.id/pull/99))
+- [ ] Home page design: A terminal, B editorial, C tmux or D bento ([mockups](docs/v4/))
+- [ ] Home intro: lead with you, or with consulting
+
+### The redesign
+
+- [ ] New home page, in the chosen design
+- [ ] Shorter menu: writing, about, work, uses (works, projects and services become "work")
+- [ ] Post page to match: description as the intro, figures with captions
+- [ ] Indonesian posts: a language label, a filter and hreflang
+
+### Later
+
+- [ ] /changelog from the GitHub releases
+- [ ] METAR card, `/metar.svg?station=…`: live airport weather (needs your home airport's ICAO code)
+- [ ] Maybe: a newsletter (RSS to email; needs an account with an email service)
 
 ## Parked
 
