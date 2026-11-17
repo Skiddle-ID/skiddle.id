@@ -64,7 +64,7 @@ npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/work
 
 ### Admin app
 
-`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status (available, busy, do not disturb or away, with a message, location and time zone), publish its lexicon, and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
+`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status (available, busy, do not disturb or away, with a message, location and time zone), publish the lexicons in `lexicons/` (each shows whether it's published and up to date), and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
 
 - It runs entirely in the browser (`src/lib/admin/app.ts`, with `@atproto/oauth-client-browser`). There's no server or database: the sign-in tokens stay on the device, and the app writes straight to the PDS.
 - It may only write `id.skiddle.status` and `com.atproto.lexicon.schema` records; Bluesky's sign-in page shows that. The list is `COLLECTIONS` in `src/lib/admin/oauth.ts`. Adding a collection there means signing in again.

@@ -2,14 +2,13 @@
  * The admin app (/admin/), in the browser. Signs in with Jeff's Bluesky account over AT Protocol
  * OAuth (src/lib/admin/oauth.ts), then reads and writes records in his repo through his PDS:
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
- *   - the status lexicon (com.atproto.lexicon.schema, key `id.skiddle.status`)
+ *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  * and lists the site's other collections, read-only.
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
 import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
-import statusLexicon from '../../../lexicons/id/skiddle/status.json';
 
 const STATUS = 'id.skiddle.status';
 const LEXICON = 'com.atproto.lexicon.schema';
@@ -243,7 +242,28 @@ function setupStatus(session: OAuthSession) {
   });
 }
 
-// ---- Lexicon ----
+// ---- Lexicons ----
+
+interface LexiconDoc {
+  lexicon: 1;
+  id: string;
+  [key: string]: unknown;
+}
+type LexiconState = 'new' | 'same' | 'changed';
+
+/** Every lexicon in lexicons/, bundled at build time, by NSID */
+const LEXICONS: LexiconDoc[] = Object.values(import.meta.glob<{ default: LexiconDoc }>('../../../lexicons/**/*.json', { eager: true }))
+  .map((m) => m.default)
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+const LEXICON_STATE_TEXT: Record<LexiconState, string> = {
+  new: 'Not published yet',
+  same: 'Published',
+  changed: 'Published; the site’s copy has changed since',
+};
+
+/** The lexicons that are new or changed, as last loaded */
+let pendingLexicons: LexiconDoc[] = [];
 
 /** JSON with object keys sorted, to compare records whatever order the PDS returns keys in */
 function canonical(value: unknown): string {
@@ -258,58 +278,93 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 
-async function loadLexicon(session: OAuthSession) {
-  const state = el('lexiconState');
-  const button = el<HTMLButtonElement>('lexiconPublish');
-  const record = await getRecord<object>(session, LEXICON, statusLexicon.id);
-  if (!record) {
-    state.textContent = 'Not published yet.';
-    button.textContent = 'Publish lexicon';
-    button.hidden = false;
-  } else if (canonical(record.value) === canonical(statusLexicon)) {
-    state.textContent = 'Published, and the same as the site’s copy.';
-    button.hidden = true;
-  } else {
-    state.textContent = 'Published, but the site’s copy (lexicons/id/skiddle/status.json) has changed since.';
-    button.textContent = 'Publish the new version';
-    button.hidden = false;
-  }
+async function loadLexicons(session: OAuthSession) {
+  const results = await Promise.all(
+    LEXICONS.map(async (doc) => {
+      const record = await getRecord<object>(session, LEXICON, doc.id);
+      const state: LexiconState = !record ? 'new' : canonical(record.value) === canonical(doc) ? 'same' : 'changed';
+      return { doc, state };
+    }),
+  );
+  const list = el('lexicons');
+  list.textContent = '';
+  for (const { doc, state } of results) list.appendChild(lexiconRow(session, doc, state));
+
+  pendingLexicons = results.filter((r) => r.state !== 'same').map((r) => r.doc);
+  const all = el<HTMLButtonElement>('lexiconPublishAll');
+  all.textContent = `Publish all ${pendingLexicons.length}`;
+  all.hidden = pendingLexicons.length < 2;
   checkLexiconDns();
 }
 
-/** Whether _lexicon.skiddle.id points at the DID, so other apps can find the lexicon */
+function lexiconRow(session: OAuthSession, doc: LexiconDoc, state: LexiconState) {
+  const row = document.createElement('li');
+  const name = document.createElement('code');
+  name.textContent = doc.id;
+  const text = document.createElement('span');
+  text.className = state === 'same' ? 'admin-muted' : '';
+  text.textContent = LEXICON_STATE_TEXT[state];
+  row.appendChild(name);
+  row.appendChild(text);
+  if (state !== 'same') {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'admin-btn admin-btn-ghost';
+    button.textContent = state === 'new' ? 'Publish' : 'Publish the new version';
+    button.setAttribute('aria-label', `${button.textContent}: ${doc.id}`);
+    button.addEventListener('click', () => publishLexicons(session, [doc], button));
+    row.appendChild(button);
+  }
+  return row;
+}
+
+async function publishLexicons(session: OAuthSession, docs: LexiconDoc[], button: HTMLButtonElement) {
+  button.disabled = true;
+  message('lexiconMessage', 'Publishing…');
+  const done: string[] = [];
+  try {
+    for (const doc of docs) {
+      await putRecord(session, LEXICON, doc.id, { $type: LEXICON, ...doc });
+      done.push(doc.id);
+    }
+    message('lexiconMessage', `Published ${done.join(', ')}.`, 'ok');
+  } catch (err) {
+    const left = docs.filter((d) => !done.includes(d.id)).map((d) => d.id);
+    message('lexiconMessage', `Couldn't publish ${left.join(', ')}: ${errorText(err)}`, 'error');
+  } finally {
+    button.disabled = false;
+  }
+  await loadLexicons(session).catch(() => {});
+}
+
+/** The DNS names other apps look a lexicon up through: _lexicon.<its authority, reversed> */
+const lexiconDnsNames = () =>
+  [...new Set(LEXICONS.map((doc) => `_lexicon.${doc.id.split('.').slice(0, -1).reverse().join('.')}`))].sort();
+
+/** Whether each _lexicon.<authority> TXT record points at the DID, so other apps can find the lexicons */
 async function checkLexiconDns() {
   const out = el('lexiconDns');
   const want = `did=${DID}`;
-  try {
-    const res = await fetch('https://cloudflare-dns.com/dns-query?name=_lexicon.skiddle.id&type=TXT', {
-      headers: { Accept: 'application/dns-json' },
-    });
-    const data = (await res.json()) as { Answer?: { data: string }[] };
-    const found = data.Answer?.some((a) => a.data.replace(/"/g, '') === want);
-    out.textContent = found
-      ? 'DNS: _lexicon.skiddle.id points at your account.'
-      : `DNS: add a TXT record _lexicon.skiddle.id with "${want}" so other apps can find it.`;
-  } catch {
-    out.textContent = `DNS: other apps find the lexicon through a TXT record _lexicon.skiddle.id with "${want}".`;
-  }
+  const lines = await Promise.all(
+    lexiconDnsNames().map(async (name) => {
+      try {
+        const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${name}&type=TXT`, {
+          headers: { Accept: 'application/dns-json' },
+        });
+        const data = (await res.json()) as { Answer?: { data: string }[] };
+        const found = data.Answer?.some((a) => a.data.replace(/"/g, '') === want);
+        return found ? `${name} points at your account.` : `add a TXT record ${name} with "${want}" so other apps can find them.`;
+      } catch {
+        return `other apps find them through a TXT record ${name} with "${want}".`;
+      }
+    }),
+  );
+  out.textContent = `DNS: ${lines.join(' ')}`;
 }
 
-function setupLexicon(session: OAuthSession) {
-  const button = el<HTMLButtonElement>('lexiconPublish');
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    message('lexiconMessage', 'Publishing…');
-    try {
-      await putRecord(session, LEXICON, statusLexicon.id, { $type: LEXICON, ...statusLexicon });
-      message('lexiconMessage', 'Published.', 'ok');
-      await loadLexicon(session);
-    } catch (err) {
-      message('lexiconMessage', `Couldn't publish: ${errorText(err)}`, 'error');
-    } finally {
-      button.disabled = false;
-    }
-  });
+function setupLexicons(session: OAuthSession) {
+  const all = el<HTMLButtonElement>('lexiconPublishAll');
+  all.addEventListener('click', () => publishLexicons(session, pendingLexicons, all));
 }
 
 // ---- Records overview ----
@@ -357,8 +412,8 @@ async function signedIn(session: OAuthSession) {
   show('signedIn');
   el('accountHandle').textContent = session.sub;
   setupStatus(session);
-  setupLexicon(session);
-  const results = await Promise.allSettled([loadStatus(session), loadLexicon(session), loadRecords(session)]);
+  setupLexicons(session);
+  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session)]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) notice(`Couldn't load everything from your PDS: ${errorText(failed.reason)}`);
 }

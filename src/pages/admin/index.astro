@@ -1,7 +1,7 @@
 ---
 /*
   /admin/: the admin app. Jeff signs in with his Bluesky account (AT Protocol OAuth) and changes
-  the site's records in his own repo: today the status, and publishing its lexicon. All of it
+  the site's records in his own repo: today the status, and publishing the lexicons. All of it
   runs in the browser (src/lib/admin/app.ts); there's no server or database behind it. Installs
   as a PWA. Kept out of search engines and the sitemap.
 */
@@ -87,15 +87,15 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
         </section>
 
         <section class="admin-card" aria-labelledby="lexiconTitle">
-          <h2 id="lexiconTitle">Lexicon</h2>
+          <h2 id="lexiconTitle">Lexicons</h2>
           <p>
-            <code>id.skiddle.status</code> describes the status record. Publishing it lets other apps look up and check the
-            record's shape.
+            They describe the site's records: the status, posts, series and drafts. Publishing them lets other apps look up and
+            check the records' shape. They come from the site's <code>lexicons/</code> folder.
           </p>
-          <p id="lexiconState" class="admin-muted">Checking…</p>
-          <p id="lexiconDns" class="admin-small"></p>
-          <button id="lexiconPublish" type="button" class="admin-btn" hidden>Publish lexicon</button>
+          <ul id="lexicons" class="admin-lexicons"><li class="admin-muted">Checking…</li></ul>
+          <button id="lexiconPublishAll" type="button" class="admin-btn" hidden>Publish all</button>
           <p id="lexiconMessage" class="admin-message" role="status"></p>
+          <p id="lexiconDns" class="admin-small"></p>
         </section>
 
         <section class="admin-card" aria-labelledby="recordsTitle">
@@ -311,6 +311,33 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
     height: 0.625rem;
     border-radius: 999px;
     background: var(--color-ok);
+  }
+  .admin-lexicons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  /* Name over state on the left, the button (if any) on the right */
+  .admin-lexicons li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.125rem 0.75rem;
+  }
+  .admin-lexicons li + li {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .admin-lexicons li > code,
+  .admin-lexicons li > span {
+    grid-column: 1;
+  }
+  .admin-lexicons li > span {
+    font-size: 0.875rem;
+  }
+  .admin-lexicons li > button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
   .admin-records {
     display: flex;
