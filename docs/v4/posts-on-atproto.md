@@ -156,7 +156,7 @@ A post that isn't published yet. Record key: a TID.
   - `/`, `/posts/`, `/posts/<slug>/` and the old `/posts/<rkey>` redirects
   - `/series/`, `/topics/` and `/topics/tag/<tag>/`
   - `/rss.xml`, `/sitemap.xml`, `/search.json`, `/latest.json`
-  - `/latest.svg` already is. About, uses, works, projects and services stay built until v5 and v6.
+  - `/latest.svg` already is. About, uses, works, projects and services stay built until v4.1 moves their content into records.
 - **Caching:** Astro 7's route cache with the Cloudflare provider (`cacheCloudflare()`), and route rules giving those routes a short max age (about a minute) and the tag `posts`. Cached pages are served from Cloudflare's cache in front of the Worker, so they cost no Worker CPU (and, to be confirmed on staging, don't count towards the free plan's 100,000 requests a day).
 - **Instant refresh after a save:** a small endpoint, `/api/revalidate`.
   - It reads the repo's latest revision (`com.atproto.sync.getLatestCommit`). If the revision changed since the last check, it purges the `posts` tag.
