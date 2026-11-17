@@ -9,9 +9,15 @@
  * announcement can be linked as `bskyPostRef`), or by hand. Each run:
  *   1. waits until skiddle.id serves /.well-known/site.standard.publication with the right URI
  *   2. creates or updates the publication record (name, description, colours, icon)
- *   3. creates or updates a document for every published post that changed, after its page is live
- *      (title, path, description, dates, tags, plain text, share card, Bluesky announcement)
- *   4. deletes skiddle.id documents whose post is gone (drafted again or removed)
+ *   3. creates or updates an `id.skiddle.series` record for every series (name, ongoing, cadence,
+ *      planned parts from src/data/series.ts). It never deletes one, and keeps fields git doesn't
+ *      have (a description, a share card), so series made or edited elsewhere survive
+ *   4. creates or updates a document for every published post that changed, after its page is live
+ *      (title, path, description, dates, tags, plain text, share card, Bluesky announcement, and in
+ *      `content` the post itself as `id.skiddle.post`: Markdown, images, category, language, series)
+ *   5. deletes skiddle.id documents whose post is gone (drafted again or removed)
+ * The `id.skiddle.*` records follow lexicons/ (src/lib/post-record.mjs builds them, and
+ * `npm run check:lexicons` checks every post fits). See docs/v4/posts-on-atproto.md on v4.
  * It never touches records of other publications (pckt.blog, Leaflet), unless MOVE_PCKT_DOCUMENTS
  * is on for the posts pckt published.
  *
@@ -37,6 +43,8 @@ import {
   basicTheme,
   documentRkey,
 } from '../src/lib/standard-site.mjs';
+import { SERIES_COLLECTION, imageSize, localImages, postContent, seriesRecords } from '../src/lib/post-record.mjs';
+import { blobRef, imageType } from './lib/blob.mjs';
 
 const POSTS_DIR = 'src/content/posts';
 const ICON_FILE = 'public/android-chrome-512x512.png';
@@ -60,6 +68,7 @@ async function main() {
   let session; // logged in on the first write
   const write = async () => (session ??= await createSession(pds));
   const counts = { created: 0, updated: 0, unchanged: 0, deleted: 0, skipped: 0 };
+  const seriesCounts = { created: 0, updated: 0, unchanged: 0 };
 
   log(`${dryRun ? 'DRY RUN: nothing is written.\n' : ''}Publication: ${PUBLICATION_URI}`);
   if (!truthy(env.SKIP_WAIT)) {
@@ -82,8 +91,31 @@ async function main() {
     counts[oldPub ? 'updated' : 'created']++;
   }
 
-  // 2. A document per published post
+  // 2. A record per series. Git manages these fields; others (description, coverImage) are kept
   const posts = readPosts();
+  const { seriesInfo } = await import('../src/data/series.ts');
+  const seriesFields = ['name', 'ongoing', 'cadence', 'planned'];
+  for (const [rkey, record] of seriesRecords(posts, seriesInfo)) {
+    const old = await getRecord(pds, SERIES_COLLECTION, rkey);
+    if (old && same(old, record, seriesFields)) {
+      seriesCounts.unchanged++;
+      continue;
+    }
+    const next = { ...old, ...record };
+    for (const f of seriesFields) if (!(f in record)) delete next[f];
+    if (old) {
+      next.createdAt = old.createdAt ?? record.createdAt;
+      next.updatedAt = new Date().toISOString();
+    }
+    if (dryRun) log(`series ${rkey}: would ${old ? `update (changed: ${changed(old, record, seriesFields).join(', ')})` : 'create'}\n${JSON.stringify(next, null, 2)}`);
+    else {
+      await putRecord(await write(), SERIES_COLLECTION, rkey, next);
+      log(`series ${rkey}: ${old ? 'updated' : 'created'}`);
+    }
+    seriesCounts[old ? 'updated' : 'created']++;
+  }
+
+  // 3. A document per published post
   const keep = new Set();
   let shownExample = false;
   for (const post of posts) {
@@ -101,8 +133,8 @@ async function main() {
       continue;
     }
 
-    const doc = await documentFor(post, pds);
-    const fields = ['site', 'path', 'title', 'description', 'publishedAt', 'updatedAt', 'tags', 'textContent', 'bskyPostRef'];
+    const { doc, images } = await documentFor(post, pds);
+    const fields = ['site', 'path', 'title', 'description', 'publishedAt', 'updatedAt', 'tags', 'textContent', 'bskyPostRef', 'content'];
     if (old && same(old, doc, fields) && old.coverImage) {
       counts.unchanged++;
       continue;
@@ -115,12 +147,15 @@ async function main() {
     if (dryRun) {
       if (!shownExample) {
         shownExample = true;
-        log(`\nexample record (${post.slug}):\n${JSON.stringify({ ...doc, coverImage: cardSame ? '(kept)' : '(share card)', textContent: `${doc.textContent.slice(0, 160)}… (${doc.textContent.length} chars)` }, null, 2)}\n`);
+        const content = { ...doc.content, markdown: `${doc.content.markdown.slice(0, 120)}… (${doc.content.markdown.length} chars)` };
+        log(`\nexample record (${post.slug}):\n${JSON.stringify({ ...doc, coverImage: cardSame ? '(kept)' : '(share card)', textContent: `${doc.textContent.slice(0, 160)}… (${doc.textContent.length} chars)`, content }, null, 2)}\n`);
       }
-      log(`${post.slug}: would ${verb} ${rkey}${old && !moving ? ` (changed: ${changed(old, doc, fields).join(', ')})` : ''}`);
+      const uploads = newImages(images, old);
+      log(`${post.slug}: would ${verb} ${rkey}${old && !moving ? ` (changed: ${changed(old, doc, fields).join(', ')})` : ''}${uploads.length ? `; upload ${uploads.map((i) => `${i.name} (${i.bytes.length} bytes)`).join(', ')}` : ''}`);
     } else {
       if (!truthy(env.SKIP_WAIT)) await waitFor(`${SITE_URL}${doc.path}`, (html) => html.includes(`at://${DID}/${DOC}/${rkey}`));
       const s = await write();
+      await uploadImages(s, newImages(images, old));
       const card = cardSame ? old.coverImage : await shareCard(s, post);
       if (card) doc.coverImage = card;
       // Keep fields other tools may have added to our own records; a moved pckt record starts clean
@@ -143,7 +178,9 @@ async function main() {
   }
 
   const c = counts;
-  log(`\n${dryRun ? 'Would create' : 'Created'} ${c.created}, ${dryRun ? 'update' : 'updated'} ${c.updated}, ${dryRun ? 'delete' : 'deleted'} ${c.deleted}; ${c.unchanged} unchanged, ${c.skipped} skipped.`);
+  const sc = seriesCounts;
+  log(`\nSeries: ${dryRun ? 'would create' : 'created'} ${sc.created}, ${dryRun ? 'update' : 'updated'} ${sc.updated}; ${sc.unchanged} unchanged.`);
+  log(`${dryRun ? 'Would create' : 'Created'} ${c.created}, ${dryRun ? 'update' : 'updated'} ${c.updated}, ${dryRun ? 'delete' : 'deleted'} ${c.deleted}; ${c.unchanged} unchanged, ${c.skipped} skipped.`);
 }
 
 /** Published posts from the content folder */
@@ -164,6 +201,8 @@ function readPosts() {
       tags: list(fm.tags),
       rkey: fm.rkey || undefined,
       bluesky: fm.bluesky || undefined,
+      series: fm.series || undefined,
+      fm,
       body: src.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, ''),
     });
   }
@@ -174,7 +213,19 @@ function readPosts() {
 const list = (v) =>
   typeof v === 'string' ? v.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean) : [];
 
+/**
+ * The post's document, and its images (bytes and blob references; uploaded only when writing)
+ * @returns {Promise<{ doc: Record<string, any>, images: { name: string, bytes: Uint8Array, ref: ReturnType<typeof blobRef> }[] }>}
+ */
 async function documentFor(post, pds) {
+  const { markdown, images: found } = localImages(post.body);
+  const images = found.map((image) => {
+    const type = imageType(image.path);
+    if (!type) throw new Error(`${post.slug}: ${image.path} isn't a PNG, JPEG, GIF or WebP`);
+    const bytes = new Uint8Array(readFileSync(join(POSTS_DIR, image.path)));
+    if (bytes.length > MAX_BLOB_BYTES) throw new Error(`${post.slug}: ${image.path} is over ${MAX_BLOB_BYTES} bytes`);
+    return { ...image, bytes, ref: blobRef(bytes, type) };
+  });
   const doc = {
     $type: DOC,
     site: PUBLICATION_URI,
@@ -192,7 +243,28 @@ async function documentFor(post, pds) {
     const ref = await strongRef(pds, post.bluesky);
     if (ref) doc.bskyPostRef = ref;
   }
-  return doc;
+  doc.content = postContent(
+    post.fm,
+    markdown,
+    images.map((i) => ({ name: i.name, image: i.ref, alt: i.alt, ...(i.title ? { caption: i.title } : {}), ...imageSize(i.bytes) })),
+  );
+  return { doc, images };
+}
+
+/** The post's images that its current record doesn't reference yet */
+function newImages(images, old) {
+  const have = new Set((old?.content?.images ?? []).map((i) => i?.image?.ref?.$link));
+  return images.filter((i) => !have.has(i.ref.ref.$link));
+}
+
+/** Uploads images, checking the PDS gives each the CID its record will reference */
+async function uploadImages(session, images) {
+  for (const image of images) {
+    const blob = await uploadBlob(session, image.bytes, image.ref.mimeType);
+    if (blob?.ref?.$link !== image.ref.ref.$link) {
+      throw new Error(`Uploaded ${image.path}, but the PDS gave it CID ${blob?.ref?.$link}, not ${image.ref.ref.$link}`);
+    }
+  }
 }
 
 /** { uri, cid } of the Bluesky post announcing the post */
