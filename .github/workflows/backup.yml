@@ -1,0 +1,66 @@
+name: Back up the AT Protocol repo
+
+# Every Sunday, backs up Jeff's AT Protocol repo, where the posts and series live from v4: every
+# record as a CAR file, every image and other blob, and the DID's history (scripts/backup.mjs). It
+# attaches them as one .tar.gz to the "backups" release (a pre-release, so it's never "Latest" and
+# Release Drafter ignores it) and keeps the newest four. How to restore from one:
+# docs/v4/posts-on-atproto.md#backups. Scheduled runs and "Run workflow" only work once this file
+# is on the default branch.
+on:
+  schedule:
+    - cron: '17 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+env:
+  KEEP: 4
+
+jobs:
+  backup:
+    if: github.repository == 'Skiddle-ID/skiddle.id'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          # Only Node's built-in modules (no npm ci)
+          package-manager-cache: false
+
+      - name: Download and check the repo and its blobs
+        id: backup
+        run: |
+          name="backup-$(date -u +%F)"
+          node scripts/backup.mjs "$name"
+          tar -czf "$name.tar.gz" "$name"
+          echo "file=$name.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Attach it to the backups release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FILE: ${{ steps.backup.outputs.file }}
+        run: |
+          if ! gh release view backups > /dev/null 2>&1; then
+            gh release create backups --prerelease --title "Backups" --notes "Weekly backups of the AT Protocol repo behind skiddle.id: every record (repo.car), every blob, and the DID's history, one .tar.gz a week. The newest $KEEP are kept. Made by .github/workflows/backup.yml. How to restore: docs/v4/posts-on-atproto.md#backups"
+          fi
+          gh release upload backups "$FILE" --clobber
+          echo "Attached $FILE ($(du -h "$FILE" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the newest ${{ env.KEEP }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view backups --json assets --jq '.assets[].name | select(test("^backup-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.tar\\.gz$"))' \
+            | sort -r | tail -n +$((KEEP + 1)) \
+            | while read -r old; do
+                gh release delete-asset backups "$old" --yes
+                echo "Removed $old" >> "$GITHUB_STEP_SUMMARY"
+              done

@@ -1,6 +1,6 @@
 /**
- * Images as AT Protocol blobs, for the scripts that write records (scripts/standard-site-sync.mjs)
- * and check them (scripts/check-lexicons.mjs). Node only.
+ * Images as AT Protocol blobs, for the scripts that write records (scripts/standard-site-sync.mjs),
+ * check them (scripts/check-lexicons.mjs) and back them up (scripts/backup.mjs). Node only.
  */
 import { createHash } from 'node:crypto';
 
@@ -16,7 +16,14 @@ export const imageType = (/** @type {string} */ path) => IMAGE_TYPES[path.split(
  * @param {Uint8Array} bytes
  */
 export function blobCid(bytes) {
-  const raw = Buffer.concat([Buffer.from([0x01, 0x55, 0x12, 0x20]), createHash('sha256').update(bytes).digest()]);
+  return cidString(Buffer.concat([Buffer.from([0x01, 0x55, 0x12, 0x20]), createHash('sha256').update(bytes).digest()]));
+}
+
+/**
+ * A binary CID as text: base32, with the "b" multibase prefix
+ * @param {Uint8Array} raw
+ */
+export function cidString(raw) {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
   let bits = 0;
   let value = 0;
