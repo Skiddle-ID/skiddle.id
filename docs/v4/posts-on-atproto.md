@@ -180,7 +180,12 @@ Share cards stay stored images. Drawing one is the heaviest thing the site does:
 
 - A post's `og:image` is `/media/<cid>` of its `coverImage`.
 - The card design is one module, shared by the build and the admin app (satori, with resvg's Node build at build time and its WebAssembly build in the browser), so both draw the same card.
-- **Changing the design:** built cards update with the next build, but stored ones don't. The admin app gets a "Redraw all share cards" button that redraws every post and series card and saves them.
+- **Changing the design:** built cards update with the next build, but stored ones don't. **Check share cards**, in the admin app's Site section ([`src/lib/admin/redraw.ts`](../../src/lib/admin/redraw.ts)), redraws every stored card and compares each with the stored one by its CID. Drawing is deterministic, so an unchanged card comes out byte for byte the same. It covers:
+  - every published post
+  - every series
+  - every scheduled draft
+
+  It lists the cards that changed, or that have none yet, with the new card. **Save** uploads them and saves only each record's `coverImage`, with `swapRecord`, so a post's "updated" date stays. Bluesky posts keep the card they were announced with. It also catches cards that went stale without a design change, like the part count of a series that isn't ongoing when another part is published. Saving starts at the launch, like the rest of publishing.
 - **A separate cover photo:** not now. Only the MDX demo uses today's `cover` field, to show its own share card at the top, and no real post has a hero photo. If the v4 design adds them, `id.skiddle.post` can gain an optional `cover` naming one of its images; adding optional fields is always allowed.
 
 ## The admin app
@@ -197,7 +202,7 @@ It gets a post editor, built on the first version (`/admin/`).
 - **Edit a published post:** saves straight to its record, with `swapRecord`, so two devices can't overwrite each other. It sets `updatedAt` and redraws the share card if the title or description changed.
 - **Unpublish:** deletes the document, and optionally the Bluesky post, after a confirmation.
 - **Series:** create and edit them, including planned parts, ongoing and cadence. Saving draws the series' share card.
-- **Redraw all share cards,** for after a change to the card design.
+- **Check share cards** (Site): redraws every stored card, lists the ones that changed and saves them. For after a change to the card design.
 - **Sign-in:** Bluesky's approval page asks for more access.
   - Write `site.standard.document`, `id.skiddle.series` and `id.skiddle.draft`
   - Create posts on Bluesky (`repo:app.bsky.feed.post?action=create`)

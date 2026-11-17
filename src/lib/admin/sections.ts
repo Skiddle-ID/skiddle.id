@@ -1,6 +1,6 @@
 /**
  * The admin app's sections, one at a time under the section bar: Posts (drafts and published
- * posts), Series, Status, and Site (lexicons, records). Each has an address (#posts, #series,
+ * posts), Series, Status, and Site (lexicons, share cards, records). Each has an address (#posts, #series,
  * #status, #site), so a reload or a home-screen shortcut opens the same one. The posts editor
  * (#draft/…, #post/…, src/lib/admin/editor.ts) and the series editor (#series/…, #new-series,
  * src/lib/admin/series.ts) replace the sections while they're open.

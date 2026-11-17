@@ -4,6 +4,7 @@
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
+ *   - share cards, checked and redrawn from the Site section (src/lib/admin/redraw.ts)
  * and lists the site's other collections, read-only. One section at a time: Posts, Series, Status
  * and Site (src/lib/admin/sections.ts).
  */
@@ -12,6 +13,7 @@ import { DID } from '~/lib/standard-site.mjs';
 import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { el, errorText, message } from './dom';
 import { loadPosts, route, setupPosts } from './editor';
+import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
 import { XrpcError, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
 
@@ -366,6 +368,7 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupStatus(session);
   setupLexicons(session);
   setupPosts(session, signInAgain);
+  setupRedraw(session);
   const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) notice(`Couldn't load everything from your PDS: ${errorText(failed.reason)}`);

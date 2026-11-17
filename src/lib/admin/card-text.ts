@@ -3,6 +3,7 @@
  * the drawing, which loads about 3 MB, so the editors can tell whether a stored card is still right
  * (cardKey) without loading it.
  */
+import { slugOf } from '~/lib/post-record.mjs';
 import type { ShareCard } from '~/lib/share-card-layout';
 
 export interface CardPost {
@@ -27,6 +28,51 @@ export interface CardSeries {
 }
 
 export type CardText = Omit<ShareCard, 'logo'>;
+
+/** The parts of a draft or a published post that its card shows */
+export interface PostLike {
+  path?: string;
+  title?: string;
+  description?: string;
+  /** A draft's scheduled time */
+  publishAt?: string;
+  content?: { markdown?: string };
+}
+
+/**
+ * What a post's card shows: published at `publishedAt` (a published post's date), else at the
+ * draft's scheduled time, else now (as if it were published now)
+ */
+export function cardPostOf(d: PostLike, publishedAt?: string): CardPost {
+  return {
+    slug: slugOf(d.path) ?? 'untitled',
+    title: d.title || 'Untitled',
+    description: d.description,
+    publishedAt: new Date(publishedAt ?? d.publishAt ?? new Date().toISOString()),
+    markdown: d.content?.markdown ?? '',
+  };
+}
+
+/**
+ * What a series' card shows, from its record (or the series editor's form)
+ * @param key Its record key
+ * @param published The part numbers of its published posts
+ */
+export function cardSeriesOf(
+  key: string,
+  s: { name?: string; description?: string; ongoing?: boolean; cadence?: string; planned?: { part: number }[] },
+  published: number[],
+): CardSeries {
+  const planned = (s.planned ?? []).map((p) => p.part).filter((n) => Number.isInteger(n) && n >= 1);
+  return {
+    key: key || 'untitled',
+    name: s.name?.trim() || 'Untitled',
+    description: s.description?.trim() || undefined,
+    ongoing: !!s.ongoing,
+    cadence: s.cadence?.trim() || undefined,
+    parts: new Set([...published, ...planned]).size,
+  };
+}
 
 /** A post's card, as the build draws it */
 export function postCard(post: CardPost): CardText {

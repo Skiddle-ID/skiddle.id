@@ -9,9 +9,9 @@
  * At the launch (docs/v4/posts-on-atproto.md, "The switch"): set this to true, and add to the
  * sign-in's COLLECTIONS (src/lib/admin/oauth.ts) site.standard.document, id.skiddle.series and
  * app.bsky.feed.post (create, for the announcement). That turns on publishing and scheduling
- * drafts, saving and unpublishing published posts (src/lib/admin/editor.ts), and saving and
- * deleting series (src/lib/admin/series.ts). Then set up the scheduler, which publishes
- * scheduled drafts (workers/publisher/README.md).
+ * drafts, saving and unpublishing published posts (src/lib/admin/editor.ts), saving and deleting
+ * series (src/lib/admin/series.ts), and saving redrawn share cards (src/lib/admin/redraw.ts). Then
+ * set up the scheduler, which publishes scheduled drafts (workers/publisher/README.md).
  */
 export const PUBLISHING_LIVE = false;
 
