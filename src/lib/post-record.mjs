@@ -3,15 +3,43 @@
  * lexicons/id/skiddle/: a post's `id.skiddle.post` content (it goes in its site.standard.document's
  * `content`) and the `id.skiddle.series` records. See docs/v4/posts-on-atproto.md.
  *
- * Used by scripts/check-lexicons.mjs today, and by the AT Protocol sync once it writes posts'
- * content (step 2 of the plan). Plain JavaScript with no dependencies, because the sync runs
- * without `npm ci`.
+ * Used by scripts/check-lexicons.mjs and the AT Protocol sync, by the admin app, and by the
+ * scheduler that publishes scheduled drafts (workers/publisher). Plain JavaScript with no
+ * dependencies, because the sync runs without `npm ci`.
  */
-import { DID } from './standard-site.mjs';
+import { plainText } from './plain-text.mjs';
+import { DID, PUBLICATION_URI } from './standard-site.mjs';
 
 export const POST_TYPE = 'id.skiddle.post';
 export const SERIES_COLLECTION = 'id.skiddle.series';
 export const DRAFT_COLLECTION = 'id.skiddle.draft';
+export const DOCUMENT_COLLECTION = 'site.standard.document';
+
+/** A post's slug from its address: "/posts/lab-notes-2/" → "lab-notes-2" */
+export const slugOf = (/** @type {string | undefined} */ path) => /^\/posts\/([^/]+)\/$/.exec(path ?? '')?.[1];
+
+/**
+ * The site.standard.document a draft becomes when it's published, by the admin app's Publish or
+ * by the scheduler: the draft's title, description, address, tags and post, the post as plain
+ * text, and its share card. `bskyPostRef` is added once the Bluesky post exists.
+ * @param {{ title: string, description?: string, path?: string, tags?: string[], content: { markdown: string } }} draft
+ * @param {{ publishedAt: string, coverImage: unknown }} published
+ * @returns {Record<string, unknown>}
+ */
+export function documentFromDraft(draft, { publishedAt, coverImage }) {
+  return {
+    $type: DOCUMENT_COLLECTION,
+    site: PUBLICATION_URI,
+    path: draft.path,
+    title: draft.title,
+    ...(draft.description ? { description: draft.description } : {}),
+    publishedAt,
+    ...(draft.tags?.length ? { tags: draft.tags } : {}),
+    textContent: plainText(draft.content.markdown),
+    content: draft.content,
+    coverImage,
+  };
+}
 
 /** URL-safe id for a series name, also its record key: "Rebuilding skiddle.id" → "rebuilding-skiddle-id" */
 export const seriesSlug = (/** @type {string} */ name) =>

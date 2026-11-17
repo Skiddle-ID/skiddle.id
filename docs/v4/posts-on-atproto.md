@@ -206,13 +206,21 @@ It gets a post editor, built on the first version (`/admin/`).
 
 ## Scheduled posts
 
-A small separate Worker with a cron trigger every 5 minutes (the free plan allows cron triggers):
+A small separate Worker, [`workers/publisher`](../../workers/publisher/README.md), with a cron trigger every 5 minutes (the free plan allows cron triggers):
 
-1. List the `id.skiddle.draft` records whose `publishAt` has passed.
-2. For each: write the document, post on Bluesky, add `bskyPostRef`, delete the draft.
-3. Call `/api/revalidate`.
+1. List the `id.skiddle.draft` records whose `publishAt` has passed, oldest first.
+2. For each:
+   - write the document, dated `publishAt`, with the share card stored on the draft
+   - call `/api/revalidate` and wait for the page
+   - post on Bluesky
+   - add `bskyPostRef`
+   - delete the draft
+3. Make every step safe to retry. The document and its Bluesky post get the same record key, made from the slug and `publishAt`, so a run that stops part-way is finished by the next without posting twice.
+   - A draft edited after its post went up is kept and unscheduled, not deleted.
 
 It signs in with a Bluesky app password stored as a Worker secret, which Jeff sets with `wrangler secret put`. It replaces "Publish scheduled posts", "Announce posts on Bluesky" and "Publish posts to AT Protocol".
+
+Scheduling happens in the admin app's editor: pick a time and press **Schedule**. The share card is drawn then, for that date, and stored on the draft. Edits that change the card (title, description, length) redraw it as the draft saves. **Publish** on a scheduled draft unschedules it first.
 
 ## Backups
 

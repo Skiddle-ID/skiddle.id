@@ -17,7 +17,7 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { SERIES_COLLECTION, seriesRecord, seriesSlug } from '~/lib/post-record.mjs';
 import { DID } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
-import type { CardSeries } from './card';
+import type { CardSeries } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { PUBLISHING_LIVE, SERIES_NOT_LIVE_YET } from './launch';
 import { XrpcError, createRecord, deleteRecord, getRecord, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';

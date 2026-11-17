@@ -1,7 +1,7 @@
 node_modules
 
 .react-router
-/.wrangler
+.wrangler/
 /build
 /dist
 .env
