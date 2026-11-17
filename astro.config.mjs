@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
 import mdx from '@astrojs/mdx';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
@@ -64,6 +65,15 @@ export default defineConfig({
     // Not 'cloudflare': that needs Cloudflare Images resizing, which isn't enabled on this account.
     imageService: 'compile',
   }),
+  // Pages rendered on request (posts read from the PDS, src/pages/posts/[slug].astro) are cached at
+  // Cloudflare: fresh for a minute, then served stale for up to a day while a new copy renders.
+  // They're tagged "posts" (src/lib/pds-posts.ts), so a save can purge them all at once.
+  // Images from the repo never change (their URL is their hash).
+  cache: { provider: cacheCloudflare() },
+  routeRules: {
+    '/posts/[slug]': { maxAge: 60, swr: 86400 },
+    '/media/[cid]': { maxAge: 31536000 },
+  },
   // Images in posts get several widths (srcset), so phones download a small one.
   // 'constrained': never wider than the original, and shrinks to fit the 70ch column.
   image: {
