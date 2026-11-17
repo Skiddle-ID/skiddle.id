@@ -109,6 +109,12 @@ Width and height stop the page jumping while an image loads. The admin app shrin
           "ongoing": { "type": "boolean", "description": "A series with no last part, like a weekly one." },
           "cadence": { "type": "string", "maxGraphemes": 64, "description": "How often new parts come out, e.g. 'every week'." },
           "planned": { "type": "array", "maxLength": 100, "items": { "type": "ref", "ref": "#plannedPart" } },
+          "coverImage": {
+            "type": "blob",
+            "accept": ["image/*"],
+            "maxSize": 1000000,
+            "description": "The series' share card, drawn by the admin app when the series is saved. Named like site.standard.document's."
+          },
           "createdAt": { "type": "string", "format": "datetime" },
           "updatedAt": { "type": "string", "format": "datetime" }
         }
@@ -126,7 +132,7 @@ Width and height stop the page jumping while an image loads. The admin app shrin
 }
 ```
 
-It's what `src/data/series.ts` holds today. A post says which series it belongs to and which part it is; a published part replaces the planned one with the same number, as now.
+It's what `src/data/series.ts` holds today, plus a share card. A post says which series it belongs to and which part it is; a published part replaces the planned one with the same number, as now.
 
 ### `id.skiddle.draft` (draft; only if decision 1 is A)
 
@@ -156,12 +162,26 @@ A post that isn't published yet. Record key: a TID.
   - It reads the repo's latest revision (`com.atproto.sync.getLatestCommit`). If the revision changed since the last check, it purges the `posts` tag.
   - It needs no login, because it only purges when the repo really changed.
   - The admin app calls it after every save; the cron calls it after a scheduled publish.
-- **Images and share cards:** `/media/<cid>` serves blobs from the repo with a cache that never expires, since a CID is the hash of the file.
-  - A post's share card is its `coverImage`.
-  - Cards for the built pages are still drawn at build time.
+- **Images and share cards:** `/media/<cid>` serves blobs from the repo with a cache that never expires, since a CID is the hash of the file. See [Share cards](#share-cards).
 - **A growing archive:** list pages read a small index of posts (no Markdown), rebuilt once per repo change and cached. That keeps the CPU per request low at hundreds of posts.
 - **Security headers:** the middleware gives rendered HTML pages the site's CSP. The script hashes that `_headers` gets at build time move into a shared module.
 - **If the PDS is down:** cached pages keep being served. A page nobody has opened since the last change shows a short "can't reach the posts right now" page.
+
+## Share cards
+
+Share cards stay stored images. Drawing one is the heaviest thing the site does: the last build drew 51 in 15.5 seconds, about 300 ms each, some 30 times the free plan's 10 ms of CPU. So cards for posts and series are drawn once, in the browser, and kept in the records; the Worker only serves them.
+
+| Page | Its card | Drawn |
+|---|---|---|
+| A post | Its document's `coverImage`, Standard.site's own field. Readers show it as the post's thumbnail, and the Bluesky link card reuses the same blob | By the admin app when the post is published, and again when its title or description changes |
+| A series, if series get their own pages (`/series/<slug>/`) | The series' `coverImage` | By the admin app when the series is saved |
+| A tag (`/topics/tag/<tag>/`) | The Topics card | At build time. Tags now come and go without a build, so there's no card per tag (today there are 29) |
+| Home, About, Uses, the post and series lists, and the other built pages | Their own card, as today | At build time |
+
+- A post's `og:image` is `/media/<cid>` of its `coverImage`.
+- The card design is one module, shared by the build and the admin app (satori, with resvg's Node build at build time and its WebAssembly build in the browser), so both draw the same card.
+- **Changing the design:** built cards update with the next build, but stored ones don't. The admin app gets a "Redraw all share cards" button that redraws every post and series card and saves them.
+- **A separate cover photo:** not now. Only the MDX demo uses today's `cover` field, to show its own share card at the top, and no real post has a hero photo. If the v4 design adds them, `id.skiddle.post` can gain an optional `cover` naming one of its images; adding optional fields is always allowed.
 
 ## The admin app
 
@@ -176,7 +196,8 @@ It gets a post editor, built on the first version (`/admin/`).
 - **Schedule:** set a time. The share card is made then and stored on the draft; the cron does the rest.
 - **Edit a published post:** saves straight to its record, with `swapRecord`, so two devices can't overwrite each other. It sets `updatedAt` and redraws the share card if the title or description changed.
 - **Unpublish:** deletes the document, and optionally the Bluesky post, after a confirmation.
-- **Series:** create and edit them, including planned parts, ongoing and cadence.
+- **Series:** create and edit them, including planned parts, ongoing and cadence. Saving draws the series' share card.
+- **Redraw all share cards,** for after a change to the card design.
 - **Sign-in:** Bluesky's approval page asks for more access.
   - Write `site.standard.document`, `id.skiddle.series` and `id.skiddle.draft`
   - Create posts on Bluesky (`repo:app.bsky.feed.post?action=create`)
@@ -202,7 +223,7 @@ Once the posts are only in the PDS, they need a copy somewhere else. A weekly Gi
 v3 stays live and keeps publishing from git until the switch.
 
 1. **Lexicons:** add `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` to `lexicons/`, and publish them from the admin app.
-2. **Fill the records from git:** v3's AT Protocol sync also writes each post's `content`: the Markdown, its images as blobs, and category, language, series and featured. It writes the series records from `src/data/series.ts`. From then on the records match git after every post.
+2. **Fill the records from git:** v3's AT Protocol sync also writes each post's `content`: the Markdown, its images as blobs, and category, language, series and featured. It writes the series records from `src/data/series.ts`, with their share cards. From then on the records match git after every post.
 3. **pckt.blog's six posts:** they get skiddle.id records too (decision 3).
 4. **v4 reads the records:** the live collections, the route cache, `/media/` and `/api/revalidate`, on staging.
 5. **Parity check:** a test compares every post on staging (built from records) with production (built from git): titles, dates, text, links, images and series. Any difference blocks the switch.
@@ -215,7 +236,7 @@ v3 stays live and keeps publishing from git until the switch.
 - `src/data/series.ts`
 - The workflows "Publish scheduled posts", "Announce posts on Bluesky" and "Publish posts to AT Protocol"
 - Their scripts: `publish-scheduled`, `bluesky-announce`, `standard-site-sync` and `mark-updated`
-- Drawing share cards for posts at build time
+- Drawing share cards for posts and tags at build time
 - The README's "Writing a post" section, which then points to the admin app
 
 Git keeps old files in its history, so a clone stays about the same size. What gets smaller is the checkout and the work: there are no post files to keep in sync, and no build for content.

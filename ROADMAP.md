@@ -124,7 +124,7 @@ Records:
 
 - [ ] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working
 - [ ] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured
-- [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence), replacing `src/data/series.ts`
+- [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card), replacing `src/data/series.ts`
 - [ ] `id.skiddle.draft`, if drafts are records
 - [ ] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch
 - [ ] pckt.blog's six posts, as decided above
@@ -133,7 +133,7 @@ The site:
 
 - [ ] Posts and series read from the PDS when a page is requested (Astro 7 live collections), with Markdown rendered in the Worker
 - [ ] Astro's route cache on Cloudflare for the post pages, lists, topics, series, feeds, sitemap and search, plus `/api/revalidate` so a save shows straight away
-- [ ] `/media/<cid>` for images and share cards from the repo
+- [ ] `/media/<cid>` for images and share cards from the repo. Post and series cards are stored in their records (a post's is Standard.site's `coverImage`); tag pages use the Topics card
 - [ ] The site CSP on rendered pages, from the middleware
 - [ ] A parity check: every post on staging, built from records, matches production, built from git
 
@@ -142,7 +142,8 @@ The admin app:
 - [ ] Write and edit posts: Markdown with a live preview, images, series and part, drafts
 - [ ] Publish: draws the share card in the browser, writes the record, announces it on Bluesky and turns comments on
 - [ ] Edit and unpublish published posts; edits set the "updated" date
-- [ ] Series: create and edit them, including planned parts
+- [ ] Series: create and edit them, including planned parts; saving draws the series' share card
+- [ ] Redraw all share cards, for after a change to the card design
 - [ ] Schedule posts, published by a small cron Worker every 5 minutes (replaces three GitHub workflows)
 
 Safety:
@@ -152,7 +153,7 @@ Safety:
 The switch, at launch:
 
 - [ ] Publish the last post from git, run the sync one last time, make v4 production
-- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, and drawing post share cards at build time
+- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, and drawing share cards for posts and tags at build time
 
 ### v5: more of the site
 
