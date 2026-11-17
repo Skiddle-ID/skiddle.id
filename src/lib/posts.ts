@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { seriesInfo, type PlannedPart } from '~/data/series';
+import { seriesSlug } from './post-record.mjs';
 
 export type Post = CollectionEntry<'posts'>;
 
@@ -29,9 +30,8 @@ export interface Series {
 /** One part of a series: a published post, or a planned part that's still to come */
 export type SeriesEntry = { post: Post; order: number; title: string } | { post?: undefined; order: number; title: string };
 
-/** URL-safe id for a series name: "Rebuilding skiddle.id" → "rebuilding-skiddle-id" */
-export const seriesSlug = (name: string) =>
-  name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+/** URL-safe id for a series name: "Rebuilding skiddle.id" → "rebuilding-skiddle-id". Also its record key */
+export { seriesSlug };
 
 export const seriesUrl = (name: string) => `/series/#${seriesSlug(name)}`;
 
