@@ -1,10 +1,44 @@
 /**
- * The kinds of status Jeff can set (the `state` of an id.skiddle.status record), shared by the site,
- * the admin app and scripts/status.mjs. Plain JavaScript so the script can import it too.
+ * The kinds of status Jeff can set (the `state` of an id.skiddle.status record) and how long its
+ * text may be, shared by the site, the admin app and scripts/status.mjs. Plain JavaScript so the
+ * script can import it too.
  *
  * Records written before `state` existed only have `available`: true reads as 'available', false
  * as 'busy'. A state this code doesn't know reads the same way, so a newer value never breaks it.
  */
+
+/** Most characters the text and the location may have (the lexicon's maxGraphemes) */
+export const MAX_CHARS = 64;
+
+const segmenter =
+  typeof Intl !== 'undefined' && 'Segmenter' in Intl ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+
+/**
+ * The characters of a string as people see them: an emoji like 🧑‍💻 or 🇹🇭 is one character,
+ * however many code units it's made of
+ * @param {string} s
+ * @returns {string[]}
+ */
+function chars(s) {
+  return segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s);
+}
+
+/**
+ * How many characters a string has, counted as people see them
+ * @param {string} s
+ */
+export function countChars(s) {
+  return chars(s).length;
+}
+
+/**
+ * At most `max` characters of a string, never cutting an emoji in half
+ * @param {string} s
+ * @param {number} [max]
+ */
+export function trimChars(s, max = MAX_CHARS) {
+  return s.length <= max ? s : chars(s).slice(0, max).join('');
+}
 
 /** In the order the admin app offers them */
 export const STATES = /** @type {const} */ (['available', 'busy', 'dnd', 'away']);

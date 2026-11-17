@@ -8,7 +8,7 @@
  */
 import { status as fallback, type Status } from '~/data/status';
 import { DID } from '~/lib/standard-site.mjs';
-import { isState, stateOf } from '~/lib/status-states.mjs';
+import { isState, stateOf, trimChars } from '~/lib/status-states.mjs';
 
 export const STATUS_COLLECTION = 'id.skiddle.status';
 const RECORD_TTL = 60;
@@ -48,8 +48,9 @@ export function parseStatus(value: unknown): LiveStatus | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
   if ((typeof v.available !== 'boolean' && !isState(v.state)) || typeof v.text !== 'string' || !v.text.trim()) return null;
-  const text = v.text.trim().slice(0, 64);
-  const location = typeof v.location === 'string' && v.location.trim() ? v.location.trim().slice(0, 64) : fallback.city;
+  // Trimmed by characters as people see them, so an emoji near the end is never cut in half
+  const text = trimChars(v.text.trim());
+  const location = typeof v.location === 'string' && v.location.trim() ? trimChars(v.location.trim()) : fallback.city;
   const timeZone = typeof v.timeZone === 'string' && validTimeZone(v.timeZone) ? v.timeZone : fallback.timeZone;
   const updatedAt = typeof v.updatedAt === 'string' ? v.updatedAt : undefined;
   return { state: stateOf(v), label: text, city: location, timeZone, updatedAt, source: 'pds' };
