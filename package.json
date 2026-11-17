@@ -11,7 +11,7 @@
     "start": "wrangler dev",
     "typegen": "wrangler types",
     "check:lexicons": "node scripts/check-lexicons.mjs",
-    "test:unit": "node --test \"workers/**/*.test.mjs\"",
+    "test:unit": "node --test \"workers/**/*.test.mjs\" \"scripts/**/*.test.mjs\"",
     "test:preview": "node --test --test-concurrency=1 \"tests/*.test.mjs\"",
     "status": "node scripts/status.mjs"
   },

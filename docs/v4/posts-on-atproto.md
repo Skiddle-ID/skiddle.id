@@ -224,7 +224,34 @@ Scheduling happens in the admin app's editor: pick a time and press **Schedule**
 
 ## Backups
 
-Once the posts are only in the PDS, they need a copy somewhere else. A weekly GitHub Action downloads the repo as a CAR file (`com.atproto.sync.getRepo`, every record) and its images (`com.atproto.sync.listBlobs` and `getBlob`), and attaches them to a `backups` release, keeping the latest few. A CAR file is also what a move to another PDS imports, and none of it adds to the git history.
+Once the posts are only in the PDS, they need a copy somewhere else. Every Sunday, [Back up the AT Protocol repo](../../.github/workflows/backup.yml) runs [`scripts/backup.mjs`](../../scripts/backup.mjs). It attaches one `backup-YYYY-MM-DD.tar.gz` to the `backups` release on GitHub and keeps the newest four. None of it adds to the git history. Each one holds:
+
+- `repo.car`: every record in the repo, Bluesky's too, as the PDS exports it (`com.atproto.sync.getRepo`). This is what a move to another PDS imports.
+- `blobs/<cid>`: every image and other file the records point to (`com.atproto.sync.listBlobs` and `getBlob`)
+- `plc-log.json`: the DID's history from plc.directory (its handles, PDSes and keys)
+- `manifest.json`:
+  - when it was made, and from which PDS
+  - the commit
+  - how many of the site's records there are
+  - each blob's type and size
+  - any blob the PDS no longer has
+
+It checks every block of the CAR file and every blob against its hash. A broken download fails the run, and GitHub emails about it, so a broken backup never replaces a good one. For the same reason it refuses to back up a repo with no posts. Today a backup is about 14 MB and takes a minute.
+
+The release is public, like the repo it copies. A deleted record stays in the backups for up to four weeks.
+
+**Restoring.** [goat](https://github.com/bluesky-social/goat), Bluesky's command-line tool, reads the CAR file:
+- `goat repo ls repo.car` lists the records.
+- `goat repo unpack repo.car` writes each one out as JSON.
+
+A lost post or series can be written back from its JSON, and its images from `blobs/`.
+
+To move the whole account to a new PDS:
+1. Import the records with `com.atproto.repo.importRepo` (`goat repo import`).
+2. Upload each file in `blobs/` with `com.atproto.repo.uploadBlob`. `com.atproto.repo.listMissingBlobs` shows what's left.
+3. Point the DID at the new PDS with a PLC operation.
+
+Step 3 needs the private half of one of the DID's rotation keys. `plc-log.json` lists them. Bluesky holds its own. With a key of your own, kept somewhere safe, the account can move even if Bluesky's PDS is gone. Without one, the records could only come back under a new DID. `goat account plc add-rotation-key` adds one.
 
 ## Migration, step by step
 
@@ -236,7 +263,7 @@ v3 stays live and keeps publishing from git until the switch.
 4. **v4 reads the records:** the live collections, the route cache, `/media/` and `/api/revalidate`, on staging.
 5. **Parity check:** a test compares every post on staging (built from records) with production (built from git): titles, dates, text, links, images and series. Any difference blocks the switch.
 6. **The admin app's editor:** drafts, publish, schedule, edit and series. Then the cron Worker and the backups.
-7. **The switch, at the v4 launch:** publish the last post from git, run the sync one last time, and make v4 production. Then remove what git no longer needs.
+7. **The switch, at the v4 launch:** publish the last post from git, run the sync one last time, and make v4 production. Run the backup once by hand and check the release. Then remove what git no longer needs.
 
 ## What leaves the repo at launch
 

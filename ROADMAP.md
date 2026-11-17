@@ -157,11 +157,11 @@ The admin app:
 
 Safety:
 
-- [ ] Weekly backups of the repo and its images (a CAR file plus blobs) to a GitHub release
+- [x] Weekly backups of the repo and its images (a CAR file plus blobs, each checked against its hash) to the `backups` release, keeping four ([`scripts/backup.mjs`](scripts/backup.mjs)). Built; runs once its workflow is on the default branch, at the launch
 
 The switch, at launch:
 
-- [ ] Publish the last post from git, run the sync one last time, make v4 production
+- [ ] Publish the last post from git, run the sync one last time, make v4 production, then run the backup once by hand and check it
 - [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, MDX support, and drawing share cards for posts and tags at build time
 
 ### v5: more of the site
