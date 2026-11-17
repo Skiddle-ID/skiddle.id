@@ -2,6 +2,8 @@
 
 Static mockups of the v4 home page in four directions, plus the post page for direction A. They use the site's real content, colours and fonts. The plan and the open decisions are in [ROADMAP.md](../../ROADMAP.md).
 
+How posts and series move onto AT Protocol, with the draft lexicons, is in [posts-on-atproto.md](posts-on-atproto.md).
+
 | File | What it shows |
 |---|---|
 | [`mockups/designs.html`](mockups/designs.html) | All four side by side, with screenshots, pros and cons |

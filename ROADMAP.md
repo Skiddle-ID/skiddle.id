@@ -99,16 +99,19 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while the 
 v4 moves posts and series onto it completely: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. v5 and v6 bring the rest of the site.
 
 - **Lexicons:** under `id.skiddle.*`, reusing existing ones where they fit (Standard.site for posts, maybe teal.fm for music). Lexicons can only gain optional fields once they're in use, so each one is designed before it ships.
-- **Reading:** live data (like the status) is read by the Worker per request with a short cache. Posts and series are built into pages from records, with a rebuild when the repo changes.
+- **Reading:** the Worker reads records when a page is requested and caches the result: the status, and from v4 posts and series. Only code changes need a build.
 - **The admin app:** mobile-first and installable as a PWA. Posts are written and published there.
 - **Everything in an AT Protocol repo is public.** Every published record and every edit goes out on the network.
 
 ### v4: posts and series
 
+The full plan, with the draft lexicons, is in [docs/v4/posts-on-atproto.md](docs/v4/posts-on-atproto.md). Pages are rendered when someone asks for them and cached, so publishing, editing and scheduling never need a rebuild; only code changes do. It all fits Cloudflare's free Workers plan.
+
 Decisions:
 
-- [ ] Drafts and scheduled posts: drafts stay on the device in the admin app, and a scheduled post is written to the PDS when it's scheduled, then shown by the site from its time (its text can be read on the PDS early); or drafts and schedules wait in Cloudflare KV until they're published (private, but a small store of our own)
-- [ ] The MDX demo post, the only post with components: rewrite it as plain Markdown, or retire it
+- [ ] Drafts: `id.skiddle.draft` records that sync between devices and can be read on the PDS, like drafts in the git repo today (recommended); kept on the device; or encrypted records
+- [ ] The MDX demo post, the only post with components: retire it (recommended), or rewrite it as plain Markdown
+- [ ] pckt.blog's six posts: move them to the skiddle.id publication (recommended; they leave skiddle-blog.pckt.blog), or add separate records
 
 Done so far:
 
@@ -119,29 +122,37 @@ Done so far:
 
 Records:
 
-- [ ] Posts stay one `site.standard.document` record each, with the same record keys, so links and Bluesky comments keep working. Its open `content` field holds an `id.skiddle.*` type with the Markdown, plus what Standard.site doesn't have: category, language, series and part, featured
+- [ ] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working
+- [ ] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured
 - [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence), replacing `src/data/series.ts`
-- [ ] Images as blobs in the PDS (one post photo today)
-- [ ] pckt.blog's six older records brought into the same shape, keeping their record keys (`MOVE_PCKT_DOCUMENTS`)
-- [ ] Backups: a scheduled export of the whole repo (a CAR file) kept outside the PDS
+- [ ] `id.skiddle.draft`, if drafts are records
+- [ ] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch
+- [ ] pckt.blog's six posts, as decided above
 
 The site:
 
-- [ ] Build posts, series, topics, the feeds, share cards and the latest-post card from records (an Astro content loader that reads the PDS)
-- [ ] Rebuild the site when the repo changes (a scheduled Worker checks the repo's latest commit)
-- [ ] Before the switch, a check that the pages built from records match the ones built from git
+- [ ] Posts and series read from the PDS when a page is requested (Astro 7 live collections), with Markdown rendered in the Worker
+- [ ] Astro's route cache on Cloudflare for the post pages, lists, topics, series, feeds, sitemap and search, plus `/api/revalidate` so a save shows straight away
+- [ ] `/media/<cid>` for images and share cards from the repo
+- [ ] The site CSP on rendered pages, from the middleware
+- [ ] A parity check: every post on staging, built from records, matches production, built from git
 
 The admin app:
 
-- [ ] Write and edit posts: Markdown with a live preview, images, series and part
-- [ ] Publish: writes the record, announces it on Bluesky and turns comments on (signing in then also asks to post on Bluesky). Edits set the "updated" date
-- [ ] Schedule posts, as decided above
+- [ ] Write and edit posts: Markdown with a live preview, images, series and part, drafts
+- [ ] Publish: draws the share card in the browser, writes the record, announces it on Bluesky and turns comments on
+- [ ] Edit and unpublish published posts; edits set the "updated" date
 - [ ] Series: create and edit them, including planned parts
+- [ ] Schedule posts, published by a small cron Worker every 5 minutes (replaces three GitHub workflows)
+
+Safety:
+
+- [ ] Weekly backups of the repo and its images (a CAR file plus blobs) to a GitHub release
 
 The switch, at launch:
 
-- [ ] Until then, v3's AT Protocol sync also writes each post's Markdown into its record, so the records match git
-- [ ] Remove `src/content/posts`, the post images and the git publishing workflows (scheduled publish, the announcement on push, the AT Protocol sync, automatic "updated" dates)
+- [ ] Publish the last post from git, run the sync one last time, make v4 production
+- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, and drawing post share cards at build time
 
 ### v5: more of the site
 
