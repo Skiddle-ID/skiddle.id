@@ -20,7 +20,7 @@ Since v3.7:
 ## Writing
 
 - [x] Publish "Never Quite Done", part 7 and the end of Rebuilding skiddle.id ([#107](https://github.com/Skiddle-ID/skiddle.id/pull/107))
-- [ ] Publish Lab Notes #1: scheduled for Nov 17, 2026, 09:00 Bangkok time
+- [x] Publish Lab Notes #1, "Where Am I in This Series?" ([#101](https://github.com/Skiddle-ID/skiddle.id/pull/101), published Nov 17, 2026)
 - [ ] Lab Notes: one or two posts every week about what's going on at Skiddle Labs
 - From Fear to Flight, 6 parts (planned parts are in `src/data/series.ts`):
   - [x] 1. How It All Started

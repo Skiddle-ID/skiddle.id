@@ -2,8 +2,9 @@ name: Publish scheduled posts
 
 # Every hour, publishes posts whose `publishAt` time has passed (scripts/publish-scheduled.mjs),
 # commits that to v3 (Cloudflare deploys it), then starts "Announce posts on Bluesky" for them,
-# which waits until they're live, posts them and turns comments on. The AT Protocol records follow
-# as usual. Pushes made with GITHUB_TOKEN don't start other workflows, but workflow_dispatch can.
+# which waits until they're live, posts them and turns comments on, then starts "Publish posts to
+# AT Protocol". Pushes made with GITHUB_TOKEN don't start other workflows (nor does a run it
+# starts finishing), but workflow_dispatch can, so each step starts the next one directly.
 # GitHub can start scheduled runs a few minutes late.
 on:
   schedule:

@@ -3,6 +3,9 @@ name: Announce posts on Bluesky
 # After a push to v3 that touches posts, announce newly published posts on Bluesky and add
 # `bluesky: at://…` to them so replies show as comments. See scripts/bluesky-announce.mjs.
 # Needs the repository secret BLUESKY_APP_PASSWORD (a Bluesky app password for skiddle.blue).
+#
+# "Publish posts to AT Protocol" runs after this one finishes. When "Publish scheduled posts"
+# started this run, the last step starts it instead (see there).
 
 on:
   push:
@@ -22,6 +25,8 @@ on:
 
 permissions:
   contents: write
+  # Only to start "Publish posts to AT Protocol" after a scheduled publish (the last step)
+  actions: write
 
 concurrency:
   group: bluesky-announce
@@ -85,3 +90,14 @@ jobs:
           fi
           git pull --rebase origin v3
           git push origin HEAD:v3
+
+      # "Publish posts to AT Protocol" usually starts by itself when this workflow finishes
+      # (workflow_run). GitHub doesn't do that for runs started with GITHUB_TOKEN, which is how
+      # "Publish scheduled posts" starts this one, so the sync is started here instead. Runs that
+      # someone started (a push or the Run workflow button) are left to workflow_run, so the sync
+      # doesn't run twice.
+      - name: Start the AT Protocol sync
+        if: github.event_name == 'workflow_dispatch' && github.triggering_actor == 'github-actions[bot]' && inputs.dry_run == false
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run standard-site.yml --ref v3 -f dry_run=false
