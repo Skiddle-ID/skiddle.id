@@ -4,7 +4,8 @@
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
- * and lists the site's other collections, read-only.
+ * and lists the site's other collections, read-only. One section at a time: Posts, Series, Status
+ * and Site (src/lib/admin/sections.ts).
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';

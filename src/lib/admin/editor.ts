@@ -30,6 +30,7 @@ import { countChars } from '~/lib/status-states.mjs';
 import { el, errorText, message } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { missingScopes } from './oauth';
+import { sectionFromHash, showSection } from './sections';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
 
 const DOCUMENT = 'site.standard.document';
@@ -78,6 +79,10 @@ interface DocumentRecord {
 
 interface SeriesRecord {
   name?: string;
+  description?: string;
+  ongoing?: boolean;
+  cadence?: string;
+  planned?: { part: number; title: string }[];
 }
 
 type Kind = 'draft' | 'post';
@@ -128,12 +133,13 @@ export function setupPosts(s: OAuthSession, again: () => void) {
   window.addEventListener('hashchange', route);
 }
 
-/** Shows the editor for #draft/<rkey> or #post/<rkey>, otherwise the dashboard */
+/** Shows the editor for #draft/<rkey> or #post/<rkey>, otherwise the section the address names */
 export async function route() {
   const m = /^#(draft|post)\/([a-z0-9]+)$/.exec(location.hash);
   if (m) return open(m[1] as Kind, m[2]);
   await leaveEditor();
   document.body.dataset.view = 'dashboard';
+  showSection(sectionFromHash(location.hash));
 }
 
 export async function loadPosts() {
@@ -174,6 +180,37 @@ function renderLists() {
     published.appendChild(r);
   }
   el('publishedCount').textContent = String(posts.length);
+  renderSeries();
+}
+
+/** The Series section: each series with its published and planned parts */
+function renderSeries() {
+  const list = el('seriesList');
+  list.textContent = '';
+  if (!series.length) list.appendChild(item('No series yet.', 'admin-muted'));
+  for (const s of [...series].sort((a, b) => (a.value.name ?? '').localeCompare(b.value.name ?? ''))) {
+    const v = s.value;
+    const parts = documents.filter((d) => isSitePost(d.value) && d.value.content?.series?.series === s.uri).map((d) => d.value.content?.series?.part);
+    const planned = (v.planned ?? []).filter((p) => !parts.includes(p.part)).length;
+    const li = item('');
+    const link = document.createElement('a');
+    link.href = `/series/#${rkeyOf(s.uri)}`;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = v.name ?? rkeyOf(s.uri);
+    const note = document.createElement('span');
+    note.className = 'admin-muted';
+    note.textContent = [
+      `${parts.length} published`,
+      planned ? `${planned} planned` : '',
+      v.ongoing ? (v.cadence ? `new ${v.cadence}` : 'ongoing') : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+    li.appendChild(link);
+    li.appendChild(note);
+    list.appendChild(li);
+  }
 }
 
 /** A list row: a link that opens it in the editor, and a note */
@@ -578,7 +615,7 @@ async function deleteDraft() {
     removeBackup(target.kind, target.rkey);
     drafts = drafts.filter((d) => rkeyOf(d.uri) !== target.rkey);
     current = undefined;
-    location.hash = '';
+    location.hash = '#posts';
     message('postsMessage', `Deleted the draft “${title}”.`, 'ok');
   } catch (err) {
     message('editorMessage', `Couldn’t delete it: ${errorText(err)}`, 'error');
@@ -598,7 +635,7 @@ async function unpublish() {
     current = undefined;
     dirty = false;
     await fetch('/api/revalidate', { method: 'POST' }).catch(() => {});
-    location.hash = '';
+    location.hash = '#posts';
     message('postsMessage', `Unpublished “${title}”.`, 'ok');
   } catch (err) {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') saveFailed(err);

@@ -43,8 +43,40 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
       </section>
 
       <div id="signedIn" hidden>
-      <div id="dashboard" class="admin-stack">
-        <section class="admin-card" aria-labelledby="statusTitle">
+      <div id="dashboard" class="admin-stack" data-section="posts">
+        <nav id="sectionNav" class="admin-sections" aria-label="Sections">
+          <a href="#posts" data-section="posts" aria-current="page">Posts</a>
+          <a href="#series" data-section="series">Series</a>
+          <a href="#status" data-section="status">Status</a>
+          <a href="#site" data-section="site">Site</a>
+        </nav>
+
+        <section class="admin-card" data-section="posts" aria-labelledby="postsTitle">
+          <div class="admin-label-row">
+            <h2 id="postsTitle">Posts</h2>
+            <button id="newDraft" type="button" class="admin-btn admin-btn-ghost">New draft</button>
+          </div>
+          <div id="postsScope" class="admin-notice" hidden>
+            <p>To write drafts and upload images, the app needs two more permissions from your account.</p>
+            <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
+          </div>
+          <h3 class="admin-subhead">Drafts</h3>
+          <ul id="drafts" class="admin-list"><li class="admin-muted">Loading…</li></ul>
+          <details class="admin-details">
+            <summary>Published (<span id="publishedCount">…</span>)</summary>
+            <ul id="published" class="admin-list"></ul>
+          </details>
+          <p class="admin-small">Drafts are saved to your repo as you type, so they’re on all your devices. Anyone who looks can read them there, as with drafts in git today.</p>
+          <p id="postsMessage" class="admin-message" role="status"></p>
+        </section>
+
+        <section class="admin-card" data-section="series" aria-labelledby="seriesTitle">
+          <h2 id="seriesTitle">Series</h2>
+          <ul id="seriesList" class="admin-list"><li class="admin-muted">Loading…</li></ul>
+          <p class="admin-small">Editing series here comes next. Until the launch, the AT Protocol sync writes each series’ name, planned parts and cadence from git.</p>
+        </section>
+
+        <section class="admin-card" data-section="status" aria-labelledby="statusTitle">
           <h2 id="statusTitle">Your status</h2>
           <p class="admin-preview" aria-live="polite">
             <span id="previewDot" class="admin-dot" aria-hidden="true"></span>
@@ -87,26 +119,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <p id="statusUpdated" class="admin-small"></p>
         </section>
 
-        <section class="admin-card" aria-labelledby="postsTitle">
-          <div class="admin-label-row">
-            <h2 id="postsTitle">Posts</h2>
-            <button id="newDraft" type="button" class="admin-btn admin-btn-ghost">New draft</button>
-          </div>
-          <div id="postsScope" class="admin-notice" hidden>
-            <p>To write drafts and upload images, the app needs two more permissions from your account.</p>
-            <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
-          </div>
-          <h3 class="admin-subhead">Drafts</h3>
-          <ul id="drafts" class="admin-list"><li class="admin-muted">Loading…</li></ul>
-          <details class="admin-details">
-            <summary>Published (<span id="publishedCount">…</span>)</summary>
-            <ul id="published" class="admin-list"></ul>
-          </details>
-          <p class="admin-small">Drafts are saved to your repo as you type, so they’re on all your devices. Anyone who looks can read them there, as with drafts in git today.</p>
-          <p id="postsMessage" class="admin-message" role="status"></p>
-        </section>
-
-        <section class="admin-card" aria-labelledby="lexiconTitle">
+        <section class="admin-card" data-section="site" aria-labelledby="lexiconTitle">
           <h2 id="lexiconTitle">Lexicons</h2>
           <p>
             They describe the site's records: the status, posts, series and drafts. Publishing them lets other apps look up and
@@ -118,7 +131,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <p id="lexiconDns" class="admin-small"></p>
         </section>
 
-        <section class="admin-card" aria-labelledby="recordsTitle">
+        <section class="admin-card" data-section="site" aria-labelledby="recordsTitle">
           <h2 id="recordsTitle">Records</h2>
           <p>What the site keeps in your repo. Read-only here for now: posts still come from git and sync on publish.</p>
           <ul id="records" class="admin-records"><li class="admin-muted">Loading…</li></ul>
@@ -127,7 +140,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
       <div id="editor" class="admin-editor" data-pane="write" data-kind="draft">
         <div class="admin-editor-bar">
-          <a href="#" class="admin-btn admin-btn-ghost">← Posts</a>
+          <a href="#posts" class="admin-btn admin-btn-ghost">← Posts</a>
           <span id="editorState" class="admin-small" aria-live="polite"></span>
         </div>
         <div id="editorConflict" class="admin-notice" hidden>
@@ -689,6 +702,44 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
       max-height: calc(100vh - 2rem);
       overflow: auto;
     }
+  }
+  /* One section at a time, chosen by the section bar (src/lib/admin/sections.ts) */
+  #dashboard > .admin-card {
+    display: none;
+  }
+  #dashboard[data-section='posts'] > [data-section='posts'],
+  #dashboard[data-section='series'] > [data-section='series'],
+  #dashboard[data-section='status'] > [data-section='status'],
+  #dashboard[data-section='site'] > [data-section='site'] {
+    display: flex;
+  }
+  .admin-sections {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    gap: 0.25rem;
+    margin: -0.25rem 0 0;
+    padding-top: env(safe-area-inset-top);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .admin-sections a {
+    flex: 1 1 0;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+    border-bottom: 2px solid transparent;
+  }
+  .admin-sections a[aria-current='page'] {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary);
+  }
+  .admin-sections a:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
   }
 </style>
 
