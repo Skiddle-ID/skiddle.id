@@ -1,0 +1,24 @@
+/**
+ * The admin app's sections, one at a time under the section bar: Posts (drafts and published
+ * posts), Series, Status, and Site (lexicons, records). Each has an address (#posts, #series,
+ * #status, #site), so a reload or a home-screen shortcut opens the same one. The editor
+ * (#draft/…, #post/…) replaces the sections while it's open (src/lib/admin/editor.ts).
+ */
+import { el } from './dom';
+
+export const SECTIONS = ['posts', 'series', 'status', 'site'] as const;
+export type Section = (typeof SECTIONS)[number];
+
+/** The section an address asks for; Posts if it names none */
+export function sectionFromHash(hash: string): Section {
+  const name = hash.replace(/^#/, '');
+  return (SECTIONS as readonly string[]).includes(name) ? (name as Section) : 'posts';
+}
+
+export function showSection(section: Section) {
+  el('dashboard').dataset.section = section;
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('#sectionNav a[data-section]')) {
+    if (link.dataset.section === section) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+}

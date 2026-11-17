@@ -36,6 +36,8 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 **Direction:** posts and series move completely onto AT Protocol, written and published from the admin app. Keep the terminal identity, make reading great, and make the site more about Jeff than about the site itself.
 
+**Order:** v4.0 is the posts launch, so the admin app's Save and Publish work for real as soon as possible ([v4: posts and series](#v4-posts-and-series)). The redesign follows as v4.1. Decided on 2026-11-17.
+
 ### Decisions
 
 - [x] Reading font: Geist Sans for post text ([#98](https://github.com/Skiddle-ID/skiddle.id/pull/98))
@@ -48,20 +50,24 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 - [x] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe) ([#108](https://github.com/Skiddle-ID/skiddle.id/pull/108))
 - [ ] TypeScript 7, once typescript-eslint supports it ([#78](https://github.com/Skiddle-ID/skiddle.id/pull/78))
 
-### v4.0: the redesign
+### v4.0: posts on AT Protocol
+
+- [ ] Everything in [v4: posts and series](#v4-posts-and-series), then the [launch checklist](#the-v4-branch)
+
+### v4.1: the redesign
 
 - [ ] New home page, in the chosen design
 - [ ] Shorter menu: writing, about, work, uses (works, projects and services become "work")
 - [ ] Post page to match: description as the intro, figures with captions
 - [ ] Indonesian posts: a language label, a filter and hreflang
 
-### v4.1: more about Jeff
+### v4.2: more about Jeff
 
 - [ ] /flying: From Fear to Flight plus logbook stats (needs your logbook data)
 - [ ] /now, with a "last updated" date
 - [ ] Notes: your Bluesky posts with a chosen hashtag, collected at build time
 
-### v4.2
+### v4.3
 
 - [ ] /changelog from the GitHub releases
 - [ ] Maybe: a newsletter (RSS to email; needs an account with an email service)
@@ -76,14 +82,14 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 ## The v4 branch
 
-v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while the redesign takes shape.
+v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 takes shape.
 
 - **Staging site:** every push to `v4` gets its own Cloudflare preview at `https://v4-skiddle-id.skiddle.workers.dev`. It shows drafts and isn't indexed, like any preview.
 - **v4 work:** branch from `v4` and open PRs into `v4`. They get the same checks as v3 PRs (lint, preview checks, Lighthouse).
 - **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
 - **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
 
-**Launch checklist,** when v4 is ready:
+**Launch checklist,** for v4.0 (posts on AT Protocol; the redesign comes after, as v4.1):
 
 - [ ] Merge `v3` into `v4` one last time
 - [ ] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series))
@@ -142,6 +148,7 @@ The site:
 The admin app:
 
 - [x] Write drafts: Markdown with a live preview (the site's renderer), images shrunk under 1 MB, series and part, saved as you type ([#129](https://github.com/Skiddle-ID/skiddle.id/pull/129))
+- [x] Sections: Posts, Series, Status and Site, one at a time under a bar, each with its own address ([#131](https://github.com/Skiddle-ID/skiddle.id/pull/131))
 - [ ] Publish: draws the share card in the browser, writes the record, announces it on Bluesky and turns comments on
 - [ ] Edit and unpublish published posts; edits set the "updated" date
 - [ ] Series: create and edit them, including planned parts; saving draws the series' share card
@@ -159,7 +166,7 @@ The switch, at launch:
 
 ### v5: more of the site
 
-v4.1 builds /now and /flying from data files in the repo; v5 moves their data into records.
+v4.2 builds /now and /flying from data files in the repo; v5 moves their data into records.
 
 - [ ] `id.skiddle.now` for the Now list and /now
 - [ ] `id.skiddle.flight` for the logbook, /flying and the flying card
