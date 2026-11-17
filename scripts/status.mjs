@@ -24,12 +24,11 @@
  */
 import { readFileSync } from 'node:fs';
 import { DID } from '../src/lib/standard-site.mjs';
-import { STATES, isState } from '../src/lib/status-states.mjs';
+import { MAX_CHARS as MAX, STATES, countChars, isState } from '../src/lib/status-states.mjs';
 
 const COLLECTION = 'id.skiddle.status';
 const LEXICON_FILE = 'lexicons/id/skiddle/status.json';
 const DEFAULTS = { location: 'Bangkok', timeZone: 'Asia/Bangkok' };
-const MAX = 64;
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(`--${name}`);
@@ -37,9 +36,6 @@ const option = (name) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && i + 1 < args.length && !args[i + 1].startsWith('--') ? args[i + 1] : undefined;
 };
-
-const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-const graphemes = (s) => [...segmenter.segment(s)].length;
 
 async function main() {
   const pds = await resolvePds(DID);
@@ -75,8 +71,8 @@ async function main() {
     timeZone: (option('time-zone') ?? current.timeZone ?? DEFAULTS.timeZone).trim(),
     updatedAt: new Date().toISOString(),
   };
-  if (graphemes(record.text) > MAX) throw new Error(`--text is longer than ${MAX} characters`);
-  if (graphemes(record.location) > MAX) throw new Error(`--location is longer than ${MAX} characters`);
+  if (countChars(record.text) > MAX) throw new Error(`--text is longer than ${MAX} characters`);
+  if (countChars(record.location) > MAX) throw new Error(`--location is longer than ${MAX} characters`);
   try {
     new Intl.DateTimeFormat('en', { timeZone: record.timeZone });
   } catch {

@@ -7,13 +7,12 @@
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
-import { STATE_INFO, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
+import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
 import statusLexicon from '../../../lexicons/id/skiddle/status.json';
 
 const STATUS = 'id.skiddle.status';
 const LEXICON = 'com.atproto.lexicon.schema';
-const MAX = 64;
 const DEFAULTS = { location: 'Bangkok', timeZone: 'Asia/Bangkok' };
 /** Resolves handles during sign-in. Bluesky's server, which signs Jeff in anyway */
 const HANDLE_RESOLVER = 'https://bsky.social';
@@ -66,8 +65,6 @@ function message(id: string, text: string, kind: 'ok' | 'error' | 'info' = 'info
 }
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
-const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-const graphemes = (s: string) => [...segmenter.segment(s)].length;
 
 function validTimeZone(tz: string) {
   try {
@@ -127,7 +124,7 @@ function formValues() {
 
 function renderPreview() {
   const v = formValues();
-  const count = graphemes(v.text);
+  const count = countChars(v.text);
   const counter = el('statusCount');
   counter.textContent = `${count}/${MAX}`;
   counter.toggleAttribute('data-over', count > MAX);
@@ -221,8 +218,8 @@ function setupStatus(session: OAuthSession) {
     event.preventDefault();
     const v = formValues();
     if (!v.text) return message('statusMessage', 'Say what your status is.', 'error');
-    if (graphemes(v.text) > MAX) return message('statusMessage', `Keep it to ${MAX} characters.`, 'error');
-    if (graphemes(v.location) > MAX) return message('statusMessage', `Keep the location to ${MAX} characters.`, 'error');
+    if (countChars(v.text) > MAX) return message('statusMessage', `Keep it to ${MAX} characters.`, 'error');
+    if (countChars(v.location) > MAX) return message('statusMessage', `Keep the location to ${MAX} characters.`, 'error');
     if (!validTimeZone(v.timeZone)) return message('statusMessage', `Unknown time zone: ${v.timeZone}. Pick one from the list.`, 'error');
 
     const record: StatusRecord = { $type: STATUS, ...v, available: v.state === 'available', updatedAt: new Date().toISOString() };
