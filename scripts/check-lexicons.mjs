@@ -12,17 +12,16 @@
  *
  * Images aren't uploaded: each gets a blob reference with the CID the PDS would give it.
  */
-import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { frontmatter } from './bluesky-announce.mjs';
+import { blobRef, imageType } from './lib/blob.mjs';
 import { DRAFT_COLLECTION, POST_TYPE, SERIES_COLLECTION, imageSize, localImages, postContent, seriesRecords } from '../src/lib/post-record.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const POSTS_DIR = join(ROOT, 'src/content/posts');
 const MAX_IMAGE = 1_000_000;
-const TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' };
 
 const errors = [];
 const fail = (where, message) => errors.push(`${where}: ${message}`);
@@ -57,25 +56,6 @@ const validate = (where, check) => {
   }
 };
 
-/** The CID a PDS gives a blob: CIDv1, raw codec, SHA-256, in base32 */
-function blobCid(bytes) {
-  const raw = Buffer.concat([Buffer.from([0x01, 0x55, 0x12, 0x20]), createHash('sha256').update(bytes).digest()]);
-  const alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
-  let bits = 0;
-  let value = 0;
-  let out = 'b';
-  for (const byte of raw) {
-    value = (value << 8) | byte;
-    bits += 8;
-    while (bits >= 5) {
-      out += alphabet[(value >>> (bits - 5)) & 31];
-      bits -= 5;
-    }
-  }
-  if (bits > 0) out += alphabet[(value << (5 - bits)) & 31];
-  return out;
-}
-
 /** Lines outside fenced code blocks */
 const proseLines = (markdown) => markdown.replace(/^(```|~~~)[\s\S]*?^\1[^\n]*$/gm, '').split('\n');
 
@@ -100,7 +80,7 @@ for (const file of readdirSync(POSTS_DIR).sort()) {
   const images = [];
   for (const image of found) {
     const at = `${where}, image ${image.path}`;
-    const type = TYPES[image.path.split('.').pop().toLowerCase()];
+    const type = imageType(image.path);
     let bytes;
     try {
       bytes = readFileSync(join(dirname(join(POSTS_DIR, file)), image.path));
@@ -115,7 +95,7 @@ for (const file of readdirSync(POSTS_DIR).sort()) {
     if (!size) fail(at, "size can't be read from the file");
     images.push({
       name: image.name,
-      image: { $type: 'blob', ref: { $link: blobCid(bytes) }, mimeType: type ?? 'application/octet-stream', size: bytes.length },
+      image: blobRef(bytes, type ?? 'application/octet-stream'),
       alt: image.alt,
       ...(image.title ? { caption: image.title } : {}),
       ...(size ?? {}),
