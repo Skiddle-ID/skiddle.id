@@ -47,13 +47,15 @@ export function basicTheme() {
 }
 
 /**
- * The six posts with an `rkey:` already have a site.standard.document under that key, written by
- * pckt.blog for its "Skiddle Blog" publication (skiddle-blog.pckt.blog), which shows those posts
+ * The six posts with an `rkey:` already had a site.standard.document under that key, written by
+ * pckt.blog for its "Skiddle Blog" publication (skiddle-blog.pckt.blog), which showed those posts
  * from these records.
  *   false: leave them to pckt; these posts get no record from skiddle.id
  *   true:  move them to the skiddle.id publication (they then disappear from pckt.blog)
+ * On since November 2026 (docs/v4/posts-on-atproto.md, decision 3): every post has one record, with
+ * its content, under skiddle.id. The sync rewrites a moved record from scratch.
  */
-export const MOVE_PCKT_DOCUMENTS = false;
+export const MOVE_PCKT_DOCUMENTS = true;
 
 const S32 = '234567abcdefghijklmnopqrstuvwxyz';
 
