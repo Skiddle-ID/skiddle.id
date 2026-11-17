@@ -29,6 +29,7 @@ function liveRobots(origin: string): string {
     'User-agent: *',
     'Content-Signal: search=yes, ai-train=no',
     'Allow: /',
+    'Disallow: /admin/',
     '',
     ...AI_TRAINING_CRAWLERS.map((bot) => `User-agent: ${bot}`),
     'Disallow: /',

@@ -104,10 +104,10 @@ It starts simple in v4 and grows over the next two major versions.
 
 ### v4: the beginning
 
-- [x] `id.skiddle.status`: one record (available, text, location, time zone), in [`lexicons/`](lexicons/id/skiddle/status.json), set with `npm run status` or the Set status workflow
-- [ ] Publish the lexicon: `npm run status -- --publish-lexicon` plus a `_lexicon.skiddle.id` DNS record
+- [x] `id.skiddle.status`: one record (state: available, busy, do not disturb or away; text, location, time zone), in [`lexicons/`](lexicons/id/skiddle/status.json), set with `npm run status` or the Set status workflow
+- [ ] Publish the lexicon: the admin app's "Publish lexicon" button (or `npm run status -- --publish-lexicon`), plus a `_lexicon.skiddle.id` DNS record
 - [x] `/status.svg`, `/api/status.json` and the home page read the status from the PDS, falling back to `src/data/status.ts`
-- [ ] Admin app, first version: sign in with Bluesky, edit the status; works on a phone and installs as a PWA
+- [x] Admin app, first version (`/admin/`): sign in with Bluesky, edit the status, publish the lexicon, list the site's records; works on a phone and installs as a PWA
 - [ ] Rebuild the site when the repo changes (a scheduled Worker checks the repo's latest commit)
 
 ### v5: more of the site

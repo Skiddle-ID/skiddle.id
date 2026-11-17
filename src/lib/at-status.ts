@@ -8,6 +8,7 @@
  */
 import { status as fallback, type Status } from '~/data/status';
 import { DID } from '~/lib/standard-site.mjs';
+import { isState, stateOf } from '~/lib/status-states.mjs';
 
 export const STATUS_COLLECTION = 'id.skiddle.status';
 const RECORD_TTL = 60;
@@ -46,12 +47,12 @@ export async function getStatus(origin: string, fetcher: Fetch = fetch): Promise
 export function parseStatus(value: unknown): LiveStatus | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
-  if (typeof v.available !== 'boolean' || typeof v.text !== 'string' || !v.text.trim()) return null;
+  if ((typeof v.available !== 'boolean' && !isState(v.state)) || typeof v.text !== 'string' || !v.text.trim()) return null;
   const text = v.text.trim().slice(0, 64);
   const location = typeof v.location === 'string' && v.location.trim() ? v.location.trim().slice(0, 64) : fallback.city;
   const timeZone = typeof v.timeZone === 'string' && validTimeZone(v.timeZone) ? v.timeZone : fallback.timeZone;
   const updatedAt = typeof v.updatedAt === 'string' ? v.updatedAt : undefined;
-  return { available: v.available, label: text, city: location, timeZone, updatedAt, source: 'pds' };
+  return { state: stateOf(v), label: text, city: location, timeZone, updatedAt, source: 'pds' };
 }
 
 function validTimeZone(tz: string): boolean {

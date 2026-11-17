@@ -10,6 +10,12 @@
  * Cloudflare injects the Web Analytics beacon into browser HTML responses at the edge (not
  * into curl's, so test with a real browser). It loads from static.cloudflareinsights.com
  * (script-src, with an integrity hash) and reports to cloudflareinsights.com (connect-src).
+ *
+ * The admin app (/admin/) gets its own policy: the same, plus the hosts it signs in with and
+ * writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
+ * hosts (*.bsky.network) and Cloudflare's DNS-over-HTTPS (the lexicon DNS check). Its rule drops
+ * the site-wide CSP first (`! Content-Security-Policy`), because two policies would both apply.
+ * Moving the account to another PDS means adding that host to ADMIN_CONNECT.
  * Zaraz used to add a 'nonce-…' to script-src that covered the beacon too; with Zaraz and
  * Google Analytics removed there is no nonce, so the beacon's host has to be listed here.
  */
@@ -21,6 +27,8 @@ import { join } from 'node:path';
 
 // Cloudflare limits a _headers line to 2,000 characters
 const MAX_LINE = 2000;
+const SITE_CONNECT = "'self' https://public.api.bsky.app https://cloudflareinsights.com";
+const ADMIN_CONNECT = `${SITE_CONNECT} https://plc.directory https://bsky.social https://*.bsky.network https://cloudflare-dns.com`;
 
 export default function securityHeaders(): AstroIntegration {
   return {
@@ -43,14 +51,14 @@ export default function securityHeaders(): AstroIntegration {
           }
         }
 
-        const directives = (scriptSrc: string) =>
+        const directives = (scriptSrc: string, connectSrc = SITE_CONNECT) =>
           [
             "default-src 'self'",
             `script-src 'self' https://static.cloudflareinsights.com ${scriptSrc}`,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
-            "connect-src 'self' https://public.api.bsky.app https://cloudflareinsights.com",
+            `connect-src ${connectSrc}`,
             "form-action 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
@@ -58,13 +66,14 @@ export default function securityHeaders(): AstroIntegration {
             'upgrade-insecure-requests',
           ].join('; ');
 
-        let csp = directives([...hashes].sort().join(' '));
-        let line = `  Content-Security-Policy: ${csp}`;
-        if (line.length > MAX_LINE) {
-          logger.warn(`CSP with ${hashes.size} script hashes is ${line.length} chars (limit ${MAX_LINE}); falling back to 'unsafe-inline' for scripts`);
-          csp = directives("'unsafe-inline'");
-          line = `  Content-Security-Policy: ${csp}`;
+        let scriptSrc = [...hashes].sort().join(' ');
+        const longest = `  Content-Security-Policy: ${directives(scriptSrc, ADMIN_CONNECT)}`.length;
+        if (longest > MAX_LINE) {
+          logger.warn(`CSP with ${hashes.size} script hashes is ${longest} chars (limit ${MAX_LINE}); falling back to 'unsafe-inline' for scripts`);
+          scriptSrc = "'unsafe-inline'";
         }
+        const line = `  Content-Security-Policy: ${directives(scriptSrc)}`;
+        const adminRule = ['/admin/*', '  ! Content-Security-Policy', `  Content-Security-Policy: ${directives(scriptSrc, ADMIN_CONNECT)}`];
 
         // Put the CSP inside the existing `/*` rule from public/_headers: a second rule with the
         // same pattern replaces the first instead of merging with it
@@ -78,6 +87,7 @@ export default function securityHeaders(): AstroIntegration {
           while (end < lines.length && /^\s+\S/.test(lines[end])) end++;
           lines.splice(end, 0, line);
         }
+        lines.push('', ...adminRule);
         await writeFile(headersFile, lines.join('\n'));
         logger.info(`CSP added to _headers: ${hashes.size} inline script hashes from ${pages} pages (${line.length} chars)`);
       },

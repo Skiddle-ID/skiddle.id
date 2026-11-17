@@ -17,11 +17,11 @@ export type CardAccent = (typeof ACCENTS)[number];
 
 export const PALETTE = {
   dark: {
-    bg: '#161616', alt: '#1f1f1f', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', ok: '#42be65',
+    bg: '#161616', alt: '#1f1f1f', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', ok: '#42be65', warn: '#f1c21b', err: '#fa4d56',
     accent: { blue: '#82cfff', teal: '#3ddbd9', purple: '#be95ff', pink: '#ff7eb6', green: '#42be65' },
   },
   light: {
-    bg: '#ffffff', alt: '#f4f4f4', line: '#e0e0e0', fg: '#161616', mute: '#525252', ok: '#198038',
+    bg: '#ffffff', alt: '#f4f4f4', line: '#e0e0e0', fg: '#161616', mute: '#525252', ok: '#198038', warn: '#8e6a00', err: '#da1e28',
     accent: { blue: '#0f62fe', teal: '#007d79', purple: '#8a3ffc', pink: '#d02670', green: '#198038' },
   },
 } as const;
@@ -38,11 +38,11 @@ export function cardStyle(options: { theme?: string; accent?: string }): { theme
   return { theme, accent };
 }
 
-/** CSS custom properties for the colours: --bg --alt --line --fg --mute --ok --acc ("auto" follows the viewer) */
+/** CSS custom properties for the colours: --bg --alt --line --fg --mute --ok --warn --err --acc ("auto" follows the viewer) */
 export function colourVars(theme: CardTheme, accent: CardAccent): string {
   const vars = (mode: 'dark' | 'light') => {
     const p = PALETTE[mode];
-    return `--bg:${p.bg};--alt:${p.alt};--line:${p.line};--fg:${p.fg};--mute:${p.mute};--ok:${p.ok};--acc:${p.accent[accent]}`;
+    return `--bg:${p.bg};--alt:${p.alt};--line:${p.line};--fg:${p.fg};--mute:${p.mute};--ok:${p.ok};--warn:${p.warn};--err:${p.err};--acc:${p.accent[accent]}`;
   };
   return theme === 'auto' ? `svg{${vars('dark')}}@media (prefers-color-scheme:light){svg{${vars('light')}}}` : `svg{${vars(theme)}}`;
 }

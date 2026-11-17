@@ -8,10 +8,11 @@ name: Set status
 on:
   workflow_dispatch:
     inputs:
-      available:
-        description: 'Open to new work (green dot)'
-        type: boolean
-        default: true
+      state:
+        description: 'Status: available (green), busy (amber), dnd (do not disturb, red) or away (grey)'
+        type: choice
+        options: [available, busy, dnd, away]
+        default: available
       text:
         description: 'What the status says, e.g. "open to consulting" (up to 64 characters)'
         type: string
@@ -53,14 +54,13 @@ jobs:
         env:
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
           BLUESKY_IDENTIFIER: skiddle.blue
-          AVAILABLE: ${{ inputs.available }}
+          STATE: ${{ inputs.state }}
           TEXT: ${{ inputs.text }}
           LOCATION: ${{ inputs.location }}
           TIME_ZONE: ${{ inputs.time_zone }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          args=(--text "$TEXT")
-          if [ "$AVAILABLE" = "true" ]; then args+=(--available); else args+=(--busy); fi
+          args=(--state "$STATE" --text "$TEXT")
           if [ -n "$LOCATION" ]; then args+=(--location "$LOCATION"); fi
           if [ -n "$TIME_ZONE" ]; then args+=(--time-zone "$TIME_ZONE"); fi
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
