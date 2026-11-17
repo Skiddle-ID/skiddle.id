@@ -6,8 +6,7 @@ category: infra
 tags: [astro, design]
 series: "Lab Notes"
 order: 1
-publishAt: 2026-11-17T09:00:00+07:00
-draft: true
+draft: false
 ---
 
 ## Welcome to Lab Notes
