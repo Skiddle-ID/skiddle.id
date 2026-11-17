@@ -3,6 +3,9 @@
  *   - for every published post: /og/posts/<slug>.png, from the post page's BlogPosting JSON-LD
  *   - for every other page whose og:image points at /og/pages/<path>.png (see src/layouts/shell.astro):
  *     its title and description, its own terminal command if it shows one, and a post count on lists
+ *   - for the post lists rendered on request (/posts/, /series/, /topics/; tag pages share the
+ *     Topics card): their title and description from src/data/list-pages.ts, without a post count,
+ *     which would go stale between builds
  *   - for the home page (and 404): /og/site.png
  *   - the 88×31 button other sites can link here with: /88x31.png and /88x31-2x.png
  * Reading the built pages means cards always match what's built: no drafts on skiddle.id, and cards
@@ -13,6 +16,7 @@ import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderButton, renderShareCard, type CardFont } from '../lib/share-card';
+import { LIST_PAGES } from '../data/list-pages';
 
 type BlogPosting = { '@type'?: string; headline?: string; description?: string; datePublished?: string; inLanguage?: string };
 
@@ -60,7 +64,9 @@ export default function shareCards(): AstroIntegration {
         await writeFile(new URL('88x31-2x.png', dir), await renderButton(fonts, 2));
 
         const postsDir = new URL('posts/', dir);
-        const slugs = (await readdir(postsDir, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
+        // On v4 posts are rendered on request from the PDS (their card is the record's coverImage),
+        // so there may be no built post pages at all
+        const slugs = (await readdir(postsDir, { withFileTypes: true }).catch(() => [])).filter((d) => d.isDirectory()).map((d) => d.name);
         let count = 0;
         for (const slug of slugs) {
           let html: string;
@@ -117,6 +123,13 @@ export default function shareCards(): AstroIntegration {
           const target = new URL(image, out);
           await mkdir(new URL('.', target), { recursive: true });
           await writeFile(target, png);
+          pageCount++;
+        }
+        // The post lists are rendered on request, so there's no built page to read
+        for (const [path, page] of Object.entries(LIST_PAGES)) {
+          const target = new URL(`pages/${path}.png`, out);
+          await mkdir(new URL('.', target), { recursive: true });
+          await writeFile(target, await renderShareCard({ command: `cd ~/${path}`, title: page.title, description: page.description, meta: [''], logo }, fonts));
           pageCount++;
         }
         for (const [image, page] of used) {

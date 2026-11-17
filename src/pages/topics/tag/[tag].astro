@@ -1,23 +1,24 @@
 ---
-export const prerender = true;
+// Rendered on request from the posts on the PDS (src/lib/site-posts.ts), cached at Cloudflare.
+// Tags come and go without a build, so tag pages share the Topics share card.
+export const prerender = false;
+import { env } from 'cloudflare:workers';
 import Shell from '~/layouts/shell.astro';
 import PostList from '~/components/post-list.astro';
-import { getPosts, type Post } from '~/lib/posts';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-export async function getStaticPaths() {
-  const all = await getPosts();
-  const tags = new Set<string>();
-  for (const p of all) for (const t of p.data.tags) tags.add(t.toLowerCase());
-  return [...tags].map((tag) => ({
-    params: { tag },
-    props: { tag, posts: all.filter((p) => p.data.tags.some((t) => t.toLowerCase() === tag)) },
-  }));
+const tag = (Astro.params.tag ?? '').toLowerCase();
+const { posts: all } = await sitePosts();
+const posts = all.filter((p) => p.data.tags.some((t) => t.toLowerCase() === tag));
+if (posts.length === 0) {
+  // No posts with this tag: the site's static 404 page, with a 404 status
+  const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
+  return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
-
-const { tag, posts } = Astro.props as { tag: string; posts: Post[] };
+Astro.cache.set(POSTS_CACHE);
 ---
 
-<Shell title={`#${tag} — Skiddle`} description={`Posts tagged #${tag} on skiddle.id`}>
+<Shell title={`#${tag} — Skiddle`} description={`Posts tagged #${tag} on skiddle.id`} image="/og/pages/topics.png">
   <div class="max-w-[70ch] w-full">
     <p class="text-xs text-[var(--color-muted)] mb-3">
       <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>

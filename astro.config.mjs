@@ -65,13 +65,12 @@ export default defineConfig({
     // Not 'cloudflare': that needs Cloudflare Images resizing, which isn't enabled on this account.
     imageService: 'compile',
   }),
-  // Pages rendered on request (posts read from the PDS, src/pages/posts/[slug].astro) are cached at
-  // Cloudflare: fresh for a minute, then served stale for up to a day while a new copy renders.
-  // They're tagged "posts" (src/lib/pds-posts.ts), so a save can purge them all at once.
+  // Pages rendered on request from the posts on the PDS (posts, lists, feeds) are cached at
+  // Cloudflare: each sets POSTS_CACHE (src/lib/site-posts.ts), fresh for a minute, then stale for up
+  // to a day while a new copy renders, tagged "posts" so a save purges them all (/api/revalidate).
   // Images from the repo never change (their URL is their hash).
   cache: { provider: cacheCloudflare() },
   routeRules: {
-    '/posts/[slug]': { maxAge: 60, swr: 86400 },
     '/media/[cid]': { maxAge: 31536000 },
   },
   // Images in posts get several widths (srcset), so phones download a small one.

@@ -31,6 +31,8 @@ export interface PdsPostData extends PostData {
   images: PostImage[];
   /** The document's record key */
   recordKey: string;
+  /** The document's CID: changes whenever the record does */
+  recordCid: string;
   /** The share card (Standard.site's coverImage) */
   coverImage?: { cid: string; mimeType: string };
   /** Headings of the rendered post (single entries only) */
@@ -101,7 +103,7 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
   const seriesName = new Map(seriesRecords.filter((r) => r.value.name).map((r) => [r.uri, r.value.name!]));
 
   const posts: Entry<PdsPostData>[] = [];
-  for (const { uri, value: v } of docs) {
+  for (const { uri, cid: recordCid, value: v } of docs) {
     const slug = /^\/posts\/([^/]+)\/$/.exec(v.path ?? '')?.[1];
     const c = v.content;
     const pubDate = date(v.publishedAt);
@@ -126,6 +128,7 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
         markdown: c.markdown,
         images: c.images ?? [],
         recordKey: uri.split('/').pop()!,
+        recordCid,
         coverImage: cid ? { cid, mimeType: v.coverImage?.mimeType ?? 'image/png' } : undefined,
       },
       cacheHint: { tags: [POSTS_TAG], lastModified: updatedDate ?? pubDate },

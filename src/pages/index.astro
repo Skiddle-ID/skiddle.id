@@ -2,18 +2,21 @@
 import Shell from '../layouts/shell.astro';
 import PostList from '../components/post-list.astro';
 import SeriesBar from '../components/series-bar.astro';
-import { getPosts, groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
+import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import projects from '../data/projects';
 import services from '../data/services';
 import { status } from '../data/status';
 import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
-export const prerender = true;
+// Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts)
+export const prerender = false;
 
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
 const profileImg = '/avatars/bluesky.jpg';
 
-const posts = await getPosts();
-const series = groupSeries(posts);
+const { posts, seriesInfo } = await sitePosts();
+const series = groupSeries(posts, seriesInfo);
+Astro.cache.set(POSTS_CACHE);
 
 // Recent posts: everything not in a series, plus only the newest part of each series (the series cards cover the rest)
 const seen = new Set<string>();

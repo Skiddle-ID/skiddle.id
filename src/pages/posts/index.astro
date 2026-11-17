@@ -1,16 +1,19 @@
 ---
-export const prerender = true;
+// Rendered on request from the posts on the PDS (src/lib/site-posts.ts), cached at Cloudflare
+export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import PostList from '~/components/post-list.astro';
-import { getPosts } from '~/lib/posts';
+import { LIST_PAGES } from '~/data/list-pages';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-const posts = await getPosts();
+const { posts } = await sitePosts();
+Astro.cache.set(POSTS_CACHE);
 const tagCount = new Map<string, number>();
 for (const p of posts) for (const t of p.data.tags) tagCount.set(t.toLowerCase(), (tagCount.get(t.toLowerCase()) || 0) + 1);
 const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<Shell title="Posts — Skiddle" description="Everything I've written: infra, open protocols, homelab notes and life.">
+<Shell title={`${LIST_PAGES.posts.title} — Skiddle`} description={LIST_PAGES.posts.description}>
   <div class="max-w-[70ch] w-full">
     <h1 class="font-semibold text-xl before-hash-1">Posts</h1>
 
