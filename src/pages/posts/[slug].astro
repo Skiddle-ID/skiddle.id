@@ -1,6 +1,15 @@
 ---
-export const prerender = true;
-import { render } from 'astro:content';
+/*
+  A post, rendered when it's requested from its record in Jeff's AT Protocol repo (the pdsPosts live
+  collection, src/lib/pds-posts.ts), so publishing or editing a post needs no build. The page is
+  cached at Cloudflare (Astro's route cache, tag "posts") and the PDS reads are cached too.
+
+  Until the v4 launch, a post that isn't on the PDS yet (a draft on a preview, or a post merged
+  minutes before the AT Protocol sync ran) is rendered from git instead. Old record-key URLs from
+  the WhiteWind days, /posts/<rkey>/, redirect to the post.
+*/
+export const prerender = false;
+import { getEntry, getLiveCollection, getLiveEntry, render } from 'astro:content';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 import Icon from '~/components/icon.astro';
@@ -9,22 +18,65 @@ import BlueskyComments from '~/components/bluesky-comments.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
 import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
-import { documentUri } from '~/lib/standard-site.mjs';
+import { POSTS_TAG } from '~/lib/pds-posts';
+import { seriesInfo as gitSeriesInfo } from '~/data/series';
+import { DID, documentUri } from '~/lib/standard-site.mjs';
+import { env } from 'cloudflare:workers';
 
-export async function getStaticPaths() {
-  const posts = await getPosts();
-  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+const slug = Astro.params.slug ?? '';
+/** The site's static 404 page, with a 404 status (a rewrite can't reach a prerendered page) */
+const notFound = async () => {
+  const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
+  return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+};
+const [live, liveList, liveSeries, gitPosts] = await Promise.all([
+  getLiveEntry('pdsPosts', slug),
+  getLiveCollection('pdsPosts'),
+  getLiveCollection('pdsSeries'),
+  getPosts(),
+]);
+if (liveList.error) console.error('posts from the PDS:', liveList.error);
+const pdsPosts: Post[] = (liveList.entries ?? []).map((e) => ({ id: e.id, body: e.data.markdown, data: e.data }));
+const onPds = new Set(pdsPosts.map((p) => p.id));
+// Every post, newest first: the PDS's, plus git's that aren't there yet (until the v4 launch)
+const all: Post[] = [...pdsPosts, ...gitPosts.filter((p) => !onPds.has(p.id))].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const seriesInfo = { ...gitSeriesInfo, ...Object.fromEntries((liveSeries.entries ?? []).map((s) => [s.data.name, s.data])) };
+
+let entry: Post | undefined;
+let Content: Awaited<ReturnType<typeof render>>['Content'];
+let headings: { depth: number; slug: string; text: string }[];
+let shareImage: string;
+let atDocument: string | undefined;
+if (live.entry) {
+  entry = { id: live.entry.id, body: live.entry.data.markdown, data: live.entry.data };
+  ({ Content } = await render(live.entry));
+  headings = live.entry.data.headings ?? [];
+  const card = live.entry.data.coverImage;
+  shareImage = card ? `/media/${card.cid}` : '/og/site.png';
+  atDocument = `at://${DID}/site.standard.document/${live.entry.data.recordKey}`;
+  Astro.cache.set({ tags: [POSTS_TAG, `post:${slug}`], lastModified: live.entry.data.updatedDate ?? live.entry.data.pubDate });
+} else {
+  entry = gitPosts.find((p) => p.id === slug);
+  if (!entry) {
+    const moved = pdsPosts.find((p) => (p.data as { recordKey?: string }).recordKey === slug) ?? gitPosts.find((p) => p.data.rkey === slug);
+    if (moved) return Astro.redirect(postUrl(moved), 301);
+    return notFound();
+  }
+  const gitEntry = await getEntry('posts', slug);
+  if (!gitEntry) return notFound();
+  ({ Content, headings } = await render(gitEntry));
+  // Raster cover photo if the post has one, otherwise its generated card
+  const cover = entry.data.cover;
+  shareImage = cover && /\.(png|jpe?g|webp)$/i.test(cover) ? cover : `/og/posts/${entry.id}.png`;
+  atDocument = documentUri({ slug: entry.id, pubDate: entry.data.pubDate, rkey: entry.data.rkey });
 }
-
-const { entry } = Astro.props as { entry: Post };
-const { Content, headings } = await render(entry);
 
 const site = Astro.site!;
 const canonical = new URL(postUrl(entry), site).toString();
 const description = entry.data.description || (entry.body ?? '').slice(0, 160).trimEnd() + '…';
 const minutes = readingMinutes(entry);
 const toc = headings.filter((h) => h.depth <= 3);
-const repoFile = entry.filePath ?? `src/content/posts/${entry.id}.md`;
+const repoFile = `src/content/posts/${entry.id}.md`;
 const editUrl = `https://github.com/Skiddle-ID/skiddle.id/blob/v3/${repoFile}`;
 // "updated …" links to the post's change history
 const historyUrl = `https://github.com/Skiddle-ID/skiddle.id/commits/v3/${repoFile}`;
@@ -32,14 +84,9 @@ const historyUrl = `https://github.com/Skiddle-ID/skiddle.id/commits/v3/${repoFi
 const scheduledFor = entry.data.draft && entry.data.publishAt
   ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(entry.data.publishAt)
   : '';
-// This post's site.standard.document record on AT Protocol (written by scripts/standard-site-sync.mjs)
-const atDocument = documentUri({ slug: entry.id, pubDate: entry.data.pubDate, rkey: entry.data.rkey });
-
-const all = await getPosts();
-
 // Series: the box at the top (side column on wide screens) and the "next part" card at the end.
 // Parts count planned ones too (src/data/series.ts), so part 1 of a new series is "part 1 of 6".
-const series = entry.data.series ? groupSeries(all).find((s) => s.name === entry.data.series) : undefined;
+const series = entry.data.series ? groupSeries(all, seriesInfo).find((s) => s.name === entry!.data.series) : undefined;
 // An ongoing series (e.g. weekly) has its box from part 1 and no "of N"
 const hasSeries = !!series && (series.entries.length > 1 || series.ongoing);
 const openEnded = !!series?.ongoing && series.planned.length === 0;
@@ -76,10 +123,6 @@ const related = all
 if (related.length === 0) {
   related.push(...all.filter((p) => ![entry.id, prev?.id, next?.id, older?.id, newer?.id].includes(p.id)).slice(0, 3));
 }
-
-// Share image: a raster cover photo if the post has one, otherwise its generated card
-const cover = entry.data.cover;
-const shareImage = cover && /\.(png|jpe?g|webp)$/i.test(cover) ? cover : `/og/posts/${entry.id}.png`;
 
 const jsonLd = {
   '@context': 'https://schema.org',

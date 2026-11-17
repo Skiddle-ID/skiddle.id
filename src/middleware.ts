@@ -1,9 +1,13 @@
 /**
- * Security headers for server-rendered responses (/lastfm.svg, /api/lastfm.json, robots.txt,
- * webfinger). Static pages and assets get the same headers from public/_headers.
- * Headers a route sets itself (e.g. the Last.fm card's own CSP) are left alone.
+ * Security headers for server-rendered responses (posts from the PDS, /media/, /lastfm.svg,
+ * /api/lastfm.json, robots.txt, webfinger). Static pages and assets get the same headers from
+ * public/_headers. Headers a route sets itself (e.g. the Last.fm card's own CSP) are left alone.
+ *
+ * Rendered HTML pages get the site's CSP (src/lib/csp.mjs), allowing exactly the inline scripts
+ * on that page by hash, like the build does for static pages.
  */
 import { defineMiddleware } from 'astro:middleware';
+import { cspDirectives, inlineScripts } from '~/lib/csp.mjs';
 
 const BASE_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
@@ -23,8 +27,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!res.headers.has(name)) res.headers.set(name, value);
   }
   const type = res.headers.get('Content-Type') ?? '';
-  // Lock down non-HTML responses (an SVG opened directly in a browser could otherwise run
-  // scripts). HTML pages need the site CSP, which is applied to static pages via _headers.
+  if (!res.headers.has('Content-Security-Policy') && type.startsWith('text/html') && res.body) {
+    const html = await res.text();
+    const hashes = await Promise.all(inlineScripts(html).map(sha256));
+    const page = new Response(html, res);
+    page.headers.set('Content-Security-Policy', cspDirectives([...new Set(hashes)].sort().join(' ')));
+    return page;
+  }
+  // Lock down non-HTML responses (an SVG opened directly in a browser could otherwise run scripts)
   if (!res.headers.has('Content-Security-Policy') && !type.startsWith('text/html')) {
     res.headers.set(
       'Content-Security-Policy',
@@ -35,3 +45,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
   return res;
 });
+
+/** A CSP source for a script: 'sha256-<base64>' */
+async function sha256(text: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
+  return `'sha256-${btoa(String.fromCharCode(...digest))}'`;
+}

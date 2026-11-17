@@ -46,6 +46,14 @@ Setup (once): create an app password in Bluesky (Settings → Privacy and securi
 
 The posts are also published as AT Protocol records with the [Standard.site](https://standard.site) lexicons, so readers like Leaflet, pckt and docs.surf can find them: one `site.standard.publication` for skiddle.id and a `site.standard.document` per published post (title, path, description, dates, tags, plain text, share card and the Bluesky announcement).
 
+On v4, post pages are rendered from these records when they're requested, not built from git ([plan](docs/v4/posts-on-atproto.md)):
+
+- `src/live.config.ts` defines live collections for posts and series, read from the repo by `src/lib/pds-posts.ts` through `src/lib/pds.ts`. That module finds the PDS from the DID and caches records for a minute.
+- `src/lib/post-html.mjs` turns a record's Markdown into the same HTML Astro builds: GitHub-flavoured Markdown, smart punctuation and github-slugger heading ids. It takes about half a millisecond per post.
+- `/posts/<slug>/` is rendered on request and cached at Cloudflare with the tag `posts`. A post that isn't on the PDS yet falls back to git until the launch, and `/posts/<record key>/` redirects with a 301.
+- `/media/<cid>` serves the repo's images and share cards. The middleware gives rendered pages the site's CSP, hashing their own inline scripts.
+- `tests/parity.test.mjs` compares every post on a preview with production, and `node scripts/check-render-parity.mjs` does the same for just the post bodies.
+
 - `.github/workflows/standard-site.yml` runs `scripts/standard-site-sync.mjs` after each "Announce posts on Bluesky" run on `v3`. It creates, updates or deletes records to match the published posts, and leaves records of other publications alone. It uses the same app password.
 - The site proves it owns the records with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post. Record keys are worked out from the posts (see `src/lib/standard-site.mjs`), so pages can link to a record before it exists.
 - The six older posts with an `rkey:` were already published on pckt.blog under those keys. `MOVE_PCKT_DOCUMENTS` in `src/lib/standard-site.mjs` decides whether skiddle.id leaves them to pckt or takes them over.

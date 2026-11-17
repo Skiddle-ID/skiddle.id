@@ -1,8 +1,34 @@
-import { getCollection, type CollectionEntry } from 'astro:content';
-import { seriesInfo, type PlannedPart } from '~/data/series';
+import { getCollection } from 'astro:content';
+import { seriesInfo, type PlannedPart, type SeriesInfo } from '~/data/series';
 import { seriesSlug } from './post-record.mjs';
 
-export type Post = CollectionEntry<'posts'>;
+/** A post's fields: the git collection's (src/content.config.ts), which posts from the PDS also have */
+export interface PostData {
+  title: string;
+  description?: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  publishAt?: Date;
+  category: 'infra' | 'atproto' | 'homelab' | 'life';
+  lang: string;
+  tags: string[];
+  cover?: string;
+  featured: boolean;
+  draft: boolean;
+  series?: string;
+  order?: number;
+  rkey?: string;
+  bluesky?: string;
+}
+
+/** A post from git (the content collection) or from the PDS (src/lib/pds-posts.ts) */
+export interface Post {
+  /** The slug: /posts/<id>/ */
+  id: string;
+  /** The Markdown */
+  body?: string;
+  data: PostData;
+}
 
 /** All published posts, newest first. Preview builds of a pull request include drafts too. */
 export async function getPosts(): Promise<Post[]> {
@@ -35,8 +61,12 @@ export { seriesSlug };
 
 export const seriesUrl = (name: string) => `/series/#${seriesSlug(name)}`;
 
-/** Group posts into series, newest series (by its latest part) first */
-export function groupSeries(posts: Post[]): Series[] {
+/**
+ * Group posts into series, newest series (by its latest part) first
+ * @param info What each series adds (planned parts, ongoing, cadence), by name: src/data/series.ts
+ *   for posts from git, the id.skiddle.series records for posts from the PDS
+ */
+export function groupSeries(posts: Post[], info: Record<string, SeriesInfo> = seriesInfo): Series[] {
   const byName = new Map<string, Post[]>();
   for (const p of posts) {
     if (p.data.series) byName.set(p.data.series, [...(byName.get(p.data.series) ?? []), p]);
@@ -47,13 +77,13 @@ export function groupSeries(posts: Post[]): Series[] {
       const parts = posts.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0) || a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
       // A published post takes the place of the planned part with the same `order`
       const taken = new Set(parts.map((p, i) => p.data.order ?? i + 1));
-      const info = seriesInfo[name] ?? {};
-      const planned = (info.planned ?? []).filter((pl) => !taken.has(pl.order)).sort((a, b) => a.order - b.order);
+      const extra = info[name] ?? {};
+      const planned = (extra.planned ?? []).filter((pl) => !taken.has(pl.order)).sort((a, b) => a.order - b.order);
       const entries: SeriesEntry[] = [
         ...parts.map((post, i) => ({ post, order: post.data.order ?? i + 1, title: post.data.title })),
         ...planned.map((pl) => ({ order: pl.order, title: pl.title })),
       ].sort((a, b) => a.order - b.order);
-      return { name, slug: seriesSlug(name), parts, planned, entries, ongoing: info.ongoing ?? false, cadence: info.cadence };
+      return { name, slug: seriesSlug(name), parts, planned, entries, ongoing: extra.ongoing ?? false, cadence: extra.cadence };
     })
     .sort((a, b) => latest(b) - latest(a));
 }

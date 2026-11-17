@@ -15,7 +15,9 @@
  * writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
  * hosts (*.bsky.network) and Cloudflare's DNS-over-HTTPS (the lexicon DNS check). Its rule drops
  * the site-wide CSP first (`! Content-Security-Policy`), because two policies would both apply.
- * Moving the account to another PDS means adding that host to ADMIN_CONNECT.
+ * Moving the account to another PDS means adding that host to ADMIN_CONNECT (src/lib/csp.mjs).
+ * Pages rendered on request (posts from the PDS) don't go through _headers: the middleware gives
+ * them the same policy, with the hashes of their own inline scripts.
  * Zaraz used to add a 'nonce-…' to script-src that covered the beacon too; with Zaraz and
  * Google Analytics removed there is no nonce, so the beacon's host has to be listed here.
  */
@@ -24,11 +26,10 @@ import { createHash } from 'node:crypto';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { ADMIN_CONNECT, cspDirectives, inlineScripts } from '../lib/csp.mjs';
 
 // Cloudflare limits a _headers line to 2,000 characters
 const MAX_LINE = 2000;
-const SITE_CONNECT = "'self' https://public.api.bsky.app https://cloudflareinsights.com";
-const ADMIN_CONNECT = `${SITE_CONNECT} https://plc.directory https://bsky.social https://*.bsky.network https://cloudflare-dns.com`;
 
 export default function securityHeaders(): AstroIntegration {
   return {
@@ -41,30 +42,11 @@ export default function securityHeaders(): AstroIntegration {
         for (const file of await htmlFiles(root)) {
           pages++;
           const html = await readFile(file, 'utf8');
-          // Case-insensitive, and tolerant of `</script >`-style end tags, like the HTML parser
-          for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)) {
-            const attrs = m[1] ?? '';
-            if (/\ssrc\s*=/i.test(attrs)) continue; // external: covered by 'self'
-            const type = /\stype\s*=\s*["']?([^"'\s>]*)/i.exec(attrs)?.[1];
-            if (type && !/^(module|text\/javascript)$/i.test(type)) continue; // JSON-LD and other data blocks don't run
-            hashes.add(`'sha256-${createHash('sha256').update(m[2]).digest('base64')}'`);
-          }
+          for (const script of inlineScripts(html)) hashes.add(`'sha256-${createHash('sha256').update(script).digest('base64')}'`);
         }
 
-        const directives = (scriptSrc: string, connectSrc = SITE_CONNECT) =>
-          [
-            "default-src 'self'",
-            `script-src 'self' https://static.cloudflareinsights.com ${scriptSrc}`,
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https:",
-            "font-src 'self' data:",
-            `connect-src ${connectSrc}`,
-            "form-action 'self'",
-            "frame-ancestors 'none'",
-            "base-uri 'self'",
-            "object-src 'none'",
-            'upgrade-insecure-requests',
-          ].join('; ');
+        // The directives live in src/lib/csp.mjs, shared with the middleware for pages rendered on request
+        const directives = cspDirectives;
 
         let scriptSrc = [...hashes].sort().join(' ');
         const longest = `  Content-Security-Policy: ${directives(scriptSrc, ADMIN_CONNECT)}`.length;
