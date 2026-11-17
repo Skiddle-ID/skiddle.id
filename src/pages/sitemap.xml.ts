@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-export const prerender = true;
+// Rendered on request: the post URLs come from the PDS (src/lib/site-posts.ts); drafts are left out
+export const prerender = false;
 // Build-time discovery of static pages under src/pages using Vite's glob import.
 function discoverStaticRoutes(): string[] {
   const modules = import.meta.glob(['./**/*.astro', './**/*.md'], { eager: false });
@@ -29,7 +30,8 @@ function discoverStaticRoutes(): string[] {
   return Array.from(new Set(routes)).sort();
 }
 
-export const GET: APIRoute = async ({ site, request }) => {
+export const GET: APIRoute = async ({ site, request, cache }) => {
+  cache.set(POSTS_CACHE);
   const requestUrl = new URL(request.url);
   const base = site ? site.toString() : `${requestUrl.origin}/`;
   const urls = discoverStaticRoutes();
@@ -38,7 +40,7 @@ export const GET: APIRoute = async ({ site, request }) => {
   const lastmod = new Map<string, Date>();
 
   try {
-    const posts = await getCollection('posts', ({ data }) => !data.draft);
+    const { posts } = await sitePosts({ drafts: false });
     for (const p of posts) {
       if (!p.id) continue;
       const path = `/posts/${p.id}/`;

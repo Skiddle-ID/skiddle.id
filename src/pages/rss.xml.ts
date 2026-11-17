@@ -1,19 +1,26 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getEntry } from 'astro:content';
+import type { Post } from '~/lib/posts';
+import { POSTS_CACHE, pdsData, pdsPostHtml, sitePosts } from '~/lib/site-posts';
 
-export const prerender = true;
+export const prerender = false;
+
+/** Items in the feed, newest first: enough for any feed reader, and a cap on the work per request */
+const MAX_ITEMS = 20;
 
 /**
  * Full-content feed: each item carries the whole post as HTML (content:encoded), so it can be
  * read in a feed reader. Site-relative links and images are made absolute, and a footer links
- * back to the post and to its Bluesky thread.
+ * back to the post and to its Bluesky thread. Rendered on request from the posts on the PDS
+ * (each post's HTML is cached by its record's CID) and cached; drafts are left out.
  */
 export const GET = async (context: APIContext) => {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
-  const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-  const requestUrl = new URL(context.request.url);
-  const site = `${requestUrl.origin}/`;
+  context.cache.set(POSTS_CACHE);
+  const sorted = (await sitePosts({ drafts: false })).posts.slice(0, MAX_ITEMS);
+  const html = await Promise.all(sorted.map(postHtml));
+  // The canonical address, not the request's: the feed's links must point at skiddle.id wherever it's served from
+  const site = (context.site ?? new URL(context.request.url).origin).toString().replace(/\/?$/, '/');
   const handle = 'skiddle.blue';
   let displayName = 'Skiddle';
   try {
@@ -29,14 +36,14 @@ export const GET = async (context: APIContext) => {
     description: 'Personal blog and writings',
     site,
     xmlns: { atom: 'http://www.w3.org/2005/Atom' },
-    items: sorted.map((post) => {
+    items: sorted.map((post, i) => {
       const link = `${site}posts/${post.id}/`;
       return {
         title: post.data.title ?? 'Untitled',
         link,
         pubDate: post.data.pubDate,
         description: post.data.description || post.body?.slice(0, 200).trimEnd() + '…',
-        content: fullContent(post, link, site),
+        content: fullContent(post, html[i], link, site),
         categories: post.data.tags,
       };
     }),
@@ -45,9 +52,15 @@ export const GET = async (context: APIContext) => {
   });
 };
 
-function fullContent(post: CollectionEntry<'posts'>, link: string, site: string): string {
-  // Markdown posts are rendered to HTML by the content loader; MDX posts aren't, so they get a summary
-  const html = post.rendered?.html;
+/** A post's HTML: rendered from its record, or (a post not on the PDS yet) from git's content loader */
+async function postHtml(post: Post): Promise<string | undefined> {
+  const pds = pdsData(post);
+  if (pds) return pdsPostHtml(pds);
+  return (await getEntry('posts', post.id))?.rendered?.html;
+}
+
+function fullContent(post: Post, html: string | undefined, link: string, site: string): string {
+  // Without HTML (an MDX post from git), a summary and a link
   const body = html
     ? absolutize(html, link, site)
     : `<p>${escapeHtml(post.data.description ?? '')}</p><p><a href="${link}">Read the full post on skiddle.id</a></p>`;

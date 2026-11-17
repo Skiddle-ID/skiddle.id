@@ -1,10 +1,14 @@
 ---
-export const prerender = true;
+// Rendered on request from the posts on the PDS (src/lib/site-posts.ts), cached at Cloudflare
+export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import PostList from '~/components/post-list.astro';
-import { getPosts, categoryLabels } from '~/lib/posts';
+import { LIST_PAGES } from '~/data/list-pages';
+import { categoryLabels } from '~/lib/posts';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-const posts = await getPosts();
+const { posts } = await sitePosts();
+Astro.cache.set(POSTS_CACHE);
 const cats = (Object.keys(categoryLabels) as (keyof typeof categoryLabels)[])
   .map((id) => ({ id, label: categoryLabels[id], posts: posts.filter((p) => p.data.category === id) }))
   .filter((c) => c.posts.length > 0);
@@ -14,7 +18,7 @@ for (const p of posts) for (const t of p.data.tags) tagCount.set(t.toLowerCase()
 const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<Shell title="Topics — Skiddle" description="Browse posts by topic and tag.">
+<Shell title={`${LIST_PAGES.topics.title} — Skiddle`} description={LIST_PAGES.topics.description}>
   <div class="max-w-[70ch] w-full">
     <h1 class="font-semibold text-xl before-hash-1">Topics</h1>
     <p class="text-sm text-[var(--color-muted)] mt-2">

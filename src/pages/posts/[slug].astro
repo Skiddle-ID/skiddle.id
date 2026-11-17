@@ -9,7 +9,7 @@
   the WhiteWind days, /posts/<rkey>/, redirect to the post.
 */
 export const prerender = false;
-import { getEntry, getLiveCollection, getLiveEntry, render } from 'astro:content';
+import { getEntry, getLiveEntry, render } from 'astro:content';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 import Icon from '~/components/icon.astro';
@@ -17,9 +17,8 @@ import PostList from '~/components/post-list.astro';
 import BlueskyComments from '~/components/bluesky-comments.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
-import { getPosts, postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
-import { POSTS_TAG } from '~/lib/pds-posts';
-import { seriesInfo as gitSeriesInfo } from '~/data/series';
+import { postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
+import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
 import { DID, documentUri } from '~/lib/standard-site.mjs';
 import { env } from 'cloudflare:workers';
 
@@ -29,18 +28,8 @@ const notFound = async () => {
   const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
   return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 };
-const [live, liveList, liveSeries, gitPosts] = await Promise.all([
-  getLiveEntry('pdsPosts', slug),
-  getLiveCollection('pdsPosts'),
-  getLiveCollection('pdsSeries'),
-  getPosts(),
-]);
-if (liveList.error) console.error('posts from the PDS:', liveList.error);
-const pdsPosts: Post[] = (liveList.entries ?? []).map((e) => ({ id: e.id, body: e.data.markdown, data: e.data }));
-const onPds = new Set(pdsPosts.map((p) => p.id));
-// Every post, newest first: the PDS's, plus git's that aren't there yet (until the v4 launch)
-const all: Post[] = [...pdsPosts, ...gitPosts.filter((p) => !onPds.has(p.id))].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const seriesInfo = { ...gitSeriesInfo, ...Object.fromEntries((liveSeries.entries ?? []).map((s) => [s.data.name, s.data])) };
+// Every post (the PDS's, plus git's not there yet) and the series, as every page gets them
+const [live, { posts: all, seriesInfo }] = await Promise.all([getLiveEntry('pdsPosts', slug), sitePosts()]);
 
 let entry: Post | undefined;
 let Content: Awaited<ReturnType<typeof render>>['Content'];
@@ -54,11 +43,11 @@ if (live.entry) {
   const card = live.entry.data.coverImage;
   shareImage = card ? `/media/${card.cid}` : '/og/site.png';
   atDocument = `at://${DID}/site.standard.document/${live.entry.data.recordKey}`;
-  Astro.cache.set({ tags: [POSTS_TAG, `post:${slug}`], lastModified: live.entry.data.updatedDate ?? live.entry.data.pubDate });
+  Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, `post:${slug}`], lastModified: live.entry.data.updatedDate ?? live.entry.data.pubDate });
 } else {
-  entry = gitPosts.find((p) => p.id === slug);
+  entry = all.find((p) => p.id === slug && !pdsData(p));
   if (!entry) {
-    const moved = pdsPosts.find((p) => (p.data as { recordKey?: string }).recordKey === slug) ?? gitPosts.find((p) => p.data.rkey === slug);
+    const moved = all.find((p) => pdsData(p)?.recordKey === slug || p.data.rkey === slug);
     if (moved) return Astro.redirect(postUrl(moved), 301);
     return notFound();
   }

@@ -1,16 +1,21 @@
 ---
-export const prerender = true;
+// Rendered on request from the posts on the PDS (src/lib/site-posts.ts), cached at Cloudflare
+export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 import SeriesBar from '~/components/series-bar.astro';
-import { getPosts, groupSeries, postUrl, readingMinutes, seriesStatus } from '~/lib/posts';
+import { LIST_PAGES } from '~/data/list-pages';
+import { groupSeries, postUrl, readingMinutes, seriesStatus } from '~/lib/posts';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-// Posts with `series:` in their frontmatter, grouped and in reading order (`order:`),
-// with planned parts from src/data/series.ts shown as "coming"
-const series = groupSeries(await getPosts());
+// Posts in a series, grouped and in reading order (their part number), with the planned parts
+// from the series records shown as "coming"
+const { posts, seriesInfo } = await sitePosts();
+const series = groupSeries(posts, seriesInfo);
+Astro.cache.set(POSTS_CACHE);
 ---
 
-<Shell title="Series — Skiddle" description="Multi-part posts on skiddle.id, in reading order.">
+<Shell title={`${LIST_PAGES.series.title} — Skiddle`} description={LIST_PAGES.series.description}>
   <div class="max-w-[70ch] w-full">
     <h1 class="font-semibold text-xl before-hash-1">Series</h1>
     <p class="text-sm text-[var(--color-muted)] mt-2">Posts that belong together, in reading order.</p>
