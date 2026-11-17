@@ -135,6 +135,19 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <p id="lexiconDns" class="admin-small"></p>
         </section>
 
+        <section class="admin-card" data-section="site" aria-labelledby="cardsTitle">
+          <h2 id="cardsTitle">Share cards</h2>
+          <p>
+            Posts, series and scheduled drafts keep the share card drawn for them. After a change to the card design, check
+            them: each one is drawn again and compared with the stored one. Nothing is saved until you press Save.
+          </p>
+          <button id="cardsCheck" type="button" class="admin-btn admin-self-start">Check share cards</button>
+          <p id="cardsMessage" class="admin-message" role="status"></p>
+          <ul id="cardsList" class="admin-list admin-cards"></ul>
+          <button id="cardsSave" type="button" class="admin-btn admin-self-start" hidden>Save</button>
+          <p id="cardsNotLive" class="admin-small" hidden></p>
+        </section>
+
         <section class="admin-card" data-section="site" aria-labelledby="recordsTitle">
           <h2 id="recordsTitle">Records</h2>
           <p>What the site keeps in your repo. Read-only here for now: posts still come from git and sync on publish.</p>
@@ -602,6 +615,25 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-list a {
     color: var(--color-primary);
     overflow-wrap: anywhere;
+  }
+  /* Share cards (src/lib/admin/redraw.ts): the title over its note, the new card on the right */
+  .admin-cards:empty {
+    display: none;
+  }
+  .admin-cards li + li {
+    padding-top: 0.375rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .admin-card-row > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .admin-card-row img {
+    width: 10rem;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
   }
   .admin-details summary {
     cursor: pointer;

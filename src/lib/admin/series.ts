@@ -17,7 +17,7 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { SERIES_COLLECTION, seriesRecord, seriesSlug } from '~/lib/post-record.mjs';
 import { DID } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
-import type { CardSeries } from './card-text';
+import { cardSeriesOf, type CardSeries } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { PUBLISHING_LIVE, SERIES_NOT_LIVE_YET } from './launch';
 import { XrpcError, createRecord, deleteRecord, getRecord, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
@@ -402,15 +402,7 @@ function addPart() {
 
 /** What the share card shows for the form */
 function cardSeries(f: SeriesForm): CardSeries {
-  const numbers = [...publishedParts(current?.key).map((p) => p.part!), ...f.planned.map((p) => p.part).filter((n) => Number.isInteger(n) && n >= 1)];
-  return {
-    key: keyFor(f) || 'untitled',
-    name: f.name.trim() || 'Untitled',
-    description: f.description.trim() || undefined,
-    ongoing: f.ongoing,
-    cadence: f.cadence.trim() || undefined,
-    parts: new Set(numbers).size,
-  };
+  return cardSeriesOf(keyFor(f), f, publishedParts(current?.key).map((p) => p.part!));
 }
 
 /** Draws the share card under the form (nothing is uploaded) */

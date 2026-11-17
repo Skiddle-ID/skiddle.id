@@ -38,7 +38,7 @@ import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, documentFromDraft, seri
 import { renderPost, type PostImage } from '~/lib/post-html.mjs';
 import { DID, PUBLICATION_URI, SITE_URL, documentRkey } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
-import { cardKey, postCard, type CardPost } from './card-text';
+import { cardKey, cardPostOf, postCard } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { missingScopes } from './oauth';
@@ -640,20 +640,6 @@ async function unpublish() {
 }
 
 // ---- Share card and publishing ----
-
-/**
- * What a post's share card shows: published at `publishedAt` (a published post's date), else at the
- * draft's scheduled time, else now (as if it were published now)
- */
-function cardPostOf(d: DraftRecord, publishedAt?: string): CardPost {
-  return {
-    slug: slugOf(d.path) ?? 'untitled',
-    title: d.title || 'Untitled',
-    description: d.description,
-    publishedAt: new Date(publishedAt ?? d.publishAt ?? now()),
-    markdown: d.content.markdown,
-  };
-}
 
 /** What the open draft's or post's form would put on its card */
 const cardPost = () => cardPostOf(formDraft(), current?.kind === 'post' ? current.doc?.publishedAt : undefined);
