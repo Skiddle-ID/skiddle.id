@@ -6,8 +6,8 @@ category: infra
 tags: [astro, design]
 series: "Lab Notes"
 order: 1
-publishAt: 2026-11-17T09:00:00+07:00
-draft: true
+bluesky: at://did:plc:xaj6j6abvpgwps5v6k4t6clv/app.bsky.feed.post/3n2i2argadx2f
+draft: false
 ---
 
 ## Welcome to Lab Notes

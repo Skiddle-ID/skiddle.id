@@ -5,8 +5,10 @@ name: Publish posts to AT Protocol
 # See scripts/standard-site-sync.mjs and src/lib/standard-site.mjs.
 #
 # Runs after "Announce posts on Bluesky" finishes on v3 (that runs on every push that touches
-# posts), so a new post's announcement is already linked. Read-only on the repo: it changes no
-# files, only records on Bluesky. Needs the repository secret BLUESKY_APP_PASSWORD.
+# posts), so a new post's announcement is already linked. After a scheduled publish, the
+# announcement starts this itself, because GitHub skips workflow_run for runs started with
+# GITHUB_TOKEN. Read-only on the repo: it changes no files, only records on Bluesky. Needs the
+# repository secret BLUESKY_APP_PASSWORD.
 
 on:
   workflow_run:
