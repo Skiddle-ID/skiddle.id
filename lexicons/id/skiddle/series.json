@@ -1,0 +1,51 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.series",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "any",
+      "description": "A series of posts on skiddle.id. The record key is the series' slug, e.g. from-fear-to-flight. Posts point at it from their id.skiddle.post content.",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 1000, "maxGraphemes": 100, "description": "e.g. 'From Fear to Flight'." },
+          "description": { "type": "string", "maxLength": 10000, "maxGraphemes": 1000 },
+          "ongoing": {
+            "type": "boolean",
+            "description": "A series with no last part, like a weekly one: it shows how often new parts come out instead of 'part 3 of 3'."
+          },
+          "cadence": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "How often new parts come out, e.g. 'every week'."
+          },
+          "planned": {
+            "type": "array",
+            "maxLength": 100,
+            "items": { "type": "ref", "ref": "#plannedPart" },
+            "description": "Parts that are planned but not published yet. A published post with the same part number takes a planned part's place."
+          },
+          "coverImage": {
+            "type": "blob",
+            "accept": ["image/*"],
+            "maxSize": 1000000,
+            "description": "The series' share card, drawn when the series is saved. Named like site.standard.document's."
+          },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "plannedPart": {
+      "type": "object",
+      "required": ["part", "title"],
+      "properties": {
+        "part": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 }
+      }
+    }
+  }
+}
