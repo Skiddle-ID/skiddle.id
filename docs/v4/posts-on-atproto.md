@@ -223,8 +223,8 @@ Once the posts are only in the PDS, they need a copy somewhere else. A weekly Gi
 v3 stays live and keeps publishing from git until the switch.
 
 1. **Lexicons:** add `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` to `lexicons/`, and publish them from the admin app. Retire the MDX demo post (decision 2) before the next step, so it never becomes a record.
-2. **Fill the records from git:** v3's AT Protocol sync also writes each post's `content`: the Markdown, its images as blobs, and category, language, series and featured. It writes the series records from `src/data/series.ts`, with their share cards. From then on the records match git after every post.
-3. **pckt.blog's six posts:** move them to the skiddle.id publication, keeping their record keys (`MOVE_PCKT_DOCUMENTS`, decision 3). They then disappear from skiddle-blog.pckt.blog.
+2. **Fill the records from git:** v3's AT Protocol sync also writes each post's `content`: the Markdown, its images as blobs, and category, language, series and featured. It writes the series records from `src/data/series.ts` (their share cards come with series pages, from the admin app). From then on the records match git after every post. Done in [#124](https://github.com/Skiddle-ID/skiddle.id/pull/124).
+3. **pckt.blog's six posts:** move them to the skiddle.id publication, keeping their record keys (`MOVE_PCKT_DOCUMENTS`, decision 3). They then disappear from skiddle-blog.pckt.blog. Done in [#125](https://github.com/Skiddle-ID/skiddle.id/pull/125): all 14 posts are skiddle.id records with their content.
 4. **v4 reads the records:** the live collections, the route cache, `/media/` and `/api/revalidate`, on staging.
 5. **Parity check:** a test compares every post on staging (built from records) with production (built from git): titles, dates, text, links, images and series. Any difference blocks the switch.
 6. **The admin app's editor:** drafts, publish, schedule, edit and series. Then the cron Worker and the backups.
