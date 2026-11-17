@@ -151,7 +151,7 @@ The admin app:
 - [x] Sections: Posts, Series, Status and Site, one at a time under a bar, each with its own address ([#131](https://github.com/Skiddle-ID/skiddle.id/pull/131))
 - [x] Publish: draws the share card in the browser (byte-for-byte the build's card), writes the record, announces it on Bluesky and turns comments on; resumable if it stops part-way. Built, and switched on at the launch ([#132](https://github.com/Skiddle-ID/skiddle.id/pull/132))
 - [ ] Edit and unpublish published posts; edits set the "updated" date
-- [ ] Series: create and edit them, including planned parts; saving draws the series' share card
+- [x] Series: create and edit them, including planned parts, ongoing and cadence; saving draws the series' share card. Built, and switched on at the launch ([#133](https://github.com/Skiddle-ID/skiddle.id/pull/133))
 - [ ] Redraw all share cards, for after a change to the card design
 - [ ] Schedule posts, published by a small cron Worker every 5 minutes (replaces three GitHub workflows)
 

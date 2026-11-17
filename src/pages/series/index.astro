@@ -26,6 +26,7 @@ Astro.cache.set(POSTS_CACHE);
           {s.name}
           <span class="text-sm font-normal text-[var(--color-muted)]"> · {seriesStatus(s).replace(/ · next: .*/, '')}</span>
         </h2>
+        {s.description && <p class="text-sm text-[var(--color-muted)] mb-3">{s.description}</p>}
         <SeriesBar series={s} class="max-w-xs mb-4" />
         <ol class="flex flex-col gap-3">
           {s.entries.map((e, i) => (

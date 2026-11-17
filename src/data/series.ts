@@ -17,6 +17,8 @@ export interface PlannedPart {
 }
 
 export interface SeriesInfo {
+  /** What the series is about, shown on /series/ (from its record; the admin app's series editor) */
+  description?: string;
   planned?: PlannedPart[];
   ongoing?: boolean;
   cadence?: string;

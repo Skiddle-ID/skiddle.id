@@ -33,10 +33,11 @@ import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, seriesSlug } from '~/li
 import { renderPost, type PostImage } from '~/lib/post-html.mjs';
 import { DID, PUBLICATION_URI, SITE_URL, documentRkey } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
-import { el, errorText, message } from './dom';
+import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { missingScopes } from './oauth';
 import { sectionFromHash, showSection } from './sections';
+import { leaveSeries, openSeries, renderSeries, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
 
 const DOCUMENT = 'site.standard.document';
@@ -83,14 +84,6 @@ interface DocumentRecord {
   [key: string]: unknown;
 }
 
-interface SeriesRecord {
-  name?: string;
-  description?: string;
-  ongoing?: boolean;
-  cadence?: string;
-  planned?: { part: number; title: string }[];
-}
-
 type Kind = 'draft' | 'post';
 
 /** What the editor shows: a draft, or a published post in the same shape */
@@ -107,7 +100,6 @@ let session: OAuthSession;
 let signInAgain: () => void;
 let drafts: RepoRecord<DraftRecord>[] = [];
 let documents: RepoRecord<DocumentRecord>[] = [];
-let series: RepoRecord<SeriesRecord>[] = [];
 
 let current: Open | undefined;
 let slugTouched = false;
@@ -136,14 +128,28 @@ export function setupPosts(s: OAuthSession, again: () => void) {
   el('newDraft').addEventListener('click', newDraft);
   el('postsSignIn').addEventListener('click', () => signInAgain());
   setupEditor();
+  setupSeries({
+    session: s,
+    posts: () =>
+      documents
+        .filter((d) => isSitePost(d.value))
+        .map((d) => ({ title: d.value.title ?? '', path: d.value.path!, series: d.value.content?.series?.series, part: d.value.content?.series?.part })),
+    drafts: () => drafts.map((d) => ({ series: d.value.content.series?.series })),
+  });
   window.addEventListener('hashchange', route);
 }
 
-/** Shows the editor for #draft/<rkey> or #post/<rkey>, otherwise the section the address names */
+/**
+ * Shows the editor for #draft/<rkey> or #post/<rkey>, the series editor for #series/<key> or
+ * #new-series (src/lib/admin/series.ts), otherwise the section the address names
+ */
 export async function route() {
   const m = /^#(draft|post)\/([a-z0-9]+)$/.exec(location.hash);
+  const s = seriesRoute(location.hash);
+  if (!s) leaveSeries();
   if (m) return open(m[1] as Kind, m[2]);
   await leaveEditor();
+  if (s) return openSeries(s);
   document.body.dataset.view = 'dashboard';
   showSection(sectionFromHash(location.hash));
 }
@@ -152,11 +158,14 @@ export async function loadPosts() {
   const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob/.test(s));
   el('postsScope').hidden = missing.length === 0;
   el<HTMLButtonElement>('newDraft').disabled = missing.length > 0;
-  [drafts, documents, series] = await Promise.all([
+  const [d, docs, s] = await Promise.all([
     listRecords<DraftRecord>(session, DRAFT_COLLECTION).catch(() => []),
     listRecords<DocumentRecord>(session, DOCUMENT),
     listRecords<SeriesRecord>(session, SERIES_COLLECTION),
   ]);
+  drafts = d;
+  documents = docs;
+  setSeriesList(s);
   renderLists();
 }
 
@@ -175,73 +184,12 @@ function renderLists() {
   for (const d of posts) {
     const when = d.value.publishedAt ? new Date(d.value.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const r = row(`#post/${rkeyOf(d.uri)}`, d.value.title ?? d.value.path!, when);
-    const view = document.createElement('a');
-    view.href = d.value.path!;
-    view.target = '_blank';
-    view.rel = 'noopener';
-    view.className = 'admin-muted';
-    view.textContent = 'view';
-    view.setAttribute('aria-label', `View “${d.value.title}” on the site`);
-    r.appendChild(view);
+    r.appendChild(viewLink(d.value.path!, `View “${d.value.title}” on the site`));
     published.appendChild(r);
   }
   el('publishedCount').textContent = String(posts.length);
   renderSeries();
 }
-
-/** The Series section: each series with its published and planned parts */
-function renderSeries() {
-  const list = el('seriesList');
-  list.textContent = '';
-  if (!series.length) list.appendChild(item('No series yet.', 'admin-muted'));
-  for (const s of [...series].sort((a, b) => (a.value.name ?? '').localeCompare(b.value.name ?? ''))) {
-    const v = s.value;
-    const parts = documents.filter((d) => isSitePost(d.value) && d.value.content?.series?.series === s.uri).map((d) => d.value.content?.series?.part);
-    const planned = (v.planned ?? []).filter((p) => !parts.includes(p.part)).length;
-    const li = item('');
-    const link = document.createElement('a');
-    link.href = `/series/#${rkeyOf(s.uri)}`;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.textContent = v.name ?? rkeyOf(s.uri);
-    const note = document.createElement('span');
-    note.className = 'admin-muted';
-    note.textContent = [
-      `${parts.length} published`,
-      planned ? `${planned} planned` : '',
-      v.ongoing ? (v.cadence ? `new ${v.cadence}` : 'ongoing') : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    li.appendChild(link);
-    li.appendChild(note);
-    list.appendChild(li);
-  }
-}
-
-/** A list row: a link that opens it in the editor, and a note */
-function row(href: string, text: string, note: string) {
-  const li = item('');
-  const link = document.createElement('a');
-  link.href = href;
-  link.textContent = text;
-  const small = document.createElement('span');
-  small.className = 'admin-muted';
-  small.textContent = note;
-  li.appendChild(link);
-  li.appendChild(small);
-  return li;
-}
-
-function item(text: string, className = '') {
-  const li = document.createElement('li');
-  if (text) li.textContent = text;
-  if (className) li.className = className;
-  return li;
-}
-
-const formatTime = (iso: string) =>
-  new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 async function newDraft() {
   const button = el<HTMLButtonElement>('newDraft');
@@ -359,7 +307,7 @@ async function open(kind: Kind, rkey: string) {
     current = opened;
     conflict = false;
     dirty = false;
-    fillSelect(el('edSeries'), series.filter((s) => s.value.name).map((s) => [s.uri, s.value.name!]), 'No series');
+    fillSelect(el('edSeries'), seriesList().filter((s) => s.value.name).map((s) => [s.uri, s.value.name!]), 'No series');
     fillEditor(opened.value);
     el<HTMLInputElement>('edSlug').readOnly = kind === 'post';
     el<HTMLInputElement>('edMinor').checked = false;
@@ -451,7 +399,7 @@ function problems(d: DraftRecord): string[] {
   for (const t of d.tags ?? []) if (countChars(t) > 50) out.push(`The tag “${t}” is over 50 characters.`);
   if ((d.tags?.length ?? 0) > 50) out.push('More than 50 tags.');
   for (const i of d.content.images ?? []) if (!i.alt.trim()) out.push(`The image ${i.name} has no alt text.`);
-  if (d.content.series && !series.some((s) => s.uri === d.content.series!.series)) out.push('That series doesn’t exist any more.');
+  if (d.content.series && !seriesList().some((s) => s.uri === d.content.series!.series)) out.push('That series doesn’t exist any more.');
   return out;
 }
 
@@ -555,7 +503,7 @@ async function savePost(force = false): Promise<void> {
     if (listed) Object.assign(listed, { cid: res.cid, value: doc });
     removeBackup(target.kind, target.rkey);
     dirty = false;
-    await fetch('/api/revalidate', { method: 'POST' }).catch(() => {});
+    await revalidate();
     el<HTMLInputElement>('edMinor').checked = false;
     if (current === target) el('editorState').textContent = `Saved and live ${formatTime(now())}${minor ? ' (a small fix: not marked as updated)' : ''}`;
   } catch (err) {
@@ -645,7 +593,7 @@ async function unpublish() {
     documents = documents.filter((d) => rkeyOf(d.uri) !== target.rkey);
     current = undefined;
     dirty = false;
-    await fetch('/api/revalidate', { method: 'POST' }).catch(() => {});
+    await revalidate();
     location.hash = '#posts';
     message('postsMessage', `Unpublished “${title}”.`, 'ok');
   } catch (err) {
@@ -655,8 +603,6 @@ async function unpublish() {
 }
 
 // ---- Share card and publishing ----
-
-const revalidate = () => fetch('/api/revalidate', { method: 'POST' }).then(() => undefined, () => undefined);
 
 /** What the card shows for the post in the editor (a draft gets today's date, as if published now) */
 function cardPost() {

@@ -58,9 +58,14 @@ export function putRecord(session: OAuthSession, collection: string, rkey: strin
   });
 }
 
-/** A new record; the PDS picks its key (a TID) */
-export function createRecord(session: OAuthSession, collection: string, record: object) {
-  return xrpc<{ uri: string; cid: string }>(session, 'com.atproto.repo.createRecord', undefined, { repo: DID, collection, record });
+/** A new record, under `rkey` (it fails if one is there already) or a key the PDS picks (a TID) */
+export function createRecord(session: OAuthSession, collection: string, record: object, rkey?: string) {
+  return xrpc<{ uri: string; cid: string }>(session, 'com.atproto.repo.createRecord', undefined, {
+    repo: DID,
+    collection,
+    record,
+    ...(rkey ? { rkey } : {}),
+  });
 }
 
 export function deleteRecord(session: OAuthSession, collection: string, rkey: string, swapRecord?: string) {
