@@ -15,7 +15,10 @@ import monoExt400 from '@fontsource/geist-mono/files/geist-mono-latin-ext-400-no
 import monoExt700 from '@fontsource/geist-mono/files/geist-mono-latin-ext-700-normal.woff?url';
 import thai400 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-400-normal.woff?url';
 import thai700 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-700-normal.woff?url';
-import { CARD_WIDTH, shareCardSvg, type CardFont, type ShareCard } from '~/lib/share-card-layout';
+import { CARD_WIDTH, shareCardSvg, type CardFont } from '~/lib/share-card-layout';
+import { postCard, seriesCard, type CardPost, type CardSeries, type CardText } from './card-text';
+
+export type { CardPost, CardSeries };
 
 // The same fonts as the build (src/integrations/share-cards.ts); satori reads WOFF, not WOFF2
 const FONTS: { name: string; weight: 400 | 700; url: string }[] = [
@@ -49,18 +52,8 @@ function load() {
   return ready;
 }
 
-export interface CardPost {
-  slug: string;
-  title: string;
-  description?: string;
-  /** When it's (or will be) published: the date on the card */
-  publishedAt: Date;
-  /** For "N min read" */
-  markdown: string;
-}
-
 /** A card as a 1200×630 PNG */
-async function draw(card: Omit<ShareCard, 'logo'>): Promise<Blob> {
+async function draw(card: CardText): Promise<Blob> {
   const { fonts, logo } = await load();
   const svg = await shareCardSvg({ ...card, logo }, fonts);
   const png = new Resvg(svg, { fitTo: { mode: 'width', value: CARD_WIDTH } }).render().asPng();
@@ -68,31 +61,7 @@ async function draw(card: Omit<ShareCard, 'logo'>): Promise<Blob> {
 }
 
 /** The post's share card, as the build would draw it */
-export function drawPostCard(post: CardPost): Promise<Blob> {
-  // As the post page computes them (src/lib/posts.ts): words / 220, and the date in UTC
-  const minutes = Math.max(1, Math.round(post.markdown.split(/\s+/).filter(Boolean).length / 220));
-  const date = post.publishedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-  const description = post.description || `${post.markdown.slice(0, 160).trimEnd()}…`;
-  return draw({ command: `cat posts/${post.slug}.md`, title: post.title, description, meta: [date, `${minutes} min read`] });
-}
+export const drawPostCard = (post: CardPost) => draw(postCard(post));
 
-export interface CardSeries {
-  /** The record key, which a series page would use: /series/<key>/ */
-  key: string;
-  name: string;
-  description?: string;
-  ongoing: boolean;
-  cadence?: string;
-  /** Published and planned parts together */
-  parts: number;
-}
-
-/**
- * The series' share card, in the style of the list pages' cards: "cd ~/series/<key>", its name and
- * description, and how many parts it has, or how often new ones come out if it's ongoing (a count
- * would go stale with every new part)
- */
-export function drawSeriesCard(series: CardSeries): Promise<Blob> {
-  const meta = series.ongoing ? (series.cadence ? `new ${series.cadence}` : 'ongoing') : `${series.parts} ${series.parts === 1 ? 'part' : 'parts'}`;
-  return draw({ command: `cd ~/series/${series.key}`, title: series.name, description: series.description, meta: [meta] });
-}
+/** The series' share card */
+export const drawSeriesCard = (series: CardSeries) => draw(seriesCard(series));

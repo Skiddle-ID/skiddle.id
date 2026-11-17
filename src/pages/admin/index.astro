@@ -240,10 +240,21 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <div class="admin-editor-actions">
             <button id="edPublish" type="button" class="admin-btn admin-btn-primary" data-for="draft" disabled>Publish</button>
             <button id="edFinish" type="button" class="admin-btn admin-btn-primary" data-for="draft" hidden>Finish publishing</button>
+            <div class="admin-schedule" data-for="draft">
+              <div class="admin-field">
+                <label for="edPublishAt">Or publish it later</label>
+                <input id="edPublishAt" type="datetime-local" aria-describedby="edZone" />
+                <p id="edZone" class="admin-small"></p>
+              </div>
+              <div class="admin-toolbar">
+                <button id="edSchedule" type="button" class="admin-btn" disabled>Schedule</button>
+                <button id="edUnschedule" type="button" class="admin-btn" hidden>Unschedule</button>
+              </div>
+              <p id="edScheduled" class="admin-small admin-scheduled" hidden></p>
+            </div>
             <label class="admin-check" data-for="post"><input id="edMinor" type="checkbox" /> Small fix: don’t mark the post as updated</label>
             <button id="edSavePost" type="button" class="admin-btn admin-btn-primary" data-for="post" disabled>Save changes</button>
             <p class="admin-small" data-not-live></p>
-            <p class="admin-small" data-for="post">A change to the title or description shows on the share card once share cards are drawn here, with publishing.</p>
             <a id="edViewPost" href="/posts/" target="_blank" rel="noopener" class="admin-link" data-for="post">View the post</a>
             <button id="edDelete" type="button" class="admin-btn" data-for="draft">Delete draft</button>
             <button id="edUnpublish" type="button" class="admin-btn" data-for="post" disabled>Unpublish</button>
@@ -630,6 +641,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
     color: var(--color-text);
     font-size: 1rem;
   }
+  .admin input[type='datetime-local'],
   .admin input[type='number'] {
     width: 100%;
     min-height: 2.75rem;
@@ -641,6 +653,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
     font-size: 1rem;
   }
   .admin textarea:focus-visible,
+  .admin input[type='datetime-local']:focus-visible,
   .admin input[type='number']:focus-visible,
   .admin-check:has(input:focus-visible) {
     outline: 2px solid var(--color-primary);
@@ -850,6 +863,19 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
     min-width: 2.75rem;
     min-height: 2.75rem;
     font-size: 1.25rem;
+  }
+  .admin-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 24rem;
+  }
+  .admin-schedule .admin-toolbar {
+    margin-bottom: 0;
+  }
+  .admin-scheduled {
+    color: var(--color-ok);
   }
   .admin-self-start {
     align-self: flex-start;

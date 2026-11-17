@@ -1,0 +1,20 @@
+# skiddle-publisher: publishes scheduled posts every 5 minutes (README.md). Separate from the
+# site's Worker (../../wrangler.toml), so the site never holds the app password.
+name = "skiddle-publisher"
+main = "index.mjs"
+compatibility_date = "2025-07-18"
+
+# No URL: it only runs on its schedule
+workers_dev = false
+preview_urls = false
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+# "true": log what would be published, change nothing
+DRY_RUN = "false"
+# APP_PASSWORD is a secret, set with `npx wrangler secret put APP_PASSWORD` (README.md)
+
+[observability]
+enabled = true

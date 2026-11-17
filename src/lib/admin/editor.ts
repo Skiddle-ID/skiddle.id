@@ -13,8 +13,10 @@
  * Published posts (#post/<rkey>) are `site.standard.document` records. They open in the same
  * editor, with the address fixed (changing it would break links) and an explicit "Save changes",
  * since a save goes live. A save keeps the publish date and sets "updated" to now, unless it's
- * ticked as a small fix (like `[skip updated]` in a git commit), which leaves "updated" as it was. Saving, unpublishing and publishing drafts wait for the v4 launch
- * (src/lib/admin/launch.ts); until then edits are kept on this device.
+ * ticked as a small fix (like `[skip updated]` in a git commit), which leaves "updated" as it was.
+ * If the title, description or length changed, it redraws the post's share card. Saving,
+ * unpublishing, publishing and scheduling drafts wait for the v4 launch (src/lib/admin/launch.ts);
+ * until then edits are kept on this device.
  *
  *   - The preview uses the same renderer as the site (src/lib/post-html.mjs) and the site's styles,
  *     and can show the post's share card, drawn in the browser (src/lib/admin/card.ts).
@@ -22,6 +24,9 @@
  *     for the page, announces it on Bluesky, links the thread (comments on) and deletes the draft.
  *     Each step is remembered on this device, so a failure part-way can be finished later without
  *     publishing twice.
+ *   - Scheduling a draft sets its `publishAt` and stores its share card on it, drawn for that date;
+ *     the scheduler (workers/publisher) publishes it within 5 minutes after that time, the same way.
+ *     Edits that change the card redraw it as the draft saves.
  *   - Images are shrunk under 1 MB in the browser if needed, uploaded as blobs, and written into the
  *     Markdown as ![alt](image:NAME).
  */
@@ -29,10 +34,11 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { categoryLabels } from '~/lib/categories.mjs';
 import { plainText } from '~/lib/plain-text.mjs';
 import { announcementRecord } from '~/lib/announcement.mjs';
-import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, seriesSlug } from '~/lib/post-record.mjs';
+import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, documentFromDraft, seriesSlug, slugOf } from '~/lib/post-record.mjs';
 import { renderPost, type PostImage } from '~/lib/post-html.mjs';
 import { DID, PUBLICATION_URI, SITE_URL, documentRkey } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
+import { cardKey, postCard, type CardPost } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { missingScopes } from './oauth';
@@ -63,7 +69,9 @@ interface DraftRecord {
   path?: string;
   tags?: string[];
   content: PostContent;
+  /** When the scheduler publishes it (ISO); absent: not scheduled */
   publishAt?: string;
+  /** Its share card, drawn for publishAt, while it's scheduled */
   coverImage?: BlobRef;
   createdAt: string;
   updatedAt?: string;
@@ -94,6 +102,8 @@ interface Open {
   value: DraftRecord;
   /** The published post's record as it was opened (posts only), to keep its other fields on save */
   doc?: DocumentRecord;
+  /** What the stored share card shows (cardKey), for a scheduled draft or a published post */
+  card?: string;
 }
 
 let session: OAuthSession;
@@ -175,7 +185,8 @@ function renderLists() {
   const sorted = [...drafts].sort((a, b) => (b.value.updatedAt ?? b.value.createdAt).localeCompare(a.value.updatedAt ?? a.value.createdAt));
   if (!sorted.length) draftList.appendChild(item('No drafts.', 'admin-muted'));
   for (const d of sorted) {
-    draftList.appendChild(row(`#draft/${rkeyOf(d.uri)}`, d.value.title || 'Untitled', `edited ${formatTime(d.value.updatedAt ?? d.value.createdAt)}`));
+    const note = d.value.publishAt ? `scheduled for ${formatWhen(d.value.publishAt)}` : `edited ${formatTime(d.value.updatedAt ?? d.value.createdAt)}`;
+    draftList.appendChild(row(`#draft/${rkeyOf(d.uri)}`, d.value.title || 'Untitled', note));
   }
 
   const published = el('published');
@@ -222,9 +233,11 @@ function setupEditor() {
     if (target.id === 'edSlug') slugTouched = true;
     if (target.id === 'edTitle' && !slugTouched && current?.kind === 'draft') el<HTMLInputElement>('edSlug').value = slugify(el<HTMLInputElement>('edTitle').value);
     if (target.id === 'edSeries') suggestPart();
-    if (target.id === 'edImage') return;
+    if (target.id === 'edImage' || target.id === 'edPublishAt') return;
     onChange();
   });
+  el('edSchedule').addEventListener('click', () => void schedule());
+  el('edUnschedule').addEventListener('click', () => void unschedule());
   el('edDelete').addEventListener('click', deleteDraft);
   el('edPublish').addEventListener('click', () => void publishDraft());
   el('edFinish').addEventListener('click', () => void publishDraft());
@@ -304,6 +317,7 @@ async function open(kind: Kind, rkey: string) {
       message('editorMessage', kind === 'draft' ? 'This draft doesn’t exist any more.' : 'This post isn’t published any more.', 'error');
       return;
     }
+    opened.card = storedCard(opened);
     current = opened;
     conflict = false;
     dirty = false;
@@ -319,6 +333,7 @@ async function open(kind: Kind, rkey: string) {
     el('edFinish').hidden = !(kind === 'draft' && readPublishing(rkey));
     el('edCardImage').hidden = true;
     message('edCardMessage', '');
+    showSchedule();
     el('editorState').textContent =
       kind === 'draft'
         ? `Saved ${formatTime(opened.value.updatedAt ?? opened.value.createdAt)}`
@@ -447,27 +462,40 @@ function renderEditorPreview(): string[] {
   return issues;
 }
 
-async function saveDraft(force = false): Promise<void> {
-  if (!current || current.kind !== 'draft' || (conflict && !force)) return;
+/** Saves the open draft; returns whether it saved */
+async function saveDraft(force = false): Promise<boolean> {
+  if (!current || current.kind !== 'draft' || (conflict && !force)) return false;
   if (saving) await saving;
   const draft = formDraft();
   const target = current;
+  let saved = false;
   el('editorState').textContent = 'Saving…';
   saving = (async () => {
     try {
+      // A scheduled draft's card has to match it, since the scheduler can't draw one
+      const card = draft.publishAt ? cardKey(postCard(cardPostOf(draft))) : undefined;
+      if (card && card !== target.card) {
+        el('editorState').textContent = 'Redrawing the share card…';
+        const { drawPostCard } = await import('./card');
+        draft.coverImage = await uploadBlob(session, await drawPostCard(cardPostOf(draft)));
+        el('editorState').textContent = 'Saving…';
+      }
       const res = await putRecord(session, DRAFT_COLLECTION, target.rkey, draft, target.cid);
       target.cid = res.cid;
       target.value = draft;
+      if (card) target.card = card;
       const listed = drafts.find((d) => rkeyOf(d.uri) === target.rkey);
       if (listed) Object.assign(listed, { cid: res.cid, value: draft });
       removeBackup(target.kind, target.rkey);
       if (current === target) el('editorState').textContent = `Saved ${formatTime(draft.updatedAt!)}`;
+      saved = true;
     } catch (err) {
       saveFailed(err);
     }
   })();
   await saving;
   saving = undefined;
+  return saved;
 }
 
 /**
@@ -497,8 +525,15 @@ async function savePost(force = false): Promise<void> {
   button.disabled = true;
   el('editorState').textContent = 'Saving…';
   try {
+    const card = cardKey(postCard(cardPostOf(form, target.doc!.publishedAt)));
+    if (card !== target.card) {
+      el('editorState').textContent = 'Redrawing the share card…';
+      const { drawPostCard } = await import('./card');
+      doc.coverImage = await uploadBlob(session, await drawPostCard(cardPostOf(form, target.doc!.publishedAt)));
+      el('editorState').textContent = 'Saving…';
+    }
     const res = await putRecord(session, DOCUMENT, target.rkey, doc, target.cid);
-    Object.assign(target, { cid: res.cid, doc, value: postAsDraft(doc) });
+    Object.assign(target, { cid: res.cid, doc, value: postAsDraft(doc), card });
     const listed = documents.find((d) => rkeyOf(d.uri) === target.rkey);
     if (listed) Object.assign(listed, { cid: res.cid, value: doc });
     removeBackup(target.kind, target.rkey);
@@ -537,8 +572,10 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
       target.value = postAsDraft(latest.value);
       dirty = false;
     } else target.value = latest.value;
+    target.card = storedCard(target);
     removeBackup(target.kind, target.rkey);
     fillEditor(target.value);
+    showSchedule();
     el('editorState').textContent = `Loaded the version saved ${formatTime(target.value.updatedAt ?? target.value.createdAt)}`;
   } else if (target.kind === 'post') {
     target.doc = latest.value;
@@ -604,16 +641,27 @@ async function unpublish() {
 
 // ---- Share card and publishing ----
 
-/** What the card shows for the post in the editor (a draft gets today's date, as if published now) */
-function cardPost() {
-  const d = formDraft();
+/**
+ * What a post's share card shows: published at `publishedAt` (a published post's date), else at the
+ * draft's scheduled time, else now (as if it were published now)
+ */
+function cardPostOf(d: DraftRecord, publishedAt?: string): CardPost {
   return {
-    slug: /^\/posts\/([^/]+)\/$/.exec(d.path ?? '')?.[1] ?? 'untitled',
+    slug: slugOf(d.path) ?? 'untitled',
     title: d.title || 'Untitled',
     description: d.description,
-    publishedAt: new Date(current?.kind === 'post' ? (current.doc?.publishedAt ?? now()) : now()),
+    publishedAt: new Date(publishedAt ?? d.publishAt ?? now()),
     markdown: d.content.markdown,
   };
+}
+
+/** What the open draft's or post's form would put on its card */
+const cardPost = () => cardPostOf(formDraft(), current?.kind === 'post' ? current.doc?.publishedAt : undefined);
+
+/** What the stored card shows: a published post's, or a scheduled draft's (drawn for it when it was saved) */
+function storedCard(o: Open): string | undefined {
+  if (o.kind === 'post') return cardKey(postCard(cardPostOf(o.value, o.doc?.publishedAt)));
+  return o.value.publishAt && o.value.coverImage ? cardKey(postCard(cardPostOf(o.value))) : undefined;
 }
 
 /** Draws the share card in the preview pane (nothing is uploaded) */
@@ -678,14 +726,20 @@ async function publishDraft() {
     await saveDraft();
   } else if (saving) await saving;
   const target = current;
-  const d = formDraft();
+  let d = formDraft();
   const issues = problems(d);
   if (!d.title) issues.push('A post needs a title.');
   if (!d.path) issues.push('A post needs an address.');
   if (issues.length) return message('editorMessage', issues.join(' '), 'error');
   const resuming = readPublishing(target.rkey);
   const url = `${SITE_URL}${d.path}`;
-  if (!resuming && !confirm(`Publish “${d.title}” now? It goes live at ${url} and is announced on Bluesky.`)) return;
+  const instead = d.publishAt ? ` instead of ${formatWhen(d.publishAt)}` : '';
+  if (!resuming && !confirm(`Publish “${d.title}” now${instead}? It goes live at ${url} and is announced on Bluesky.`)) return;
+  // Unscheduled first, so the scheduler doesn't publish it as well
+  if (d.publishAt) {
+    if (!(await setSchedule(undefined))) return;
+    d = formDraft();
+  }
 
   const p: Publishing = resuming ?? { draftRkey: target.rkey, publishedAt: now() };
   const remember = () => {
@@ -701,27 +755,16 @@ async function publishDraft() {
     if (!p.cover) {
       step('Drawing the share card…');
       const { drawPostCard } = await import('./card');
-      const png = await drawPostCard({ ...cardPost(), publishedAt: new Date(p.publishedAt) });
+      const png = await drawPostCard(cardPostOf(d, p.publishedAt));
       step('Uploading the share card…');
       p.cover = await uploadBlob(session, png);
       remember();
     }
     if (!p.docCid) {
       step('Writing the post…');
-      p.rkey = documentRkey({ slug: /^\/posts\/([^/]+)\/$/.exec(d.path!)![1], pubDate: new Date(p.publishedAt) });
+      p.rkey = documentRkey({ slug: slugOf(d.path)!, pubDate: new Date(p.publishedAt) });
       if (await getRecord(session, DOCUMENT, p.rkey)) throw new Error(`a post already has the record key ${p.rkey}`);
-      p.doc = {
-        $type: DOCUMENT,
-        site: PUBLICATION_URI,
-        path: d.path,
-        title: d.title,
-        ...(d.description ? { description: d.description } : {}),
-        publishedAt: p.publishedAt,
-        ...(d.tags ? { tags: d.tags } : {}),
-        textContent: plainText(d.content.markdown),
-        content: d.content,
-        coverImage: p.cover,
-      };
+      p.doc = documentFromDraft(d, { publishedAt: p.publishedAt, coverImage: p.cover }) as DocumentRecord;
       p.docCid = (await putRecord(session, DOCUMENT, p.rkey, p.doc)).cid;
       remember();
       await revalidate();
@@ -730,11 +773,13 @@ async function publishDraft() {
     }
     if (!p.post) {
       step('Announcing it on Bluesky…');
-      const res = await createRecord(
-        session,
-        'app.bsky.feed.post',
-        announcementRecord({ title: d.title, description: d.description, lang: d.content.lang ?? 'en', url, thumb: p.cover }),
-      );
+      // Under the post's own key (as the scheduler does), so a second try finds it instead of posting again
+      const announcement = announcementRecord({ title: d.title, description: d.description, lang: d.content.lang ?? 'en', url, thumb: p.cover });
+      const res = await createRecord(session, 'app.bsky.feed.post', announcement, p.rkey).catch(async (err) => {
+        const posted = await getRecord(session, 'app.bsky.feed.post', p.rkey!);
+        if (!posted) throw err;
+        return posted;
+      });
       p.post = { uri: res.uri, cid: res.cid };
       remember();
     }
@@ -768,6 +813,103 @@ async function publishDraft() {
         'error',
       );
     }
+  }
+}
+
+// ---- Scheduling ----
+
+const pad = (n: number) => String(n).padStart(2, '0');
+/** A date as a datetime-local field's value, in this device's time zone */
+const localInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+/** e.g. "Thu 20 Nov 2026, 09:00 GMT+7" */
+const formatWhen = (iso: string) =>
+  new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+
+/** The open draft's schedule: when, and the buttons */
+function showSchedule() {
+  if (!current || current.kind !== 'draft') return;
+  const at = current.value.publishAt;
+  const input = el<HTMLInputElement>('edPublishAt');
+  input.value = at ? localInput(new Date(at)) : '';
+  input.min = localInput(new Date());
+  el('edZone').textContent = `Your time (${Intl.DateTimeFormat().resolvedOptions().timeZone}). It goes live within 5 minutes after that, and is announced on Bluesky.`;
+  el('edScheduled').textContent = at ? `Scheduled for ${formatWhen(at)}.` : '';
+  el('edScheduled').hidden = !at;
+  el('edUnschedule').hidden = !at;
+  const button = el<HTMLButtonElement>('edSchedule');
+  button.textContent = at ? 'Change the time' : 'Schedule';
+  button.disabled = !PUBLISHING_LIVE;
+}
+
+/**
+ * Sets (or with no date, removes) the open draft's publishAt, with its share card drawn for that
+ * time, and saves the draft. Returns whether it saved.
+ */
+async function setSchedule(at: Date | undefined): Promise<boolean> {
+  if (!current || current.kind !== 'draft') return false;
+  if (conflict) {
+    message('editorMessage', 'This draft was changed on another device: load that version or keep yours first.', 'error');
+    return false;
+  }
+  const target = current;
+  const before = { value: target.value, card: target.card };
+  clearTimeout(saveTimer);
+  saveTimer = undefined;
+  if (saving) await saving;
+  if (at) {
+    const d = { ...formDraft(), publishAt: at.toISOString() };
+    el('editorState').textContent = 'Drawing the share card…';
+    const { drawPostCard } = await import('./card');
+    const png = await drawPostCard(cardPostOf(d));
+    el('editorState').textContent = 'Uploading the share card…';
+    const coverImage = await uploadBlob(session, png);
+    target.value = { ...target.value, publishAt: d.publishAt, coverImage };
+    target.card = cardKey(postCard(cardPostOf(d)));
+  } else {
+    const { publishAt: _at, coverImage: _card, ...rest } = target.value;
+    target.value = rest;
+    target.card = undefined;
+  }
+  const saved = await saveDraft();
+  if (!saved) Object.assign(target, before);
+  if (current === target) {
+    showSchedule();
+    renderLists();
+  }
+  return saved;
+}
+
+/** Schedules the open draft for the time in the date field */
+async function schedule() {
+  if (!PUBLISHING_LIVE || !current || current.kind !== 'draft') return;
+  const value = el<HTMLInputElement>('edPublishAt').value;
+  const at = value ? new Date(value) : undefined;
+  const d = formDraft();
+  const issues = problems(d);
+  if (!d.title) issues.push('A post needs a title.');
+  if (!d.path) issues.push('A post needs an address.');
+  if (!at || Number.isNaN(at.valueOf())) issues.push('Pick a date and time.');
+  else if (at.valueOf() < Date.now() + 60_000) issues.push('Pick a time at least a minute from now.');
+  if (issues.length) return message('editorMessage', issues.join(' '), 'error');
+  const button = el<HTMLButtonElement>('edSchedule');
+  button.disabled = true;
+  message('editorMessage', '');
+  try {
+    if (await setSchedule(at)) message('editorMessage', `Scheduled: “${d.title}” goes live at ${SITE_URL}${d.path} on ${formatWhen(at!.toISOString())}.`, 'ok');
+  } catch (err) {
+    el('editorState').textContent = 'Not scheduled';
+    message('editorMessage', `Couldn’t schedule it: ${errorText(err)}`, 'error');
+  } finally {
+    showSchedule();
+  }
+}
+
+async function unschedule() {
+  if (!current || current.kind !== 'draft') return;
+  try {
+    if (await setSchedule(undefined)) message('editorMessage', 'Unscheduled: it stays a draft.', 'ok');
+  } catch (err) {
+    message('editorMessage', `Couldn’t unschedule it: ${errorText(err)}`, 'error');
   }
 }
 

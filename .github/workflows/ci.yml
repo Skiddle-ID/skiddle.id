@@ -1,7 +1,7 @@
 name: CI
 
-# Lints every PR (and v3 after merges). The build itself is checked by Cloudflare's
-# preview build ("Workers Builds: skiddle-id"), so this only runs ESLint.
+# Lints every PR (and v3 after merges), checks the lexicons and runs the scheduler's tests. The
+# build itself is checked by Cloudflare's preview build ("Workers Builds: skiddle-id").
 on:
   pull_request:
   push:
@@ -33,3 +33,6 @@ jobs:
 
       # Every post and series fits the lexicons in lexicons/ (docs/v4/posts-on-atproto.md)
       - run: npm run check:lexicons
+
+      # The scheduler that publishes scheduled posts (workers/publisher)
+      - run: npm run test:unit
