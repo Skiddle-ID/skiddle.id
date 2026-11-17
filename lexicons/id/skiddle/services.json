@@ -1,0 +1,111 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.services",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "What Jeff offers, the /services/ page, and what clients said. One record, key 'self'.",
+      "record": {
+        "type": "object",
+        "required": ["services", "updatedAt"],
+        "properties": {
+          "services": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "ref",
+              "ref": "#service"
+            },
+            "description": "In the order they're shown."
+          },
+          "testimonials": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "ref",
+              "ref": "#testimonial"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "features": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100
+          },
+          "description": "Shown as bullet points."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "knownValues": [
+            "infrastructure",
+            "devops",
+            "automation",
+            "consulting",
+            "web",
+            "observability"
+          ],
+          "description": "Picks the service's icon, e.g. 'infrastructure'."
+        }
+      }
+    },
+    "testimonial": {
+      "type": "object",
+      "required": ["quote", "author", "rating"],
+      "properties": {
+        "quote": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "role": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "e.g. 'CTO, Kwikku Interactive'."
+        },
+        "service": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "The name of the service it's about."
+        },
+        "rating": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        }
+      }
+    }
+  }
+}

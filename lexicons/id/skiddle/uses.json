@@ -1,0 +1,99 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.uses",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "What Jeff uses: hardware, software and tools, the /uses/ page. One record, key 'self'.",
+      "record": {
+        "type": "object",
+        "required": ["sections", "updatedAt"],
+        "properties": {
+          "sections": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "ref",
+              "ref": "#section"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Shown as 'last updated'."
+          }
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "title", "groups"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "Its anchor on the page, e.g. 'machines'."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "blurb": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "groups": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#group"
+          }
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "items": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "ref",
+            "ref": "#item"
+          }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

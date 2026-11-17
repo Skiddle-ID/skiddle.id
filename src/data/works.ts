@@ -102,12 +102,13 @@ const works: WorksData = {
       description: 'Focused on machine learning algorithms, data science, and AI applications. Graduated with GPA 4.0.',
     },
   ],
-  skills: {
-    programmingLanguages: ['TypeScript', 'Go', 'PHP', 'Rust', 'JavaScript', 'Python'],
-    devopsInfrastructure: ['Docker', 'Kubernetes', 'Proxmox', 'Unraid', 'TrueNAS', 'CI/CD', 'Monitoring'],
-    frameworksTools: ['Vue.js', 'React.js', 'Astro', 'Node.js', 'Git', 'Linux'],
-    interests: ['Aviation', 'Machine Learning', 'Open Source', 'Self-hosting'],
-  },
+  skills: [
+    { title: 'Languages', items: ['TypeScript', 'Go', 'PHP', 'Rust', 'JavaScript', 'Python'] },
+    { title: 'DevOps & infrastructure', items: ['Docker', 'Kubernetes', 'Proxmox', 'Unraid', 'TrueNAS', 'CI/CD', 'Monitoring'] },
+    { title: 'Frameworks & tools', items: ['Vue.js', 'React.js', 'Astro', 'Node.js', 'Git', 'Linux'] },
+    { title: 'Interests', items: ['Aviation', 'Machine Learning', 'Open Source', 'Self-hosting'] },
+  ],
+  selectedProjects: ['checkdomain', 'shortlink', 'blocklist'],
   projects: [
     {
       title: 'Personal Website & Blog',

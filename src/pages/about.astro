@@ -1,21 +1,8 @@
 ---
 import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
-
-// neofetch-style profile. Keep it to things you're happy to have public.
-const profile = [
-  ['Role', 'Protocol engineer (contract)'],
-  ['Company', 'Skiddle Labs (founder)'],
-  ['Based', 'Bangkok, Thailand'],
-  ['Hours', 'Night owl'],
-  ['Langs', 'Go, TypeScript, PHP, Python'],
-  ['Infra', 'Kubernetes, Proxmox, Cloudflare'],
-  ['Editor', 'Zed + Neovim'],
-  ['Terminal', 'Ghostty'],
-  ['Studying', "Master's in AI & ML"],
-  ['Flying', 'Private pilot (PPL, 2026)'],
-  ['Uptime', 'blogging since 2015'],
-];
+import { marked } from 'marked';
+import about from '../data/about';
 
 const accents = [
   { id: 'blue', dark: '#82cfff', light: '#0f62fe' },
@@ -25,26 +12,8 @@ const accents = [
   { id: 'green', dark: '#42be65', light: '#198038' },
 ];
 
-const principles = [
-  { title: 'Automate the toil', body: 'A small tool beats doing the same manual step twice.' },
-  { title: 'Reliability, security, cost', body: 'I weigh all three on every change, not just the first one.' },
-  { title: 'Own your data', body: 'Open protocols and self-hosting, where it makes sense.' },
-  { title: 'Share what I learn', body: 'I write up what I build, including the parts that went wrong.' },
-];
-
-// Facts from the CV, projects and posts on this site.
-// `link` is the visible text of the post link, so it says where it goes
-const timeline: { year: string; text: string; href?: string; link?: string }[] = [
-  { year: '2015', text: 'Started blogging, on Jekyll and GitHub Pages.', href: '/posts/a-newest-refactoring-of-my-personal-sites/', link: 'how the site evolved' },
-  { year: '2016', text: 'Built Klasemate, my first app from scratch: open-source forum software in PHP.' },
-  { year: '2019', text: 'First infra engineer role: LDAP, device management, backups.' },
-  { year: '2020', text: 'Founded Skiddle ID, building web apps and running infrastructure for clients. It’s now part of Skiddle Labs.' },
-  { year: '2021', text: "Started a bachelor's in AI & machine learning at Chulalongkorn." },
-  { year: '2022', text: 'Co-founded Aerialite, a security & privacy startup in Bangkok, as DevOps engineer.' },
-  { year: '2024', text: "Launched CheckDomain and Blocklist, and started my master's." },
-  { year: '2025', text: 'Moved to Aerialite\'s advisory board and started pilot ground school.', href: '/posts/how-it-all-started-1/', link: 'the flying story' },
-  { year: '2026', text: 'Earned my Private Pilot License, then took on a protocol-engineering contract with my Skiddle Labs team.' },
-];
+// The prose fields are Markdown (src/data/about.ts)
+const html = (markdown: string) => marked.parse(markdown, { async: false });
 ---
 
 <Shell title="About — Skiddle" description="About Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, homelabber, open-web fan and private pilot.">
@@ -62,7 +31,7 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
           <p class="font-semibold"><span class="text-[var(--color-primary)]">jeff</span>@<span class="text-[var(--color-primary)]">skiddle</span></p>
           <p class="text-[var(--color-muted)]" aria-hidden="true">------------</p>
           <dl class="mt-1 grid grid-cols-[5.5rem_1fr] gap-x-2 gap-y-0.5">
-            {profile.map(([k, v]) => (
+            {about.profile.map(({ label: k, value: v }) => (
               <>
                 <dt class="text-[var(--color-primary)] font-semibold">{k}:</dt>
                 <dd class="min-w-0">{v}</dd>
@@ -86,25 +55,14 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
     </section>
 
     <div class="prose mt-10">
-      <p>
-        I'm <strong>Jeff</strong>, known online as <strong>Skiddle</strong>. I'm based in Bangkok and run
-        <strong>Skiddle Labs Pte. Ltd.</strong>, my own company. Since Q3 2026, my team and I have been on a
-        protocol-engineering contract for a client I can't name. My background is in platforms and infrastructure:
-        building pipelines, automating ops, and keeping things running across cloud and my homelab.
-      </p>
-      <p>
-        I co-founded <strong>Aerialite</strong>, a security and privacy startup here in Bangkok, and now sit on its
-        advisory board. Skiddle Labs is also home to my personal projects and the clients I've worked with for years,
-        and Skiddle ID is part of it. The full version is on my <a href="/works/">CV</a>, and the open-source bits are on
-        <a href="/projects/">projects</a>.
-      </p>
+      <Fragment set:html={html(about.intro)} />
     </div>
 
     <!-- How I work -->
     <section aria-labelledby="how" class="mt-10">
       <h2 id="how" class="font-semibold before-hash-2">How I work</h2>
       <div class="mt-4 grid sm:grid-cols-2 gap-3">
-        {principles.map((p, i) => (
+        {about.principles.map((p, i) => (
           <div class="card p-4">
             <p class="text-xs text-[var(--color-muted)]">0{i + 1}</p>
             <h3 class="font-semibold text-[var(--color-primary)] mt-1">{p.title}</h3>
@@ -118,7 +76,7 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
     <section aria-labelledby="timeline" class="mt-12">
       <h2 id="timeline" class="font-semibold before-hash-2">So far</h2>
       <ol class="mt-4 relative border-l ml-1.5">
-        {timeline.map((t) => (
+        {about.timeline.map((t) => (
           <li class="relative pl-6 pb-5 last:pb-0">
             <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full border-2 border-[var(--color-primary)] bg-[var(--color-bg)]" aria-hidden="true"></span>
             <p class="text-sm grid grid-cols-[3rem_1fr]">
@@ -132,7 +90,7 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
         ))}
         <li class="relative pl-6">
           <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
-          <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>Protocol engineering, my master's, and flying. <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
+          <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>{about.current} <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
         </li>
       </ol>
     </section>
@@ -141,12 +99,7 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
     <section aria-labelledby="outside" class="mt-12">
       <h2 id="outside" class="font-semibold before-hash-2">Outside of work</h2>
       <div class="prose mt-3">
-        <p>
-          I have ADHD, and it doesn't stop me doing the work. I game, I read, and I keep odd hours. I'm also
-          a private pilot: I earned my PPL in early 2026, and I write about <a href="/topics/tag/aviation/">how that journey started</a>.
-          I care about open protocols and owning your own data, and I'm into ATProto. Curious what I run all this on?
-          It's on the <a href="/uses/">uses</a> page.
-        </p>
+        <Fragment set:html={html(about.outside)} />
       </div>
     </section>
 
@@ -154,13 +107,17 @@ const timeline: { year: string; text: string; href?: string; link?: string }[] =
     <section aria-labelledby="hi" class="mt-12 card p-5">
       <h2 id="hi" class="font-semibold">Say hi</h2>
       <p class="text-sm text-[var(--color-muted)] mt-1.5">
-        For work, email is best. For everything else, Bluesky is where I hang out.
+        {about.contact.blurb}
       </p>
       <div class="flex flex-wrap gap-2 mt-4">
-        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id"><Icon name="mail" size={14} /> work@skiddle.id</a>
-        <a class="btn" href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank"><Icon name="bluesky" size={14} /> @skiddle.blue</a>
-        <a class="btn" href="https://github.com/arcestia" rel="me noopener" target="_blank"><Icon name="github" size={14} /> GitHub</a>
-        <a class="btn" href="mailto:jeff@skiddle.id"><Icon name="mail" size={14} /> jeff@skiddle.id</a>
+        {about.contact.links.map((l, i) => {
+          // Email links open the mail app; profile links open in a new tab, as rel="me"
+          const mail = l.url.startsWith('mailto:');
+          const icon = mail ? 'mail' : l.url.includes('bsky.app') ? 'bluesky' : 'github';
+          return (
+            <a class={i === 0 ? 'btn border-[var(--color-primary)] text-[var(--color-primary)]' : 'btn'} href={l.url} rel={mail ? undefined : 'me noopener'} target={mail ? undefined : '_blank'}><Icon name={icon} size={14} /> {l.label}</a>
+          );
+        })}
       </div>
     </section>
   </div>
