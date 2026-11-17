@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import { seriesInfo, type PlannedPart, type SeriesInfo } from '~/data/series';
+import { categoryLabels } from './categories.mjs';
 import { seriesSlug } from './post-record.mjs';
 
 /** A post's fields: the git collection's (src/content.config.ts), which posts from the PDS also have */
@@ -105,9 +106,5 @@ export function readingMinutes(p: Post): number {
   return Math.max(1, Math.round(words / 220));
 }
 
-export const categoryLabels: Record<Post['data']['category'], string> = {
-  infra: 'Infra & delivery',
-  atproto: 'ATProto & the open web',
-  homelab: 'Homelab',
-  life: 'Life',
-};
+/** Category labels (src/lib/categories.mjs, shared with the admin app) */
+export { categoryLabels };

@@ -3,12 +3,16 @@
  * OAuth (src/lib/admin/oauth.ts), then reads and writes records in his repo through his PDS:
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
+ *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
  * and lists the site's other collections, read-only.
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
 import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
+import { el, errorText, message } from './dom';
+import { loadPosts, route, setupPosts } from './editor';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
+import { XrpcError, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
 
 const STATUS = 'id.skiddle.status';
 const LEXICON = 'com.atproto.lexicon.schema';
@@ -26,23 +30,6 @@ interface StatusRecord {
   timeZone?: string;
   updatedAt: string;
 }
-interface RepoRecord<T> {
-  uri: string;
-  cid: string;
-  value: T;
-}
-
-class XrpcError extends Error {
-  constructor(
-    readonly status: number,
-    readonly error: string | undefined,
-    message: string,
-  ) {
-    super(message);
-  }
-}
-
-const el = <T = HTMLElement>(id: string) => document.getElementById(id) as unknown as T;
 const views = ['loading', 'signedOut', 'wrongAccount', 'signedIn'] as const;
 type View = (typeof views)[number];
 
@@ -57,13 +44,7 @@ function notice(text: string | null) {
   n.hidden = !text;
 }
 
-function message(id: string, text: string, kind: 'ok' | 'error' | 'info' = 'info') {
-  const m = el(id);
-  m.textContent = text;
-  m.dataset.kind = kind;
-}
 
-const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 function validTimeZone(tz: string) {
   try {
@@ -72,37 +53,6 @@ function validTimeZone(tz: string) {
   } catch {
     return false;
   }
-}
-
-// ---- XRPC through the signed-in session (DPoP-bound tokens, refreshed by the client) ----
-
-async function xrpc<T>(session: OAuthSession, method: string, params?: Record<string, string>, body?: unknown): Promise<T> {
-  const query = params ? `?${new URLSearchParams(params)}` : '';
-  const init: RequestInit | undefined =
-    body === undefined ? undefined : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-  const res = await session.fetchHandler(`/xrpc/${method}${query}`, init);
-  const data = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
-  if (!res.ok) throw new XrpcError(res.status, data.error, data.message || data.error || `${method} failed (${res.status})`);
-  return data as T;
-}
-
-async function getRecord<T>(session: OAuthSession, collection: string, rkey: string): Promise<RepoRecord<T> | null> {
-  try {
-    return await xrpc<RepoRecord<T>>(session, 'com.atproto.repo.getRecord', { repo: DID, collection, rkey });
-  } catch (err) {
-    if (err instanceof XrpcError && (err.error === 'RecordNotFound' || err.status === 404)) return null;
-    throw err;
-  }
-}
-
-function putRecord(session: OAuthSession, collection: string, rkey: string, record: object, swapRecord?: string) {
-  return xrpc<{ uri: string; cid: string }>(session, 'com.atproto.repo.putRecord', undefined, {
-    repo: DID,
-    collection,
-    rkey,
-    record,
-    ...(swapRecord ? { swapRecord } : {}),
-  });
 }
 
 // ---- Status ----
@@ -408,14 +358,17 @@ async function loadRecords(session: OAuthSession) {
 
 // ---- Start ----
 
-async function signedIn(session: OAuthSession) {
+/** @param signInAgain Starts a new sign-in, for permissions the session doesn't have yet */
+async function signedIn(session: OAuthSession, signInAgain: () => void) {
   show('signedIn');
   el('accountHandle').textContent = session.sub;
   setupStatus(session);
   setupLexicons(session);
-  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session)]);
+  setupPosts(session, signInAgain);
+  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) notice(`Couldn't load everything from your PDS: ${errorText(failed.reason)}`);
+  await route();
 }
 
 function registerServiceWorker() {
@@ -451,10 +404,19 @@ async function main() {
     session = (await client.init())?.session;
   } catch (err) {
     const cancelled = err instanceof OAuthCallbackError && err.params.get('error') === 'access_denied';
-    notice(cancelled ? 'Sign-in cancelled on Bluesky’s page.' : `Sign-in didn't finish: ${errorText(err)}`);
+    // A session from before the app asked for more permissions (on 127.0.0.1 they're part of the client ID)
+    const outdated = /not issued to this client/i.test(errorText(err));
+    notice(
+      cancelled
+        ? 'Sign-in cancelled on Bluesky’s page.'
+        : outdated
+          ? 'The app asks for new permissions since you last signed in here. Sign in again.'
+          : `Sign-in didn't finish: ${errorText(err)}`,
+    );
   }
-  // Drop any leftover sign-in response from the address bar
-  if (location.hash || location.search) history.replaceState(null, '', location.pathname);
+  // Drop a leftover sign-in response from the address bar, but keep the app's own links (#draft/…)
+  const isCallback = (s: string) => /(^|[?#&])(code|state|error|iss)=/.test(s);
+  if (isCallback(location.hash) || isCallback(location.search)) history.replaceState(null, '', location.pathname);
 
   el('signIn').addEventListener('click', async () => {
     const button = el<HTMLButtonElement>('signIn');
@@ -490,7 +452,7 @@ async function main() {
     el('accountHandle').textContent = session.sub;
     return show('wrongAccount');
   }
-  await signedIn(session);
+  await signedIn(session, () => void client.signInRedirect(DID));
 }
 
 main().catch((err) => {

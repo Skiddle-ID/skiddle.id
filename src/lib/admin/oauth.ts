@@ -10,12 +10,26 @@
  */
 
 /**
- * What the app may do with the account, and nothing else: write these collections. Bluesky's
- * sign-in page lists them. A new collection (e.g. Now records in v5) is added here, and signing
- * in again grants it.
+ * What the app may do with the account, and nothing else: write these collections and upload
+ * images. Bluesky's sign-in page lists them. A new collection (e.g. Now records in v5) is added
+ * here, and signing in again grants it; the app asks for that when its session lacks one
+ * (missingScopes).
+ *   - id.skiddle.status: the status
+ *   - com.atproto.lexicon.schema: publishing the lexicons
+ *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
+ * Publishing posts (site.standard.document, id.skiddle.series, a Bluesky post) is added with the
+ * v4 launch, when the admin app takes over publishing from git.
  */
-export const COLLECTIONS = ['id.skiddle.status', 'com.atproto.lexicon.schema'] as const;
-export const SCOPE = ['atproto', ...COLLECTIONS.map((c) => `repo:${c}`)].join(' ');
+export const COLLECTIONS = ['id.skiddle.status', 'com.atproto.lexicon.schema', 'id.skiddle.draft'] as const;
+/** Uploads: a post's images */
+export const BLOB_TYPES = ['image/*'] as const;
+export const SCOPE = ['atproto', ...COLLECTIONS.map((c) => `repo:${c}`), ...BLOB_TYPES.map((t) => `blob:${t}`)].join(' ');
+
+/** The parts of SCOPE a session's granted scope doesn't have (it was signed in before they were added) */
+export function missingScopes(granted: string): string[] {
+  const have = new Set(granted.split(/\s+/));
+  return SCOPE.split(' ').filter((s) => !have.has(s));
+}
 
 export const ADMIN_PATH = '/admin/';
 export const CLIENT_METADATA_PATH = '/oauth-client-metadata.json';
