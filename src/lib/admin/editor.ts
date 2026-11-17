@@ -477,7 +477,10 @@ async function chooseImage() {
   }
 }
 
-/** The image as-is if it's small enough, otherwise re-encoded as WebP, narrower, until it's under 1 MB */
+/**
+ * The image as-is if it's small enough, otherwise re-encoded, narrower, until it's under 1 MB: as WebP,
+ * or as JPEG where the browser can't write WebP (Safari, which quietly gives back a PNG instead)
+ */
 async function prepareImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
   if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) throw new Error('use a PNG, JPEG, WebP or GIF');
   const bitmap = await createImageBitmap(file);
@@ -491,7 +494,8 @@ async function prepareImage(file: File): Promise<{ blob: Blob; width: number; he
     const h = Math.round((height * w) / width);
     const canvas = new OffscreenCanvas(w, h);
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0, w, h);
-    const blob = await canvas.convertToBlob({ type: 'image/webp', quality });
+    let blob = await canvas.convertToBlob({ type: 'image/webp', quality });
+    if (blob.type !== 'image/webp') blob = await canvas.convertToBlob({ type: 'image/jpeg', quality });
     if (blob.size <= MAX_IMAGE_BYTES) {
       bitmap.close();
       return { blob, width: w, height: h };
