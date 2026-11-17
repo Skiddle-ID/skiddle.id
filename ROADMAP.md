@@ -109,9 +109,9 @@ The full plan, with the draft lexicons, is in [docs/v4/posts-on-atproto.md](docs
 
 Decisions:
 
-- [ ] Drafts: `id.skiddle.draft` records that sync between devices and can be read on the PDS, like drafts in the git repo today (recommended); kept on the device; or encrypted records
-- [ ] The MDX demo post, the only post with components: retire it (recommended), or rewrite it as plain Markdown
-- [ ] pckt.blog's six posts: move them to the skiddle.id publication (recommended; they leave skiddle-blog.pckt.blog), or add separate records
+- [x] Drafts: `id.skiddle.draft` records, which sync between devices and can be read on the PDS, like drafts in the git repo today
+- [x] The MDX demo post, the only post with components: retire it
+- [x] pckt.blog's six posts: move them to the skiddle.id publication (they leave skiddle-blog.pckt.blog)
 
 Done so far:
 
@@ -125,9 +125,10 @@ Records:
 - [ ] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working
 - [ ] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured
 - [ ] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card), replacing `src/data/series.ts`
-- [ ] `id.skiddle.draft`, if drafts are records
+- [ ] `id.skiddle.draft` for drafts and scheduled posts
 - [ ] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch
-- [ ] pckt.blog's six posts, as decided above
+- [ ] Retire the MDX demo post, before the sync fills the records
+- [ ] Move pckt.blog's six posts to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`), keeping their record keys
 
 The site:
 
@@ -153,7 +154,7 @@ Safety:
 The switch, at launch:
 
 - [ ] Publish the last post from git, run the sync one last time, make v4 production
-- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, and drawing share cards for posts and tags at build time
+- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, MDX support, and drawing share cards for posts and tags at build time
 
 ### v5: more of the site
 

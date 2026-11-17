@@ -2,7 +2,7 @@
 
 The plan for v4: posts and series live only in Jeff's AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), are written and published from the admin app, and the site renders them when someone asks for a page. Publishing, editing and scheduling never need a rebuild; only code and design changes do. Everything fits Cloudflare's free Workers plan.
 
-The roadmap tracks progress in [ROADMAP.md](../../ROADMAP.md#v4-posts-and-series). The decisions still open are at the end of this page.
+The roadmap tracks progress in [ROADMAP.md](../../ROADMAP.md#v4-posts-and-series). The decisions made along the way are at the end of this page.
 
 ## What changes
 
@@ -33,7 +33,7 @@ What it doesn't have, so we add our own `id.skiddle.post` type inside `content`:
 
 **Series: Standard.site has nothing for them.** Its `links` field is an empty union with no defined types, so we add `id.skiddle.series` records.
 
-**Drafts: Standard.site has no draft state**, and readers list every `site.standard.document` they find. Unpublished posts go in `id.skiddle.draft` records instead (see decision 1).
+**Drafts: Standard.site has no draft state**, and readers list every `site.standard.document` they find. Unpublished posts go in `id.skiddle.draft` records instead (decision 1).
 
 All our lexicons are named `id.skiddle.<name>`, so the `_lexicon.skiddle.id` DNS record that's already in place covers them. Once a lexicon has records, it can only gain optional fields, so these are drafts until they ship.
 
@@ -134,7 +134,7 @@ Width and height stop the page jumping while an image loads. The admin app shrin
 
 It's what `src/data/series.ts` holds today, plus a share card. A post says which series it belongs to and which part it is; a published part replaces the planned one with the same number, as now.
 
-### `id.skiddle.draft` (draft; only if decision 1 is A)
+### `id.skiddle.draft` (draft)
 
 A post that isn't published yet. Record key: a TID.
 
@@ -187,7 +187,7 @@ Share cards stay stored images. Drawing one is the heaviest thing the site does:
 
 It gets a post editor, built on the first version (`/admin/`).
 
-- **Write:** Markdown with a live preview that uses the same renderer as the Worker. Add images, which are shrunk and uploaded as blobs. Pick the series and part, category, tags and language. Drafts save as you type (decision 1).
+- **Write:** Markdown with a live preview that uses the same renderer as the Worker. Add images, which are shrunk and uploaded as blobs. Pick the series and part, category, tags and language. Drafts save as you type, as `id.skiddle.draft` records, so a post started on the phone can be finished on the laptop.
 - **Publish now:**
   1. Draw the share card in the browser (satori and resvg's WebAssembly build, the same design as today) and upload it.
   2. Write the `site.standard.document`: the content, plain text, tags, path `/posts/<slug>/`, and a TID made from the publish time.
@@ -222,9 +222,9 @@ Once the posts are only in the PDS, they need a copy somewhere else. A weekly Gi
 
 v3 stays live and keeps publishing from git until the switch.
 
-1. **Lexicons:** add `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` to `lexicons/`, and publish them from the admin app.
+1. **Lexicons:** add `id.skiddle.post`, `id.skiddle.series` and `id.skiddle.draft` to `lexicons/`, and publish them from the admin app. Retire the MDX demo post (decision 2) before the next step, so it never becomes a record.
 2. **Fill the records from git:** v3's AT Protocol sync also writes each post's `content`: the Markdown, its images as blobs, and category, language, series and featured. It writes the series records from `src/data/series.ts`, with their share cards. From then on the records match git after every post.
-3. **pckt.blog's six posts:** they get skiddle.id records too (decision 3).
+3. **pckt.blog's six posts:** move them to the skiddle.id publication, keeping their record keys (`MOVE_PCKT_DOCUMENTS`, decision 3). They then disappear from skiddle-blog.pckt.blog.
 4. **v4 reads the records:** the live collections, the route cache, `/media/` and `/api/revalidate`, on staging.
 5. **Parity check:** a test compares every post on staging (built from records) with production (built from git): titles, dates, text, links, images and series. Any difference blocks the switch.
 6. **The admin app's editor:** drafts, publish, schedule, edit and series. Then the cron Worker and the backups.
@@ -234,6 +234,7 @@ v3 stays live and keeps publishing from git until the switch.
 
 - `src/content/posts/` and `src/assets/posts/` (about 780 KB with the photo)
 - `src/data/series.ts`
+- MDX support: the demo post is retired, so `src/components/mdx/` and `@astrojs/mdx` go too
 - The workflows "Publish scheduled posts", "Announce posts on Bluesky" and "Publish posts to AT Protocol"
 - Their scripts: `publish-scheduled`, `bluesky-announce`, `standard-site-sync` and `mark-updated`
 - Drawing share cards for posts and tags at build time
@@ -241,16 +242,13 @@ v3 stays live and keeps publishing from git until the switch.
 
 Git keeps old files in its history, so a clone stays about the same size. What gets smaller is the checkout and the work: there are no post files to keep in sync, and no build for content.
 
-## Open decisions
+## Decisions
 
-1. **Drafts.**
-   - **A, recommended: drafts are `id.skiddle.draft` records.** They sync between the phone and the laptop, and scheduling just works. Anyone who looks can read them on the PDS. Drafts are just as public in the git repo today, though records also go out on the network to anyone following it.
-   - **B: drafts stay on the device** they were written on. Private, but they don't sync, and a scheduled post has to be written as a document early (its text can be read before its time).
-   - **C: drafts are encrypted records,** with a passphrase you type once per device. Private and synced, but more work; the cron needs the key as a secret.
-2. **The MDX demo post** (`mdx-demo.mdx`), the only post with components. **Recommended: retire it.** It's a demo, not writing. Or rewrite it as plain Markdown.
-3. **pckt.blog's six posts** (from the WhiteWind days). pckt.blog shows them from records under its own publication.
-   - **Recommended: move them** to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`). One record per post, but they disappear from skiddle-blog.pckt.blog.
-   - Or keep pckt's records and add separate skiddle.id ones. Then both show up in readers.
+Made on 2026-11-17, each the recommended option.
+
+1. **Drafts are `id.skiddle.draft` records.** They sync between the phone and the laptop, and scheduling just works. Anyone who looks can read them on the PDS. Drafts are just as public in the git repo today, though records also go out on the network to anyone following it. Not chosen: drafts kept on one device (private, but no sync), or encrypted records (private and synced, but more work).
+2. **The MDX demo post is retired.** It's a draft that tests components, not writing, and it's the only post that uses MDX or `src/components/mdx/`.
+3. **pckt.blog's six posts move to the skiddle.id publication.** One record per post. They disappear from skiddle-blog.pckt.blog. Not chosen: keeping pckt's records and adding separate ones, which readers would show twice.
 
 ## Risks
 
