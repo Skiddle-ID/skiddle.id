@@ -222,6 +222,11 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
               <textarea id="edMarkdown" class="admin-markdown" spellcheck="true" placeholder="Write in Markdown…"></textarea>
             </div>
             <div class="admin-pane-preview">
+              <div class="admin-card-preview">
+                <button id="edCard" type="button" class="admin-btn admin-btn-ghost">Show the share card</button>
+                <img id="edCardImage" alt="The post’s share card" width="1200" height="630" hidden />
+                <p id="edCardMessage" class="admin-message" role="status"></p>
+              </div>
               <div id="edPreviewHead" class="admin-preview-head"></div>
               <div id="edPreview" class="prose prose-reading admin-preview-body"></div>
             </div>
@@ -230,6 +235,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
           <div class="admin-editor-actions">
             <button id="edPublish" type="button" class="admin-btn admin-btn-primary" data-for="draft" disabled>Publish</button>
+            <button id="edFinish" type="button" class="admin-btn admin-btn-primary" data-for="draft" hidden>Finish publishing</button>
             <label class="admin-check" data-for="post"><input id="edMinor" type="checkbox" /> Small fix: don’t mark the post as updated</label>
             <button id="edSavePost" type="button" class="admin-btn admin-btn-primary" data-for="post" disabled>Save changes</button>
             <p class="admin-small" data-not-live></p>
@@ -740,6 +746,20 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-sections a:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: -2px;
+  }
+  .admin-card-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .admin-card-preview img {
+    width: 100%;
+    max-width: 36rem;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
   }
 </style>
 
