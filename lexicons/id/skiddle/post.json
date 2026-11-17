@@ -1,0 +1,73 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.post",
+  "description": "skiddle.id's content for a site.standard.document: the post's Markdown, its images, and what Standard.site doesn't have. Goes in the document's open `content` union.",
+  "defs": {
+    "main": {
+      "type": "object",
+      "required": ["markdown"],
+      "properties": {
+        "markdown": {
+          "type": "string",
+          "maxLength": 200000,
+          "description": "The post body: CommonMark with GitHub's extensions (tables, footnotes, strikethrough). An image is written ![alt](image:NAME), NAME being the name of one of `images`."
+        },
+        "images": {
+          "type": "array",
+          "maxLength": 50,
+          "items": { "type": "ref", "ref": "#image" },
+          "description": "The images the Markdown shows."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["infra", "atproto", "homelab", "life"],
+          "description": "The section of the site the post belongs to. Readers that don't know the value can ignore it."
+        },
+        "lang": {
+          "type": "string",
+          "format": "language",
+          "description": "The post's language, e.g. 'en' or 'id'. Absent means English."
+        },
+        "series": {
+          "type": "ref",
+          "ref": "#seriesPart",
+          "description": "The series the post is a part of, if any."
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Shown first on the home page."
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "required": ["name", "image", "alt"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "How the Markdown refers to the image: ![alt](image:NAME). Unique within the post."
+        },
+        "image": { "type": "blob", "accept": ["image/*"], "maxSize": 1000000 },
+        "alt": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000,
+          "description": "Text for people who can't see the image."
+        },
+        "caption": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 },
+        "width": { "type": "integer", "minimum": 1, "description": "In pixels, so the page doesn't jump while it loads." },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "seriesPart": {
+      "type": "object",
+      "required": ["series", "part"],
+      "properties": {
+        "series": { "type": "string", "format": "at-uri", "description": "An id.skiddle.series record." },
+        "part": { "type": "integer", "minimum": 1, "description": "Which part of the series it is, from 1." }
+      }
+    }
+  }
+}

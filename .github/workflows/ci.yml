@@ -30,3 +30,6 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+
+      # Every post and series fits the lexicons in lexicons/ (docs/v4/posts-on-atproto.md)
+      - run: npm run check:lexicons

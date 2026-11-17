@@ -10,6 +10,7 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler dev",
     "typegen": "wrangler types",
+    "check:lexicons": "node scripts/check-lexicons.mjs",
     "test:preview": "node --test --test-concurrency=1 \"tests/*.test.mjs\"",
     "status": "node scripts/status.mjs"
   },
@@ -23,6 +24,7 @@
     "astro": "^7.4.12"
   },
   "devDependencies": {
+    "@atproto/lexicon": "0.7.19",
     "@axe-core/puppeteer": "^4.14.0",
     "@cloudflare/vite-plugin": "^1.69.1",
     "@eslint/js": "^10.0.1",
