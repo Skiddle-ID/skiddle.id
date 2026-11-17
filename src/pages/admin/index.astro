@@ -830,7 +830,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   }
   .admin-parts li {
     display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.5rem;
   }
@@ -845,6 +845,11 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-parts a {
     color: var(--color-primary);
     overflow-wrap: anywhere;
+  }
+  .admin-parts .admin-part-remove {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 1.25rem;
   }
   .admin-self-start {
     align-self: flex-start;

@@ -12,17 +12,22 @@
 export const SITE_CONNECT = "'self' https://public.api.bsky.app https://cloudflareinsights.com";
 export const ADMIN_CONNECT = `${SITE_CONNECT} https://plc.directory https://bsky.social https://*.bsky.network https://cloudflare-dns.com`;
 
+export const SITE_IMG = "'self' data: https:";
+/** The admin app also shows images it made in the browser (blob: URLs): share cards it drew, images about to be uploaded */
+export const ADMIN_IMG = `${SITE_IMG} blob:`;
+
 /**
- * The policy, given the script-src sources (hashes, or 'unsafe-inline') and connect-src
+ * The policy, given the script-src sources (hashes, or 'unsafe-inline'), connect-src and img-src
  * @param {string} scriptSrc
  * @param {string} [connectSrc]
+ * @param {string} [imgSrc]
  */
-export function cspDirectives(scriptSrc, connectSrc = SITE_CONNECT) {
+export function cspDirectives(scriptSrc, connectSrc = SITE_CONNECT, imgSrc = SITE_IMG) {
   return [
     "default-src 'self'",
     `script-src 'self' https://static.cloudflareinsights.com ${scriptSrc}`.trimEnd(),
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
+    `img-src ${imgSrc}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     "form-action 'self'",

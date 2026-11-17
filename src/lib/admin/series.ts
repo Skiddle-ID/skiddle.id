@@ -275,14 +275,15 @@ function plannedRow(p: PlannedPart) {
   const title = document.createElement('input');
   title.type = 'text';
   title.autocomplete = 'off';
-  title.placeholder = 'Title of the planned part';
+  title.placeholder = 'Title';
   title.value = p.title;
   title.setAttribute('aria-label', 'Title of the planned part');
   const remove = document.createElement('button');
   remove.type = 'button';
-  remove.className = 'admin-btn admin-btn-ghost';
+  remove.className = 'admin-btn admin-btn-ghost admin-part-remove';
   remove.dataset.remove = '';
-  remove.textContent = 'Remove';
+  remove.textContent = '×';
+  remove.title = 'Remove';
   remove.setAttribute('aria-label', 'Remove this planned part');
   li.appendChild(n);
   li.appendChild(title);
@@ -343,7 +344,8 @@ function problems(f: SeriesForm): string[] {
 function refresh(): string[] {
   const f = readForm();
   const issues = problems(f);
-  message('seProblems', issues.join(' '), issues.length ? 'error' : 'info');
+  // A new series that nothing's been typed into yet isn't wrong, just empty
+  message('seProblems', current?.key || dirty ? issues.join(' ') : '', issues.length ? 'error' : 'info');
   el('seDescriptionCount').textContent = `${countChars(f.description.trim())}/${MAX_DESCRIPTION}`;
   const key = keyFor(f);
   el('seKey').textContent = current?.key

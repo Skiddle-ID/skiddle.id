@@ -12,8 +12,9 @@
  * (script-src, with an integrity hash) and reports to cloudflareinsights.com (connect-src).
  *
  * The admin app (/admin/) gets its own policy: the same, plus 'wasm-unsafe-eval' (it runs
- * WebAssembly to draw share cards, src/lib/admin/card.ts; WebAssembly only, not eval), plus the
- * hosts it signs in with and writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
+ * WebAssembly to draw share cards, src/lib/admin/card.ts; WebAssembly only, not eval), blob:
+ * images (the cards it draws and the images it's about to upload, shown before they're stored
+ * anywhere), plus the hosts it signs in with and writes to (connect-src): plc.directory (DID lookup), bsky.social (sign-in), Bluesky's PDS
  * hosts (*.bsky.network) and Cloudflare's DNS-over-HTTPS (the lexicon DNS check). Its rule drops
  * the site-wide CSP first (`! Content-Security-Policy`), because two policies would both apply.
  * Moving the account to another PDS means adding that host to ADMIN_CONNECT (src/lib/csp.mjs).
@@ -27,7 +28,7 @@ import { createHash } from 'node:crypto';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { ADMIN_CONNECT, cspDirectives, inlineScripts } from '../lib/csp.mjs';
+import { ADMIN_CONNECT, ADMIN_IMG, cspDirectives, inlineScripts } from '../lib/csp.mjs';
 
 // Cloudflare limits a _headers line to 2,000 characters
 const MAX_LINE = 2000;
@@ -52,13 +53,14 @@ export default function securityHeaders(): AstroIntegration {
         let scriptSrc = [...hashes].sort().join(' ');
         // The admin app runs WebAssembly when it draws a post's share card (src/lib/admin/card.ts)
         const adminScripts = (src: string) => `${src} 'wasm-unsafe-eval'`;
-        const longest = `  Content-Security-Policy: ${directives(adminScripts(scriptSrc), ADMIN_CONNECT)}`.length;
+        const adminPolicy = (src: string) => directives(adminScripts(src), ADMIN_CONNECT, ADMIN_IMG);
+        const longest = `  Content-Security-Policy: ${adminPolicy(scriptSrc)}`.length;
         if (longest > MAX_LINE) {
           logger.warn(`CSP with ${hashes.size} script hashes is ${longest} chars (limit ${MAX_LINE}); falling back to 'unsafe-inline' for scripts`);
           scriptSrc = "'unsafe-inline'";
         }
         const line = `  Content-Security-Policy: ${directives(scriptSrc)}`;
-        const adminRule = ['/admin/*', '  ! Content-Security-Policy', `  Content-Security-Policy: ${directives(adminScripts(scriptSrc), ADMIN_CONNECT)}`];
+        const adminRule = ['/admin/*', '  ! Content-Security-Policy', `  Content-Security-Policy: ${adminPolicy(scriptSrc)}`];
 
         // Put the CSP inside the existing `/*` rule from public/_headers: a second rule with the
         // same pattern replaces the first instead of merging with it
