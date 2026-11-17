@@ -52,6 +52,8 @@ export interface Series {
   ongoing: boolean;
   /** How often new parts come out, e.g. 'every week' */
   cadence?: string;
+  /** What the series is about */
+  description?: string;
 }
 
 /** One part of a series: a published post, or a planned part that's still to come */
@@ -84,7 +86,16 @@ export function groupSeries(posts: Post[], info: Record<string, SeriesInfo> = se
         ...parts.map((post, i) => ({ post, order: post.data.order ?? i + 1, title: post.data.title })),
         ...planned.map((pl) => ({ order: pl.order, title: pl.title })),
       ].sort((a, b) => a.order - b.order);
-      return { name, slug: seriesSlug(name), parts, planned, entries, ongoing: extra.ongoing ?? false, cadence: extra.cadence };
+      return {
+        name,
+        slug: seriesSlug(name),
+        parts,
+        planned,
+        entries,
+        ongoing: extra.ongoing ?? false,
+        cadence: extra.cadence,
+        description: extra.description,
+      };
     })
     .sort((a, b) => latest(b) - latest(a));
 }

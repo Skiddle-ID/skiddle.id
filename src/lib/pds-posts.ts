@@ -41,7 +41,6 @@ export interface PdsPostData extends PostData {
 
 export interface PdsSeriesData extends SeriesInfo {
   name: string;
-  description?: string;
 }
 
 interface DocumentRecord {

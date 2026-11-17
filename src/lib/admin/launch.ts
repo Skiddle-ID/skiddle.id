@@ -8,11 +8,16 @@
  *
  * At the launch (docs/v4/posts-on-atproto.md, "The switch"): set this to true, and add to the
  * sign-in's COLLECTIONS (src/lib/admin/oauth.ts) site.standard.document, id.skiddle.series and
- * app.bsky.feed.post (create, for the announcement). That turns on publishing drafts, and saving
- * and unpublishing published posts (src/lib/admin/editor.ts).
+ * app.bsky.feed.post (create, for the announcement). That turns on publishing drafts, saving
+ * and unpublishing published posts (src/lib/admin/editor.ts), and saving and deleting series
+ * (src/lib/admin/series.ts).
  */
 export const PUBLISHING_LIVE = false;
 
 /** Why publishing is off, shown under the buttons it disables */
 export const NOT_LIVE_YET =
   'Publishing from here starts with the v4 launch. Until then the site is built from git, and the sync would undo changes made here.';
+
+/** The same for series (src/lib/admin/series.ts) */
+export const SERIES_NOT_LIVE_YET =
+  'Saving series from here starts with the v4 launch. Until then the sync writes each series’ name, planned parts and cadence from git, and would undo changes made here. Changes are kept on this device.';

@@ -149,6 +149,40 @@ export function postContent(fm, markdown, images = []) {
  */
 
 /**
+ * An `id.skiddle.series` record as the admin app's series editor saves it: empty fields left out,
+ * planned parts in order, a cadence only for an ongoing series. Fields the editor doesn't show are
+ * kept from the record as it was (`previous`), and so is its creation date.
+ * @param {object} input What the editor's form holds
+ * @param {string} input.name
+ * @param {string} [input.description]
+ * @param {boolean} [input.ongoing]
+ * @param {string} [input.cadence]
+ * @param {{ part: number, title: string }[]} [input.planned]
+ * @param {unknown} [input.coverImage] The series' share card, as a blob reference
+ * @param {Record<string, unknown>} [previous] The record as it was (an existing series)
+ * @param {string} [at] Now, as an ISO date
+ * @returns {Record<string, unknown>}
+ */
+export function seriesRecord(input, previous = {}, at = new Date().toISOString()) {
+  /** @type {Record<string, unknown>} */
+  const record = { ...previous, $type: SERIES_COLLECTION, name: input.name.trim() };
+  for (const key of ['description', 'ongoing', 'cadence', 'planned', 'coverImage']) delete record[key];
+  const description = input.description?.trim();
+  if (description) record.description = description;
+  if (input.ongoing) {
+    record.ongoing = true;
+    const cadence = input.cadence?.trim();
+    if (cadence) record.cadence = cadence;
+  }
+  const planned = (input.planned ?? []).map((p) => ({ part: p.part, title: p.title.trim() })).sort((a, b) => a.part - b.part);
+  if (planned.length) record.planned = planned;
+  if (input.coverImage) record.coverImage = input.coverImage;
+  record.createdAt = typeof previous.createdAt === 'string' ? previous.createdAt : at;
+  record.updatedAt = at;
+  return record;
+}
+
+/**
  * The `id.skiddle.series` records for the series that posts belong to or that src/data/series.ts
  * describes, keyed by record key (the series' slug). `createdAt` is the first part's date, so the
  * records don't change from one run to the next.

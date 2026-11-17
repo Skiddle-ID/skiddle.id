@@ -1,7 +1,8 @@
 /**
- * A post's share card, drawn in the browser when the admin app publishes it (or shows it in the
- * editor): the same layout as the build's cards (src/lib/share-card-layout.ts), turned into a PNG
- * by resvg's WebAssembly build. It draws exactly what the build draws (the same resvg version).
+ * Share cards drawn in the browser: a post's when the admin app publishes it, a series' when it's
+ * saved, and either when the editor shows it. The same layout as the build's cards
+ * (src/lib/share-card-layout.ts), turned into a PNG by resvg's WebAssembly build. It draws exactly
+ * what the build draws (the same resvg version).
  *
  * Loaded only when needed (the editor imports it on demand): satori, resvg and the fonts are about
  * 3 MB. The admin page's CSP allows WebAssembly ('wasm-unsafe-eval', src/integrations/security-headers.ts).
@@ -14,7 +15,7 @@ import monoExt400 from '@fontsource/geist-mono/files/geist-mono-latin-ext-400-no
 import monoExt700 from '@fontsource/geist-mono/files/geist-mono-latin-ext-700-normal.woff?url';
 import thai400 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-400-normal.woff?url';
 import thai700 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-700-normal.woff?url';
-import { CARD_WIDTH, shareCardSvg, type CardFont } from '~/lib/share-card-layout';
+import { CARD_WIDTH, shareCardSvg, type CardFont, type ShareCard } from '~/lib/share-card-layout';
 
 // The same fonts as the build (src/integrations/share-cards.ts); satori reads WOFF, not WOFF2
 const FONTS: { name: string; weight: 400 | 700; url: string }[] = [
@@ -58,17 +59,40 @@ export interface CardPost {
   markdown: string;
 }
 
-/** The post's share card, a 1200×630 PNG, as the build would draw it */
-export async function drawPostCard(post: CardPost): Promise<Blob> {
+/** A card as a 1200×630 PNG */
+async function draw(card: Omit<ShareCard, 'logo'>): Promise<Blob> {
   const { fonts, logo } = await load();
+  const svg = await shareCardSvg({ ...card, logo }, fonts);
+  const png = new Resvg(svg, { fitTo: { mode: 'width', value: CARD_WIDTH } }).render().asPng();
+  return new Blob([new Uint8Array(png)], { type: 'image/png' });
+}
+
+/** The post's share card, as the build would draw it */
+export function drawPostCard(post: CardPost): Promise<Blob> {
   // As the post page computes them (src/lib/posts.ts): words / 220, and the date in UTC
   const minutes = Math.max(1, Math.round(post.markdown.split(/\s+/).filter(Boolean).length / 220));
   const date = post.publishedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
   const description = post.description || `${post.markdown.slice(0, 160).trimEnd()}…`;
-  const svg = await shareCardSvg(
-    { command: `cat posts/${post.slug}.md`, title: post.title, description, meta: [date, `${minutes} min read`], logo },
-    fonts,
-  );
-  const png = new Resvg(svg, { fitTo: { mode: 'width', value: CARD_WIDTH } }).render().asPng();
-  return new Blob([new Uint8Array(png)], { type: 'image/png' });
+  return draw({ command: `cat posts/${post.slug}.md`, title: post.title, description, meta: [date, `${minutes} min read`] });
+}
+
+export interface CardSeries {
+  /** The record key, which a series page would use: /series/<key>/ */
+  key: string;
+  name: string;
+  description?: string;
+  ongoing: boolean;
+  cadence?: string;
+  /** Published and planned parts together */
+  parts: number;
+}
+
+/**
+ * The series' share card, in the style of the list pages' cards: "cd ~/series/<key>", its name and
+ * description, and how many parts it has, or how often new ones come out if it's ongoing (a count
+ * would go stale with every new part)
+ */
+export function drawSeriesCard(series: CardSeries): Promise<Blob> {
+  const meta = series.ongoing ? (series.cadence ? `new ${series.cadence}` : 'ongoing') : `${series.parts} ${series.parts === 1 ? 'part' : 'parts'}`;
+  return draw({ command: `cd ~/series/${series.key}`, title: series.name, description: series.description, meta: [meta] });
 }
