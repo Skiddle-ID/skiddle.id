@@ -126,22 +126,22 @@ Records:
 - [x] Posts stay one `site.standard.document` each (Standard.site covers the published post), with the same record keys, so links and comments keep working: all 14 are skiddle.id records ([#125](https://github.com/Skiddle-ID/skiddle.id/pull/125))
 - [x] `id.skiddle.post`, in the document's `content`: the Markdown, its images as blobs, and category, language, series and part, featured ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
 - [x] `id.skiddle.series`: one record per series (name, description, planned parts, ongoing, cadence, share card); the sync writes the four from `src/data/series.ts`, which goes at launch ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
-- [ ] `id.skiddle.draft` for drafts and scheduled posts
+- [x] `id.skiddle.draft` for drafts and scheduled posts: drafts are written from the admin app ([#129](https://github.com/Skiddle-ID/skiddle.id/pull/129))
 - [x] v3's AT Protocol sync fills them from git (content, images, series), so the records match git until the switch ([#124](https://github.com/Skiddle-ID/skiddle.id/pull/124))
 - [x] Retire the MDX demo post, before the sync fills the records ([#121](https://github.com/Skiddle-ID/skiddle.id/pull/121))
 - [x] Move pckt.blog's six posts to the skiddle.id publication (`MOVE_PCKT_DOCUMENTS`), keeping their record keys ([#125](https://github.com/Skiddle-ID/skiddle.id/pull/125))
 
 The site:
 
-- [ ] Posts and series read from the PDS when a page is requested (Astro 7 live collections), with Markdown rendered in the Worker
-- [ ] Astro's route cache on Cloudflare for the post pages, lists, topics, series, feeds, sitemap and search, plus `/api/revalidate` so a save shows straight away
-- [ ] `/media/<cid>` for images and share cards from the repo. Post and series cards are stored in their records (a post's is Standard.site's `coverImage`); tag pages use the Topics card
-- [ ] The site CSP on rendered pages, from the middleware
-- [ ] A parity check: every post on staging, built from records, matches production, built from git
+- [x] Posts and series read from the PDS when a page is requested (Astro 7 live collections), with Markdown rendered in the Worker: post pages ([#127](https://github.com/Skiddle-ID/skiddle.id/pull/127)), then the lists, feeds, sitemap, search and latest card ([#128](https://github.com/Skiddle-ID/skiddle.id/pull/128))
+- [x] Astro's route cache on Cloudflare for the post pages, lists, topics, series, feeds, sitemap and search, plus `/api/revalidate` so a save shows straight away ([#128](https://github.com/Skiddle-ID/skiddle.id/pull/128)). Purging pages by tag isn't available on workers.dev; check it on skiddle.id after the launch
+- [x] `/media/<cid>` for images and share cards from the repo ([#127](https://github.com/Skiddle-ID/skiddle.id/pull/127)). Post and series cards are stored in their records (a post's is Standard.site's `coverImage`); tag pages use the Topics card
+- [x] The site CSP on rendered pages, from the middleware ([#127](https://github.com/Skiddle-ID/skiddle.id/pull/127))
+- [x] A parity check: every post on staging, built from records, matches production, built from git; also the lists, feed, sitemap, search and latest post ([#127](https://github.com/Skiddle-ID/skiddle.id/pull/127), [#128](https://github.com/Skiddle-ID/skiddle.id/pull/128))
 
 The admin app:
 
-- [ ] Write and edit posts: Markdown with a live preview, images, series and part, drafts
+- [x] Write drafts: Markdown with a live preview (the site's renderer), images shrunk under 1 MB, series and part, saved as you type ([#129](https://github.com/Skiddle-ID/skiddle.id/pull/129))
 - [ ] Publish: draws the share card in the browser, writes the record, announces it on Bluesky and turns comments on
 - [ ] Edit and unpublish published posts; edits set the "updated" date
 - [ ] Series: create and edit them, including planned parts; saving draws the series' share card
