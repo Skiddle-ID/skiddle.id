@@ -24,7 +24,7 @@ publishAt: 2026-11-20T09:00:00+07:00
 draft: true
 ```
 
-Merge it any time before then; its preview shows "Scheduled for Nov 20, 2026, 9:00 AM (Bangkok time)". Every hour, [Publish scheduled posts](.github/workflows/scheduled-publish.yml) (`scripts/publish-scheduled.mjs`) publishes the posts whose time has passed, oldest first. It sets `draft: false` and `pubDate` to the scheduled time, removes `publishAt`, and pushes to `v3`, which Cloudflare deploys. Then it starts the Bluesky announcement, which waits until the post is live. GitHub can start the hourly run a few minutes late. To move or cancel a post, change or remove `publishAt` before then. To publish due posts straight away, run the workflow by hand with dry run off.
+Merge it any time before then; its preview shows "Scheduled for Nov 20, 2026, 9:00 AM (Bangkok time)". Every hour, [Publish scheduled posts](.github/workflows/scheduled-publish.yml) (`scripts/publish-scheduled.mjs`) publishes the posts whose time has passed, oldest first. It sets `draft: false` and `pubDate` to the scheduled time, removes `publishAt`, and pushes to `v3`, which Cloudflare deploys. Then it starts the Bluesky announcement, which waits until the post is live and then starts the AT Protocol sync. GitHub can start the hourly run late, or skip it when it's busy: if a post is overdue, run the workflow by hand. To move or cancel a post, change or remove `publishAt` before then. To publish due posts straight away, run the workflow by hand with dry run off.
 
 ### Updated dates
 
