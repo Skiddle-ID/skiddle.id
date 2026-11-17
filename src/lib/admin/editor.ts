@@ -12,7 +12,8 @@
  *
  * Published posts (#post/<rkey>) are `site.standard.document` records. They open in the same
  * editor, with the address fixed (changing it would break links) and an explicit "Save changes",
- * since a save goes live. Saving, unpublishing and publishing drafts wait for the v4 launch
+ * since a save goes live. A save keeps the publish date and sets "updated" to now, unless it's
+ * ticked as a small fix (like `[skip updated]` in a git commit), which leaves "updated" as it was. Saving, unpublishing and publishing drafts wait for the v4 launch
  * (src/lib/admin/launch.ts); until then edits are kept on this device.
  *
  *   - The preview uses the same renderer as the site (src/lib/post-html.mjs) and the site's styles.
@@ -315,6 +316,7 @@ async function open(kind: Kind, rkey: string) {
     fillSelect(el('edSeries'), series.filter((s) => s.value.name).map((s) => [s.uri, s.value.name!]), 'No series');
     fillEditor(opened.value);
     el<HTMLInputElement>('edSlug').readOnly = kind === 'post';
+    el<HTMLInputElement>('edMinor').checked = false;
     const view = el<HTMLAnchorElement>('edViewPost');
     view.href = opened.value.path ?? '/posts/';
     el<HTMLButtonElement>('edSavePost').disabled = true;
@@ -474,21 +476,24 @@ async function saveDraft(force = false): Promise<void> {
 
 /**
  * Saves a published post's changes to its record, keeping the fields the editor doesn't show
- * (the share card, the Bluesky thread, its publish date), then asks the site to refresh its pages
+ * (the share card, the Bluesky thread, its publish date), then asks the site to refresh its pages.
+ * "updated" becomes now, unless the save is ticked as a small fix.
  */
 async function savePost(force = false): Promise<void> {
   if (!PUBLISHING_LIVE || !current || current.kind !== 'post' || !current.doc || (conflict && !force)) return;
   const form = formDraft();
   if (problems(form).length) return;
   const target = current;
+  const minor = el<HTMLInputElement>('edMinor').checked;
   const doc: DocumentRecord = {
     ...target.doc!,
     title: form.title,
     tags: form.tags,
     textContent: plainText(form.content.markdown),
     content: form.content,
-    updatedAt: now(),
+    updatedAt: minor ? target.doc!.updatedAt : now(),
   };
+  if (!doc.updatedAt) delete doc.updatedAt;
   if (form.description) doc.description = form.description;
   else delete doc.description;
   if (!form.tags) delete doc.tags;
@@ -503,7 +508,8 @@ async function savePost(force = false): Promise<void> {
     removeBackup(target.kind, target.rkey);
     dirty = false;
     await fetch('/api/revalidate', { method: 'POST' }).catch(() => {});
-    if (current === target) el('editorState').textContent = `Saved and live ${formatTime(doc.updatedAt!)}`;
+    el<HTMLInputElement>('edMinor').checked = false;
+    if (current === target) el('editorState').textContent = `Saved and live ${formatTime(now())}${minor ? ' (a small fix: not marked as updated)' : ''}`;
   } catch (err) {
     button.disabled = false;
     saveFailed(err);
