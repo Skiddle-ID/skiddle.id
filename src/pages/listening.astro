@@ -1,0 +1,157 @@
+---
+/*
+  /listening/: what Jeff listens to, from teal.fm's records in his AT Protocol repo (src/lib/teal.mjs):
+  what's playing now, this week's top artists and tracks, then every play, newest first, 50 to a page.
+  /listening/?older=<token> pages back, through the current collection and then the alpha one
+  (src/lib/listening.ts). Plays come from Apple Music, and from Spotify through Last.fm (piper).
+*/
+import Shell from '../layouts/shell.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { playsPage, weekPlays } from '~/lib/listening';
+import { getAlbumArt, getRecentTrack } from '~/lib/music';
+import { parseOlder, weekSummary, type Track } from '~/lib/teal.mjs';
+
+export const prerender = false;
+
+const raw = Astro.url.searchParams.get('older');
+const start = raw === null ? undefined : parseOlder(raw);
+if (raw !== null && !start) return Astro.redirect('/listening/', 302);
+const older = !!start;
+
+const now = Date.now();
+const [page, recent, week] = await Promise.all([
+  playsPage(start ?? undefined),
+  older ? Promise.resolve(null) : getRecentTrack(),
+  older ? Promise.resolve([]) : weekPlays(now),
+]);
+const art = recent ? await getAlbumArt(recent) : undefined;
+const summary = weekSummary(week, now);
+// The newest page changes with every play; an older one only as plays get added in front of it
+Astro.cache.set({ maxAge: older ? 3600 : 60, swr: 600, tags: ['listening'] });
+
+const TZ = 'Asia/Bangkok';
+const dayKey = (s: number) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(s * 1000);
+const today = dayKey(now / 1000);
+const yesterday = dayKey(now / 1000 - 86400);
+const thisYear = new Intl.DateTimeFormat('en', { timeZone: TZ, year: 'numeric' }).format(now);
+function dayLabel(s: number): string {
+  const key = dayKey(s);
+  if (key === today) return 'Today';
+  if (key === yesterday) return 'Yesterday';
+  const year = new Intl.DateTimeFormat('en', { timeZone: TZ, year: 'numeric' }).format(s * 1000);
+  return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short', ...(year === thisYear ? {} : { year: 'numeric' }) }).format(s * 1000);
+}
+const time = (s: number) => new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(s * 1000);
+const ago = (s: number) => {
+  const m = Math.max(0, Math.round((now / 1000 - s) / 60));
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  return h < 24 ? `${h} h ago` : `${Math.round(h / 24)} d ago`;
+};
+
+// Plays grouped by day, in Bangkok time
+const days: { label: string; plays: Track[] }[] = [];
+for (const p of page.plays) {
+  const label = p.playedAt ? dayLabel(p.playedAt) : 'Undated';
+  if (days.at(-1)?.label === label) days.at(-1)!.plays.push(p);
+  else days.push({ label, plays: [p] });
+}
+const meta = CONTENT_PAGES.listening;
+const h2 = 'font-semibold before-hash-2';
+---
+
+<Shell title={`${older ? 'Older plays' : meta.title} — Skiddle`} description={meta.description}>
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">{older ? 'Older plays' : 'Listening'}</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        What I've been listening to, from my plays on <a href="https://teal.fm" class="link" target="_blank" rel="noopener">teal.fm</a>, which keeps
+        them as records in my own AT Protocol repo. They come from Apple Music, and from Spotify through Last.fm.
+      </p>
+    </header>
+
+    {recent && (
+      <section aria-labelledby="now" class="mt-8">
+        <h2 id="now" class="sr-only">{recent.isCurrent ? 'Now playing' : 'Last played'}</h2>
+        <div class="card p-4 flex items-center gap-4">
+          {art
+            ? <img src={art} alt="" width="60" height="60" class="size-15 rounded shrink-0" />
+            : <span class="size-15 rounded border shrink-0 flex items-center justify-center text-[var(--color-muted)]" aria-hidden="true">♪</span>}
+          <div class="min-w-0">
+            <p class="text-xs text-[var(--color-muted)]">
+              {recent.isCurrent ? <span class="text-[var(--color-ok)]">● now playing</span> : <span>last played · {recent.playedAt ? ago(recent.playedAt) : ''}</span>}
+            </p>
+            <p class="font-semibold truncate">
+              {recent.trackUrl ? <a href={recent.trackUrl} class="hover:text-[var(--color-primary)]" target="_blank" rel="noopener noreferrer">{recent.name}</a> : recent.name}
+            </p>
+            <p class="text-sm text-[var(--color-muted)] truncate">{[recent.artist, recent.album].filter(Boolean).join(' · ')}</p>
+          </div>
+        </div>
+      </section>
+    )}
+
+    {!older && (
+      <section aria-labelledby="week" class="mt-10">
+        <h2 id="week" class={h2}>This week</h2>
+        <p class="text-sm text-[var(--color-muted)] mt-1">{summary.plays} {summary.plays === 1 ? 'play' : 'plays'} in the last 7 days</p>
+        {summary.plays > 0 && (
+          <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="card p-4 min-w-0">
+              <h3 class="text-xs uppercase tracking-wider text-[var(--color-primary)]">Top artists</h3>
+              <ol class="mt-2.5 flex flex-col gap-1.5 text-sm">
+                {summary.artists.map((a, i) => (
+                  <li class="flex gap-2"><span class="text-[var(--color-muted)] w-4 shrink-0">{i + 1}</span><span class="min-w-0 flex-1 truncate">{a.name}</span><span class="text-[var(--color-muted)] shrink-0">{a.count}</span></li>
+                ))}
+              </ol>
+            </div>
+            <div class="card p-4 min-w-0">
+              <h3 class="text-xs uppercase tracking-wider text-[var(--color-primary)]">Top tracks</h3>
+              <ol class="mt-2.5 flex flex-col gap-1.5 text-sm">
+                {summary.tracks.map((t, i) => (
+                  <li class="flex gap-2">
+                    <span class="text-[var(--color-muted)] w-4 shrink-0">{i + 1}</span>
+                    <span class="min-w-0 flex-1"><span class="block truncate">{t.name}</span><span class="block truncate text-xs text-[var(--color-muted)]">{t.artist}</span></span>
+                    <span class="text-[var(--color-muted)] shrink-0">{t.count}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        )}
+      </section>
+    )}
+
+    <section aria-labelledby="plays" class="mt-10">
+      <h2 id="plays" class={h2}>{older ? 'Plays' : 'Recent plays'}</h2>
+      {days.length === 0 && <p class="text-sm text-[var(--color-muted)] mt-2">No plays here.</p>}
+      {days.map((d) => (
+        <div class="mt-5">
+          <h3 class="text-xs uppercase tracking-wider text-[var(--color-muted)]">{d.label}</h3>
+          <ul class="mt-2 flex flex-col divide-y divide-dashed">
+            {d.plays.map((p) => (
+              <li class="flex gap-3 py-2 text-sm">
+                <span class="text-[var(--color-muted)] tabular-nums shrink-0 w-11">{p.playedAt ? time(p.playedAt) : ''}</span>
+                <span class="min-w-0 flex-1">
+                  {p.trackUrl
+                    ? <a href={p.trackUrl} class="block truncate hover:text-[var(--color-primary)]" target="_blank" rel="noopener noreferrer">{p.name}</a>
+                    : <span class="block truncate">{p.name}</span>}
+                  <span class="block truncate text-xs text-[var(--color-muted)]">{[p.artist, p.album].filter(Boolean).join(' · ')}</span>
+                </span>
+                {p.service && <span class="text-[11px] text-[var(--color-muted)] shrink-0 self-center">{p.service.toLowerCase()}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <nav aria-label="More plays" class="mt-8 flex flex-wrap justify-between gap-3 text-sm">
+        {older ? <a href="/listening/" class="link">← newest</a> : <span></span>}
+        {page.older && <a href={`/listening/?older=${encodeURIComponent(page.older)}`} class="link">older plays →</a>}
+      </nav>
+    </section>
+
+    <p class="mt-12 text-xs text-[var(--color-muted)]">
+      Times are Bangkok time. The records are public: <a href={`https://pdsls.dev/at://did:plc:xaj6j6abvpgwps5v6k4t6clv/fm.teal.feed.play`} class="link" target="_blank" rel="noopener">see them on pdsls</a>.
+    </p>
+  </div>
+</Shell>
