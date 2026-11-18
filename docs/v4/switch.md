@@ -59,7 +59,7 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
    - give it the app password: `npx wrangler secret put APP_PASSWORD --config wrangler.toml`
    - its README has an optional dry run first
 9. **Run the backup once by hand.** Actions → "Back up the AT Protocol repo" → Run workflow. Then check the `backups` release has `backup-<date>.tar.gz`, and that its `manifest.json` counts the records and blobs.
-10. **Jeff: release v4.0.** The switch PR carries the `major` label, so Release Drafter's draft is v4.0. Publish it from GitHub → Releases. Then retry the latest build, so the footer shows it.
+10. **Jeff: release v4.0.** Publish Release Drafter's draft from GitHub → Releases, named v4.0. It says v4.0 by itself if the switch PR had a `major` label (the repo has no such label yet: Issues → Labels → New label); otherwise rename it. Then retry the latest build, so the footer shows it.
 11. **Jeff: archive `v3`,** like `v1` and `v2`: lock the branch (Settings → Branches → a rule for `v3` → Lock branch).
 
 ## After
