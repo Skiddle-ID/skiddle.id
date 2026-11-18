@@ -2,6 +2,7 @@
 import Shell from '../layouts/shell.astro';
 import PostList from '../components/post-list.astro';
 import SeriesBar from '../components/series-bar.astro';
+import TestimonialSlider from '../components/testimonial-slider.astro';
 import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import { PAGES_TAG, getProjects, getServices } from '~/lib/page-content';
@@ -50,7 +51,6 @@ const selected = selectedIds
   .map((id) => projects.find((p) => p.id === id))
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
-const testimonial = services.testimonials[0];
 // The status line starts from the status as the page was rendered and updates from /api/status.json
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const h2 = 'font-semibold before-hash-2';
@@ -161,17 +161,8 @@ const h2 = 'font-semibold before-hash-2';
       </div>
     </section>
 
-    <!-- Kind words -->
-    {testimonial && (
-      <section aria-label="Testimonial" class="mt-12">
-        <figure class="border-l-2 border-[var(--color-primary)] pl-4">
-          <blockquote class="text-sm leading-relaxed">“{testimonial.quote}”</blockquote>
-          <figcaption class="text-xs text-[var(--color-muted)] mt-2">
-            — <span class="text-[var(--color-text)]">{testimonial.author}</span>, {testimonial.role}
-          </figcaption>
-        </figure>
-      </section>
-    )}
+    <!-- Kind words: every testimonial, sliding (src/components/testimonial-slider.astro) -->
+    <TestimonialSlider testimonials={services.testimonials} />
 
     <!-- Work with me -->
     <section aria-labelledby="hire" class="mt-12 card p-5">
