@@ -47,7 +47,7 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 Posts and series:
 
-- [ ] Everything in [v4: posts and series](#v4-posts-and-series)
+- [x] Everything in [v4: posts and series](#v4-posts-and-series)
 
 The pages' content, today in `src/data/` and the page files. Each part becomes records, which the pages read when someone asks for them and cache, like posts. The plan is in [docs/v4/pages-on-atproto.md](docs/v4/pages-on-atproto.md):
 
@@ -59,7 +59,7 @@ The pages' content, today in `src/data/` and the page files. Each part becomes r
 - [x] Publish the lexicons (Site → Lexicons) and run the import (Pages), on staging. Done on 2026-11-18: all 10 records match the site's data, and staging reads them with no difference from production
 - [x] The pages read the records, falling back to the data files until the switch, with a parity check against production in every PR's preview checks ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140))
 - [x] The admin app: edit them in the Pages section, with forms made from the lexicons. Saving turns on at the switch, with posts ([#141](https://github.com/Skiddle-ID/skiddle.id/pull/141))
-- [ ] At the switch, remove the data files from git, the pages' fallback to them, and the import. What stays in git:
+- [x] At the switch, remove the data files from git, the pages' fallback to them, and the import ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143)). What stays in git:
   - the code
   - the rendered pages' titles, descriptions and share card commands (`list-pages.ts`)
   - the built-in status the site falls back to when the PDS can't be read (`status.ts`)
@@ -83,6 +83,8 @@ Then the [launch checklist](#the-v4-branch).
 
 ## The v4 branch
 
+**v4 has been production since 2026-11-18** ([the switch](docs/v4/switch.md), [#143](https://github.com/Skiddle-ID/skiddle.id/pull/143)): skiddle.id renders everything from Jeff's AT Protocol repo, PRs go into `v4`, and `v4` is the default branch. The rest of this section is how v4 was built alongside v3.
+
 v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 takes shape.
 
 - **Staging site:** every push to `v4` gets its own Cloudflare preview at `https://v4-skiddle-id.skiddle.workers.dev`. It shows drafts and isn't indexed, like any preview.
@@ -92,11 +94,11 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 
 **Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in v4.1 and v4.2). Every step, in order and with who does it, is in [docs/v4/switch.md](docs/v4/switch.md):
 
-- [ ] Merge `v3` into `v4` one last time
-- [ ] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series))
-- [ ] Cloudflare: make `v4` the production branch in the skiddle-id Worker's build settings
-- [ ] GitHub: make `v4` the default branch
-- [ ] Switch everything that names `v3` to `v4`: the workflows (`branches`, `ref`, `HEAD:v3`, `--ref v3`), the "Suggest an edit", history and license links (`blob/v3/…`, `commits/v3/…`), robots.txt, the README
+- [x] Merge `v3` into `v4` one last time: nothing left to merge on 2026-11-18
+- [x] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series)) ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143))
+- [x] Cloudflare: make `v4` the production branch in the skiddle-id Worker's build settings
+- [x] GitHub: make `v4` the default branch
+- [x] Switch everything that names `v3` to `v4`: the workflows, the license links, robots.txt, the README. A post's "Suggest an edit" became "View the record", since posts left git ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143))
 - [ ] Release v4.0, then keep `v3` as an archived major, like `v1` and `v2`
 
 ## AT Protocol backend
@@ -162,8 +164,8 @@ Safety:
 
 The switch, at launch:
 
-- [ ] Publish the last post from git, run the sync one last time, make v4 production, then run the backup once by hand and check it
-- [ ] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, MDX support, and drawing share cards for posts and tags at build time
+- [x] Publish the last post from git, run the sync one last time, make v4 production, then run the backup once by hand and check it (2026-11-18)
+- [x] Remove `src/content/posts`, the post images, `src/data/series.ts`, the git publishing workflows and their scripts, MDX support, and drawing share cards for posts and tags at build time ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143))
 
 ## v5: the redesign
 

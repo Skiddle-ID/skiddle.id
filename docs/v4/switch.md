@@ -45,7 +45,7 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
 1. **Merge `v3` into `v4` one last time** (a PR), so `v4` has every commit. If that brings new post files, the switch PR is updated to remove them too.
 2. **Jeff: stop v3's publishing.** In GitHub → Actions, disable "Announce posts on Bluesky", "Publish posts to AT Protocol" and "Publish scheduled posts". From now on, nothing on `v3` can rewrite or delete records: the sync deletes the documents git doesn't have, which would include posts published from the admin app.
 3. **Merge the switch PR.** `v4`'s staging build now has publishing on. Check it builds. Until step 4 the staging site counts as production, so it isn't marked noindex for those few minutes.
-4. **Jeff: make `v4` production in Cloudflare.** Workers & Pages → skiddle-id → Settings → Build → production branch `v4`. Then retry the switch's build from the Worker's build history, so it deploys to skiddle.id.
+4. **Jeff: make `v4` production in Cloudflare.** Workers & Pages → skiddle-id → Settings → Build → production branch `v4`. Changing the setting doesn't start a build, and the switch's own build already ran as staging. So start one: retry the switch's build from the Worker's build history, or push a commit to `v4` (an empty one does).
 5. **Check skiddle.id.**
    - The build meta is the switch commit.
    - Every page answers.
@@ -61,6 +61,26 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
 9. **Run the backup once by hand.** Actions → "Back up the AT Protocol repo" → Run workflow. Then check the `backups` release has `backup-<date>.tar.gz`, and that its `manifest.json` counts the records and blobs.
 10. **Jeff: release v4.0.** Publish Release Drafter's draft from GitHub → Releases, named v4.0. It says v4.0 by itself if the switch PR had a `major` label (the repo has no such label yet: Issues → Labels → New label); otherwise rename it. Then retry the latest build, so the footer shows it.
 11. **Jeff: archive `v3`,** like `v1` and `v2`: lock the branch (Settings → Branches → a rule for `v3` → Lock branch).
+
+## How it went, on 2026-11-18
+
+1. **Nothing to merge:** `v4` already had every `v3` commit. All 14 posts were published and synced, with no drafts or scheduled posts left in git.
+2. v3's three publishing workflows were disabled with `gh workflow disable`. None was running.
+3. **The switch PR merged:** [#143](https://github.com/Skiddle-ID/skiddle.id/pull/143), as `48cd148`. Staging built it, and every page answered.
+4. **The production branch was set to `v4`.** No build started, so an empty commit (`e6e241a`) started one, and skiddle.id has served v4 since.
+5. **On skiddle.id:**
+   - Every page answers, and the feed, sitemap and search list all 14 posts.
+   - Pages are indexed, old record-key addresses redirect, and the edge cache serves.
+   - The preview suite passes, 37 of 37.
+6. **`v4` became the default branch.** The backup and "Set status" workflows are active from it.
+7. *Signing in again: Jeff.*
+8. *The scheduler: Jeff.*
+9. **The first backup:** `backup-2026-11-18.tar.gz`, 13.6 MB, in the `backups` release.
+   - `repo.car`'s root matched the PDS's latest commit, with 24,132 blocks.
+   - All 373 blobs came through, with none missing.
+   - Its manifest didn't count the page records yet, though `repo.car` has them. `SITE_COLLECTIONS` in `scripts/backup.mjs` now lists them.
+10. *The v4.0 release: Jeff.*
+11. *Locking `v3`: Jeff.*
 
 ## After
 
