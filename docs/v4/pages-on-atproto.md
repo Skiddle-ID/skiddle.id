@@ -43,8 +43,12 @@ The pages work like the post pages. They read the records when someone asks for 
 
 ## Filling them, and editing
 
-- **Import, once:** the admin app's new **Pages** section writes the records from the site's data. These collections are the site's own, and v3's sync never touches them, so they can be written now, not only at the launch. After the import, edit in the admin app, not in `src/data/`. The data files leave git at the switch.
-- **Sign-in:** the admin app asks for the new collections (`id.skiddle.project`, `.cv`, `.services`, `.uses`, `.about`), so you approve it once more on Bluesky.
+- **Import, once:** the admin app's **Pages** section ([`src/lib/admin/pages.ts`](../../src/lib/admin/pages.ts)) writes the records from the site's data. These collections are the site's own, and v3's sync never touches them, so they can be written now, not only at the launch. After the import, edit in the admin app, not in `src/data/`. The data files leave git at the switch, and the import with them.
+  - Each row compares the record in your repo with the one the site's data makes, leaving out the dates the import sets: not in your repo yet, the same, different, or only in your repo (a project since removed from `projects.ts`).
+  - **Import** writes the records that aren't there yet, with `createRecord`, so it never overwrites one.
+  - **Replace** writes the site's data over a record that differs, with `swapRecord`, after you confirm. A project keeps the date it was first imported.
+  - Nothing on the site changes yet: the pages read the records from step 4.
+- **Sign-in:** the admin app asks for the new collections (`id.skiddle.project`, `.cv`, `.services`, `.uses`, `.about`), so you approve it once more on Bluesky. Until then, Pages shows the records but can't write them, and offers to sign in again.
 - **The editors:** Pages lists the projects (each opens an editor), the CV, services, uses and About. Each editor is a form shaped like its lexicon, like the series editor:
   - It saves with `swapRecord`, so two devices can't overwrite each other.
   - It keeps a copy on the device until the save works.
@@ -53,9 +57,9 @@ The pages work like the post pages. They read the records when someone asks for 
 
 ## Steps
 
-1. **The lexicons, checked against today's data in CI.** That's this step, with this page.
-2. **Publish the lexicons** from the admin app (Site → Lexicons lists every file in `lexicons/`).
-3. **Import:** the Pages section, the sign-in's new collections, and the one-time import.
+1. **The lexicons, checked against today's data in CI** ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138)). Done.
+2. **The Pages section,** the sign-in's new collections, and the one-time import ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139)). Done.
+3. **On staging, Jeff publishes the lexicons and runs the import.** Site → Lexicons lists the five new ones. Then Pages, after signing in again. Both write to his repo.
 4. **v4's pages read the records,** checked for parity against production.
 5. **The editors.**
 6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`) and their types.

@@ -39,6 +39,22 @@ export async function xrpc<T>(session: OAuthSession, method: string, params?: Re
   return data as T;
 }
 
+/**
+ * JSON with object keys sorted and $type left out, to compare records whatever order the PDS
+ * returns keys in
+ */
+export function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .filter((k) => k !== '$type')
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 export async function getRecord<T>(session: OAuthSession, collection: string, rkey: string): Promise<RepoRecord<T> | null> {
   try {
     return await xrpc<RepoRecord<T>>(session, 'com.atproto.repo.getRecord', { repo: DID, collection, rkey });
