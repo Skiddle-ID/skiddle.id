@@ -14,7 +14,7 @@ Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol))
 
 **What stays in git:**
 - each page's own headings, one-line intros and calls to action (the redesign in v5 rewrites those)
-- the list pages' titles (`list-pages.ts`)
+- the rendered pages' titles, descriptions and share card commands (`list-pages.ts`)
 - the status the site falls back to (`status.ts`)
 - About's accent picker
 
@@ -76,10 +76,16 @@ Edit records freely once the pages read them in production.
 
 1. **The lexicons, checked against today's data in CI** ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138)). Done.
 2. **The Pages section,** the sign-in's new collections, and the one-time import ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139)). Done.
-3. **On staging, Jeff publishes the lexicons and runs the import.** Site → Lexicons lists the five new ones. Then Pages, after signing in again. Both write to his repo.
+3. **On staging, Jeff publishes the lexicons and runs the import.** Done on 2026-11-18. The five lexicons are published, the same as `lexicons/`. All 10 records match the site's data, pass their lexicons, and read back exactly as the data files. Staging's pages now say `X-Content-Source: pds`, and the parity check against production passes.
 4. **v4's pages read the records,** with a fallback to the data files and a parity check against production ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140)). Done. Until the import, staging shows the data files (`X-Content-Source: git`).
 5. **The editors** ([#141](https://github.com/Skiddle-ID/skiddle.id/pull/141)). Done. Saving turns on at the switch, with `PUBLISHING_LIVE`.
-6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`) and their types.
+6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`), and with them:
+   - the pages' fallback to them (`src/lib/page-content.ts`)
+   - the import (`src/lib/admin/pages.ts`) and the converters to records (`page-records.mjs`)
+   - the data part of `check:lexicons` and the round-trip test
+   - the parity test
+
+   First move the types that live in the data files (`About`, `Highlight`, `UsesSection`) to `src/types/`, next to the others, since the pages still use them.
 
 ## Before the import
 
@@ -88,3 +94,5 @@ Everything in a record is public and goes out on the network. Copies can stay in
 - **Email addresses:** the CV has one (`jeff@skiddle.id`), and About has two (`work@skiddle.id` and `jeff@skiddle.id`).
 
 Anything that should stay on the site but not in your repo can stay in the page template instead.
+
+The import on 2026-11-18 wrote both as the site shows them. Removing either later takes an edit after the switch, and copies made before then can stay elsewhere.

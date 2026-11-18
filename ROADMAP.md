@@ -51,17 +51,17 @@ Posts and series:
 
 The pages' content, today in `src/data/` and the page files. Each part becomes records, which the pages read when someone asks for them and cache, like posts. The plan is in [docs/v4/pages-on-atproto.md](docs/v4/pages-on-atproto.md):
 
-- [ ] Projects (`src/data/projects.ts`), the CV (`works.ts`), services (`services.ts`) and the highlights they share (`highlights.ts`)
-- [ ] Uses (`uses.ts`)
-- [ ] About: its text
+- [x] Projects (`src/data/projects.ts`), the CV (`works.ts`), services (`services.ts`) and the highlights they share (`highlights.ts`)
+- [x] Uses (`uses.ts`)
+- [x] About: its text
 - [x] Their lexicons: `id.skiddle.project` (one per project), `id.skiddle.cv`, `id.skiddle.services`, `id.skiddle.uses` and `id.skiddle.about` (one each), checked against today's data in CI (`npm run check:lexicons`). About's content moved into `src/data/about.ts` for it ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138))
 - [x] The admin app's new section, Pages, between Series and Status, with a one-time import from the site's data. The sign-in asks for the five collections ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139))
-- [ ] Publish the lexicons (Site → Lexicons) and run the import (Pages), on staging. Both write to Jeff's repo
+- [x] Publish the lexicons (Site → Lexicons) and run the import (Pages), on staging. Done on 2026-11-18: all 10 records match the site's data, and staging reads them with no difference from production
 - [x] The pages read the records, falling back to the data files until the switch, with a parity check against production in every PR's preview checks ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140))
 - [x] The admin app: edit them in the Pages section, with forms made from the lexicons. Saving turns on at the switch, with posts ([#141](https://github.com/Skiddle-ID/skiddle.id/pull/141))
-- [ ] Remove the data files from git once the pages read the records. What stays in git:
+- [ ] At the switch, remove the data files from git, the pages' fallback to them, and the import. What stays in git:
   - the code
-  - the list pages' titles (`list-pages.ts`)
+  - the rendered pages' titles, descriptions and share card commands (`list-pages.ts`)
   - the built-in status the site falls back to when the PDS can't be read (`status.ts`)
 
 Then the [launch checklist](#the-v4-branch).
