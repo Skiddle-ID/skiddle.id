@@ -72,7 +72,8 @@ Then the [launch checklist](#the-v4-branch).
 - [ ] Notes: your Bluesky posts with a chosen hashtag, read from your repo when the page is requested
 - [ ] Latest Bluesky post card, `/bluesky.svg`
 - [ ] A Bluesky custom feed for Lab Notes
-- [ ] Music from teal.fm's records (`fm.teal.alpha.feed.play`) instead of Last.fm, with a top-of-the-week card. Your repo has teal.fm plays up to Feb 22, 2026, when they stopped, so its scrobbler needs to run again first
+- [x] Music from teal.fm's records (`fm.teal.feed.play`, and `fm.teal.actor.status` for what's playing now) instead of Last.fm: `/music.svg` and the sidebar's "now playing", with album art from Apple Music. The old `/lastfm.svg` serves the same card. The alpha collections stopped on Feb 22, 2026, when teal.fm moved off them; piper has written the new ones since Nov 12
+- [ ] A top-of-the-week music card, from the plays
 
 ### v4.2: flying
 

@@ -51,8 +51,9 @@ const isActive = (href: string) => {
     <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5">⌘K</kbd>
   </a>
 
-  <!-- Now playing (Last.fm) — stays hidden unless a track loads -->
-  <a id="nowPlaying" href="https://www.last.fm/user/arcestia" target="_blank" rel="noopener noreferrer" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
+  <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Links to
+       the track on its service, or else to the plays in Jeff's repo -->
+  <a id="nowPlaying" href="https://pdsls.dev/at://did:plc:xaj6j6abvpgwps5v6k4t6clv/fm.teal.feed.play" target="_blank" rel="noopener noreferrer" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
     <span class="flex items-center gap-1.5 mb-1">
       <Icon name="music" size={12} class="text-[var(--color-primary)]" />
       <span id="nowPlayingLabel">last played</span>
@@ -124,7 +125,7 @@ const isActive = (href: string) => {
     const card = document.getElementById('nowPlaying') as HTMLAnchorElement | null;
     if (!card) return;
     try {
-      const res = await fetch('/api/lastfm.json');
+      const res = await fetch('/api/music.json');
       if (!res.ok) return;
       const { track } = await res.json();
       if (!track?.name) return;

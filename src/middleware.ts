@@ -1,7 +1,7 @@
 /**
- * Security headers for server-rendered responses (posts from the PDS, /media/, /lastfm.svg,
- * /api/lastfm.json, robots.txt, webfinger). Static pages and assets get the same headers from
- * public/_headers. Headers a route sets itself (e.g. the Last.fm card's own CSP) are left alone.
+ * Security headers for server-rendered responses (posts from the PDS, /media/, /music.svg,
+ * /api/music.json, robots.txt, webfinger). Static pages and assets get the same headers from
+ * public/_headers. Headers a route sets itself (e.g. the music card's own CSP) are left alone.
  *
  * Rendered HTML pages get the site's CSP (src/lib/csp.mjs), allowing exactly the inline scripts
  * on that page by hash, like the build does for static pages.
