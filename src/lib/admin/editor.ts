@@ -28,7 +28,12 @@
  *     the scheduler (workers/publisher) publishes it within 5 minutes after that time, the same way.
  *     Edits that change the card redraw it as the draft saves.
  *   - Images are shrunk under 1 MB in the browser if needed, uploaded as blobs, and written into the
- *     Markdown as ![alt](image:NAME).
+ *     Markdown as ![alt](image:NAME). They come from "Add image", or are pasted or dropped into the text.
+ *   - The text box has a formatting toolbar and shortcuts (src/lib/admin/markdown-tools.ts), counts
+ *     words and minutes to read as the post page does, and has a focus mode that hides the other
+ *     fields. On wide screens the preview sits beside it and follows its scrolling.
+ *   - ⌘S (Ctrl+S) saves whichever editor is open: a draft right away instead of after the pause, a
+ *     published post's changes, a series or a page.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoriesFromRecord, type Category } from '~/lib/categories.mjs';
@@ -37,14 +42,18 @@ import { announcementRecord } from '~/lib/announcement.mjs';
 import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, documentFromDraft, seriesSlug, slugOf } from '~/lib/post-record.mjs';
 import { renderPost, type PostImage } from '~/lib/post-html.mjs';
 import { DID, PUBLICATION_URI, SITE_URL, documentRkey } from '~/lib/standard-site.mjs';
+import { wordStats } from '~/lib/markdown-edit.mjs';
+import { ranked } from '~/lib/suggest.mjs';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardKey, cardPostOf, postCard } from './card-text';
-import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
+import { el, errorText, formatTime, item, message, revalidate, row, saveState, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
+import { insertText, markdownTools } from './markdown-tools';
 import { missingScopes } from './oauth';
-import { leavePage, openPage, pageRoute } from './page-editor';
+import { leavePage, openPage, pageRoute, savePageNow } from './page-editor';
 import { sectionFromHash, showSection } from './sections';
-import { leaveSeries, openSeries, renderSeries, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
+import { tagSuggest } from './tag-suggest';
+import { leaveSeries, openSeries, renderSeries, saveSeriesNow, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
 
 const DOCUMENT = 'site.standard.document';
@@ -257,6 +266,33 @@ function setupEditor() {
   el('edSavePost').addEventListener('click', () => void savePost());
   el('edUnpublish').addEventListener('click', unpublish);
   el('edImage').addEventListener('change', chooseImage);
+  // The tags posts and drafts already use, most used first
+  tagSuggest(el<HTMLInputElement>('edTags'), () =>
+    ranked([...documents.filter((d) => isSitePost(d.value)).flatMap((d) => d.value.tags ?? []), ...drafts.flatMap((d) => d.value.tags ?? [])]),
+  );
+  const area = el<HTMLTextAreaElement>('edMarkdown');
+  const tools = el('edTools');
+  tools.insertBefore(markdownTools(area, { onImage: (file) => void useImage(file) }), tools.firstChild);
+  // On wide screens, the preview beside the text follows it down
+  area.addEventListener('scroll', () => {
+    const pane = el('edPreviewPane');
+    const room = area.scrollHeight - area.clientHeight;
+    if (room > 0 && pane.scrollHeight > pane.clientHeight) pane.scrollTop = (area.scrollTop / room) * (pane.scrollHeight - pane.clientHeight);
+  });
+  el('edFocus').addEventListener('click', () => setFocus(el('editor').dataset.focus === undefined));
+  el('editor').addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && el('editor').dataset.focus !== undefined) setFocus(false);
+  });
+  window.addEventListener('keydown', (event) => {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 's') return;
+    const view = document.body.dataset.view;
+    if (view === 'editor') saveNow();
+    else if (view === 'series') saveSeriesNow();
+    else if (view === 'page') savePageNow();
+    else return;
+    // Not the browser's "Save page as"
+    event.preventDefault();
+  });
   el('edImageUpload').addEventListener('click', uploadChosenImage);
   el('edImageCancel').addEventListener('click', clearChosenImage);
   el('edLoadTheirs').addEventListener('click', () => resolveConflict('theirs'));
@@ -306,6 +342,31 @@ function showPane(pane: 'write' | 'preview') {
   for (const tab of document.querySelectorAll<HTMLButtonElement>('[data-pane]')) tab.setAttribute('aria-selected', String(tab.dataset.pane === pane));
 }
 
+/** Focus mode: only the title and the text, the preview and the other fields hidden (Esc leaves it) */
+function setFocus(on: boolean) {
+  const editor = el('editor');
+  if (on) editor.dataset.focus = '';
+  else delete editor.dataset.focus;
+  const button = el('edFocus');
+  button.setAttribute('aria-pressed', String(on));
+  button.textContent = on ? 'Leave focus' : 'Focus';
+  if (on) showPane('write');
+  el<HTMLTextAreaElement>('edMarkdown').focus();
+}
+
+/** ⌘S: a draft saves now instead of after the pause; a published post saves if it can */
+function saveNow() {
+  if (!current) return;
+  if (current.kind === 'draft') {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    void saveDraft();
+    return;
+  }
+  if (!el<HTMLButtonElement>('edSavePost').disabled) void savePost();
+}
+
 /** A published post in the editor's shape */
 function postAsDraft(doc: DocumentRecord): DraftRecord {
   const { images, category, lang, series: part, featured, markdown } = doc.content ?? {};
@@ -338,7 +399,7 @@ async function open(kind: Kind, rkey: string) {
   message('editorMessage', '');
   el('editorConflict').hidden = true;
   el('editorBackup').hidden = true;
-  el('editorState').textContent = 'Loading…';
+  saveState('editorState', 'Loading…');
   try {
     let opened: Open | undefined;
     if (kind === 'draft') {
@@ -349,7 +410,7 @@ async function open(kind: Kind, rkey: string) {
       if (record && isSitePost(record.value)) opened = { kind, rkey, cid: record.cid, value: postAsDraft(record.value), doc: record.value };
     }
     if (!opened) {
-      el('editorState').textContent = '';
+      saveState('editorState', '');
       message('editorMessage', kind === 'draft' ? 'This draft doesn’t exist any more.' : 'This post isn’t published any more.', 'error');
       return;
     }
@@ -370,14 +431,14 @@ async function open(kind: Kind, rkey: string) {
     el('edCardImage').hidden = true;
     message('edCardMessage', '');
     showSchedule();
-    el('editorState').textContent =
+    saveState('editorState',
       kind === 'draft'
         ? `Saved ${formatTime(opened.value.updatedAt ?? opened.value.createdAt)}`
-        : `Published ${formatTime(opened.value.createdAt)}${opened.value.updatedAt ? `, updated ${formatTime(opened.value.updatedAt)}` : ''}`;
+        : `Published ${formatTime(opened.value.createdAt)}${opened.value.updatedAt ? `, updated ${formatTime(opened.value.updatedAt)}` : ''}`);
     showPane('write');
     checkBackup();
   } catch (err) {
-    el('editorState').textContent = '';
+    saveState('editorState', '');
     message('editorMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
   }
 }
@@ -461,11 +522,11 @@ function onChange() {
   saveBackup();
   if (current.kind === 'post') {
     dirty = true;
-    el('editorState').textContent = PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device';
+    saveState('editorState', PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device');
     el<HTMLButtonElement>('edSavePost').disabled = !PUBLISHING_LIVE || issues.length > 0;
     return;
   }
-  el('editorState').textContent = 'Not saved yet';
+  saveState('editorState', 'Not saved yet');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveTimer = undefined;
@@ -495,6 +556,8 @@ function renderEditorPreview(): string[] {
   const issues = problems(d);
   message('editorProblems', issues.join(' '), issues.length ? 'error' : 'info');
   el('edDescriptionCount').textContent = `${countChars(d.description ?? '')}/300`;
+  const { words, minutes } = wordStats(d.content.markdown);
+  el('edWords').textContent = `${words.toLocaleString('en')} ${words === 1 ? 'word' : 'words'} · ${minutes} min read`;
   return issues;
 }
 
@@ -505,16 +568,16 @@ async function saveDraft(force = false): Promise<boolean> {
   const draft = formDraft();
   const target = current;
   let saved = false;
-  el('editorState').textContent = 'Saving…';
+  saveState('editorState', 'Saving…');
   saving = (async () => {
     try {
       // A scheduled draft's card has to match it, since the scheduler can't draw one
       const card = draft.publishAt ? cardKey(postCard(cardPostOf(draft))) : undefined;
       if (card && card !== target.card) {
-        el('editorState').textContent = 'Redrawing the share card…';
+        saveState('editorState', 'Redrawing the share card…');
         const { drawPostCard } = await import('./card');
         draft.coverImage = await uploadBlob(session, await drawPostCard(cardPostOf(draft)));
-        el('editorState').textContent = 'Saving…';
+        saveState('editorState', 'Saving…');
       }
       const res = await putRecord(session, DRAFT_COLLECTION, target.rkey, draft, target.cid);
       target.cid = res.cid;
@@ -523,7 +586,7 @@ async function saveDraft(force = false): Promise<boolean> {
       const listed = drafts.find((d) => rkeyOf(d.uri) === target.rkey);
       if (listed) Object.assign(listed, { cid: res.cid, value: draft });
       removeBackup(target.kind, target.rkey);
-      if (current === target) el('editorState').textContent = `Saved ${formatTime(draft.updatedAt!)}`;
+      if (current === target) saveState('editorState', `Saved ${formatTime(draft.updatedAt!)}`);
       saved = true;
     } catch (err) {
       saveFailed(err);
@@ -559,14 +622,14 @@ async function savePost(force = false): Promise<void> {
   if (!form.tags) delete doc.tags;
   const button = el<HTMLButtonElement>('edSavePost');
   button.disabled = true;
-  el('editorState').textContent = 'Saving…';
+  saveState('editorState', 'Saving…');
   try {
     const card = cardKey(postCard(cardPostOf(form, target.doc!.publishedAt)));
     if (card !== target.card) {
-      el('editorState').textContent = 'Redrawing the share card…';
+      saveState('editorState', 'Redrawing the share card…');
       const { drawPostCard } = await import('./card');
       doc.coverImage = await uploadBlob(session, await drawPostCard(cardPostOf(form, target.doc!.publishedAt)));
-      el('editorState').textContent = 'Saving…';
+      saveState('editorState', 'Saving…');
     }
     const res = await putRecord(session, DOCUMENT, target.rkey, doc, target.cid);
     Object.assign(target, { cid: res.cid, doc, value: postAsDraft(doc), card });
@@ -576,7 +639,7 @@ async function savePost(force = false): Promise<void> {
     dirty = false;
     await revalidate();
     el<HTMLInputElement>('edMinor').checked = false;
-    if (current === target) el('editorState').textContent = `Saved and live ${formatTime(now())}${minor ? ' (a small fix: not marked as updated)' : ''}`;
+    if (current === target) saveState('editorState', `Saved and live ${formatTime(now())}${minor ? ' (a small fix: not marked as updated)' : ''}`);
   } catch (err) {
     button.disabled = false;
     saveFailed(err);
@@ -587,9 +650,9 @@ function saveFailed(err: unknown) {
   if (err instanceof XrpcError && err.error === 'InvalidSwap') {
     conflict = true;
     el('editorConflict').hidden = false;
-    el('editorState').textContent = 'Not saved: changed elsewhere';
+    saveState('editorState', 'Not saved: changed elsewhere');
   } else {
-    el('editorState').textContent = 'Not saved';
+    saveState('editorState', 'Not saved');
     message('editorMessage', `Couldn’t save: ${errorText(err)}. Your changes are kept on this device.`, 'error');
   }
 }
@@ -612,7 +675,7 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
     removeBackup(target.kind, target.rkey);
     fillEditor(target.value);
     showSchedule();
-    el('editorState').textContent = `Loaded the version saved ${formatTime(target.value.updatedAt ?? target.value.createdAt)}`;
+    saveState('editorState', `Loaded the version saved ${formatTime(target.value.updatedAt ?? target.value.createdAt)}`);
   } else if (target.kind === 'post') {
     target.doc = latest.value;
     await savePost(true);
@@ -769,7 +832,7 @@ async function publishDraft() {
       localStorage.setItem(publishingKey(p.draftRkey), JSON.stringify(p));
     } catch {}
   };
-  const step = (text: string) => (el('editorState').textContent = text);
+  const step = (text: string) => saveState('editorState', text);
   el<HTMLButtonElement>('edPublish').disabled = true;
   el('edFinish').hidden = true;
   message('editorMessage', '');
@@ -880,10 +943,10 @@ async function setSchedule(at: Date | undefined): Promise<boolean> {
   if (saving) await saving;
   if (at) {
     const d = { ...formDraft(), publishAt: at.toISOString() };
-    el('editorState').textContent = 'Drawing the share card…';
+    saveState('editorState', 'Drawing the share card…');
     const { drawPostCard } = await import('./card');
     const png = await drawPostCard(cardPostOf(d));
-    el('editorState').textContent = 'Uploading the share card…';
+    saveState('editorState', 'Uploading the share card…');
     const coverImage = await uploadBlob(session, png);
     target.value = { ...target.value, publishAt: d.publishAt, coverImage };
     target.card = cardKey(postCard(cardPostOf(d)));
@@ -919,7 +982,7 @@ async function schedule() {
   try {
     if (await setSchedule(at)) message('editorMessage', `Scheduled: “${d.title}” goes live at ${SITE_URL}${d.path} on ${formatWhen(at!.toISOString())}.`, 'ok');
   } catch (err) {
-    el('editorState').textContent = 'Not scheduled';
+    saveState('editorState', 'Not scheduled');
     message('editorMessage', `Couldn’t schedule it: ${errorText(err)}`, 'error');
   } finally {
     showSchedule();
@@ -954,16 +1017,26 @@ function suggestPart() {
 
 let chosen: { blob: Blob; width: number; height: number; name: string } | undefined;
 
-async function chooseImage() {
+function chooseImage() {
   const input = el<HTMLInputElement>('edImage');
   const file = input.files?.[0];
   input.value = '';
-  if (!file || !current) return;
+  if (file) void useImage(file);
+}
+
+/**
+ * Gets an image ready to upload, from "Add image" or pasted or dropped into the text: shrunk if it
+ * needs to be, named, and shown with a box for its alt text. "Upload and insert" puts it where the
+ * cursor was.
+ */
+async function useImage(file: File) {
+  if (!current) return;
   message('edImageMessage', 'Preparing…');
   try {
     const prepared = await prepareImage(file);
     const taken = new Set((current.value.content.images ?? []).map((i) => i.name));
-    const base = slugify(file.name.replace(/\.[^.]+$/, '')) || 'image';
+    // A pasted screenshot is called "image.png" by every browser
+    const base = (file.name !== 'image.png' && slugify(file.name.replace(/\.[^.]+$/, ''))) || 'image';
     let name = base;
     for (let n = 2; taken.has(name); n++) name = `${base}-${n}`;
     chosen = { ...prepared, name };
@@ -1017,7 +1090,7 @@ async function uploadChosenImage() {
     const blob = await uploadBlob(session, chosen.blob);
     const image = { name: chosen.name, image: blob, alt, width: chosen.width, height: chosen.height };
     current.value = { ...current.value, content: { ...current.value.content, images: [...(current.value.content.images ?? []), image] } };
-    insertAtCursor(el<HTMLTextAreaElement>('edMarkdown'), `\n![${alt.replace(/[[\]]/g, '')}](image:${chosen.name})\n`);
+    insertText(el<HTMLTextAreaElement>('edMarkdown'), `\n![${alt.replace(/[[\]]/g, '')}](image:${chosen.name})\n`);
     clearChosenImage();
     onChange();
   } catch (err) {
@@ -1032,14 +1105,6 @@ function clearChosenImage() {
   chosen = undefined;
   el('edImageBox').hidden = true;
   message('edImageMessage', '');
-}
-
-function insertAtCursor(area: HTMLTextAreaElement, text: string) {
-  const start = area.selectionStart ?? area.value.length;
-  const end = area.selectionEnd ?? start;
-  area.value = area.value.slice(0, start) + text + area.value.slice(end);
-  area.selectionStart = area.selectionEnd = start + text.length;
-  area.focus();
 }
 
 // ---- A copy on this device, until the save goes through ----

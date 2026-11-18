@@ -24,6 +24,11 @@ Every record is public, drafts included: anyone can read them on the PDS, and th
 
 In the admin app, **Posts → New draft**. A draft is an `id.skiddle.draft` record, saved as you type, so it's on every device. The editor has a live preview (the site's own renderer) and shows the post's share card. Images are shrunk under 1 MB and uploaded as blobs.
 
+- **Writing:** a formatting toolbar (bold, italic, link, heading, quote, lists, code) with ⌘B, ⌘I and ⌘K (Ctrl on Windows and Linux). Enter continues a list, and pasting an address over selected text makes it a link. Paste or drop an image into the text to add it. The word count and minutes to read match the post page. **Focus** hides everything but the title and the text (Esc leaves it). On wide screens the preview sits beside the text and follows its scrolling.
+- **Tags** suggest the ones posts and drafts already use.
+- **⌘S** saves whichever editor is open: a draft right away instead of after the pause, a published post's changes, a series or a page. Each editor shows its state the same way: a dot and "Unsaved changes", "Saving…" or "Saved", in a bar that stays at the top.
+- **The page editors** (Pages section) are made from the lexicons. Markdown fields get the same toolbar and a preview. List items (CV jobs, uses, categories, a series' planned parts) can be dragged into order, and long lists fold and unfold all at once. Short fields suggest the values already used in the same place, and in the other projects for a project.
+
 - **Publish** draws the share card in the browser and writes the post as a `site.standard.document` with an `id.skiddle.post` inside (the Markdown, images, category, language, series and part). It then announces the post on Bluesky with the card as a link card, and turns comments on (`bskyPostRef`). If it stops part-way, pressing Publish again finishes it without posting twice.
 - **Schedule**: pick a time and the share card is drawn for that date and stored on the draft. The scheduler, a small cron Worker ([`workers/publisher`](workers/publisher/README.md)), publishes due drafts every 5 minutes the same way.
 - **Editing a published post** keeps its address and publish date and sets "updated", unless it's ticked as a small fix. The card is redrawn if the title, description or length changed.
