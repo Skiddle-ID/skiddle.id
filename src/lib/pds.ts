@@ -120,6 +120,25 @@ export function latestRecords<T>(collection: string, limit: number, { ttl = RECO
   });
 }
 
+/** One page of a collection's records, newest first, from `cursor` ('' for the newest), and the cursor of the next page */
+export function recordsPage<T>(
+  collection: string,
+  limit: number,
+  cursor: string,
+  { ttl = RECORD_TTL, fetcher = fetch }: { ttl?: number; fetcher?: Fetch } = {},
+): Promise<{ records: RepoRecord<T>[]; cursor?: string }> {
+  return cached(`page/${collection}/${limit}/${cursor}`, ttl, async () => {
+    const pds = await pdsUrl(fetcher);
+    const res = await fetcher(
+      `${pds}/xrpc/com.atproto.repo.listRecords?repo=${DID}&collection=${collection}&limit=${limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`,
+      { signal: AbortSignal.timeout(TIMEOUT_MS) },
+    );
+    if (!res.ok) throw new Error(`listRecords ${collection}: ${res.status}`);
+    const data = (await res.json()) as { records?: RepoRecord<T>[]; cursor?: string };
+    return { records: data.records ?? [], ...(data.cursor && data.records?.length ? { cursor: data.cursor } : {}) };
+  });
+}
+
 /** Where to download one of the repo's blobs (an image) */
 export async function blobUrl(cid: string, fetcher: Fetch = fetch): Promise<string> {
   return `${await pdsUrl(fetcher)}/xrpc/com.atproto.sync.getBlob?did=${DID}&cid=${cid}`;

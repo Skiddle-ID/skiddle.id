@@ -4,11 +4,16 @@
  *   - fm.teal.feed.play: one record per track played (track, artists, release, when, a link)
  *   - fm.teal.actor.status (key `self`): what's playing now, until its `expiry`. When nothing is,
  *     the scrobbler leaves an empty track, or an expiry that has passed.
+ *   - fm.teal.alpha.feed.play: the plays from before teal.fm moved off its alpha lexicons (up to
+ *     Feb 22, 2026), with the link in `originUrl`. /listening/ pages back into them.
  * Plain JavaScript, so the tests can use it (scripts/teal.test.mjs).
  */
 
 export const PLAY_COLLECTION = 'fm.teal.feed.play';
+export const ALPHA_PLAY_COLLECTION = 'fm.teal.alpha.feed.play';
 export const STATUS_COLLECTION = 'fm.teal.actor.status';
+/** Where plays are, newest first: the current collection, then the alpha one */
+export const PLAY_COLLECTIONS = [PLAY_COLLECTION, ALPHA_PLAY_COLLECTION];
 
 /**
  * @typedef {object} PlayView A play, as both collections hold it
@@ -17,6 +22,7 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @property {string} [releaseName]
  * @property {string} [playedTime] ISO date
  * @property {string} [originUri] The track on the service it was played on, e.g. Apple Music
+ * @property {string} [originUrl] The same, in the alpha collection
  * @property {string} [isrc] The recording's ISRC
  * @property {string} [releaseMbId] The release's MusicBrainz id; piper writes it as "mbid:<uuid>"
  */
@@ -25,10 +31,12 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @typedef {object} Track
  * @property {string} name
  * @property {string} artist The artists, joined with ", "
+ * @property {string[]} artists Each of them
  * @property {string} album
  * @property {boolean} isCurrent Playing now
  * @property {number} [playedAt] Unix seconds when it was played (absent while it's playing)
  * @property {string} trackUrl The track on its service, or '' if the record has no usable link
+ * @property {string} [service] Where it was played, from the link: "Apple Music" or "Last.fm"
  * @property {string} [isrc] The recording's ISRC, e.g. IDA682600101, for finding its cover
  * @property {string} [releaseMbId] The release's MusicBrainz id (a UUID), for its cover
  */
@@ -59,10 +67,12 @@ export function trackOf(v, isCurrent) {
   return {
     name,
     artist: artists.join(', ') || 'Unknown artist',
+    artists,
     album: text(v?.releaseName),
     isCurrent,
     ...(!isCurrent && Number.isFinite(played) ? { playedAt: Math.floor(played / 1000) } : {}),
-    trackUrl: httpsUrl(v?.originUri),
+    trackUrl: httpsUrl(v?.originUri ?? v?.originUrl),
+    ...(serviceOf(httpsUrl(v?.originUri ?? v?.originUrl)) ? { service: serviceOf(httpsUrl(v?.originUri ?? v?.originUrl)) } : {}),
     ...(isrcOf(v?.isrc) ? { isrc: isrcOf(v?.isrc) } : {}),
     ...(mbidOf(v?.releaseMbId) ? { releaseMbId: mbidOf(v?.releaseMbId) } : {}),
   };
@@ -100,6 +110,54 @@ export function deezerMatch(results, track) {
     if ((t.startsWith(title) || title.startsWith(t)) && (a.includes(artist) || artist.includes(a))) return deezerCover(r?.album?.cover_medium);
   }
   return '';
+}
+
+/** Where a track was played, from its link */
+export function serviceOf(/** @type {string} */ url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return host === 'music.apple.com' ? 'Apple Music' : host === 'last.fm' ? 'Last.fm' : host === 'open.spotify.com' ? 'Spotify' : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Where a page of plays starts: which collection (0 the current one, 1 the alpha one) and the
+ * listRecords cursor in it ('' for its newest). Written in /listening/?older=<token> as "1-3lzx…".
+ * @param {unknown} token
+ * @returns {{ collection: number, cursor: string } | null}
+ */
+export function parseOlder(token) {
+  const m = /^([01])-([A-Za-z0-9._:~-]{0,100})$/.exec(text(token));
+  return m ? { collection: Number(m[1]), cursor: m[2] } : null;
+}
+export const olderToken = (/** @type {number} */ collection, /** @type {string} */ cursor) => `${collection}-${cursor}`;
+
+/**
+ * This week in plays: how many in the last 7 days, and the top artists and tracks by plays. An
+ * artist counts once per play they're on, so a duet counts for both.
+ * @param {Track[]} plays
+ * @param {number} [now] Milliseconds
+ * @param {number} [top]
+ */
+export function weekSummary(plays, now = Date.now(), top = 5) {
+  const since = now / 1000 - 7 * 24 * 60 * 60;
+  const week = plays.filter((p) => p.playedAt !== undefined && p.playedAt >= since);
+  /** @type {Map<string, { name: string, count: number }>} */
+  const artists = new Map();
+  /** @type {Map<string, { name: string, artist: string, count: number }>} */
+  const tracks = new Map();
+  for (const p of week) {
+    for (const a of p.artists?.length ? p.artists : [p.artist]) {
+      const key = a.toLowerCase();
+      artists.set(key, { name: artists.get(key)?.name ?? a, count: (artists.get(key)?.count ?? 0) + 1 });
+    }
+    const key = `${p.name.toLowerCase()}\u0000${p.artist.toLowerCase()}`;
+    tracks.set(key, { name: p.name, artist: p.artist, count: (tracks.get(key)?.count ?? 0) + 1 });
+  }
+  const order = (/** @type {{ name: string, count: number }} */ a, /** @type {{ name: string, count: number }} */ b) => b.count - a.count || a.name.localeCompare(b.name);
+  return { plays: week.length, artists: [...artists.values()].sort(order).slice(0, top), tracks: [...tracks.values()].sort(order).slice(0, top) };
 }
 
 /** An ISRC (two letters, three letters or digits, seven digits), upper case, or '' */

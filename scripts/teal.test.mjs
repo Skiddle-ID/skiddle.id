@@ -2,7 +2,7 @@
 // now, or else the last track played, and album art links for Apple Music tracks.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, isrcOf, mbidOf, recentTrack, trackOf } from '../src/lib/teal.mjs';
+import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, isrcOf, mbidOf, olderToken, parseOlder, recentTrack, serviceOf, trackOf, weekSummary } from '../src/lib/teal.mjs';
 
 const now = Date.parse('2026-11-18T08:12:00Z');
 const play = (trackName, playedTime, extra = {}) => ({ trackName, playedTime, artists: [{ artistName: 'Bernadya' }], ...extra });
@@ -74,6 +74,41 @@ describe('teal.fm records', () => {
     assert.equal(deezerMatch([{ title: 'Bicara', artist: { name: 'TheOvertunes' }, album: { cover_medium: cover('d') } }], { name: 'Bicara (feat. Monita Tahalea)', artist: 'TheOvertunes, Monita Tahalea' }), cover('d'));
     assert.equal(deezerMatch([{ title: 'Another Song', artist: { name: 'Tulus' }, album: { cover_medium: cover('e') } }], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
     assert.equal(deezerMatch([], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
+  });
+
+  it('older plays (the alpha collection) keep their link, and say where they were played', () => {
+    const t = trackOf({ trackName: 'One Summer Drive', artists: [{ artistName: 'Cool' }], originUrl: 'https://www.last.fm/music/Cool/_/One+Summer+Drive' }, false);
+    assert.equal(t.trackUrl, 'https://www.last.fm/music/Cool/_/One+Summer+Drive');
+    assert.equal(t.service, 'Last.fm');
+    assert.equal(serviceOf('https://music.apple.com/id/album/x/1?i=2'), 'Apple Music');
+    assert.equal(serviceOf('https://example.com/x'), '');
+    assert.deepEqual(t.artists, ['Cool']);
+  });
+
+  it('an "older" token says which collection and where in it', () => {
+    assert.deepEqual(parseOlder(olderToken(1, '3lzx2abcde')), { collection: 1, cursor: '3lzx2abcde' });
+    assert.deepEqual(parseOlder('0-'), { collection: 0, cursor: '' });
+    assert.equal(parseOlder('2-abc'), null);
+    assert.equal(parseOlder('1-<script>'), null);
+    assert.equal(parseOlder(null), null);
+  });
+
+  it('this week: plays in the last 7 days, top artists (each artist on a duet counts) and top tracks', () => {
+    const at = (h) => now / 1000 - h * 3600;
+    const p = (name, artists, h) => ({ ...trackOf({ trackName: name, artists: artists.map((artistName) => ({ artistName })) }, false), playedAt: at(h) });
+    const plays = [
+      p('Rabun Jauh', ['Bernadya'], 1),
+      p('Rabun Jauh', ['Bernadya'], 2),
+      p('Lebih Beruntung Sedikit', ['Bernadya', 'Pamungkas'], 3),
+      p('Ruang Sendiri', ['Tulus'], 30),
+      p('Old', ['Someone'], 24 * 8),
+    ];
+    const w = weekSummary(plays, now);
+    assert.equal(w.plays, 4);
+    assert.deepEqual(w.artists, [{ name: 'Bernadya', count: 3 }, { name: 'Pamungkas', count: 1 }, { name: 'Tulus', count: 1 }]);
+    assert.deepEqual(w.tracks[0], { name: 'Rabun Jauh', artist: 'Bernadya', count: 2 });
+    assert.equal(w.tracks.length, 3);
+    assert.equal(weekSummary([], now).plays, 0);
   });
 
   it('covers only from Deezer’s image servers', () => {

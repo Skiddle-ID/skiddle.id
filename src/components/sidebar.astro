@@ -51,9 +51,9 @@ const isActive = (href: string) => {
     <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5">⌘K</kbd>
   </a>
 
-  <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Links to
-       the track on its service, or else to the plays in Jeff's repo -->
-  <a id="nowPlaying" href="https://pdsls.dev/at://did:plc:xaj6j6abvpgwps5v6k4t6clv/fm.teal.feed.play" target="_blank" rel="noopener noreferrer" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
+  <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Opens the
+       listening history, which links each track -->
+  <a id="nowPlaying" href="/listening/" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
     <span class="flex items-center gap-1.5 mb-1">
       <Icon name="music" size={12} class="text-[var(--color-primary)]" />
       <span id="nowPlayingLabel">last played</span>
@@ -132,7 +132,6 @@ const isActive = (href: string) => {
       document.getElementById('nowPlayingLabel')!.textContent = track.isCurrent ? 'now playing' : 'last played';
       document.getElementById('nowPlayingTrack')!.textContent = track.name;
       document.getElementById('nowPlayingArtist')!.textContent = track.artist || '';
-      if (track.trackUrl) card.href = track.trackUrl;
       card.classList.remove('hidden');
     } catch {}
   })();

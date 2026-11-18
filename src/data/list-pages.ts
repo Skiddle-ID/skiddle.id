@@ -10,9 +10,9 @@ export const LIST_PAGES = {
 } as const;
 
 /**
- * The pages built from the pages' records (src/lib/page-content.ts), also rendered on request:
- * their title, description, and the command their share card shows (the page's own prompt, or a
- * cd into it).
+ * The other pages rendered on request from records: the pages' content (src/lib/page-content.ts)
+ * and the listening history (src/lib/listening.ts). Their title, description, and the command their
+ * share card shows (the page's own prompt, or a cd into it).
  */
 export const CONTENT_PAGES = {
   projects: {
@@ -39,5 +39,10 @@ export const CONTENT_PAGES = {
     title: 'About',
     description: 'About Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, homelabber, open-web fan and private pilot.',
     command: 'neofetch',
+  },
+  listening: {
+    title: 'Listening',
+    description: 'What Jeff (Skiddle) has been listening to: now playing, this week’s top artists and tracks, and every play, from teal.fm.',
+    command: 'tail -n 50 plays.log',
   },
 } as const;
