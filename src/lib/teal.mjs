@@ -84,12 +84,38 @@ export function mbidOf(/** @type {unknown} */ v) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id) ? id : '';
 }
 
-/** The Cover Art Archive's front cover of a release, 250px (it redirects to the image) */
-export const coverArtArchive = (/** @type {string} */ releaseMbId) => `https://coverartarchive.org/release/${releaseMbId}/front-250`;
+/**
+ * The Cover Art Archive's front cover of a release, or of a release group (any of the album's
+ * releases), 250px. It redirects to the image, or answers 404 when there's none.
+ * @param {string} mbid
+ * @param {'release' | 'release-group'} [kind]
+ */
+export const coverArtArchive = (mbid, kind = 'release') => `https://coverartarchive.org/${kind}/${mbid}/front-250`;
 
-/** Lower case letters and digits, for comparing names: "Bicara (feat. X)" → "bicara feat x" */
+/**
+ * Letters and digits in any script, lower case and without accents or other marks, for comparing
+ * names: "Bicara (feat. X)" → "bicara feat x", "Beyoncé" → "beyonce". Thai, Korean and Chinese
+ * names keep their letters, so they can match too.
+ */
 const loose = (/** @type {string} */ s) =>
-  s.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+/** A play's first artist: "TheOvertunes, Monita Tahalea" or "Tulus feat. X" → the first name */
+const firstArtist = (/** @type {string} */ artist) => (artist.split(/,| feat\.? | ft\.? /i)[0] ?? '').trim();
+
+/** Whether two titles start the same way, so "Bunga Maaf - Acoustic" is "Bunga Maaf" */
+const sameTitle = (/** @type {unknown} */ a, /** @type {unknown} */ b) => {
+  const x = loose(text(a));
+  const y = loose(text(b));
+  return !!x && !!y && (x.startsWith(y) || y.startsWith(x));
+};
+
+/** Whether an artist's name holds the play's first artist, or the other way round */
+const sameArtist = (/** @type {unknown} */ name, /** @type {string} */ artist) => {
+  const x = loose(text(name));
+  const y = loose(artist);
+  return !!x && !!y && (x.includes(y) || y.includes(x));
+};
 
 /**
  * The cover of the first Deezer search result that is this track, by this artist: the title starts
@@ -100,16 +126,62 @@ const loose = (/** @type {string} */ s) =>
  * @returns {string}
  */
 export function deezerMatch(results, track) {
-  const title = loose(track.name);
-  const artist = loose(track.artist.split(/,| feat\.? | ft\.? /i)[0] ?? '');
-  if (!title || !artist) return '';
+  const artist = firstArtist(track.artist);
   for (const r of results) {
-    const t = loose(text(r?.title));
-    const a = loose(text(r?.artist?.name));
-    if (!t || !a) continue;
-    if ((t.startsWith(title) || title.startsWith(t)) && (a.includes(artist) || artist.includes(a))) return deezerCover(r?.album?.cover_medium);
+    if (sameTitle(r?.title, track.name) && sameArtist(r?.artist?.name, artist)) return deezerCover(r?.album?.cover_medium);
   }
   return '';
+}
+
+/** A phrase in MusicBrainz's (Lucene) search syntax */
+const phrase = (/** @type {string} */ s) => `"${s.replace(/[\\"]/g, '\\$&')}"`;
+
+/**
+ * The MusicBrainz searches that may find a play's release, in order: its album by name, then its
+ * track by name (which finds a single, or an album MusicBrainz names differently).
+ * @param {{ name: string, artist: string, album?: string }} track
+ * @returns {{ entity: 'release' | 'recording', query: string }[]}
+ */
+export function musicBrainzSearches(track) {
+  const artist = firstArtist(track.artist);
+  if (!artist || artist === 'Unknown artist' || !track.name) return [];
+  return [
+    ...(track.album ? [{ entity: /** @type {const} */ ('release'), query: `release:${phrase(track.album)} AND artist:${phrase(artist)}` }] : []),
+    { entity: /** @type {const} */ ('recording'), query: `recording:${phrase(track.name)} AND artist:${phrase(artist)}` },
+  ];
+}
+
+/**
+ * @typedef {{ id?: string, title?: string, 'release-group'?: { id?: string } }} MusicBrainzRelease
+ * @typedef {{ name?: string, artist?: { name?: string } }[]} MusicBrainzCredit
+ */
+
+/**
+ * The covers that may be the play's, from a MusicBrainz search result, to try in order: the front
+ * covers of the first two releases that are the play's (by its artist, and named like its album, or
+ * holding a recording named like its track; its own album first), then their release group's. A
+ * wrong cover is worse than none, so a result that doesn't match is left out.
+ * @param {'release' | 'recording'} entity Which search it was
+ * @param {{ releases?: (MusicBrainzRelease & { 'artist-credit'?: MusicBrainzCredit })[], recordings?: { title?: string, 'artist-credit'?: MusicBrainzCredit, releases?: MusicBrainzRelease[] }[] }} data
+ * @param {{ name: string, artist: string, album?: string }} track
+ * @returns {string[]} Cover Art Archive links
+ */
+export function musicBrainzCovers(entity, data, track) {
+  const artist = firstArtist(track.artist);
+  const byArtist = (/** @type {{ 'artist-credit'?: MusicBrainzCredit }} */ x) =>
+    Array.isArray(x?.['artist-credit']) && x['artist-credit'].some((c) => sameArtist(c?.name, artist) || sameArtist(c?.artist?.name, artist));
+  /** @type {MusicBrainzRelease[]} */
+  const releases =
+    entity === 'release'
+      ? (data?.releases ?? []).filter((r) => sameTitle(r?.title, track.album) && byArtist(r))
+      : (data?.recordings ?? []).filter((r) => sameTitle(r?.title, track.name) && byArtist(r)).flatMap((r) => r?.releases ?? []);
+  const own = (/** @type {MusicBrainzRelease} */ r) => Number(sameTitle(r?.title, track.album));
+  const picked = [...releases].sort((a, b) => own(b) - own(a)).filter((r) => mbidOf(r?.id)).slice(0, 2);
+  const links = [
+    ...picked.map((r) => coverArtArchive(mbidOf(r.id))),
+    ...picked.map((r) => mbidOf(r['release-group']?.id)).filter(Boolean).map((id) => coverArtArchive(id, 'release-group')),
+  ];
+  return [...new Set(links)];
 }
 
 /** Where a track was played, from its link */
