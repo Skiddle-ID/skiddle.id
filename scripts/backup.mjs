@@ -24,8 +24,24 @@ import { blobCid } from './lib/blob.mjs';
 import { checkCar } from './lib/car.mjs';
 import { DID } from '../src/lib/standard-site.mjs';
 
-/** The site's collections, counted in the manifest for a quick look at what's there */
-const SITE_COLLECTIONS = ['site.standard.publication', 'site.standard.document', 'id.skiddle.series', 'id.skiddle.draft', 'id.skiddle.status'];
+/**
+ * The site's collections, counted in the manifest for a quick look at what's there: posts, series
+ * and drafts, the status, the pages' content (docs/v4/pages-on-atproto.md) and the lexicons. The
+ * backup itself is the whole repo, whatever's in it.
+ */
+const SITE_COLLECTIONS = [
+  'site.standard.publication',
+  'site.standard.document',
+  'id.skiddle.series',
+  'id.skiddle.draft',
+  'id.skiddle.status',
+  'id.skiddle.project',
+  'id.skiddle.cv',
+  'id.skiddle.services',
+  'id.skiddle.uses',
+  'id.skiddle.about',
+  'com.atproto.lexicon.schema',
+];
 /** Blobs downloaded at a time */
 const PARALLEL = 4;
 

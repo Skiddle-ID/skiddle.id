@@ -79,7 +79,7 @@ Edit records freely once the pages read them in production.
 3. **On staging, Jeff publishes the lexicons and runs the import.** Done on 2026-11-18. The five lexicons are published, the same as `lexicons/`. All 10 records match the site's data, pass their lexicons, and read back exactly as the data files. Staging's pages now say `X-Content-Source: pds`, and the parity check against production passes.
 4. **v4's pages read the records,** with a fallback to the data files and a parity check against production ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140)). Done. Until the import, staging shows the data files (`X-Content-Source: git`).
 5. **The editors** ([#141](https://github.com/Skiddle-ID/skiddle.id/pull/141)). Done. Saving turns on at the switch, with `PUBLISHING_LIVE`.
-6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`), and with them:
+6. **At the switch:** done on 2026-11-18 ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143)). Remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`), and with them:
    - the pages' fallback to them (`src/lib/page-content.ts`)
    - the import (`src/lib/admin/pages.ts`) and the converters to records (`page-records.mjs`)
    - the data part of `check:lexicons` and the round-trip test
