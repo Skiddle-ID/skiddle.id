@@ -56,10 +56,13 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
         <section class="admin-card" data-section="posts" aria-labelledby="postsTitle">
           <div class="admin-label-row">
             <h2 id="postsTitle">Posts</h2>
-            <button id="newDraft" type="button" class="admin-btn admin-btn-ghost">New draft</button>
+            <span class="admin-toolbar">
+              <a href="#page/categories" class="admin-btn admin-btn-ghost">Categories</a>
+              <button id="newDraft" type="button" class="admin-btn admin-btn-ghost">New draft</button>
+            </span>
           </div>
           <div id="postsScope" class="admin-notice" hidden>
-            <p>To write drafts, upload images and publish, the app needs more permissions from your account.</p>
+            <p>To write drafts, upload images, publish and edit categories, the app needs more permissions from your account.</p>
             <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
           <h3 class="admin-subhead">Drafts</h3>
@@ -356,7 +359,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
       <div id="pageEditor" class="admin-editor">
         <div class="admin-editor-bar">
-          <a href="#pages" class="admin-btn admin-btn-ghost">← Pages</a>
+          <a id="peBack" href="#pages" class="admin-btn admin-btn-ghost">← Pages</a>
           <span id="peState" class="admin-small" aria-live="polite"></span>
         </div>
         <h2 id="peTitle" class="admin-editor-title"></h2>
@@ -878,6 +881,9 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-tabs button[aria-selected='true'] {
     color: var(--color-text);
     border-bottom-color: var(--color-primary);
+  }
+  .admin-label-row > .admin-toolbar {
+    margin-bottom: 0;
   }
   .admin-toolbar {
     display: flex;

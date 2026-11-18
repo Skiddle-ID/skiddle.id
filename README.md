@@ -10,6 +10,7 @@ Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https:
 |---|---|
 | A post, a draft, a scheduled post | Admin app → Posts |
 | A series | Admin app → Series |
+| Post categories | Admin app → Posts → Categories |
 | The CV, services, uses, About, projects | Admin app → Pages |
 | The status | Admin app → Status (or the "Set status" workflow) |
 | Page layout, headings, styles | `src/pages/`, `src/components/` (a PR) |
@@ -37,6 +38,8 @@ Every page that shows records is rendered when it's requested and cached at Clou
 - `src/lib/post-html.mjs` renders a post's Markdown in the Worker: GitHub-flavoured Markdown, smart punctuation and github-slugger heading ids, in about half a millisecond.
 - Pages are cached with the tag `posts` or `pages`. `POST /api/revalidate` clears the cached records and pages when the repo has changed since the last purge. The admin app calls it after a save, and the scheduler after a publish.
 - `/media/<cid>` serves the repo's images and share cards. Old record-key addresses, `/posts/<record key>/`, redirect to the post.
+- **Categories** are one `id.skiddle.categories` record (key `self`): an ordered list of id, label and description (`src/lib/site-categories.ts`, falling back to the four in `src/lib/categories.mjs` if there's none). A post names its category by id. Each category has its page at `/topics/<id>/` (`tag` is reserved for `/topics/tag/<tag>/`), and /topics/ lists them in order. In the admin app, Posts → Categories edits the list. It refuses ids that aren't lower case letters, digits and hyphens, repeats, and dropping an id posts still use.
+- The command bar's search (`/search.json`) finds posts, series and categories.
 - Each series has its own page to share, `/series/<key>/` (its record's key, which stays when it's renamed; an address from an earlier name redirects), with the series' own share card. `/series/` lists them all.
 - The posts are [Standard.site](https://standard.site) documents of the skiddle.id publication, so readers like Leaflet, pckt and docs.surf can find them. The site proves it owns them with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post.
 - The lexicons for the site's own records are in [`lexicons/`](lexicons/id/skiddle/) (`id.skiddle.*`), checked in CI (`npm run check:lexicons`) and published from the admin app.

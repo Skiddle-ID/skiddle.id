@@ -14,7 +14,9 @@ import PostList from '~/components/post-list.astro';
 import BlueskyComments from '~/components/bluesky-comments.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
-import { postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
+import { categoryLabel } from '~/lib/categories.mjs';
+import { categoryUrl, postUrl, readingMinutes, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
+import { getCategories } from '~/lib/site-categories';
 import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
 import { DID } from '~/lib/standard-site.mjs';
 import { env } from 'cloudflare:workers';
@@ -26,7 +28,7 @@ const notFound = async () => {
   return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 };
 // The post, and every post and series, as every page gets them
-const [live, { posts: all, seriesInfo }] = await Promise.all([getLiveEntry('pdsPosts', slug), sitePosts()]);
+const [live, { posts: all, seriesInfo }, categories] = await Promise.all([getLiveEntry('pdsPosts', slug), sitePosts(), getCategories()]);
 
 if (live.error && !live.entry) console.error(`post ${slug} from the PDS:`, live.error);
 if (!live.entry) {
@@ -120,7 +122,7 @@ const jsonLd = {
       <p class="text-xs text-[var(--color-muted)] mb-3">
         <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>
         <span aria-hidden="true"> / </span>
-        <a href={`/topics/#${entry.data.category}`} class="hover:text-[var(--color-primary)]" lang="en">{categoryLabels[entry.data.category].toLowerCase()}</a>
+        <a href={categoryUrl(entry.data.category)} class="hover:text-[var(--color-primary)]" lang="en">{categoryLabel(categories, entry.data.category).toLowerCase()}</a>
       </p>
       <h1 class="text-2xl font-semibold leading-snug">{entry.data.title}</h1>
       <p class="text-xs text-[var(--color-muted)] mt-3 flex flex-wrap gap-x-2 gap-y-1" lang="en">

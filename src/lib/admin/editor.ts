@@ -31,7 +31,7 @@
  *     Markdown as ![alt](image:NAME).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
-import { categoryLabels } from '~/lib/categories.mjs';
+import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoriesFromRecord, type Category } from '~/lib/categories.mjs';
 import { plainText } from '~/lib/plain-text.mjs';
 import { announcementRecord } from '~/lib/announcement.mjs';
 import { POST_TYPE, SERIES_COLLECTION, DRAFT_COLLECTION, documentFromDraft, seriesSlug, slugOf } from '~/lib/post-record.mjs';
@@ -110,6 +110,8 @@ interface Open {
 let session: OAuthSession;
 let signInAgain: () => void;
 let drafts: RepoRecord<DraftRecord>[] = [];
+/** The categories, from Jeff's id.skiddle.categories record (or the four the site started with) */
+let categories: Category[] = DEFAULT_CATEGORIES;
 let documents: RepoRecord<DocumentRecord>[] = [];
 
 let current: Open | undefined;
@@ -171,16 +173,20 @@ export async function route() {
 
 export async function loadPosts() {
   // Writing drafts, uploading images, publishing (the document, its series, the Bluesky post)
-  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob|standard\.document|series|feed\.post/.test(s));
+  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob|standard\.document|series|feed\.post|categories/.test(s));
   el('postsScope').hidden = missing.length === 0;
   el<HTMLButtonElement>('newDraft').disabled = missing.length > 0;
-  const [d, docs, s] = await Promise.all([
+  const [d, docs, s, cats] = await Promise.all([
     listRecords<DraftRecord>(session, DRAFT_COLLECTION).catch(() => []),
     listRecords<DocumentRecord>(session, DOCUMENT),
     listRecords<SeriesRecord>(session, SERIES_COLLECTION),
+    getRecord<unknown>(session, CATEGORIES_COLLECTION, 'self').catch(() => null),
   ]);
   drafts = d;
   documents = docs;
+  const fromRecord = cats ? categoriesFromRecord(cats.value) : [];
+  categories = fromRecord.length ? fromRecord : DEFAULT_CATEGORIES;
+  fillCategories();
   setSeriesList(s);
   renderLists();
 }
@@ -226,7 +232,7 @@ async function newDraft() {
 // ---- The editor ----
 
 function setupEditor() {
-  fillSelect(el('edCategory'), Object.entries(categoryLabels));
+  fillCategories();
   fillSelect(el('edLang'), Object.entries(LANGS));
   for (const note of document.querySelectorAll<HTMLElement>('[data-not-live]')) {
     note.textContent = NOT_LIVE_YET;
@@ -263,6 +269,30 @@ function setupEditor() {
   window.addEventListener('beforeunload', (event) => {
     if (saveTimer || saving || (dirty && PUBLISHING_LIVE)) event.preventDefault();
   });
+}
+
+/** The editor's Category menu, from the categories, keeping what's chosen */
+function fillCategories() {
+  const select = el<HTMLSelectElement>('edCategory');
+  const chosen = select.value;
+  fillSelect(select, categories.map((c) => [c.id, c.label]));
+  if (chosen) setCategory(chosen);
+}
+
+/** Chooses a category, adding it to the menu if the categories don't have it (one since removed) */
+function setCategory(id: string) {
+  const select = el<HTMLSelectElement>('edCategory');
+  if (![...select.options].some((o) => o.value === id)) select.appendChild(new Option(id, id));
+  select.value = id;
+}
+
+/** How many posts and drafts use each category, for the categories editor */
+export function categoryUsage(): Map<string, number> {
+  const used = new Map<string, number>();
+  const add = (id: string | undefined) => id && used.set(id, (used.get(id) ?? 0) + 1);
+  for (const d of documents) if (isSitePost(d.value)) add(d.value.content?.category);
+  for (const d of drafts) add(d.value.content?.category);
+  return used;
 }
 
 function fillSelect(select: HTMLSelectElement, options: [string, string][], blank?: string) {
@@ -359,7 +389,7 @@ function fillEditor(d: DraftRecord) {
   const slug = /^\/posts\/([^/]+)\/$/.exec(d.path ?? '')?.[1] ?? '';
   el<HTMLInputElement>('edSlug').value = slug || slugify(d.title);
   slugTouched = Boolean(slug);
-  el<HTMLSelectElement>('edCategory').value = c.category ?? 'infra';
+  setCategory(c.category ?? 'infra');
   el<HTMLSelectElement>('edLang').value = c.lang ?? 'en';
   el<HTMLInputElement>('edTags').value = (d.tags ?? []).join(', ');
   el<HTMLSelectElement>('edSeries').value = c.series?.series ?? '';

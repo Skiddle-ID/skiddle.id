@@ -158,6 +158,7 @@ The admin app:
 - [x] Edit and unpublish published posts; edits set the "updated" date, unless ticked as a small fix ([#130](https://github.com/Skiddle-ID/skiddle.id/pull/130)), and redraw the share card when it would change
 - [x] Series: create and edit them, including planned parts, ongoing and cadence; saving draws the series' share card. Built, and switched on at the launch ([#133](https://github.com/Skiddle-ID/skiddle.id/pull/133))
 - [x] A page per series to share, `/series/<key>/`, with its own share card; every series link points there
+- [x] Post categories as a record (`id.skiddle.categories`), edited in the admin app (Posts → Categories), with a page per category (`/topics/<id>/`); the command bar's search finds series and categories too
 - [x] Redraw all share cards, for after a change to the card design: **Check share cards** in Site redraws every post, series and scheduled draft card, compares each with the stored one, and saves only the ones that changed. Saving is switched on at the launch
 - [x] Schedule posts, published by a small cron Worker every 5 minutes ([`workers/publisher`](workers/publisher/README.md), replaces three GitHub workflows). Built; deployed, with its app password, at the launch
 

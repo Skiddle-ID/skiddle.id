@@ -1,5 +1,4 @@
 import type { PlannedPart, SeriesInfo } from '~/types/series';
-import { categoryLabels } from './categories.mjs';
 import { seriesSlug } from './post-record.mjs';
 
 /** A post's fields, from its record (src/lib/pds-posts.ts) */
@@ -9,7 +8,8 @@ export interface PostData {
   pubDate: Date;
   updatedDate?: Date;
   publishAt?: Date;
-  category: 'infra' | 'atproto' | 'homelab' | 'life';
+  /** Its category's id (src/lib/categories.mjs): one of the categories in Jeff's repo */
+  category: string;
   lang: string;
   tags: string[];
   cover?: string;
@@ -116,5 +116,5 @@ export function readingMinutes(p: Post): number {
   return Math.max(1, Math.round(words / 220));
 }
 
-/** Category labels (src/lib/categories.mjs, shared with the admin app) */
-export { categoryLabels };
+/** A category's own page */
+export const categoryUrl = (id: string) => `/topics/${id}/`;

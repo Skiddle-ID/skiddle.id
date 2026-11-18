@@ -1,0 +1,53 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.categories",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "The categories posts on skiddle.id belong to, in the order the site shows them. One record, key 'self'. A post names its category by id (id.skiddle.post's category).",
+      "record": {
+        "type": "object",
+        "required": ["categories", "updatedAt"],
+        "properties": {
+          "categories": {
+            "type": "array",
+            "maxLength": 50,
+            "items": {
+              "type": "ref",
+              "ref": "#category"
+            },
+            "description": "In the order they're shown."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "category": {
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Lower case letters, digits and hyphens, e.g. 'homelab'. Its page is /topics/<id>/, and posts name it by this, so it shouldn't change once posts use it."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "As the site shows it, e.g. 'Infra & delivery'. Can change any time."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300,
+          "description": "A line about it, on its page."
+        }
+      }
+    }
+  }
+}

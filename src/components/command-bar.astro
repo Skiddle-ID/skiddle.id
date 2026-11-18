@@ -4,7 +4,7 @@
   Opens with ⌘K / Ctrl+K or / on desktop, or anything with [data-cmdk-open] (the sidebar's
   "search" row, the search icon in the mobile top bar). Those are links to /posts/, so search
   still works without JavaScript. Desktop: a box near the top. Mobile: a full-screen sheet.
-  Post data comes from /search.json, fetched the first time the bar opens.
+  Posts, series and categories come from /search.json, fetched the first time the bar opens.
 */
 ---
 
@@ -154,10 +154,30 @@
     url: string;
     description: string;
     tags: string[];
+    /** Its category's label */
     category: string;
     series: string;
     date: string;
     text: string;
+  }
+  interface IndexedSeries {
+    name: string;
+    url: string;
+    description: string;
+    /** e.g. "1 of 6 parts · next: Ground School" */
+    status: string;
+  }
+  interface IndexedCategory {
+    id: string;
+    label: string;
+    url: string;
+    description: string;
+    posts: number;
+  }
+  interface SearchIndex {
+    posts: IndexedPost[];
+    series: IndexedSeries[];
+    categories: IndexedCategory[];
   }
   interface Item {
     label: string;
@@ -191,6 +211,8 @@
     ];
 
     let posts: IndexedPost[] | null = null;
+    let seriesList: IndexedSeries[] = [];
+    let categoryList: IndexedCategory[] = [];
     let loading: Promise<void> | null = null;
     let failed = false;
     let items: Item[] = [];
@@ -201,8 +223,10 @@
     const load = () => {
       loading ??= fetch('/search.json')
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((data: IndexedPost[]) => {
-          posts = data;
+        .then((data: SearchIndex) => {
+          posts = data.posts;
+          seriesList = data.series ?? [];
+          categoryList = data.categories ?? [];
           failed = false;
           if (dialog.open) render();
         })
@@ -301,6 +325,17 @@
       const postItems = found.slice(0, 8).map((x) => postItem(x.p));
       if (found.length) postItems.push({ label: 'See all results on the posts page →', href: `/posts/?q=${encodeURIComponent(query.trim())}` });
       out.push({ label: 'posts', items: postItems, note: posts ? undefined : note });
+      // A series or a category, by its name (or id) and description
+      out.push({
+        label: 'series',
+        items: seriesList.filter((s) => has(`${s.name} ${s.description} series`)).map((s) => ({ label: s.name, href: s.url, meta: 'series', detail: s.description || s.status })),
+      });
+      out.push({
+        label: 'categories',
+        items: categoryList
+          .filter((c) => has(`${c.label} ${c.id} ${c.description} category topic`))
+          .map((c) => ({ label: c.label, href: c.url, meta: `${c.posts} ${c.posts === 1 ? 'post' : 'posts'}`, detail: c.description })),
+      });
       out.push({ label: 'pages', items: PAGES.filter((pg) => has(`${pg.label} ${pg.path} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.path, meta: pg.path, detail: pg.hint })) });
       out.push({ label: 'actions', items: actions().filter((a) => has(`${a.label} ${a.keywords}`)) });
       return out.filter((g) => g.items.length || g.note);

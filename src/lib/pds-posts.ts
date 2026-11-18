@@ -13,6 +13,7 @@
  * its Markdown rendered (src/lib/post-html.mjs), so a page renders just the post it shows.
  */
 import type { LiveLoader } from 'astro/loaders';
+import { FALLBACK_CATEGORY, isCategoryId } from '~/lib/categories.mjs';
 import { POST_TYPE, SERIES_COLLECTION } from '~/lib/post-record.mjs';
 import { renderPost, type Heading, type PostImage } from '~/lib/post-html.mjs';
 import { listRecords } from '~/lib/pds';
@@ -21,7 +22,6 @@ import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
 import type { SeriesInfo } from '~/types/series';
 
 const DOCUMENT = 'site.standard.document';
-const CATEGORIES = ['infra', 'atproto', 'homelab', 'life'] as const;
 /** Cache tag on every page built from posts, purged when the repo changes */
 export const POSTS_TAG = 'posts';
 
@@ -119,7 +119,8 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
         description: v.description,
         pubDate,
         updatedDate,
-        category: (CATEGORIES as readonly string[]).includes(c.category ?? '') ? (c.category as PostData['category']) : 'infra',
+        // Any category id; the categories record (src/lib/site-categories.ts) gives its label
+        category: isCategoryId(c.category) ? c.category! : FALLBACK_CATEGORY,
         lang: c.lang || 'en',
         tags: v.tags ?? [],
         featured: c.featured ?? false,
