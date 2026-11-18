@@ -2,7 +2,7 @@
 // now, or else the last track played, and album art links for Apple Music tracks.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, isrcOf, mbidOf, olderToken, parseOlder, recentTrack, serviceOf, trackOf, weekSummary } from '../src/lib/teal.mjs';
+import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, isrcOf, mbidOf, musicBrainzCovers, musicBrainzSearches, olderToken, parseOlder, recentTrack, serviceOf, trackOf, weekSummary } from '../src/lib/teal.mjs';
 
 const now = Date.parse('2026-11-18T08:12:00Z');
 const play = (trackName, playedTime, extra = {}) => ({ trackName, playedTime, artists: [{ artistName: 'Bernadya' }], ...extra });
@@ -74,6 +74,56 @@ describe('teal.fm records', () => {
     assert.equal(deezerMatch([{ title: 'Bicara', artist: { name: 'TheOvertunes' }, album: { cover_medium: cover('d') } }], { name: 'Bicara (feat. Monita Tahalea)', artist: 'TheOvertunes, Monita Tahalea' }), cover('d'));
     assert.equal(deezerMatch([{ title: 'Another Song', artist: { name: 'Tulus' }, album: { cover_medium: cover('e') } }], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
     assert.equal(deezerMatch([], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
+  });
+
+  it('names in Thai, Korean or Chinese, or with accents, match too', () => {
+    const cover = (n) => `https://cdn-images.dzcdn.net/images/cover/${n}/250x250-000000-80-0-0.jpg`;
+    assert.equal(deezerMatch([{ title: 'เหงา เหงา (Insomnia)', artist: { name: 'Ink Waruntorn' }, album: { cover_medium: cover('a') } }], { name: 'เหงา เหงา (Insomnia)', artist: 'Ink Waruntorn' }), cover('a'));
+    assert.equal(deezerMatch([{ title: '1분 1초', artist: { name: 'Epik High' }, album: { cover_medium: cover('b') } }], { name: '1분 1초 (feat. 타루)', artist: 'Epik High' }), cover('b'));
+    assert.equal(deezerMatch([{ title: '曹操', artist: { name: '林俊傑' }, album: { cover_medium: cover('c') } }], { name: '曹操', artist: '林俊傑' }), cover('c'));
+    assert.equal(deezerMatch([{ title: 'Halo', artist: { name: 'Beyonce' }, album: { cover_medium: cover('d') } }], { name: 'Halo', artist: 'Beyoncé' }), cover('d'));
+    // Another song by the same artist is still no match
+    assert.equal(deezerMatch([{ title: '江南', artist: { name: '林俊傑' }, album: { cover_medium: cover('e') } }], { name: '曹操', artist: '林俊傑' }), '');
+    // Nor is the same title by an artist in another script
+    assert.equal(deezerMatch([{ title: '曹操', artist: { name: 'Someone' }, album: { cover_medium: cover('f') } }], { name: '曹操', artist: '林俊傑' }), '');
+  });
+
+  it('MusicBrainz is searched by album, then by track, with quotes escaped', () => {
+    assert.deepEqual(musicBrainzSearches({ name: 'Paris', artist: 'Epik High, Someone', album: 'Black Swan Songs' }), [
+      { entity: 'release', query: 'release:"Black Swan Songs" AND artist:"Epik High"' },
+      { entity: 'recording', query: 'recording:"Paris" AND artist:"Epik High"' },
+    ]);
+    assert.deepEqual(musicBrainzSearches({ name: 'Selalu Ada di Nadimu - Original Soundtrack From "JUMBO"', artist: 'Bunga Citra Lestari', album: '' }), [
+      { entity: 'recording', query: 'recording:"Selalu Ada di Nadimu - Original Soundtrack From \\"JUMBO\\"" AND artist:"Bunga Citra Lestari"' },
+    ]);
+    assert.deepEqual(musicBrainzSearches({ name: 'Paris', artist: 'Unknown artist', album: 'Black Swan Songs' }), []);
+  });
+
+  it('a MusicBrainz result gives covers only for releases that are the play’s', () => {
+    const id = (n) => `00000000-0000-4000-8000-00000000000${n}`;
+    const credit = (name) => [{ name, artist: { name } }];
+    const track = { name: 'Paris', artist: 'Epik High', album: 'Black Swan Songs' };
+    // A release search: named like the album and by the artist, then the release groups
+    const releases = musicBrainzCovers('release', {
+      releases: [
+        { id: id(1), title: 'Black Swan Songs', 'artist-credit': credit('Epik High'), 'release-group': { id: id(9) } },
+        { id: id(2), title: 'Black Swan Songs', 'artist-credit': credit('Someone Else'), 'release-group': { id: id(8) } },
+        { id: id(3), title: 'Lovescream', 'artist-credit': credit('Epik High'), 'release-group': { id: id(7) } },
+        { id: id(4), title: 'Black Swan Songs (Repackage)', 'artist-credit': credit('에픽하이 Epik High'), 'release-group': { id: id(9) } },
+      ],
+    }, track);
+    assert.deepEqual(releases, [coverArtArchive(id(1)), coverArtArchive(id(4)), coverArtArchive(id(9), 'release-group')]);
+    // A recording search: a recording named like the track, the play's own album first
+    const recordings = musicBrainzCovers('recording', {
+      recordings: [
+        { title: 'Paris (Live)', 'artist-credit': credit('Epik High'), releases: [{ id: id(5), title: 'Live 2010' }, { id: id(6), title: 'Black Swan Songs', 'release-group': { id: id(9) } }] },
+        { title: 'Paris', 'artist-credit': credit('Someone Else'), releases: [{ id: id(3), title: 'Black Swan Songs' }] },
+        { title: 'Paris', 'artist-credit': credit('Epik High'), releases: [{ id: 'not-an-id', title: 'Black Swan Songs' }] },
+      ],
+    }, track);
+    assert.deepEqual(recordings, [coverArtArchive(id(6)), coverArtArchive(id(5)), coverArtArchive(id(9), 'release-group')]);
+    assert.deepEqual(musicBrainzCovers('release', {}, track), []);
+    assert.deepEqual(musicBrainzCovers('recording', { recordings: [{ title: 'Another Song', 'artist-credit': credit('Epik High'), releases: [{ id: id(1) }] }] }, track), []);
   });
 
   it('older plays (the alpha collection) keep their link, and say where they were played', () => {
