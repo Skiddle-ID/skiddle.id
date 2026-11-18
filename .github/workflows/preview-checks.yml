@@ -8,8 +8,7 @@ name: Preview checks
 #   - Lighthouse             accessibility and best practices (must pass), performance (warning only)
 on:
   pull_request:
-    # v3 is live; v4 is the next major, built on its own branch (see ROADMAP.md → "The v4 branch")
-    branches: [v3, v4]
+    branches: [v4]
 
 permissions:
   contents: read

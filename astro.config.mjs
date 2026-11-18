@@ -1,7 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import { cacheCloudflare } from '@astrojs/cloudflare/cache';
-import mdx from '@astrojs/mdx';
 import childProcess from "child_process";
 import tailwindcss from '@tailwindcss/vite';
 import shareCards from './src/integrations/share-cards';
@@ -43,7 +42,7 @@ const describe = git('describe --tags --always --long') || hash;
 // Preview builds: Cloudflare Workers Builds of any branch except the production one. They include
 // draft posts (with a "Draft" banner) and ask search engines not to index the pages. Local builds,
 // including `npm run deploy`, don't set WORKERS_CI_BRANCH, so they never include drafts.
-const PRODUCTION_BRANCH = 'v3';
+const PRODUCTION_BRANCH = 'v4';
 const branch = process.env.WORKERS_CI ? (process.env.WORKERS_CI_BRANCH ?? '') : '';
 const preview = branch !== '' && branch !== PRODUCTION_BRANCH;
 if (preview) console.log(`Preview build of ${branch}: drafts included, pages set to noindex`);
@@ -90,8 +89,7 @@ export default defineConfig({
     },
   },
   integrations: [
-    mdx(),
-    // Share cards (Open Graph images) for posts and the site, rendered after the build
+    // Share cards (Open Graph images) for the site and its pages, rendered after the build
     shareCards(),
     // Content-Security-Policy with hashes of the inline scripts, appended to _headers
     securityHeaders(),

@@ -2,68 +2,48 @@
 
 My corner of the internet — [skiddle.id](https://skiddle.id) — by Jeff (Skiddle). Protocol engineer in Bangkok (Skiddle Labs), writing about infra, open protocols, homelab and life.
 
-Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https://workers.cloudflare.com). Posts live in `src/content/posts` as Markdown, highlighted with Shiki at build time. Comments come from Bluesky replies.
+Built with [Astro](https://astro.build), deployed to [Cloudflare Workers](https://workers.cloudflare.com). Everything the site shows lives as records in Jeff's own [AT Protocol](https://atproto.com) repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`, @skiddle.blue): the posts, the series, the pages' content and the status. The site reads them when a page is requested, and the admin app at `/admin/` writes them. This repo holds the code. Comments come from Bluesky replies.
 
 ## Updating the site
 
-| To change… | Edit |
+| To change… | Where |
 |---|---|
-| A post | `src/content/posts/<slug>.md` (frontmatter schema in `src/content.config.ts`) |
-| CV / works | `src/data/works.ts` |
-| Projects, services, uses, highlights | `src/data/*.ts` |
-| Pages and layout | `src/pages/`, `src/components/` |
+| A post, a draft, a scheduled post | Admin app → Posts |
+| A series | Admin app → Series |
+| The CV, services, uses, About, projects | Admin app → Pages |
+| The status | Admin app → Status (or the "Set status" workflow) |
+| Page layout, headings, styles | `src/pages/`, `src/components/` (a PR) |
+| The rendered pages' titles and descriptions | `src/data/list-pages.ts` |
 
-New posts start with `draft: true`. They stay off the live site until it's `false`. A pull request's preview (`<branch>-skiddle-id.skiddle.workers.dev`) does show drafts, with a "Draft" banner, so you can read one before publishing it. Previews tell search engines not to index them, but anyone with the link can open them. Once a published post is merged into `v3`, it's announced on Bluesky automatically and gets its `bluesky: at://…` line, which shows replies as comments (see [Bluesky announcements](#bluesky-announcements)).
+A save goes live within seconds, with no build: the admin app asks the site to refresh its cached pages (`POST /api/revalidate`). Only code changes go through a PR and a deploy.
 
-### Scheduling a post
+Every record is public, drafts included: anyone can read them on the PDS, and they go out on the network.
 
-Keep `draft: true` and add the time it should go live, with its offset:
+### Writing and publishing
 
-```yaml
-publishAt: 2026-11-20T09:00:00+07:00
-draft: true
-```
+In the admin app, **Posts → New draft**. A draft is an `id.skiddle.draft` record, saved as you type, so it's on every device. The editor has a live preview (the site's own renderer) and shows the post's share card. Images are shrunk under 1 MB and uploaded as blobs.
 
-Merge it any time before then; its preview shows "Scheduled for Nov 20, 2026, 9:00 AM (Bangkok time)". Every hour, [Publish scheduled posts](.github/workflows/scheduled-publish.yml) (`scripts/publish-scheduled.mjs`) publishes the posts whose time has passed, oldest first. It sets `draft: false` and `pubDate` to the scheduled time, removes `publishAt`, and pushes to `v3`, which Cloudflare deploys. Then it starts the Bluesky announcement, which waits until the post is live and then starts the AT Protocol sync. GitHub can start the hourly run late, or skip it when it's busy: if a post is overdue, run the workflow by hand. To move or cancel a post, change or remove `publishAt` before then. To publish due posts straight away, run the workflow by hand with dry run off.
+- **Publish** draws the share card in the browser and writes the post as a `site.standard.document` with an `id.skiddle.post` inside (the Markdown, images, category, language, series and part). It then announces the post on Bluesky with the card as a link card, and turns comments on (`bskyPostRef`). If it stops part-way, pressing Publish again finishes it without posting twice.
+- **Schedule**: pick a time and the share card is drawn for that date and stored on the draft. The scheduler, a small cron Worker ([`workers/publisher`](workers/publisher/README.md)), publishes due drafts every 5 minutes the same way.
+- **Editing a published post** keeps its address and publish date and sets "updated", unless it's ticked as a small fix. The card is redrawn if the title, description or length changed.
+- **Series** (Series section): name, description, planned parts ("coming"), ongoing and cadence. Saving draws the series' card.
+- **Share cards** (Site section): after a change to the card design, **Check share cards** redraws every stored card and saves the ones that changed.
 
-### Updated dates
+### How the site reads the records
 
-When a published post's text, title or description changes, the Bluesky workflow sets `updatedDate` to the time of the merge (`scripts/mark-updated.mjs`). The post then shows both dates, for example "Sep 30, 2025 · updated Nov 14, 2026", with "updated" linking to the post's history. The sitemap, the JSON-LD and the AT Protocol record get the new date too. Tags, series and other frontmatter don't count, and neither does publishing a draft. For a change that shouldn't count, like a typo fix, put `[skip updated]` in the PR title. You can also set `updatedDate` yourself in the PR.
+Every page that shows records is rendered when it's requested and cached at Cloudflare: fresh for a minute, then stale for up to a day while a new copy renders ([posts](docs/v4/posts-on-atproto.md), [pages](docs/v4/pages-on-atproto.md)).
 
-### Bluesky announcements
-
-`.github/workflows/bluesky-announce.yml` runs `scripts/bluesky-announce.mjs` after each push to `v3` that touches posts. For every post in the push that is published, has no `bluesky:` line and is at most 14 days old, it:
-
-1. waits until the post is live
-2. reuses a Bluesky post that already links to it (if you shared it by hand), or else posts the title and link with the share card as a link card
-3. commits `bluesky: at://…` to the post, so comments turn on with the next deploy
-
-To announce an older post, or try it safely: Actions → "Announce posts on Bluesky" → Run workflow, then enter the slug. Dry run is on by default.
-
-Setup (once): create an app password in Bluesky (Settings → Privacy and security → App passwords), then store it with `gh secret set BLUESKY_APP_PASSWORD`.
-
-### AT Protocol (Standard.site)
-
-The posts are also published as AT Protocol records with the [Standard.site](https://standard.site) lexicons, so readers like Leaflet, pckt and docs.surf can find them: one `site.standard.publication` for skiddle.id and a `site.standard.document` per published post (title, path, description, dates, tags, plain text, share card and the Bluesky announcement).
-
-On v4, every page that shows posts is rendered from these records when it's requested, not built from git ([plan](docs/v4/posts-on-atproto.md)). That covers the post pages, the home page, `/posts/`, `/series/`, `/topics/`, tag pages, `/rss.xml`, `/sitemap.xml`, `/search.json`, `/latest.json` and `/latest.svg`. A new or edited post shows up without a build:
-
-- `src/live.config.ts` defines live collections for posts and series, read from the repo by `src/lib/pds-posts.ts` through `src/lib/pds.ts`. That module finds the PDS from the DID and caches records for a minute.
-- `src/lib/post-html.mjs` turns a record's Markdown into the same HTML Astro builds: GitHub-flavoured Markdown, smart punctuation and github-slugger heading ids. It takes about half a millisecond per post.
-- Pages get their posts from `src/lib/site-posts.ts`. Until the launch, posts that aren't on the PDS yet come from git (drafts on previews). Each page is cached at Cloudflare for a minute (stale for up to a day) with the tag `posts`. `/posts/<record key>/` redirects with a 301.
-- `POST /api/revalidate` clears the cached records and pages when the repo has changed since the last purge. The admin app will call it after a save. Clearing pages by tag needs Cloudflare's `cache.purge`, which local `wrangler dev` doesn't have; without it, pages refresh within their minute.
-- The list pages' share cards come from `src/data/list-pages.ts`, since there's no built page to read. Tag pages use the Topics card.
-- `/media/<cid>` serves the repo's images and share cards. The middleware gives rendered pages the site's CSP, hashing their own inline scripts.
-- `tests/parity.test.mjs` compares a preview with production: every post page, the lists, the feed, the sitemap, the search index and the latest post. `node scripts/check-render-parity.mjs` compares just the post bodies.
-
-- `.github/workflows/standard-site.yml` runs `scripts/standard-site-sync.mjs` after each "Announce posts on Bluesky" run on `v3`. It creates, updates or deletes records to match the published posts, and leaves records of other publications alone. It uses the same app password.
-- The site proves it owns the records with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post. Record keys are worked out from the posts (see `src/lib/standard-site.mjs`), so pages can link to a record before it exists.
-- The six older posts with an `rkey:` were already published on pckt.blog under those keys. `MOVE_PCKT_DOCUMENTS` in `src/lib/standard-site.mjs` decides whether skiddle.id leaves them to pckt or takes them over.
-- To check what would change: Actions → "Publish posts to AT Protocol" → Run workflow (dry run is on by default), or locally `DRY_RUN=1 SKIP_WAIT=1 node scripts/standard-site-sync.mjs` (no password needed).
+- `src/live.config.ts` defines live collections for posts and series, read by `src/lib/pds-posts.ts` through `src/lib/pds.ts`. That module finds the PDS from the DID (so a move to another PDS just works) and caches records for a minute. `src/lib/page-content.ts` reads the pages' records the same way.
+- `src/lib/post-html.mjs` renders a post's Markdown in the Worker: GitHub-flavoured Markdown, smart punctuation and github-slugger heading ids, in about half a millisecond.
+- Pages are cached with the tag `posts` or `pages`. `POST /api/revalidate` clears the cached records and pages when the repo has changed since the last purge. The admin app calls it after a save, and the scheduler after a publish.
+- `/media/<cid>` serves the repo's images and share cards. Old record-key addresses, `/posts/<record key>/`, redirect to the post.
+- The posts are [Standard.site](https://standard.site) documents of the skiddle.id publication, so readers like Leaflet, pckt and docs.surf can find them. The site proves it owns them with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post.
+- The lexicons for the site's own records are in [`lexicons/`](lexicons/id/skiddle/) (`id.skiddle.*`), checked in CI (`npm run check:lexicons`) and published from the admin app.
+- If the PDS can't be read, a page cached earlier still shows. Weekly backups of the whole repo and its images go to the `backups` release ([`scripts/backup.mjs`](scripts/backup.mjs), how to restore: [posts-on-atproto.md](docs/v4/posts-on-atproto.md#backups)).
 
 **Avatars** are local, resized copies, so pages don't load full-size images from other sites. `public/avatars/bluesky.jpg` (224px, on the home page) comes from the Bluesky profile picture, and `public/avatars/github.jpg` (280px, on the about page) and `github-96.jpg` (96px, end of each post) from the GitHub one. To update one, save the new picture and resize it, e.g. `sips -z 224 224 -s format jpeg -s formatOptions 82 new.jpg --out public/avatars/bluesky.jpg`.
 
-Every post gets a share card (the preview image on Bluesky, X, LinkedIn, chat apps) at `/og/posts/<slug>.png`, made at build time from its title, description, date and reading time. Other pages use `/og/site.png`. A post with a `.png`/`.jpg`/`.webp` `cover` uses that instead. The code is in `src/lib/share-card.ts` and `src/integrations/share-cards.ts`.
+The site's own share cards (`/og/site.png`, and the rendered pages' at `/og/pages/<path>.png`) are made at build time (`src/lib/share-card.ts`, `src/integrations/share-cards.ts`). Posts and series carry their own, drawn in the admin app with the same code.
 
 ```sh
 npm ci          # Node 24 (see .node-version), npm (see packageManager)
@@ -74,43 +54,45 @@ npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/work
 
 ### Admin app
 
-`/admin/` is a small app for changing the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then set the status (available, busy, do not disturb or away, with a message, location and time zone), publish the lexicons in `lexicons/` (each shows whether it's published and up to date), and see which of the site's records are in the repo. Add it to the home screen to use it like an app (it's a PWA).
+`/admin/` is a small app for running the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then use its sections, each with its own address: Posts, Series, Pages, Status and Site (lexicons, share cards, the site's records). Add it to the home screen to use it like an app (it's a PWA).
 
 - It runs entirely in the browser (`src/lib/admin/app.ts`, with `@atproto/oauth-client-browser`). There's no server or database: the sign-in tokens stay on the device, and the app writes straight to the PDS.
-- It may only write `id.skiddle.status` and `com.atproto.lexicon.schema` records; Bluesky's sign-in page shows that. The list is `COLLECTIONS` in `src/lib/admin/oauth.ts`. Adding a collection there means signing in again.
+- It may only write the site's collections, upload images, and create (never edit or delete) the Bluesky posts that announce new posts. Bluesky's sign-in page shows the list, which is `COLLECTIONS` and `CREATE_ONLY` in `src/lib/admin/oauth.ts`. Adding one there means signing in again; the app says so.
+- Every save uses `swapRecord`, so a change made on another device is never overwritten unseen, and unsaved changes are kept on the device until a save works.
+- `PUBLISHING_LIVE` in `src/lib/admin/launch.ts` pauses publishing and saving if it's ever set to false.
 - Only @skiddle.blue can change the site: anyone else who signs in is told it's the wrong account, and couldn't write to Jeff's repo anyway.
-- `/oauth-client-metadata.json` is the app's OAuth client ID. It's built from the host, so the app works on skiddle.id, the v4 staging site and previews. With `npm run dev`, open `http://127.0.0.1:4321/admin/`: the app uses AT Protocol's local-development client there, and its sign-in lasts a day.
+- `/oauth-client-metadata.json` is the app's OAuth client ID. It's built from the host, so the app works on skiddle.id and on every preview. With `npm run dev`, open `http://127.0.0.1:4321/admin/`: the app uses AT Protocol's local-development client there, and its sign-in lasts a day.
 - It has its own Content-Security-Policy, which also allows plc.directory, bsky.social and Bluesky's PDS hosts (`src/integrations/security-headers.ts`). After a move to another PDS, add its host there.
 - Kept out of search engines (noindex, robots.txt) and the sitemap.
 
 ### Deploying
 
-Merging into `v3` deploys automatically through [Cloudflare Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/). Settings for the `skiddle-id` Worker (Workers & Pages → skiddle-id → Settings → Build):
+Merging into `v4` deploys automatically through [Cloudflare Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/). Settings for the `skiddle-id` Worker (Workers & Pages → skiddle-id → Settings → Build):
 
-- Git repository: `Skiddle-ID/skiddle.id`, production branch `v3`
+- Git repository: `Skiddle-ID/skiddle.id`, production branch `v4`
 - Build command: `npm run build`
 - Deploy command: `npx wrangler deploy` (the default; it picks up the config Astro generates in `dist/server/`)
 - Root directory: `/`, no build variables needed (Node comes from `.node-version`)
 
-Secrets live in Cloudflare, not in the repo: `LASTFM_API_KEY` (`npx wrangler secret put LASTFM_API_KEY`). For local dev, put it in `.dev.vars`.
+Secrets live in Cloudflare, not in the repo: `LASTFM_API_KEY` (`npx wrangler secret put LASTFM_API_KEY`). For local dev, put it in `.dev.vars`. The scheduler is its own Worker, with its own app password ([setup](workers/publisher/README.md)).
 
 Manual deploy and rollback still work from any machine logged in with `npx wrangler login`: `npm run build && npm run deploy`, `npx wrangler rollback`.
 
 ### Releases
 
-The footer shows the latest release tag reachable from the deployed commit (e.g. `v3.2`), linked to its GitHub release. [Release Drafter](.github/release-drafter.yml) keeps a draft of the next release (`v3.3`, …) under GitHub → Releases, with PRs sorted by their title prefix (`feat:`, `fix:`, `post:`, `chore:`, `docs:`). Rename and publish it when you're ready. Add a `major` label to a PR for a new major version.
+The footer shows the latest release tag reachable from the deployed commit (e.g. `v4.0`), linked to its GitHub release. [Release Drafter](.github/release-drafter.yml) keeps a draft of the next release (`v4.1`, …) under GitHub → Releases, with PRs sorted by their title prefix (`feat:`, `fix:`, `chore:`, `docs:`). Rename and publish it when you're ready. Add a `major` label to a PR for a new major version.
 
-Publishing a release only creates a tag, and tags don't trigger Workers Builds. So the footer picks up the new version on the next merge into `v3`. To show it straight away, either:
+Publishing a release only creates a tag, and tags don't trigger Workers Builds. So the footer picks up the new version on the next merge into `v4`. To show it straight away, either:
 
 - re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
 - `git pull --tags && npm run build && npm run deploy` on a machine logged in with `npx wrangler login`.
 
 ## Checks
 
-Every PR is checked on its own Cloudflare preview (the build of exactly that commit, drafts included) by [`.github/workflows/preview-checks.yml`](.github/workflows/preview-checks.yml). It waits for Cloudflare's bot comment to list the preview, then runs:
+Every PR is checked on its own Cloudflare preview (the build of exactly that commit) by [`.github/workflows/preview-checks.yml`](.github/workflows/preview-checks.yml). It waits for Cloudflare's bot comment to list the preview, then runs:
 
 - `tests/theme.test.mjs`: the light / dark theme follows the device, remembers a pick, survives blocked storage
-- `tests/pages.test.mjs`: every page (the sitemap, drafts and the 404 page) has no browser or CSP errors and no serious accessibility problems (axe, WCAG 2.1 AA); the home page and a post are also checked in dark
+- `tests/pages.test.mjs`: every page (the sitemap, the posts and the 404 page) has no browser or CSP errors and no serious accessibility problems (axe, WCAG 2.1 AA); the home page and a post are also checked in dark
 - `tests/links.test.mjs`: every same-site link, image, script and share card works (links to other sites aren't checked)
 - Lighthouse ([`lighthouserc.json`](lighthouserc.json)): accessibility ≥ 95 and best practices ≥ 90 must pass; performance under 80 is a warning, because CI machines vary. SEO is skipped, since previews are noindex. The scores show in the job summary.
 
@@ -177,7 +159,7 @@ The classic small web badge, for other sites to link here. It's rendered at buil
 ## License
 
 - **Code:** MIT, see [LICENSE](LICENSE). Learn from it, reuse it.
-- **Writing and images** (posts, drafts, post images, photos, and the text of the pages and data files): © Laurensius Jeffrey, all rights reserved, see [LICENSE-CONTENT.md](LICENSE-CONTENT.md). Quoting short excerpts with a link is fine; ask before republishing.
+- **Writing and images** (posts, drafts, post images, photos, and the pages' text, in Jeff's AT Protocol repo and on the site): © Laurensius Jeffrey, all rights reserved, see [LICENSE-CONTENT.md](LICENSE-CONTENT.md). Quoting short excerpts with a link is fine; ask before republishing.
 - **No AI training** on the writing. The site says so in [robots.txt](src/pages/robots.txt.ts) (a Content-Signal line, plus AI training crawlers turned away), in a `tdm-reservation` tag on every page, and in the RSS feed's copyright line. These are requests that well-behaved crawlers follow, not locks. Cloudflare's AI bot blocking (dashboard → AI Crawl Control) can enforce it at the edge.
 
 ## Credits & inspiration
@@ -191,4 +173,4 @@ Other sites that shaped it:
 
 ---
 
-*Branches: PRs merge into `v3` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v4` is the next major, in progress (staging at `v4-skiddle-id.skiddle.workers.dev`, see [ROADMAP.md](ROADMAP.md#the-v4-branch)) · `v1` and `v2` are archived majors*
+*Branches: PRs merge into `v4` (default branch, deploys automatically) · release notes drafted from PRs, see [Releases](https://github.com/Skiddle-ID/skiddle.id/releases) · `v1`, `v2` and `v3` are archived majors*

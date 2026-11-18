@@ -15,8 +15,8 @@
  * since a save goes live. A save keeps the publish date and sets "updated" to now, unless it's
  * ticked as a small fix (like `[skip updated]` in a git commit), which leaves "updated" as it was.
  * If the title, description or length changed, it redraws the post's share card. Saving,
- * unpublishing, publishing and scheduling drafts wait for the v4 launch (src/lib/admin/launch.ts);
- * until then edits are kept on this device.
+ * unpublishing, publishing and scheduling drafts follow PUBLISHING_LIVE (src/lib/admin/launch.ts);
+ * while it's off, edits are kept on this device.
  *
  *   - The preview uses the same renderer as the site (src/lib/post-html.mjs) and the site's styles,
  *     and can show the post's share card, drawn in the browser (src/lib/admin/card.ts).
@@ -170,7 +170,8 @@ export async function route() {
 }
 
 export async function loadPosts() {
-  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob/.test(s));
+  // Writing drafts, uploading images, publishing (the document, its series, the Bluesky post)
+  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob|standard\.document|series|feed\.post/.test(s));
   el('postsScope').hidden = missing.length === 0;
   el<HTMLButtonElement>('newDraft').disabled = missing.length > 0;
   const [d, docs, s] = await Promise.all([

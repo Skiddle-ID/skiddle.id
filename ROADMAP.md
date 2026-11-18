@@ -90,7 +90,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
 - **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
 
-**Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in v4.1 and v4.2):
+**Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in v4.1 and v4.2). Every step, in order and with who does it, is in [docs/v4/switch.md](docs/v4/switch.md):
 
 - [ ] Merge `v3` into `v4` one last time
 - [ ] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series))

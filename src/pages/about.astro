@@ -8,9 +8,8 @@ import { PAGES_CACHE, getAbout } from '~/lib/page-content';
 // Rendered on request: the page comes from its record (src/lib/page-content.ts)
 export const prerender = false;
 
-const { about, source } = await getAbout();
+const { about } = await getAbout();
 Astro.cache.set(PAGES_CACHE);
-Astro.response.headers.set('X-Content-Source', source);
 
 const accents = [
   { id: 'blue', dark: '#82cfff', light: '#0f62fe' },

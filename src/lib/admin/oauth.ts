@@ -18,9 +18,13 @@
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
  *   - id.skiddle.project, .cv, .services, .uses and .about: the pages' content
- *     (docs/v4/pages-on-atproto.md), imported and edited in the Pages section
- * Publishing posts (site.standard.document, id.skiddle.series, a Bluesky post) is added with the
- * v4 launch, when the admin app takes over publishing from git.
+ *     (docs/v4/pages-on-atproto.md), edited in the Pages section
+ *   - site.standard.document: published posts (Standard.site), written when a post is published,
+ *     edited or unpublished
+ *   - id.skiddle.series: the series
+ * and, create only (CREATE_ONLY):
+ *   - app.bsky.feed.post: the Bluesky post that announces a new post; the app never edits or
+ *     deletes Bluesky posts
  */
 export const COLLECTIONS = [
   'id.skiddle.status',
@@ -31,10 +35,19 @@ export const COLLECTIONS = [
   'id.skiddle.services',
   'id.skiddle.uses',
   'id.skiddle.about',
+  'site.standard.document',
+  'id.skiddle.series',
 ] as const;
+/** Collections the app may only add to */
+export const CREATE_ONLY = ['app.bsky.feed.post'] as const;
 /** Uploads: a post's images */
 export const BLOB_TYPES = ['image/*'] as const;
-export const SCOPE = ['atproto', ...COLLECTIONS.map((c) => `repo:${c}`), ...BLOB_TYPES.map((t) => `blob:${t}`)].join(' ');
+export const SCOPE = [
+  'atproto',
+  ...COLLECTIONS.map((c) => `repo:${c}`),
+  ...CREATE_ONLY.map((c) => `repo:${c}?action=create`),
+  ...BLOB_TYPES.map((t) => `blob:${t}`),
+].join(' ');
 
 /** The parts of SCOPE a session's granted scope doesn't have (it was signed in before they were added) */
 export function missingScopes(granted: string): string[] {

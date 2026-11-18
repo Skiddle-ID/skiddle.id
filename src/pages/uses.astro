@@ -6,9 +6,8 @@ import { PAGES_CACHE, getUses } from '~/lib/page-content';
 // Rendered on request: the page comes from its record (src/lib/page-content.ts)
 export const prerender = false;
 
-const { uses, usesUpdated, source } = await getUses();
+const { uses, usesUpdated } = await getUses();
 Astro.cache.set(PAGES_CACHE);
-Astro.response.headers.set('X-Content-Source', source);
 
 const itemCount = uses.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.items.length, 0), 0);
 ---

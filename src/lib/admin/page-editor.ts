@@ -9,9 +9,8 @@
  *   - writes it with swapRecord, so a change made on another device isn't overwritten unseen (a
  *     new record with createRecord, which never overwrites one)
  *   - refreshes the site's pages
- * A project can be deleted, after a confirm. Until the v4 launch (src/lib/admin/launch.ts) saving
- * and deleting are off: skiddle.id still shows the data files, and the parity check expects the
- * records to match them. Changes are kept on this device until they're saved, as with series.
+ * A project can be deleted, after a confirm. Changes are kept on this device until they're saved,
+ * as with series. Saving and deleting follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import aboutLexicon from '../../../lexicons/id/skiddle/about.json';
@@ -133,7 +132,7 @@ export async function openPage(route: PageRoute) {
   if (!still || routeKey(still) !== key) return; // moved on while it loaded
   if ('project' in route && !record) {
     el('peState').textContent = '';
-    return message('peMessage', 'This project isn’t in your repo. Import it from the Pages section first.', 'error');
+    return message('peMessage', 'This project isn’t in your repo.', 'error');
   }
   current = { ...target, route: key, rkey: target.rkey, cid: record?.cid, record: record?.value, read: () => ({}) };
   if ('project' in route && record?.value.name) el('peTitle').textContent = String(record.value.name);

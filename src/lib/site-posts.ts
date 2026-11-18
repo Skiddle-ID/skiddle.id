@@ -1,19 +1,18 @@
 /**
- * The posts and series every page uses, read when the page is requested: from Jeff's AT Protocol
- * repo (the pdsPosts and pdsSeries live collections, src/lib/pds-posts.ts), plus, until the v4
- * launch, posts in git that aren't on the PDS yet (drafts on previews, or a post merged minutes
- * before the AT Protocol sync ran). See docs/v4/posts-on-atproto.md.
+ * The posts and series every page uses, read when the page is requested from Jeff's AT Protocol
+ * repo (the pdsPosts and pdsSeries live collections, src/lib/pds-posts.ts). See
+ * docs/v4/posts-on-atproto.md.
  *
  * Pages that use this are rendered on request and tag their cache with POSTS_TAG, so a save can
  * purge them all (/api/revalidate).
  */
 import { getLiveCollection } from 'astro:content';
-import { seriesInfo as gitSeriesInfo, type SeriesInfo } from '~/data/series';
 import type { LatestPost } from '~/lib/latest-card';
 import { renderPost } from '~/lib/post-html.mjs';
 import { cached } from '~/lib/pds';
 import { POSTS_TAG, type PdsPostData } from '~/lib/pds-posts';
-import { getPosts, groupSeries, postUrl, readingMinutes, type Post } from '~/lib/posts';
+import { groupSeries, postUrl, readingMinutes, type Post } from '~/lib/posts';
+import type { SeriesInfo } from '~/types/series';
 
 export { POSTS_TAG };
 
@@ -27,22 +26,21 @@ export interface SitePosts {
   seriesInfo: Record<string, SeriesInfo>;
 }
 
-/** The fields a post from the PDS has on top of the git collection's */
-export const pdsData = (p: Post): PdsPostData | undefined => ('recordKey' in p.data ? (p.data as PdsPostData) : undefined);
+/** The fields a post's record adds to PostData: its Markdown, images, record key and share card */
+export const pdsData = (p: Post): PdsPostData => p.data as PdsPostData;
 
 /**
- * @param options.drafts Include drafts from git, as previews do (default). The feed and the
- *   sitemap leave them out.
+ * Every post and series. If the PDS can't be read this throws, rather than render (and cache) a
+ * site with no posts: a page cached earlier still shows while it's stale (POSTS_CACHE).
  */
-export async function sitePosts({ drafts = true }: { drafts?: boolean } = {}): Promise<SitePosts> {
-  const [list, series, git] = await Promise.all([getLiveCollection('pdsPosts'), getLiveCollection('pdsSeries'), getPosts()]);
-  if (list.error) console.error('posts from the PDS:', list.error);
-  if (series.error) console.error('series from the PDS:', series.error);
-  const pds: Post[] = (list.entries ?? []).map((e) => ({ id: e.id, body: e.data.markdown, data: e.data }));
-  const onPds = new Set(pds.map((p) => p.id));
-  const fromGit = git.filter((p) => !onPds.has(p.id) && (drafts || !p.data.draft));
-  const posts = [...pds, ...fromGit].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-  const seriesInfo = { ...gitSeriesInfo, ...Object.fromEntries((series.entries ?? []).map((s) => [s.data.name, s.data])) };
+export async function sitePosts(): Promise<SitePosts> {
+  const [list, series] = await Promise.all([getLiveCollection('pdsPosts'), getLiveCollection('pdsSeries')]);
+  if (list.error) throw new Error(`posts from the PDS: ${list.error.message}`);
+  if (series.error) throw new Error(`series from the PDS: ${series.error.message}`);
+  const posts: Post[] = (list.entries ?? [])
+    .map((e) => ({ id: e.id, body: e.data.markdown, data: e.data }))
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  const seriesInfo = Object.fromEntries((series.entries ?? []).map((s) => [s.data.name, s.data]));
   return { posts, seriesInfo };
 }
 

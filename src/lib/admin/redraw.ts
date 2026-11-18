@@ -12,7 +12,7 @@
  * deterministic, so an unchanged card comes out byte for byte the same). Nothing is uploaded.
  * **Save** uploads the new cards and saves just their records' coverImage, with swapRecord, so
  * nothing else changes: a post's "updated" date stays. Bluesky posts keep the card they were
- * announced with. Save is off until the launch (src/lib/admin/launch.ts).
+ * announced with. Save follows PUBLISHING_LIVE (src/lib/admin/launch.ts).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { DOCUMENT_COLLECTION, DRAFT_COLLECTION, POST_TYPE, SERIES_COLLECTION } from '~/lib/post-record.mjs';

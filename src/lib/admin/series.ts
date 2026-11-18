@@ -8,9 +8,8 @@
  *   - Saving draws the series' share card in the browser (src/lib/admin/card.ts), uploads it, and
  *     writes the record with swapRecord, so a change made on another device isn't overwritten
  *     unseen. Then the site refreshes its pages.
- *   - Until the v4 launch (src/lib/admin/launch.ts) saving and deleting are off, because v3's sync
- *     writes each series' name, planned parts and cadence from git. Changes are kept on this
- *     device until they're saved, as with posts.
+ *   - Changes are kept on this device until they're saved, as with posts. Saving and deleting
+ *     follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  *   - A series can only be deleted while no post or draft belongs to it.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';

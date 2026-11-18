@@ -1,8 +1,8 @@
 /**
  * The Bluesky post that announces a new post on skiddle.id: the title, a blank line and the link,
  * with the post's share card as a link card, in the post's language. The admin app posts it when it
- * publishes a post; it's the same post scripts/bluesky-announce.mjs makes today (that script goes
- * away at the v4 launch). Plain JavaScript, so both can use it.
+ * publishes a post, and the scheduler (workers/publisher) when it publishes a scheduled one. Plain
+ * JavaScript, so both can use it.
  */
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
