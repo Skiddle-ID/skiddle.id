@@ -2,14 +2,15 @@
 // Rendered on request from the posts on the PDS (src/lib/site-posts.ts), cached at Cloudflare
 export const prerender = false;
 import Shell from '~/layouts/shell.astro';
-import FormattedDate from '~/components/formatted-date.astro';
 import SeriesBar from '~/components/series-bar.astro';
+import SeriesEntries from '~/components/series-entries.astro';
 import { LIST_PAGES } from '~/data/list-pages';
-import { groupSeries, postUrl, readingMinutes, seriesStatus } from '~/lib/posts';
+import { groupSeries, seriesStatus, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
 // Posts in a series, grouped and in reading order (their part number), with the planned parts
-// from the series records shown as "coming"
+// from the series records shown as "coming". Each series also has its own page, to share
+// (src/pages/series/[slug].astro); the #<key> anchors here stay for older links
 const { posts, seriesInfo } = await sitePosts();
 const series = groupSeries(posts, seriesInfo);
 Astro.cache.set(POSTS_CACHE);
@@ -23,31 +24,12 @@ Astro.cache.set(POSTS_CACHE);
     {series.map((s) => (
       <section id={s.slug} class="mt-10" aria-labelledby={`${s.slug}-title`}>
         <h2 id={`${s.slug}-title`} class="font-semibold before-hash-2 mb-3">
-          {s.name}
+          <a href={seriesUrl(s.slug)} class="hover:text-[var(--color-primary)]">{s.name}</a>
           <span class="text-sm font-normal text-[var(--color-muted)]"> · {seriesStatus(s).replace(/ · next: .*/, '')}</span>
         </h2>
         {s.description && <p class="text-sm text-[var(--color-muted)] mb-3">{s.description}</p>}
         <SeriesBar series={s} class="max-w-xs mb-4" />
-        <ol class="flex flex-col gap-3">
-          {s.entries.map((e, i) => (
-            <li class="grid grid-cols-[2rem_1fr] gap-2">
-              <span class:list={['tabular-nums', e.post ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted)]']} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-              {e.post ? (
-                <span>
-                  <a href={postUrl(e.post)} class="link" lang={e.post.data.lang}>{e.title}</a>
-                  <span class="block text-xs text-[var(--color-muted)] mt-0.5">
-                    <FormattedDate date={e.post.data.pubDate} /> · {readingMinutes(e.post)} min read
-                  </span>
-                </span>
-              ) : (
-                <span class="text-[var(--color-muted)]">
-                  {e.title}
-                  <span class="block text-xs mt-0.5">coming</span>
-                </span>
-              )}
-            </li>
-          ))}
-        </ol>
+        <SeriesEntries series={s} />
       </section>
     ))}
   </div>

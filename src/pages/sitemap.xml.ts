@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { groupSeries, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
 // Rendered on request: the post URLs come from the PDS (src/lib/site-posts.ts); drafts are left out
@@ -39,12 +40,18 @@ export const GET: APIRoute = async ({ site, request, cache }) => {
   const lastmod = new Map<string, Date>();
 
   try {
-    const { posts } = await sitePosts();
+    const { posts, seriesInfo } = await sitePosts();
     for (const p of posts) {
       if (!p.id) continue;
       const path = `/posts/${p.id}/`;
       urls.push(path);
       lastmod.set(path, p.data.updatedDate ?? p.data.pubDate);
+    }
+    // Each series' page, dated by its newest part
+    for (const s of groupSeries(posts, seriesInfo)) {
+      const path = seriesUrl(s.slug);
+      urls.push(path);
+      lastmod.set(path, new Date(Math.max(...s.parts.map((p) => (p.data.updatedDate ?? p.data.pubDate).valueOf()))));
     }
     const newest = Math.max(...[...lastmod.values()].map((d) => d.valueOf()));
     if (Number.isFinite(newest)) lastmod.set('/posts/', new Date(newest));

@@ -34,6 +34,7 @@ export const postUrl = (p: Post) => `/posts/${p.id}/`;
 
 export interface Series {
   name: string;
+  /** Its record's key: the page is /series/<slug>/ (seriesUrl) and its place on /series/ is #<slug> */
   slug: string;
   /** Published parts in reading order (`order`, then date) */
   parts: Post[];
@@ -47,6 +48,8 @@ export interface Series {
   cadence?: string;
   /** What the series is about */
   description?: string;
+  /** Its share card (from the record) */
+  coverImage?: { cid: string; mimeType: string };
 }
 
 /** One part of a series: a published post, or a planned part that's still to come */
@@ -55,7 +58,8 @@ export type SeriesEntry = { post: Post; order: number; title: string } | { post?
 /** URL-safe id for a series name: "Rebuilding skiddle.id" → "rebuilding-skiddle-id". Also its record key */
 export { seriesSlug };
 
-export const seriesUrl = (name: string) => `/series/#${seriesSlug(name)}`;
+/** A series' own page, by its record's key (Series.slug) */
+export const seriesUrl = (slug: string) => `/series/${slug}/`;
 
 /**
  * Group posts into series, newest series (by its latest part) first
@@ -81,13 +85,15 @@ export function groupSeries(posts: Post[], info: Record<string, SeriesInfo>): Se
       ].sort((a, b) => a.order - b.order);
       return {
         name,
-        slug: seriesSlug(name),
+        // The record's key; a renamed series keeps it, so its address stays the same
+        slug: extra.key ?? seriesSlug(name),
         parts,
         planned,
         entries,
         ongoing: extra.ongoing ?? false,
         cadence: extra.cadence,
         description: extra.description,
+        coverImage: extra.coverImage,
       };
     })
     .sort((a, b) => latest(b) - latest(a));
