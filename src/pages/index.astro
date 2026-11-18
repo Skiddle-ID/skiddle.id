@@ -4,19 +4,25 @@ import PostList from '../components/post-list.astro';
 import SeriesBar from '../components/series-bar.astro';
 import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
-import projects from '../data/projects';
-import services from '../data/services';
+import { PAGES_TAG, contentSource, getProjects, getServices } from '~/lib/page-content';
 import { status } from '../data/status';
 import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
-// Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts)
+// Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts), and
+// so do the project cards and the testimonial (src/lib/page-content.ts)
 export const prerender = false;
 
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
 const profileImg = '/avatars/bluesky.jpg';
 
-const { posts, seriesInfo } = await sitePosts();
+const [{ posts, seriesInfo }, { projects, source: projectsSource }, { services, source: servicesSource }] = await Promise.all([
+  sitePosts(),
+  getProjects(),
+  getServices(),
+]);
 const series = groupSeries(posts, seriesInfo);
-Astro.cache.set(POSTS_CACHE);
+// Purged when either posts or the pages' records change
+Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
+Astro.response.headers.set('X-Content-Source', contentSource(projectsSource, servicesSource));
 
 // Recent posts: everything not in a series, plus only the newest part of each series (the series cards cover the rest)
 const seen = new Set<string>();

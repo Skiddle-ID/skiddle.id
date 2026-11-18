@@ -6,6 +6,8 @@
  *   - for the post lists rendered on request (/posts/, /series/, /topics/; tag pages share the
  *     Topics card): their title and description from src/data/list-pages.ts, without a post count,
  *     which would go stale between builds
+ *   - for the pages built from records (/projects/, /works/, /services/, /uses/, /about/): their
+ *     title, description and command from src/data/list-pages.ts
  *   - for the home page (and 404): /og/site.png
  *   - the 88×31 button other sites can link here with: /88x31.png and /88x31-2x.png
  * Reading the built pages means cards always match what's built: no drafts on skiddle.id, and cards
@@ -16,7 +18,7 @@ import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderButton, renderShareCard, type CardFont } from '../lib/share-card';
-import { LIST_PAGES } from '../data/list-pages';
+import { CONTENT_PAGES, LIST_PAGES } from '../data/list-pages';
 
 type BlogPosting = { '@type'?: string; headline?: string; description?: string; datePublished?: string; inLanguage?: string };
 
@@ -125,11 +127,16 @@ export default function shareCards(): AstroIntegration {
           await writeFile(target, png);
           pageCount++;
         }
-        // The post lists are rendered on request, so there's no built page to read
-        for (const [path, page] of Object.entries(LIST_PAGES)) {
+        // The post lists and the pages built from records are rendered on request, so there's no
+        // built page to read
+        const onRequest = [
+          ...Object.entries(LIST_PAGES).map(([path, page]) => ({ path, ...page, command: `cd ~/${path}` })),
+          ...Object.entries(CONTENT_PAGES).map(([path, page]) => ({ path, ...page })),
+        ];
+        for (const { path, title, description, command } of onRequest) {
           const target = new URL(`pages/${path}.png`, out);
           await mkdir(new URL('.', target), { recursive: true });
-          await writeFile(target, await renderShareCard({ command: `cd ~/${path}`, title: page.title, description: page.description, meta: [''], logo }, fonts));
+          await writeFile(target, await renderShareCard({ command, title, description, meta: [''], logo }, fonts));
           pageCount++;
         }
         for (const [image, page] of used) {

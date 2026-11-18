@@ -1,6 +1,6 @@
 /**
  * POST /api/revalidate: when Jeff's AT Protocol repo has changed, purges the cached records and the
- * cached pages built from them (Astro's route cache, tag "posts"), so a save shows straight away
+ * cached pages built from them (Astro's route cache, tags "posts" and "pages"), so a save shows straight away
  * instead of within a minute. The admin app calls it after a save; the cron Worker will after a
  * scheduled publish.
  *
@@ -8,6 +8,7 @@
  * one it last purged for, so calling it at any other time does nothing.
  */
 import type { APIRoute } from 'astro';
+import { PAGES_TAG, PAGE_RECORD_KEYS } from '~/lib/page-content';
 import { forget, pdsUrl } from '~/lib/pds';
 import { POSTS_TAG } from '~/lib/pds-posts';
 import { DID } from '~/lib/standard-site.mjs';
@@ -34,10 +35,10 @@ export const POST: APIRoute = async ({ cache }) => {
   const last = lastRevInMemory ?? (await (await edgeCache()?.match(LAST_REV).catch(() => undefined))?.text());
   if (rev === last) return json({ purged: false, rev, reason: 'The repo hasn’t changed since the last purge' });
 
-  await forget(['list/site.standard.document', 'list/id.skiddle.series', 'record/id.skiddle.status/self']);
+  await forget(['list/site.standard.document', 'list/id.skiddle.series', 'record/id.skiddle.status/self', ...PAGE_RECORD_KEYS]);
   let pages = true;
   try {
-    await cache.invalidate({ tags: [POSTS_TAG] });
+    await cache.invalidate({ tags: [POSTS_TAG, PAGES_TAG] });
   } catch (err) {
     pages = false;
     console.error('revalidate: purging pages failed:', err);

@@ -2,7 +2,15 @@
 import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
 import { marked } from 'marked';
-import about from '../data/about';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, getAbout } from '~/lib/page-content';
+
+// Rendered on request: the page comes from its record (src/lib/page-content.ts)
+export const prerender = false;
+
+const { about, source } = await getAbout();
+Astro.cache.set(PAGES_CACHE);
+Astro.response.headers.set('X-Content-Source', source);
 
 const accents = [
   { id: 'blue', dark: '#82cfff', light: '#0f62fe' },
@@ -12,11 +20,11 @@ const accents = [
   { id: 'green', dark: '#42be65', light: '#198038' },
 ];
 
-// The prose fields are Markdown (src/data/about.ts)
+// The prose fields are Markdown (lexicons/id/skiddle/about.json)
 const html = (markdown: string) => marked.parse(markdown, { async: false });
 ---
 
-<Shell title="About — Skiddle" description="About Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, homelabber, open-web fan and private pilot.">
+<Shell title={`${CONTENT_PAGES.about.title} — Skiddle`} description={CONTENT_PAGES.about.description}>
   <div class="max-w-[70ch] w-full">
     <h1 class="font-semibold text-xl before-hash-1">About me</h1>
 
