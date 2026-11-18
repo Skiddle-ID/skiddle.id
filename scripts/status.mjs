@@ -6,7 +6,7 @@
  *
  *   npm run status -- --available --text "open to consulting"
  *   npm run status -- --busy --text "booked until March" --location Singapore --time-zone Asia/Singapore
- *   npm run status -- --state away --text "on holiday"
+ *   npm run status -- --state away --text "on holiday" --emoji 🏖️
  *
  * --state is available, busy, dnd (do not disturb) or away; --available and --busy are short for
  * the first two.
@@ -15,6 +15,8 @@
  *                                          com.atproto.lexicon.schema record, so other apps can find it
  *
  * --location and --time-zone default to the current record's, else Bangkok / Asia/Bangkok.
+ * --emoji sets one emoji shown instead of the dot; --no-emoji goes back to the dot; without either,
+ * the current record's emoji stays.
  * --dry-run shows the record without writing it.
  *
  * Environment:
@@ -24,7 +26,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { DID } from '../src/lib/standard-site.mjs';
-import { MAX_CHARS as MAX, STATES, countChars, isState } from '../src/lib/status-states.mjs';
+import { MAX_CHARS as MAX, STATES, countChars, isEmoji, isState } from '../src/lib/status-states.mjs';
 
 const COLLECTION = 'id.skiddle.status';
 const LEXICON_FILE = 'lexicons/id/skiddle/status.json';
@@ -62,11 +64,15 @@ async function main() {
   const text = option('text')?.trim();
   if (!text) throw new Error('Say what the status is: --text "open to consulting"');
   const current = (await getRecord(pds, COLLECTION, 'self'))?.value ?? {};
+  const given = option('emoji')?.trim();
+  if (given !== undefined && !isEmoji(given)) throw new Error(`--emoji takes one emoji, like ✈️ (got "${given}")`);
+  const emoji = flag('no-emoji') ? undefined : (given ?? (isEmoji(current.emoji) ? current.emoji : undefined));
   const record = {
     $type: COLLECTION,
     state,
     available: state === 'available',
     text,
+    ...(emoji ? { emoji } : {}),
     location: (option('location') ?? current.location ?? DEFAULTS.location).trim(),
     timeZone: (option('time-zone') ?? current.timeZone ?? DEFAULTS.timeZone).trim(),
     updatedAt: new Date().toISOString(),
@@ -81,7 +87,7 @@ async function main() {
 
   if (flag('dry-run')) return console.log(`DRY RUN: would write ${COLLECTION}/self:\n${JSON.stringify(record, null, 2)}`);
   await putRecord(pds, COLLECTION, 'self', record);
-  console.log(`Status set: ${record.state} · ${record.text} · ${record.location} (${record.timeZone})`);
+  console.log(`Status set: ${record.state} · ${record.emoji ? `${record.emoji} ` : ''}${record.text} · ${record.location} (${record.timeZone})`);
   console.log('skiddle.id shows it within a minute.');
 }
 

@@ -8,7 +8,7 @@
  */
 import { status as fallback, type Status } from '~/data/status';
 import { getRecord } from '~/lib/pds';
-import { isState, stateOf, trimChars } from '~/lib/status-states.mjs';
+import { isEmoji, isState, stateOf, trimChars } from '~/lib/status-states.mjs';
 
 export const STATUS_COLLECTION = 'id.skiddle.status';
 
@@ -44,7 +44,9 @@ export function parseStatus(value: unknown): LiveStatus | null {
   const location = typeof v.location === 'string' && v.location.trim() ? trimChars(v.location.trim()) : fallback.city;
   const timeZone = typeof v.timeZone === 'string' && validTimeZone(v.timeZone) ? v.timeZone : fallback.timeZone;
   const updatedAt = typeof v.updatedAt === 'string' ? v.updatedAt : undefined;
-  return { state: stateOf(v), label: text, city: location, timeZone, updatedAt, source: 'pds' };
+  // One emoji, shown instead of the dot; anything else is left out
+  const emoji = isEmoji(v.emoji) ? v.emoji : undefined;
+  return { state: stateOf(v), ...(emoji ? { emoji } : {}), label: text, city: location, timeZone, updatedAt, source: 'pds' };
 }
 
 function validTimeZone(tz: string): boolean {

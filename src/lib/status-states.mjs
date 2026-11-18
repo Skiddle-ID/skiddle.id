@@ -40,6 +40,20 @@ export function trimChars(s, max = MAX_CHARS) {
   return s.length <= max ? s : chars(s).slice(0, max).join('');
 }
 
+/** Emoji the admin app offers as quick picks for the status (any single emoji works) */
+export const EMOJI_PICKS = ['💻', '🛠️', '☕', '✈️', '🏠', '🎧', '📚', '🌙', '🤒', '🏖️'];
+
+/**
+ * Whether a string is one emoji, as people see it: a single character that's a pictograph (☕, 🧑‍💻),
+ * a flag (🇹🇭) or a keycap (1️⃣)
+ * @param {unknown} s
+ * @returns {s is string}
+ */
+export function isEmoji(s) {
+  if (typeof s !== 'string' || !s || countChars(s) !== 1) return false;
+  return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u.test(s);
+}
+
 /** In the order the admin app offers them */
 export const STATES = /** @type {const} */ (['available', 'busy', 'dnd', 'away']);
 

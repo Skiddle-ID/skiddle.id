@@ -15,6 +15,8 @@ export const GET: APIRoute = async ({ request }) => {
   const body = {
     state: s.state,
     available: s.state === 'available',
+    // One emoji shown instead of the dot, or null for the dot
+    emoji: s.emoji ?? null,
     text: s.label,
     location: s.city,
     timeZone: s.timeZone,

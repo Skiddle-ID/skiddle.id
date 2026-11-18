@@ -17,6 +17,10 @@ on:
         description: 'What the status says, e.g. "open to consulting" (up to 64 characters)'
         type: string
         required: true
+      emoji:
+        description: 'One emoji shown instead of the dot, e.g. ✈️ (empty: keep the current one; "none": the dot)'
+        type: string
+        required: false
       location:
         description: 'Where you are (empty: keep the current one)'
         type: string
@@ -56,11 +60,13 @@ jobs:
           BLUESKY_IDENTIFIER: skiddle.blue
           STATE: ${{ inputs.state }}
           TEXT: ${{ inputs.text }}
+          EMOJI: ${{ inputs.emoji }}
           LOCATION: ${{ inputs.location }}
           TIME_ZONE: ${{ inputs.time_zone }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           args=(--state "$STATE" --text "$TEXT")
+          if [ "$EMOJI" = "none" ]; then args+=(--no-emoji); elif [ -n "$EMOJI" ]; then args+=(--emoji "$EMOJI"); fi
           if [ -n "$LOCATION" ]; then args+=(--location "$LOCATION"); fi
           if [ -n "$TIME_ZONE" ]; then args+=(--time-zone "$TIME_ZONE"); fi
           if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi

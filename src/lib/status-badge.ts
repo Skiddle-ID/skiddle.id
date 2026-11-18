@@ -1,8 +1,8 @@
 /**
  * SVG renderer for the status badge served at /status.svg: "● open to consulting · Bangkok 14:32",
  * made for a GitHub profile README, an email signature or a link in a bio. The status comes from
- * src/lib/at-status.ts; the dot's colour is its state (src/lib/status-states.mjs). The time is the
- * local time where Jeff is, when the badge is loaded.
+ * src/lib/at-status.ts; the dot's colour is its state (src/lib/status-states.mjs), or the status's
+ * emoji takes the dot's place. The time is the local time where Jeff is, when the badge is loaded.
  */
 import { CHAR_EM, FONT, cardStyle, clean, colourVars, esc, textColumns, type CardAccent, type CardTheme } from './embed-card';
 import type { Status } from '~/data/status';
@@ -19,6 +19,11 @@ const H = 28;
 const FONT_PX = 12;
 const DOT_X = 14;
 const TEXT_X = 26;
+/** With an emoji in the dot's place: it's wider, so the text starts a little later */
+const EMOJI_X = 15;
+const EMOJI_TEXT_X = 30;
+const EMOJI_PX = 14;
+const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
 const PAD_R = 12;
 
 export function renderStatusBadge(status: Status, options: StatusBadgeOptions = {}): string {
@@ -29,10 +34,13 @@ export function renderStatusBadge(status: Status, options: StatusBadgeOptions = 
   const label = clean(status.label);
   const city = clean(status.city);
   const where = ` · ${city} `;
-  const W = Math.ceil(TEXT_X + textColumns(label + where + time) * FONT_PX * CHAR_EM + PAD_R);
+  const emoji = status.emoji;
+  const textX = emoji ? EMOJI_TEXT_X : TEXT_X;
+  const W = Math.ceil(textX + textColumns(label + where + time) * FONT_PX * CHAR_EM + PAD_R);
   const { label: stateLabel, tone } = STATE_INFO[status.state];
   const available = status.state === 'available';
-  const summary = `${stateLabel}: ${label}. ${city}, ${time} local time`;
+  // No second full stop after a status that ends in one
+  const summary = `${stateLabel}: ${label}${/[.!?…]$/.test(label) ? '' : '.'} ${city}, ${time} local time`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="st-title">
 <title id="st-title">${esc(summary)}</title>
@@ -44,7 +52,11 @@ text{font-family:${FONT};font-size:${FONT_PX}px}
 @media (prefers-reduced-motion:reduce){.ring{animation:none;opacity:0}}
 </style>
 <rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="6" class="card"/>
-${available ? `<circle cx="${DOT_X}" cy="${H / 2}" r="4" class="ring"/>` : ''}<circle cx="${DOT_X}" cy="${H / 2}" r="4" class="${tone}"/>
-<text x="${TEXT_X}" y="${H / 2 + 4}"><tspan class="fg">${esc(label)}</tspan><tspan class="mute">${esc(where)}</tspan><tspan class="acc">${esc(time)}</tspan></text>
+${
+  emoji
+    ? `<text x="${EMOJI_X}" y="${H / 2 + 5}" text-anchor="middle" style="font-family:${EMOJI_FONT};font-size:${EMOJI_PX}px" aria-hidden="true">${esc(emoji)}</text>`
+    : `${available ? `<circle cx="${DOT_X}" cy="${H / 2}" r="4" class="ring"/>` : ''}<circle cx="${DOT_X}" cy="${H / 2}" r="4" class="${tone}"/>`
+}
+<text x="${textX}" y="${H / 2 + 4}"><tspan class="fg">${esc(label)}</tspan><tspan class="mute">${esc(where)}</tspan><tspan class="acc">${esc(time)}</tspan></text>
 </svg>`;
 }
