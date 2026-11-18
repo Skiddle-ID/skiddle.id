@@ -12,6 +12,9 @@ interface Env {
   // Static assets binding (Cloudflare Pages/Workers)
   ASSETS: any;
 
+  // skiddle-covers (workers/covers): Deezer's search for album art, run near Singapore
+  COVERS?: Fetcher;
+
   // Last.fm integration
   LASTFM_USERNAME: string;
   LASTFM_API_KEY: string;
