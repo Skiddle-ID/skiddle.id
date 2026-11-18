@@ -2,7 +2,7 @@
 // now, or else the last track played, and album art links for Apple Music tracks.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { appleArtwork, appleTrack, recentTrack, trackOf } from '../src/lib/teal.mjs';
+import { appleArtwork, appleTrack, deezerCover, isrcOf, recentTrack, trackOf } from '../src/lib/teal.mjs';
 
 const now = Date.parse('2026-11-18T08:12:00Z');
 const play = (trackName, playedTime, extra = {}) => ({ trackName, playedTime, artists: [{ artistName: 'Bernadya' }], ...extra });
@@ -45,6 +45,20 @@ describe('teal.fm records', () => {
     assert.deepEqual(appleTrack('https://music.apple.com/us/song/little-things/123456'), { id: '123456', country: 'us' });
     assert.equal(appleTrack('https://open.spotify.com/track/abc'), null);
     assert.equal(appleTrack('https://music.apple.com/id/album/x/1'), null);
+  });
+
+  it('a play’s ISRC is kept, for finding its cover', () => {
+    assert.equal(trackOf({ trackName: 'x', isrc: 'IDA682600101' }, false).isrc, 'IDA682600101');
+    assert.equal(trackOf({ trackName: 'x', isrc: 'not an isrc' }, false).isrc, undefined);
+    assert.equal(isrcOf('id-a68-26-00101'), 'IDA682600101');
+    assert.equal(isrcOf('IDA6826001'), '');
+  });
+
+  it('covers only from Deezer’s image servers', () => {
+    const link = 'https://cdn-images.dzcdn.net/images/cover/c1737907ef08a6a511dfbcc359826d37/250x250-000000-80-0-0.jpg';
+    assert.equal(deezerCover(link), link);
+    assert.equal(deezerCover('https://evil.example/images/cover/x.jpg'), '');
+    assert.equal(deezerCover('http://cdn-images.dzcdn.net/images/cover/x.jpg'), '');
   });
 
   it('artwork only from Apple’s image servers, at the size asked for', () => {
