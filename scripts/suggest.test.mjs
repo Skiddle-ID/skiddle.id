@@ -32,7 +32,8 @@ describe('tags', () => {
   const tags = ['atproto', 'astro', 'homelab', 'infra', 'flying'];
   it('finds the tag being typed around the cursor', () => {
     assert.deepEqual(tagAt('atproto, hom', 12), { start: 8, end: 12, typed: 'hom', others: ['atproto'] });
-    assert.deepEqual(tagAt('a, b|, c'.replace('|', ''), 4), { start: 2, end: 4, typed: 'b', others: ['a', 'c'] });
+    // The cursor just after "b"
+    assert.deepEqual(tagAt('a, b, c', 4), { start: 2, end: 4, typed: 'b', others: ['a', 'c'] });
   });
   it('suggests tags starting with it, then containing it, but none already there', () => {
     assert.deepEqual(matchTags(tags, 'a', []), ['atproto', 'astro']);

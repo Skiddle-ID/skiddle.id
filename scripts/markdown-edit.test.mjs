@@ -3,15 +3,17 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { applyEdit, code, continueList, isUrl, link, pasteLink, toggleLines, wordStats, wrap } from '../src/lib/markdown-edit.mjs';
 
-/** A state from text with the selection marked by [ and ], or the cursor by | */
+/**
+ * A state from text with the cursor marked by one |, or else the selection by the first [ and the
+ * first ] after it (other brackets are the text's own, like a task's [x])
+ */
 function at(marked) {
-  if (marked.includes('|')) {
-    const i = marked.indexOf('|');
-    return { text: marked.replace('|', ''), start: i, end: i };
-  }
-  const start = marked.indexOf('[');
-  const end = marked.indexOf(']') - 1;
-  return { text: marked.replace('[', '').replace(']', ''), start, end };
+  const cut = (s, i) => s.slice(0, i) + s.slice(i + 1);
+  const bar = marked.indexOf('|');
+  if (bar !== -1) return { text: cut(marked, bar), start: bar, end: bar };
+  const open = marked.indexOf('[');
+  const close = marked.indexOf(']', open);
+  return { text: cut(cut(marked, close), open), start: open, end: close - 1 };
 }
 
 /** The edit's result with its selection marked the same way */
