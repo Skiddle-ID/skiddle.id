@@ -1,0 +1,31 @@
+---
+/* A series' parts in reading order, numbered: published ones link to the post with their date and
+   reading time, planned ones show as "coming". On /series/ and each series' own page. */
+import FormattedDate from '~/components/formatted-date.astro';
+import { postUrl, readingMinutes, type Series } from '~/lib/posts';
+
+interface Props {
+  series: Series;
+}
+const { series } = Astro.props;
+---
+<ol class="flex flex-col gap-3">
+  {series.entries.map((e, i) => (
+    <li class="grid grid-cols-[2rem_1fr] gap-2">
+      <span class:list={['tabular-nums', e.post ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted)]']} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+      {e.post ? (
+        <span>
+          <a href={postUrl(e.post)} class="link" lang={e.post.data.lang}>{e.title}</a>
+          <span class="block text-xs text-[var(--color-muted)] mt-0.5">
+            <FormattedDate date={e.post.data.pubDate} /> · {readingMinutes(e.post)} min read
+          </span>
+        </span>
+      ) : (
+        <span class="text-[var(--color-muted)]">
+          {e.title}
+          <span class="block text-xs mt-0.5">coming</span>
+        </span>
+      )}
+    </li>
+  ))}
+</ol>

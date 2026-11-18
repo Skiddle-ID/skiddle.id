@@ -142,7 +142,7 @@ const jsonLd = {
           <SeriesBar series={series!} />
         </summary>
         <SeriesParts series={series!} currentId={entry.id} class="mt-3" />
-        <a href={seriesUrl(series!.name)} class="inline-block mt-3 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>
+        <a href={seriesUrl(series!.slug)} class="inline-block mt-3 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>
       </details>
     )}
 
@@ -247,10 +247,10 @@ const jsonLd = {
       <div class="sticky top-12 text-sm">
         {hasSeries && (
           <nav aria-label="Series" class="mb-8">
-            <p class="text-xs text-[var(--color-muted)] mb-2.5"><a href={seriesUrl(series!.name)} class="hover:text-[var(--color-primary)]">{series!.name}</a> · {openEnded ? `part ${partNumber}` : `${partNumber} of ${partCount}`}</p>
+            <p class="text-xs text-[var(--color-muted)] mb-2.5"><a href={seriesUrl(series!.slug)} class="hover:text-[var(--color-primary)]">{series!.name}</a> · {openEnded ? `part ${partNumber}` : `${partNumber} of ${partCount}`}</p>
             <SeriesBar series={series!} class="mb-3" />
             <SeriesParts series={series!} currentId={entry.id} labels={false} class="gap-1.5" />
-            {partCount > SERIES_LIST_LIMIT && <a href={seriesUrl(series!.name)} class="inline-block mt-2.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>}
+            {partCount > SERIES_LIST_LIMIT && <a href={seriesUrl(series!.slug)} class="inline-block mt-2.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">{seriesLink}</a>}
           </nav>
         )}
         {toc.length >= 3 && (

@@ -153,7 +153,7 @@ export function renderSeries() {
       .join(', ');
     const r = row(`#series/${key}`, v.name ?? key, note);
     // The site lists a series once it has a published part
-    if (parts.length && v.name) r.appendChild(viewLink(`/series/#${seriesSlug(v.name)}`, `View “${v.name}” on the site`));
+    if (parts.length && v.name) r.appendChild(viewLink(`/series/${key}/`, `View “${v.name}” on the site`));
     list.appendChild(r);
   }
 }
@@ -358,7 +358,7 @@ function refresh(): string[] {
   el('seOffSite').hidden = published.length > 0;
   const view = el<HTMLAnchorElement>('seView');
   view.hidden = !published.length || !current?.record?.name;
-  if (current?.record?.name) view.href = `/series/#${seriesSlug(current.record.name)}`;
+  if (current?.key) view.href = `/series/${current.key}/`;
 
   // Deleting: only an existing series that nothing belongs to
   const del = el<HTMLButtonElement>('seDelete');

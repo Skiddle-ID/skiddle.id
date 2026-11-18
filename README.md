@@ -37,6 +37,7 @@ Every page that shows records is rendered when it's requested and cached at Clou
 - `src/lib/post-html.mjs` renders a post's Markdown in the Worker: GitHub-flavoured Markdown, smart punctuation and github-slugger heading ids, in about half a millisecond.
 - Pages are cached with the tag `posts` or `pages`. `POST /api/revalidate` clears the cached records and pages when the repo has changed since the last purge. The admin app calls it after a save, and the scheduler after a publish.
 - `/media/<cid>` serves the repo's images and share cards. Old record-key addresses, `/posts/<record key>/`, redirect to the post.
+- Each series has its own page to share, `/series/<key>/` (its record's key, which stays when it's renamed; an address from an earlier name redirects), with the series' own share card. `/series/` lists them all.
 - The posts are [Standard.site](https://standard.site) documents of the skiddle.id publication, so readers like Leaflet, pckt and docs.surf can find them. The site proves it owns them with `/.well-known/site.standard.publication` and `<link rel="site.standard.document">` on each post.
 - The lexicons for the site's own records are in [`lexicons/`](lexicons/id/skiddle/) (`id.skiddle.*`), checked in CI (`npm run check:lexicons`) and published from the admin app.
 - If the PDS can't be read, a page cached earlier still shows. Weekly backups of the whole repo and its images go to the `backups` release ([`scripts/backup.mjs`](scripts/backup.mjs), how to restore: [posts-on-atproto.md](docs/v4/posts-on-atproto.md#backups)).

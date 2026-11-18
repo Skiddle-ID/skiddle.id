@@ -1,0 +1,71 @@
+---
+/*
+  /series/<key>/: one series, to read through or share. Its key is its record's (id.skiddle.series),
+  which stays when the series is renamed; an address made from an earlier name redirects. It
+  shares with the series' own card, drawn by the admin app and stored in the record. Rendered on
+  request from the posts and series on the PDS (src/lib/site-posts.ts), cached at Cloudflare.
+
+  A series shows on the site once its first part is published, as on /series/.
+*/
+export const prerender = false;
+import Shell from '~/layouts/shell.astro';
+import SeriesBar from '~/components/series-bar.astro';
+import SeriesEntries from '~/components/series-entries.astro';
+import { groupSeries, postUrl, seriesSlug, seriesStatus, seriesUrl } from '~/lib/posts';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
+import { env } from 'cloudflare:workers';
+
+const slug = Astro.params.slug ?? '';
+const { posts, seriesInfo } = await sitePosts();
+const all = groupSeries(posts, seriesInfo);
+const series = all.find((s) => s.slug === slug);
+if (!series) {
+  // An address made from the series' name before it was renamed
+  const renamed = all.find((s) => seriesSlug(s.name) === slug);
+  if (renamed) return Astro.redirect(seriesUrl(renamed.slug), 301);
+  const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
+  return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+Astro.cache.set(POSTS_CACHE);
+
+const status = seriesStatus(series);
+const parts = series.parts.length;
+const description = series.description || `A series on skiddle.id: ${status}.`;
+const shareImage = series.coverImage ? `/media/${series.coverImage.cid}` : '/og/pages/series.png';
+const latest = series.parts.at(-1);
+const first = series.parts[0];
+const canonical = new URL(seriesUrl(series.slug), Astro.site!).toString();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWorkSeries',
+  name: series.name,
+  description,
+  url: canonical,
+  image: new URL(shareImage, Astro.site!).toString(),
+  author: { '@type': 'Person', name: 'Laurensius Jeffrey', alternateName: 'Skiddle', url: Astro.site!.toString() },
+  hasPart: series.parts.map((p) => ({ '@type': 'BlogPosting', headline: p.data.title, url: new URL(postUrl(p), Astro.site!).toString() })),
+};
+---
+
+<Shell title={`${series.name} — Skiddle`} description={description} image={shareImage}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="max-w-[70ch] w-full">
+    <p class="text-xs text-[var(--color-muted)] mb-3">
+      <a href="/series/" class="hover:text-[var(--color-primary)]">series</a>
+    </p>
+    <h1 class="font-semibold text-xl before-hash-1">{series.name}</h1>
+    <p class="text-sm text-[var(--color-muted)] mt-2">{status}</p>
+    {series.description && <p class="mt-4 leading-relaxed">{series.description}</p>}
+    <SeriesBar series={series} class="max-w-xs mt-5 mb-6" />
+
+    <SeriesEntries series={series} />
+
+    {first && (
+      <p class="mt-10 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <a href={postUrl(first)} class="link">{parts > 1 ? 'Start from part 1 →' : 'Read it →'}</a>
+        {latest && latest !== first && <a href={postUrl(latest)} class="link">Latest part →</a>}
+        <a href="/series/" class="link">All series</a>
+      </p>
+    )}
+  </div>
+</Shell>

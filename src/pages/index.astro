@@ -137,7 +137,7 @@ const h2 = 'font-semibold before-hash-2';
           <ul class:list={['grid gap-2.5 mt-2', series.length % 2 === 0 && series.length % 3 !== 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
             {series.map((s) => (
               <li class="flex">
-                <a href={seriesUrl(s.name)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">
+                <a href={seriesUrl(s.slug)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">
                   <span class="text-sm font-semibold leading-snug group-hover:text-[var(--color-primary)]">{s.name}</span>
                   <SeriesBar series={s} />
                   <span class="text-xs text-[var(--color-muted)] leading-normal">

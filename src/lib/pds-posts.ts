@@ -70,6 +70,7 @@ interface SeriesRecord {
   ongoing?: boolean;
   cadence?: string;
   planned?: { part: number; title: string }[];
+  coverImage?: { ref?: { $link?: string }; mimeType?: string };
 }
 
 interface Entry<T> {
@@ -92,10 +93,12 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
       id: r.uri.split('/').pop()!,
       data: {
         name: r.value.name!,
+        key: r.uri.split('/').pop()!,
         description: r.value.description,
         ongoing: r.value.ongoing ?? false,
         cadence: r.value.cadence,
         planned: (r.value.planned ?? []).map((p) => ({ order: p.part, title: p.title })),
+        ...(r.value.coverImage?.ref?.$link ? { coverImage: { cid: r.value.coverImage.ref.$link, mimeType: r.value.coverImage.mimeType ?? 'image/png' } } : {}),
       },
       cacheHint: { tags: [POSTS_TAG] },
     }));

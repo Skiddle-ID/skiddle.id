@@ -10,8 +10,12 @@ export interface PlannedPart {
 }
 
 export interface SeriesInfo {
+  /** The record's key, e.g. from-fear-to-flight: the series' page is /series/<key>/. It stays when the series is renamed */
+  key?: string;
   /** What the series is about, shown on /series/ */
   description?: string;
+  /** Its share card, drawn by the admin app and stored in the record (served from /media/<cid>) */
+  coverImage?: { cid: string; mimeType: string };
   /**
    * Parts planned but not published yet. They count towards "part 1 of 6". A published post with
    * the same part number takes a planned part's place by itself.
