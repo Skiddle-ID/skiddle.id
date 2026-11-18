@@ -17,10 +17,21 @@
  *   - id.skiddle.status: the status
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
+ *   - id.skiddle.project, .cv, .services, .uses and .about: the pages' content
+ *     (docs/v4/pages-on-atproto.md), imported and edited in the Pages section
  * Publishing posts (site.standard.document, id.skiddle.series, a Bluesky post) is added with the
  * v4 launch, when the admin app takes over publishing from git.
  */
-export const COLLECTIONS = ['id.skiddle.status', 'com.atproto.lexicon.schema', 'id.skiddle.draft'] as const;
+export const COLLECTIONS = [
+  'id.skiddle.status',
+  'com.atproto.lexicon.schema',
+  'id.skiddle.draft',
+  'id.skiddle.project',
+  'id.skiddle.cv',
+  'id.skiddle.services',
+  'id.skiddle.uses',
+  'id.skiddle.about',
+] as const;
 /** Uploads: a post's images */
 export const BLOB_TYPES = ['image/*'] as const;
 export const SCOPE = ['atproto', ...COLLECTIONS.map((c) => `repo:${c}`), ...BLOB_TYPES.map((t) => `blob:${t}`)].join(' ');

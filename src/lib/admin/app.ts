@@ -4,9 +4,11 @@
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
+ *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about), imported from the
+ *     site's data in the Pages section (src/lib/admin/pages.ts)
  *   - share cards, checked and redrawn from the Site section (src/lib/admin/redraw.ts)
- * and lists the site's other collections, read-only. One section at a time: Posts, Series, Status
- * and Site (src/lib/admin/sections.ts).
+ * and lists the site's other collections, read-only. One section at a time: Posts, Series, Pages,
+ * Status and Site (src/lib/admin/sections.ts).
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
@@ -15,7 +17,8 @@ import { el, errorText, message } from './dom';
 import { loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
-import { XrpcError, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
+import { loadPages, setupPages } from './pages';
+import { XrpcError, canonical, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
 
 const STATUS = 'id.skiddle.status';
 const LEXICON = 'com.atproto.lexicon.schema';
@@ -218,19 +221,6 @@ const LEXICON_STATE_TEXT: Record<LexiconState, string> = {
 /** The lexicons that are new or changed, as last loaded */
 let pendingLexicons: LexiconDoc[] = [];
 
-/** JSON with object keys sorted, to compare records whatever order the PDS returns keys in */
-function canonical(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value)
-      .filter((k) => k !== '$type')
-      .sort()
-      .map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value);
-}
-
 async function loadLexicons(session: OAuthSession) {
   const results = await Promise.all(
     LEXICONS.map(async (doc) => {
@@ -368,8 +358,9 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupStatus(session);
   setupLexicons(session);
   setupPosts(session, signInAgain);
+  setupPages(session, signInAgain);
   setupRedraw(session);
-  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts()]);
+  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) notice(`Couldn't load everything from your PDS: ${errorText(failed.reason)}`);
   await route();

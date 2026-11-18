@@ -1,13 +1,14 @@
 /**
  * The admin app's sections, one at a time under the section bar: Posts (drafts and published
- * posts), Series, Status, and Site (lexicons, share cards, records). Each has an address (#posts, #series,
- * #status, #site), so a reload or a home-screen shortcut opens the same one. The posts editor
+ * posts), Series, Pages (the pages' content, src/lib/admin/pages.ts), Status, and Site (lexicons,
+ * share cards, records). Each has an address (#posts, #series, #pages, #status, #site), so a
+ * reload or a home-screen shortcut opens the same one. The posts editor
  * (#draft/…, #post/…, src/lib/admin/editor.ts) and the series editor (#series/…, #new-series,
  * src/lib/admin/series.ts) replace the sections while they're open.
  */
 import { el } from './dom';
 
-export const SECTIONS = ['posts', 'series', 'status', 'site'] as const;
+export const SECTIONS = ['posts', 'series', 'pages', 'status', 'site'] as const;
 export type Section = (typeof SECTIONS)[number];
 
 /** The section an address asks for; Posts if it names none */

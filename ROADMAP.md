@@ -54,10 +54,11 @@ The pages' content, today in `src/data/` and the page files. Each part becomes r
 - [ ] Projects (`src/data/projects.ts`), the CV (`works.ts`), services (`services.ts`) and the highlights they share (`highlights.ts`)
 - [ ] Uses (`uses.ts`)
 - [ ] About: its text
-- [x] Their lexicons: `id.skiddle.project` (one per project), `id.skiddle.cv`, `id.skiddle.services`, `id.skiddle.uses` and `id.skiddle.about` (one each), checked against today's data in CI (`npm run check:lexicons`). About's content moved into `src/data/about.ts` for it
-- [ ] Publish them, then import the records from the site's data, from the admin app
+- [x] Their lexicons: `id.skiddle.project` (one per project), `id.skiddle.cv`, `id.skiddle.services`, `id.skiddle.uses` and `id.skiddle.about` (one each), checked against today's data in CI (`npm run check:lexicons`). About's content moved into `src/data/about.ts` for it ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138))
+- [x] The admin app's new section, Pages, between Series and Status, with a one-time import from the site's data. The sign-in asks for the five collections ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139))
+- [ ] Publish the lexicons (Site → Lexicons) and run the import (Pages), on staging. Both write to Jeff's repo
 - [ ] The pages read the records, with a parity check against production
-- [ ] The admin app: edit them in one new section, Pages, next to Posts, Series, Status and Site
+- [ ] The admin app: edit them in the Pages section
 - [ ] Remove the data files from git once the pages read the records. What stays in git:
   - the code
   - the list pages' titles (`list-pages.ts`)
