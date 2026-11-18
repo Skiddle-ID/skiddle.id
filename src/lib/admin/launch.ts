@@ -10,7 +10,8 @@
  * sign-in's COLLECTIONS (src/lib/admin/oauth.ts) site.standard.document, id.skiddle.series and
  * app.bsky.feed.post (create, for the announcement). That turns on publishing and scheduling
  * drafts, saving and unpublishing published posts (src/lib/admin/editor.ts), saving and deleting
- * series (src/lib/admin/series.ts), and saving redrawn share cards (src/lib/admin/redraw.ts). Then
+ * series (src/lib/admin/series.ts), saving pages and projects (src/lib/admin/page-editor.ts), and
+ * saving redrawn share cards (src/lib/admin/redraw.ts). Then
  * set up the scheduler, which publishes scheduled drafts (workers/publisher/README.md).
  */
 export const PUBLISHING_LIVE = false;
@@ -18,6 +19,10 @@ export const PUBLISHING_LIVE = false;
 /** Why publishing is off, shown under the buttons it disables */
 export const NOT_LIVE_YET =
   'Publishing from here starts with the v4 launch. Until then the site is built from git, and the sync would undo changes made here.';
+
+/** The same for the page editors (src/lib/admin/page-editor.ts) */
+export const PAGES_NOT_LIVE_YET =
+  'Saving pages from here starts with the v4 launch. Until then skiddle.id shows the data files in git, and the parity check expects the records to match them. Changes are kept on this device.';
 
 /** The same for series (src/lib/admin/series.ts) */
 export const SERIES_NOT_LIVE_YET =

@@ -5,7 +5,8 @@
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
  *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about), imported from the
- *     site's data in the Pages section (src/lib/admin/pages.ts)
+ *     site's data in the Pages section (src/lib/admin/pages.ts) and edited in the page editors
+ *     (src/lib/admin/page-editor.ts)
  *   - share cards, checked and redrawn from the Site section (src/lib/admin/redraw.ts)
  * and lists the site's other collections, read-only. One section at a time: Posts, Series, Pages,
  * Status and Site (src/lib/admin/sections.ts).
@@ -17,6 +18,7 @@ import { el, errorText, message } from './dom';
 import { loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
+import { setupPageEditor } from './page-editor';
 import { loadPages, setupPages } from './pages';
 import { XrpcError, canonical, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
 
@@ -359,6 +361,7 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupLexicons(session);
   setupPosts(session, signInAgain);
   setupPages(session, signInAgain);
+  setupPageEditor(session, loadPages);
   setupRedraw(session);
   const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');

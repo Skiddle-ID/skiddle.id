@@ -61,10 +61,15 @@ Edit records freely once the pages read them in production.
   - **Replace** writes the site's data over a record that differs, with `swapRecord`, after you confirm. A project keeps the date it was first imported.
   - Nothing on the site changes yet: the pages read the records from step 4.
 - **Sign-in:** the admin app asks for the new collections (`id.skiddle.project`, `.cv`, `.services`, `.uses`, `.about`), so you approve it once more on Bluesky. Until then, Pages shows the records but can't write them, and offers to sign in again.
-- **The editors:** Pages lists the projects (each opens an editor), the CV, services, uses and About. Each editor is a form shaped like its lexicon, like the series editor:
-  - It saves with `swapRecord`, so two devices can't overwrite each other.
-  - It keeps a copy on the device until the save works.
-  - It refreshes the page on the site.
+- **The editors** ([`src/lib/admin/page-editor.ts`](../../src/lib/admin/page-editor.ts)): in Pages, each name opens its editor (`#page/cv`, `#page/services`, `#page/uses`, `#page/about`, `#project/<key>`), and New project starts one (`#new-project`). Each editor works like the series editor.
+  - **The form is made from the lexicon** ([`lexicon-form.ts`](../../src/lib/admin/lexicon-form.ts)), so it always matches it.
+    - Text boxes, with bigger ones for Markdown and a list to pick from where the lexicon knows the values. The CV's selected projects pick from the projects.
+    - Lists you can add to, reorder and remove from. Groups fold, showing their first two fields.
+    - The lexicon's limits are checked as you type: required fields, lengths, URLs, numbers.
+  - **Saving** checks the whole record with `@atproto/lexicon`, keeps any field the form doesn't know, and sets `updatedAt` (a new project's `createdAt`). It saves with `swapRecord`, so two devices can't overwrite each other, then refreshes the page on the site.
+  - **A new project** gets its key from its name. A project can be deleted after a confirm.
+  - **Backup:** it keeps a copy on the device until the save works.
+  - **Until the launch,** saving and deleting are off, as for posts and series (`PUBLISHING_LIVE`), because the parity check expects the records to match the data files. Changes are kept on the device.
 - **The dashboard** gets one more section: Posts · Series · Pages · Status · Site.
 
 ## Steps
@@ -73,7 +78,7 @@ Edit records freely once the pages read them in production.
 2. **The Pages section,** the sign-in's new collections, and the one-time import ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139)). Done.
 3. **On staging, Jeff publishes the lexicons and runs the import.** Site → Lexicons lists the five new ones. Then Pages, after signing in again. Both write to his repo.
 4. **v4's pages read the records,** with a fallback to the data files and a parity check against production ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140)). Done. Until the import, staging shows the data files (`X-Content-Source: git`).
-5. **The editors.**
+5. **The editors** ([#141](https://github.com/Skiddle-ID/skiddle.id/pull/141)). Done. Saving turns on at the switch, with `PUBLISHING_LIVE`.
 6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`) and their types.
 
 ## Before the import
