@@ -9,6 +9,7 @@
  * works inside an SVG shown through <img>. It's cached for 7 days per track, and a search that
  * found nothing for a day, so a track with no cover doesn't ask again on every view.
  */
+import { env } from 'cloudflare:workers';
 import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, mbidOf, musicBrainzCovers, musicBrainzSearches, PLAY_COLLECTION, recentTrack, STATUS_COLLECTION, type PlayView, type Track } from '~/lib/teal.mjs';
 import { cached, getRecord, latestRecords } from '~/lib/pds';
 
@@ -41,7 +42,8 @@ const USER_AGENT = 'skiddle.id (+https://skiddle.id)';
  *      cover from another of its releases
  *   3. Deezer's search, by artist and track name, only for a result that is this track. Deezer
  *      isn't open in every country, and answers a search from one where it isn't (Hong Kong, where
- *      skiddle.id often runs) with nothing.
+ *      skiddle.id often runs) with nothing, so the search runs near Singapore, in the covers Worker
+ *      (deezerSearch() below).
  *   4. MusicBrainz's search, by album, then by track, for the Cover Art Archive
  *   5. Apple's lookup API, for an Apple Music track. It refuses requests from Cloudflare's servers
  *      (403), so on skiddle.id it's only the last resort.
@@ -71,9 +73,10 @@ export async function getAlbumArt(track: Pick<Track, 'name' | 'artist' | 'album'
   if (track.name && track.artist && track.artist !== 'Unknown artist') {
     const query = `${track.artist.split(/,| feat\.? | ft\.? /i)[0]} ${track.name}`;
     const art = await cover(`art/deezer-search/${query.toLowerCase()}`, () =>
-      search(`deezer/${query.toLowerCase()}`, async () => {
-        const data = (await json(`https://api.deezer.com/search?${new URLSearchParams({ q: query, limit: '5' })}`)) as { data?: Parameters<typeof deezerMatch>[0] };
-        const link = deezerMatch(data.data ?? [], track);
+      // Keyed by where the search ran, so a miss from here (Hong Kong, say) can't hide the covers
+      // Worker's answer
+      search(`${(env as { COVERS?: Fetcher }).COVERS ? 'deezer-covers' : 'deezer'}/${query.toLowerCase()}`, async () => {
+        const link = deezerMatch(await deezerSearch(query), track);
         return link ? [link] : [];
       }),
     );
@@ -104,6 +107,23 @@ export async function getAlbumArt(track: Pick<Track, 'name' | 'artist' | 'album'
     });
   }
   return undefined;
+}
+
+type DeezerResults = Parameters<typeof deezerMatch>[0];
+
+/**
+ * Deezer's search results for `query`, from the covers Worker (workers/covers), which runs near
+ * Singapore, where Deezer is open, whichever data center this one is. A failure throws, so it
+ * isn't cached as "nothing found". Locally, run both Workers (workers/covers/README.md): with the
+ * site's alone, the binding answers 503. With no binding at all, Deezer is asked from here.
+ */
+async function deezerSearch(query: string): Promise<DeezerResults> {
+  const covers = (env as { COVERS?: Fetcher }).COVERS;
+  if (!covers) return (((await json(`https://api.deezer.com/search?${new URLSearchParams({ q: query, limit: '5' })}`)) as { data?: DeezerResults }).data ?? []);
+  const res = await covers.fetch(`https://covers/deezer/search?${new URLSearchParams({ q: query })}`, { signal: AbortSignal.timeout(6000) });
+  const body = (await res.json().catch(() => ({}))) as { data?: DeezerResults; error?: string; where?: { colo?: string } };
+  if (!res.ok) throw new Error(`covers Worker ${res.status}: ${body.error ?? ''} (in ${body.where?.colo || '?'})`);
+  return body.data ?? [];
 }
 
 async function json(url: string): Promise<unknown> {

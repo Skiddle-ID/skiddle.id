@@ -17,6 +17,18 @@ custom_domain = true
 pattern = "skiddle.blue"
 custom_domain = true
 
+# skiddle-covers (workers/covers): runs Deezer's search for album art near Singapore, where Deezer
+# is open; it isn't in Hong Kong, where this Worker often runs (src/lib/music.ts)
+[[services]]
+binding = "COVERS"
+service = "skiddle-covers"
+
+# PR previews (Workers Builds) don't inherit bindings: each one is declared again here. A preview's
+# service binding calls the production skiddle-covers.
+[[previews.services]]
+binding = "COVERS"
+service = "skiddle-covers"
+
 [observability]
 enabled = true
 

@@ -1,0 +1,16 @@
+# skiddle-covers: runs Deezer's search for the site's album art, near Singapore, where Deezer is
+# open (README.md). The site's Worker (../../wrangler.toml) calls it through a service binding.
+name = "skiddle-covers"
+main = "index.mjs"
+compatibility_date = "2025-07-18"
+
+# No URL: only the site's Worker calls it, through its COVERS binding
+workers_dev = false
+preview_urls = false
+
+# Run near AWS's Singapore region, whatever data center the site's Worker calls it from
+[placement]
+region = "aws:ap-southeast-1"
+
+[observability]
+enabled = true
