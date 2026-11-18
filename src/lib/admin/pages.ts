@@ -12,6 +12,9 @@
  *     version over it, with swapRecord. Once the editors are here, edit the record instead.
  *   - only in the repo (a project since removed from projects.ts): listed, nothing else
  *
+ * Each name opens its editor once the record is in the repo, and New project starts one
+ * (src/lib/admin/page-editor.ts).
+ *
  * These collections are the site's own, and v3's sync never touches them, so the import isn't
  * held for the launch (src/lib/admin/launch.ts). Nothing on the site changes yet: v4's pages read
  * the records in a later step. At the switch the data files leave git, and the import with them.
@@ -51,6 +54,8 @@ interface Row {
   rkey: string;
   /** Where it shows on the site */
   page: string;
+  /** Its editor's address (src/lib/admin/page-editor.ts) */
+  editor: string;
   /** The record the site's data makes, with `at` for the dates the import sets; none for 'extra' */
   make?: (at: string) => PageRecord;
   /** The record in the repo */
@@ -62,12 +67,12 @@ interface Row {
 const COLLECTIONS = [PROJECT_COLLECTION, CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION];
 
 /** The singletons, in the order the Pages section lists them */
-const PAGES: Pick<Row, 'title' | 'collection' | 'page' | 'make'>[] = [
-  { title: 'The CV', collection: CV_COLLECTION, page: '/works/', make: (at) => cvRecord(works, highlights, at) },
-  { title: 'Services', collection: SERVICES_COLLECTION, page: '/services/', make: (at) => servicesRecord(services, at) },
+const PAGES: Pick<Row, 'title' | 'collection' | 'page' | 'editor' | 'make'>[] = [
+  { title: 'The CV', collection: CV_COLLECTION, page: '/works/', editor: '#page/cv', make: (at) => cvRecord(works, highlights, at) },
+  { title: 'Services', collection: SERVICES_COLLECTION, page: '/services/', editor: '#page/services', make: (at) => servicesRecord(services, at) },
   // Its date is the data's ("last updated September 2025"), not the import's
-  { title: 'Uses', collection: USES_COLLECTION, page: '/uses/', make: () => usesRecord(uses, usesUpdated) },
-  { title: 'About', collection: ABOUT_COLLECTION, page: '/about/', make: (at) => aboutRecord(about, at) },
+  { title: 'Uses', collection: USES_COLLECTION, page: '/uses/', editor: '#page/uses', make: () => usesRecord(uses, usesUpdated) },
+  { title: 'About', collection: ABOUT_COLLECTION, page: '/about/', editor: '#page/about', make: (at) => aboutRecord(about, at) },
 ];
 
 let session: OAuthSession;
@@ -115,13 +120,13 @@ export async function loadPages() {
   rows = [
     ...PAGES.map((p, i) => compare({ ...p, kind: 'page', rkey: 'self', have: singletons[i] ?? undefined })),
     ...projects.map((p) =>
-      compare({ title: p.name, kind: 'project', collection: PROJECT_COLLECTION, rkey: p.id, page: '/projects/', make: (at) => projectRecords(projects, at).get(p.id)!, have: byKey.get(p.id) }),
+      compare({ title: p.name, kind: 'project', collection: PROJECT_COLLECTION, rkey: p.id, page: '/projects/', editor: `#project/${p.id}`, make: (at) => projectRecords(projects, at).get(p.id)!, have: byKey.get(p.id) }),
     ),
     ...stored
       .filter((r) => !made.has(r.uri.split('/').pop()!))
       .map((r): Row => {
         const rkey = r.uri.split('/').pop()!;
-        return { title: String(r.value.name || rkey), kind: 'project', collection: PROJECT_COLLECTION, rkey, page: '/projects/', have: r, state: 'extra' };
+        return { title: String(r.value.name || rkey), kind: 'project', collection: PROJECT_COLLECTION, rkey, page: '/projects/', editor: `#project/${rkey}`, have: r, state: 'extra' };
       }),
   ];
   render();
@@ -202,7 +207,12 @@ function recordLink(row: Row) {
 function rowItem(row: Row) {
   const li = item('');
   const head = document.createElement('div');
-  const name = document.createElement('strong');
+  // Once it's in the repo, its name opens its editor
+  const name = document.createElement(row.have ? 'a' : 'strong');
+  if (name instanceof HTMLAnchorElement) {
+    name.href = row.editor;
+    name.className = 'admin-pages-name';
+  }
   name.textContent = row.title;
   head.appendChild(name);
   head.appendChild(viewLink(row.page, `View ${row.page} on the site`));

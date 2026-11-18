@@ -94,7 +94,10 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           </div>
           <h3 class="admin-subhead">One record per page</h3>
           <ul id="pagesList" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
-          <h3 class="admin-subhead">One record per project</h3>
+          <div class="admin-label-row">
+            <h3 class="admin-subhead">One record per project</h3>
+            <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
+          </div>
           <ul id="projectsList" class="admin-lexicons admin-pages"></ul>
           <button id="pagesImport" type="button" class="admin-btn admin-self-start" hidden>Import</button>
           <p id="pagesMessage" class="admin-message" role="status"></p>
@@ -351,6 +354,38 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
             <a id="seView" href="/series/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
             <button id="seDelete" type="button" class="admin-btn" hidden>Delete series</button>
             <p id="seDeleteNote" class="admin-small" hidden></p>
+          </div>
+        </form>
+      </div>
+
+      <div id="pageEditor" class="admin-editor">
+        <div class="admin-editor-bar">
+          <a href="#pages" class="admin-btn admin-btn-ghost">← Pages</a>
+          <span id="peState" class="admin-small" aria-live="polite"></span>
+        </div>
+        <h2 id="peTitle" class="admin-editor-title"></h2>
+        <div id="peConflict" class="admin-notice" hidden>
+          <p>This was changed on another device since you opened it.</p>
+          <button id="peLoadTheirs" type="button" class="admin-btn">Load that version</button>
+          <button id="peKeepMine" type="button" class="admin-btn">Keep mine</button>
+        </div>
+        <div id="peBackup" class="admin-notice" hidden>
+          <p>This device has changes from <span id="peBackupTime"></span> that weren’t saved.</p>
+          <button id="peRestore" type="button" class="admin-btn">Restore them</button>
+          <button id="peDiscard" type="button" class="admin-btn">Discard</button>
+        </div>
+        <p id="peNote" class="admin-small" hidden>Not in your repo yet. Import it from the Pages section, or fill it in here.</p>
+        <p id="peMessage" class="admin-message" role="status"></p>
+
+        <form id="peForm" class="admin-form" novalidate hidden>
+          <div id="peFields"></div>
+          <p id="peKey" class="admin-small" hidden></p>
+          <p id="peProblems" class="admin-message" role="status"></p>
+          <div class="admin-editor-actions">
+            <button id="peSave" type="button" class="admin-btn admin-btn-primary" disabled>Save</button>
+            <p id="peNotLive" class="admin-small" hidden></p>
+            <a id="peView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
+            <button id="peDelete" type="button" class="admin-btn" hidden>Delete project</button>
           </div>
         </form>
       </div>
@@ -619,9 +654,83 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   /* The dashboard, the posts editor or the series editor, by body[data-view] (src/lib/admin/editor.ts) */
   body[data-view='editor'] #dashboard,
   body[data-view='series'] #dashboard,
+  body[data-view='page'] #dashboard,
   body:not([data-view='editor']) #editor,
-  body:not([data-view='series']) #seriesEditor {
+  body:not([data-view='series']) #seriesEditor,
+  body:not([data-view='page']) #pageEditor {
     display: none;
+  }
+  /* The page editors' forms, made from the lexicons (src/lib/admin/lexicon-form.ts) */
+  .admin-editor-title {
+    font-size: 1.125rem;
+  }
+  .admin-lexform {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .admin-lexform-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+  }
+  .admin-lexform-group .admin-legend {
+    padding: 0 0.25rem;
+  }
+  .admin-lexform-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .admin-lexform-list:empty {
+    display: none;
+  }
+  /* A list of texts: the box, then its buttons */
+  .admin-lexform-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+  .admin-lexform-row > input,
+  .admin-lexform-row > textarea,
+  .admin-lexform-row > select {
+    flex: 1 1 14rem;
+    min-width: 0;
+  }
+  .admin-lexform-controls {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .admin-lexform-controls .admin-btn {
+    padding-inline: 0.5rem;
+  }
+  /* A list of groups: each folds, showing its number and first field */
+  .admin-lexform-list details {
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+  }
+  .admin-lexform-list summary {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    overflow-wrap: anywhere;
+  }
+  .admin-lexform-list details[open] > summary {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .admin-lexform-list details > .admin-lexform-group {
+    border: 0;
+  }
+  .admin-lexform-list details > .admin-lexform-controls {
+    padding: 0 0.75rem 0.75rem;
+  }
+  .admin-pages-name {
+    color: var(--color-primary);
+    font-weight: 600;
   }
   body[data-view='editor'] .admin {
     max-width: 76rem;

@@ -42,6 +42,7 @@ import { cardKey, cardPostOf, postCard } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { missingScopes } from './oauth';
+import { leavePage, openPage, pageRoute } from './page-editor';
 import { sectionFromHash, showSection } from './sections';
 import { leaveSeries, openSeries, renderSeries, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
@@ -151,15 +152,19 @@ export function setupPosts(s: OAuthSession, again: () => void) {
 
 /**
  * Shows the editor for #draft/<rkey> or #post/<rkey>, the series editor for #series/<key> or
- * #new-series (src/lib/admin/series.ts), otherwise the section the address names
+ * #new-series (src/lib/admin/series.ts), a page editor for #page/<name>, #project/<key> or
+ * #new-project (src/lib/admin/page-editor.ts), otherwise the section the address names
  */
 export async function route() {
   const m = /^#(draft|post)\/([a-z0-9]+)$/.exec(location.hash);
   const s = seriesRoute(location.hash);
+  const p = pageRoute(location.hash);
   if (!s) leaveSeries();
+  if (!p) leavePage();
   if (m) return open(m[1] as Kind, m[2]);
   await leaveEditor();
   if (s) return openSeries(s);
+  if (p) return openPage(p);
   document.body.dataset.view = 'dashboard';
   showSection(sectionFromHash(location.hash));
 }
