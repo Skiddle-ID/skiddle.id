@@ -40,7 +40,7 @@ export const GET: APIRoute = async ({ site, request, cache }) => {
   const lastmod = new Map<string, Date>();
 
   try {
-    const { posts } = await sitePosts({ drafts: false });
+    const { posts } = await sitePosts();
     for (const p of posts) {
       if (!p.id) continue;
       const path = `/posts/${p.id}/`;

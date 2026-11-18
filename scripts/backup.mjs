@@ -172,7 +172,7 @@ async function main() {
     repo: { file: 'repo.car', size: car.length, blocks },
     records,
     blobs: { count: blobs.length, size: blobBytes, files: blobs, missing },
-    restore: 'https://github.com/Skiddle-ID/skiddle.id/blob/v3/docs/v4/posts-on-atproto.md#backups',
+    restore: 'https://github.com/Skiddle-ID/skiddle.id/blob/v4/docs/v4/posts-on-atproto.md#backups',
   };
   writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 

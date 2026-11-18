@@ -28,8 +28,8 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
         <h2 id="signInTitle">Sign in</h2>
         <p>
           Sign in with your Bluesky account, <strong>@skiddle.blue</strong>. On Bluesky's page you approve what this app may
-          change: your status, drafts and their images, the pages' content and the lexicons you publish. Nothing else, not even
-          your Bluesky posts.
+          change: your posts and drafts with their images, series, the pages' content, your status and the lexicons you publish,
+          plus new Bluesky posts that announce your posts. It can't edit or delete anything else on Bluesky.
         </p>
         <button id="signIn" type="button" class="admin-btn admin-btn-primary">Sign in with Bluesky</button>
         <p class="admin-small">
@@ -59,7 +59,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
             <button id="newDraft" type="button" class="admin-btn admin-btn-ghost">New draft</button>
           </div>
           <div id="postsScope" class="admin-notice" hidden>
-            <p>To write drafts and upload images, the app needs two more permissions from your account.</p>
+            <p>To write drafts, upload images and publish, the app needs more permissions from your account.</p>
             <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
           <h3 class="admin-subhead">Drafts</h3>
@@ -84,10 +84,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
         <section class="admin-card" data-section="pages" aria-labelledby="pagesTitle">
           <h2 id="pagesTitle">Pages</h2>
-          <p>
-            The CV, services, uses, About and the projects, as records in your repo. The site still builds these pages from
-            its data files; in v4 they’ll read the records instead. Import copies the site’s data into your repo, once.
-          </p>
+          <p>The CV, services, uses, About and the projects: records in your repo, which the site’s pages read. Open one to edit it.</p>
           <div id="pagesScope" class="admin-notice" hidden>
             <p>To write the pages’ records, the app needs five more permissions from your account.</p>
             <button id="pagesSignIn" type="button" class="admin-btn">Sign in again</button>
@@ -99,7 +96,6 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
             <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
           </div>
           <ul id="projectsList" class="admin-lexicons admin-pages"></ul>
-          <button id="pagesImport" type="button" class="admin-btn admin-self-start" hidden>Import</button>
           <p id="pagesMessage" class="admin-message" role="status"></p>
           <p class="admin-small">Records are public, like the pages, and go further: other services can keep copies even after a delete.</p>
         </section>
@@ -174,7 +170,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
         <section class="admin-card" data-section="site" aria-labelledby="recordsTitle">
           <h2 id="recordsTitle">Records</h2>
-          <p>What the site keeps in your repo. Read-only here for now: posts still come from git and sync on publish.</p>
+          <p>What the site keeps in your repo: everything it shows.</p>
           <ul id="records" class="admin-records"><li class="admin-muted">Loading…</li></ul>
         </section>
       </div>
@@ -374,7 +370,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <button id="peRestore" type="button" class="admin-btn">Restore them</button>
           <button id="peDiscard" type="button" class="admin-btn">Discard</button>
         </div>
-        <p id="peNote" class="admin-small" hidden>Not in your repo yet. Import it from the Pages section, or fill it in here.</p>
+        <p id="peNote" class="admin-small" hidden>Not in your repo yet. Fill it in and save to create it.</p>
         <p id="peMessage" class="admin-message" role="status"></p>
 
         <form id="peForm" class="admin-form" novalidate hidden>

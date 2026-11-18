@@ -1,6 +1,5 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
-import { getEntry } from 'astro:content';
 import type { Post } from '~/lib/posts';
 import { POSTS_CACHE, pdsData, pdsPostHtml, sitePosts } from '~/lib/site-posts';
 
@@ -17,7 +16,7 @@ const MAX_ITEMS = 20;
  */
 export const GET = async (context: APIContext) => {
   context.cache.set(POSTS_CACHE);
-  const sorted = (await sitePosts({ drafts: false })).posts.slice(0, MAX_ITEMS);
+  const sorted = (await sitePosts()).posts.slice(0, MAX_ITEMS);
   const html = await Promise.all(sorted.map(postHtml));
   // The canonical address, not the request's: the feed's links must point at skiddle.id wherever it's served from
   const site = (context.site ?? new URL(context.request.url).origin).toString().replace(/\/?$/, '/');
@@ -52,18 +51,11 @@ export const GET = async (context: APIContext) => {
   });
 };
 
-/** A post's HTML: rendered from its record, or (a post not on the PDS yet) from git's content loader */
-async function postHtml(post: Post): Promise<string | undefined> {
-  const pds = pdsData(post);
-  if (pds) return pdsPostHtml(pds);
-  return (await getEntry('posts', post.id))?.rendered?.html;
-}
+/** A post's HTML, rendered from its record */
+const postHtml = (post: Post): Promise<string> => pdsPostHtml(pdsData(post));
 
-function fullContent(post: Post, html: string | undefined, link: string, site: string): string {
-  // Without HTML (an MDX post from git), a summary and a link
-  const body = html
-    ? absolutize(html, link, site)
-    : `<p>${escapeHtml(post.data.description ?? '')}</p><p><a href="${link}">Read the full post on skiddle.id</a></p>`;
+function fullContent(post: Post, html: string, link: string, site: string): string {
+  const body = absolutize(html, link, site);
 
   const thread = post.data.bluesky && /^at:\/\/([^/]+)\/app\.bsky\.feed\.post\/([^/]+)$/.exec(post.data.bluesky);
   const footer =
@@ -80,8 +72,4 @@ function absolutize(html: string, link: string, site: string): string {
   return html
     .replace(/\s(href|src)="\/(?!\/)/g, ` $1="${site}`)
     .replace(/\shref="#/g, ` href="${link}#`);
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

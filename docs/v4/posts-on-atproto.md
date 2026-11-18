@@ -268,7 +268,7 @@ v3 stays live and keeps publishing from git until the switch.
 4. **v4 reads the records:** the live collections, the route cache, `/media/` and `/api/revalidate`, on staging.
 5. **Parity check:** a test compares every post on staging (built from records) with production (built from git): titles, dates, text, links, images and series. Any difference blocks the switch.
 6. **The admin app's editor:** drafts, publish, schedule, edit and series. Then the cron Worker and the backups.
-7. **The switch, at the v4 launch:** publish the last post from git, run the sync one last time, and make v4 production. Run the backup once by hand and check the release. Then remove what git no longer needs.
+7. **The switch, at the v4 launch:** publish the last post from git, run the sync one last time, and make v4 production. Run the backup once by hand and check the release. Then remove what git no longer needs. Every step is in [switch.md](switch.md).
 
 ## What leaves the repo at launch
 

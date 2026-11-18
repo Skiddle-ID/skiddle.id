@@ -2,14 +2,11 @@
 /*
   A post, rendered when it's requested from its record in Jeff's AT Protocol repo (the pdsPosts live
   collection, src/lib/pds-posts.ts), so publishing or editing a post needs no build. The page is
-  cached at Cloudflare (Astro's route cache, tag "posts") and the PDS reads are cached too.
-
-  Until the v4 launch, a post that isn't on the PDS yet (a draft on a preview, or a post merged
-  minutes before the AT Protocol sync ran) is rendered from git instead. Old record-key URLs from
-  the WhiteWind days, /posts/<rkey>/, redirect to the post.
+  cached at Cloudflare (Astro's route cache, tag "posts") and the PDS reads are cached too. Old
+  record-key URLs from the WhiteWind days, /posts/<rkey>/, redirect to the post.
 */
 export const prerender = false;
-import { getEntry, getLiveEntry, render } from 'astro:content';
+import { getLiveEntry, render } from 'astro:content';
 import Shell from '~/layouts/shell.astro';
 import FormattedDate from '~/components/formatted-date.astro';
 import Icon from '~/components/icon.astro';
@@ -19,7 +16,7 @@ import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
 import { postUrl, readingMinutes, categoryLabels, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
 import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
-import { DID, documentUri } from '~/lib/standard-site.mjs';
+import { DID } from '~/lib/standard-site.mjs';
 import { env } from 'cloudflare:workers';
 
 const slug = Astro.params.slug ?? '';
@@ -28,54 +25,34 @@ const notFound = async () => {
   const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
   return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 };
-// Every post (the PDS's, plus git's not there yet) and the series, as every page gets them
+// The post, and every post and series, as every page gets them
 const [live, { posts: all, seriesInfo }] = await Promise.all([getLiveEntry('pdsPosts', slug), sitePosts()]);
 
-let entry: Post | undefined;
-let Content: Awaited<ReturnType<typeof render>>['Content'];
-let headings: { depth: number; slug: string; text: string }[];
-let shareImage: string;
-let atDocument: string | undefined;
-if (live.entry) {
-  entry = { id: live.entry.id, body: live.entry.data.markdown, data: live.entry.data };
-  ({ Content } = await render(live.entry));
-  headings = live.entry.data.headings ?? [];
-  const card = live.entry.data.coverImage;
-  shareImage = card ? `/media/${card.cid}` : '/og/site.png';
-  atDocument = `at://${DID}/site.standard.document/${live.entry.data.recordKey}`;
-  Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, `post:${slug}`], lastModified: live.entry.data.updatedDate ?? live.entry.data.pubDate });
-} else {
-  entry = all.find((p) => p.id === slug && !pdsData(p));
-  if (!entry) {
-    const moved = all.find((p) => pdsData(p)?.recordKey === slug || p.data.rkey === slug);
-    if (moved) return Astro.redirect(postUrl(moved), 301);
-    return notFound();
-  }
-  const gitEntry = await getEntry('posts', slug);
-  if (!gitEntry) return notFound();
-  ({ Content, headings } = await render(gitEntry));
-  // Raster cover photo if the post has one, otherwise its generated card
-  const cover = entry.data.cover;
-  shareImage = cover && /\.(png|jpe?g|webp)$/i.test(cover) ? cover : `/og/posts/${entry.id}.png`;
-  atDocument = documentUri({ slug: entry.id, pubDate: entry.data.pubDate, rkey: entry.data.rkey });
+if (live.error && !live.entry) console.error(`post ${slug} from the PDS:`, live.error);
+if (!live.entry) {
+  // An old address by record key
+  const moved = all.find((p) => pdsData(p).recordKey === slug || p.data.rkey === slug);
+  if (moved) return Astro.redirect(postUrl(moved), 301);
+  return notFound();
 }
+const entry: Post = { id: live.entry.id, body: live.entry.data.markdown, data: live.entry.data };
+const { Content } = await render(live.entry);
+const headings = live.entry.data.headings ?? [];
+const card = live.entry.data.coverImage;
+const shareImage = card ? `/media/${card.cid}` : '/og/site.png';
+const atDocument = `at://${DID}/site.standard.document/${live.entry.data.recordKey}`;
+Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, `post:${slug}`], lastModified: live.entry.data.updatedDate ?? live.entry.data.pubDate });
 
 const site = Astro.site!;
 const canonical = new URL(postUrl(entry), site).toString();
 const description = entry.data.description || (entry.body ?? '').slice(0, 160).trimEnd() + '…';
 const minutes = readingMinutes(entry);
 const toc = headings.filter((h) => h.depth <= 3);
-const repoFile = `src/content/posts/${entry.id}.md`;
-const editUrl = `https://github.com/Skiddle-ID/skiddle.id/blob/v3/${repoFile}`;
-// "updated …" links to the post's change history
-const historyUrl = `https://github.com/Skiddle-ID/skiddle.id/commits/v3/${repoFile}`;
-// A scheduled draft (publishAt): when it goes live, in Bangkok time
-const scheduledFor = entry.data.draft && entry.data.publishAt
-  ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(entry.data.publishAt)
-  : '';
+// The post's record, to look at on AT Protocol
+const recordUrl = `https://pdsls.dev/${atDocument}`;
 // Series: the box at the top (side column on wide screens) and the "next part" card at the end.
-// Parts count planned ones too (src/data/series.ts), so part 1 of a new series is "part 1 of 6".
-const series = entry.data.series ? groupSeries(all, seriesInfo).find((s) => s.name === entry!.data.series) : undefined;
+// Parts count planned ones too (the series' record), so part 1 of a new series is "part 1 of 6".
+const series = entry.data.series ? groupSeries(all, seriesInfo).find((s) => s.name === entry.data.series) : undefined;
 // An ongoing series (e.g. weekly) has its box from part 1 and no "of N"
 const hasSeries = !!series && (series.entries.length > 1 || series.ongoing);
 const openEnded = !!series?.ongoing && series.planned.length === 0;
@@ -125,7 +102,7 @@ const jsonLd = {
   // All rights reserved, no AI training (LICENSE-CONTENT.md)
   copyrightHolder: { '@type': 'Person', name: 'Laurensius Jeffrey' },
   copyrightYear: entry.data.pubDate.getUTCFullYear(),
-  license: 'https://github.com/Skiddle-ID/skiddle.id/blob/v3/LICENSE-CONTENT.md',
+  license: 'https://github.com/Skiddle-ID/skiddle.id/blob/v4/LICENSE-CONTENT.md',
   mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
   description,
   url: canonical,
@@ -139,11 +116,6 @@ const jsonLd = {
   <!-- Wide screens: article plus a sticky "On this page" column, centred together -->
   <div class="w-full xl:flex xl:justify-center xl:gap-14">
   <article class="max-w-[70ch] w-full min-w-0 mx-auto xl:mx-0" lang={entry.data.lang}>
-    {entry.data.draft && (
-      <p class="card border-[var(--color-warn)] text-[var(--color-warn)] px-4 py-2.5 mb-6 text-sm" role="note" lang="en">
-        {scheduledFor ? `Scheduled for ${scheduledFor} (Bangkok time): only on this preview until then.` : 'Draft: only on this preview, not on skiddle.id.'}
-      </p>
-    )}
     <header class="mb-8">
       <p class="text-xs text-[var(--color-muted)] mb-3">
         <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>
@@ -153,7 +125,7 @@ const jsonLd = {
       <h1 class="text-2xl font-semibold leading-snug">{entry.data.title}</h1>
       <p class="text-xs text-[var(--color-muted)] mt-3 flex flex-wrap gap-x-2 gap-y-1" lang="en">
         <FormattedDate date={entry.data.pubDate} />
-        {entry.data.updatedDate && (<span>· <a href={historyUrl} class="hover:text-[var(--color-primary)] hover:underline underline-offset-4" title="See what changed" target="_blank" rel="noopener">updated <FormattedDate date={entry.data.updatedDate} /></a></span>)}
+        {entry.data.updatedDate && (<span>· updated <FormattedDate date={entry.data.updatedDate} /></span>)}
         <span>· {minutes} min read</span>
         {entry.data.tags.length > 0 && <span>·</span>}
         {entry.data.tags.map((t) => (<a href={`/topics/tag/${t.toLowerCase()}/`} class="tag">#{t}</a>))}
@@ -256,7 +228,7 @@ const jsonLd = {
       <div class="flex flex-wrap gap-2 mt-6">
         <button type="button" class="btn" id="copyLink" data-url={canonical}><Icon name="copy" size={14} /> <span>Copy link</span></button>
         <a class="btn" target="_blank" rel="noopener" href={`https://bsky.app/intent/compose?text=${encodeURIComponent(entry.data.title + ' ' + canonical)}`}><Icon name="bluesky" size={14} /> Share on Bluesky</a>
-        <a class="btn" target="_blank" rel="noopener" href={editUrl}><Icon name="github" size={14} /> Suggest an edit</a>
+        <a class="btn" target="_blank" rel="noopener" href={recordUrl}><Icon name="at" size={14} /> View the record</a>
       </div>
     </footer>
 

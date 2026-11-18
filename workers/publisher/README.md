@@ -19,9 +19,9 @@ It's a separate Worker from the site, so the site's Worker never holds the app p
 - a few milliseconds of CPU a run
 - about a dozen requests per post, and at most 2 posts a run
 
-## Setting it up, at the v4 launch
+## Setting it up
 
-**Not before.** Until v4 is production, the v3 sync deletes posts that git doesn't have, so a post published from here would disappear again.
+At the v4 launch, step 8 of [the switch](../../docs/v4/switch.md). Not before: until v4 was production, the v3 sync deleted posts that git didn't have, so a post published from here would have disappeared again.
 
 1. **An app password.** In Bluesky, go to Settings → Privacy and security → App passwords. Add one called `skiddle-publisher`. Don't tick direct messages.
 2. **Deploy it.** Either:

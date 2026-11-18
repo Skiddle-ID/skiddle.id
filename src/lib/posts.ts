@@ -1,9 +1,8 @@
-import { getCollection } from 'astro:content';
-import { seriesInfo, type PlannedPart, type SeriesInfo } from '~/data/series';
+import type { PlannedPart, SeriesInfo } from '~/types/series';
 import { categoryLabels } from './categories.mjs';
 import { seriesSlug } from './post-record.mjs';
 
-/** A post's fields: the git collection's (src/content.config.ts), which posts from the PDS also have */
+/** A post's fields, from its record (src/lib/pds-posts.ts) */
 export interface PostData {
   title: string;
   description?: string;
@@ -22,19 +21,13 @@ export interface PostData {
   bluesky?: string;
 }
 
-/** A post from git (the content collection) or from the PDS (src/lib/pds-posts.ts) */
+/** A post, from its record in Jeff's AT Protocol repo (src/lib/pds-posts.ts) */
 export interface Post {
   /** The slug: /posts/<id>/ */
   id: string;
   /** The Markdown */
   body?: string;
   data: PostData;
-}
-
-/** All published posts, newest first. Preview builds of a pull request include drafts too. */
-export async function getPosts(): Promise<Post[]> {
-  const posts = await getCollection('posts', ({ data }) => __PREVIEW__ || !data.draft);
-  return posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 }
 
 export const postUrl = (p: Post) => `/posts/${p.id}/`;
@@ -44,7 +37,7 @@ export interface Series {
   slug: string;
   /** Published parts in reading order (`order`, then date) */
   parts: Post[];
-  /** Planned parts that aren't published yet (src/data/series.ts), in order */
+  /** Planned parts that aren't published yet (the series' record), in order */
   planned: PlannedPart[];
   /** Published and planned parts together, in reading order */
   entries: SeriesEntry[];
@@ -66,10 +59,10 @@ export const seriesUrl = (name: string) => `/series/#${seriesSlug(name)}`;
 
 /**
  * Group posts into series, newest series (by its latest part) first
- * @param info What each series adds (planned parts, ongoing, cadence), by name: src/data/series.ts
- *   for posts from git, the id.skiddle.series records for posts from the PDS
+ * @param info What each series adds (planned parts, ongoing, cadence), by name: the
+ *   id.skiddle.series records
  */
-export function groupSeries(posts: Post[], info: Record<string, SeriesInfo> = seriesInfo): Series[] {
+export function groupSeries(posts: Post[], info: Record<string, SeriesInfo>): Series[] {
   const byName = new Map<string, Post[]>();
   for (const p of posts) {
     if (p.data.series) byName.set(p.data.series, [...(byName.get(p.data.series) ?? []), p]);

@@ -60,7 +60,7 @@ export interface WorksData {
   experience: WorkExperience[];
   education: EducationItem[];
   skills: SkillGroup[];
-  /** Projects (their ids in src/data/projects.ts) shown as cards, in order */
+  /** Projects (their record keys, id.skiddle.project) shown as cards, in order */
   selectedProjects: string[];
   projects: NotableProjectItem[];
   certifications: CertificationItem[];

@@ -2,14 +2,13 @@
 import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
-import { PAGES_CACHE, contentSource, getCv, getServices } from '~/lib/page-content';
+import { PAGES_CACHE, getCv, getServices } from '~/lib/page-content';
 
 // Rendered on request: the services and the CV's highlights come from their records (src/lib/page-content.ts)
 export const prerender = false;
 
-const [{ services: data, source: servicesSource }, { highlights: proof, source: cvSource }] = await Promise.all([getServices(), getCv()]);
+const [{ services: data }, { highlights: proof }] = await Promise.all([getServices(), getCv()]);
 Astro.cache.set(PAGES_CACHE);
-Astro.response.headers.set('X-Content-Source', contentSource(servicesSource, cvSource));
 
 const site = Astro.site!;
 const pageUrl = new URL('/services/', site).toString();

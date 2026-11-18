@@ -25,7 +25,7 @@ const AI_TRAINING_CRAWLERS = ['GPTBot', 'ClaudeBot', 'anthropic-ai', 'Google-Ext
 function liveRobots(origin: string): string {
   return [
     '# The writing on skiddle.id is all rights reserved, and may not be used to train AI models.',
-    '# https://github.com/Skiddle-ID/skiddle.id/blob/v3/LICENSE-CONTENT.md',
+    '# https://github.com/Skiddle-ID/skiddle.id/blob/v4/LICENSE-CONTENT.md',
     'User-agent: *',
     'Content-Signal: search=yes, ai-train=no',
     'Allow: /',

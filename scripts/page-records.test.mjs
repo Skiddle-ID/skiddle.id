@@ -1,58 +1,51 @@
-// The pages' content survives the trip to records and back (src/lib/page-records.mjs): what the
-// pages read from the PDS (src/lib/page-content.ts) is exactly what the data files say today. Also
-// what a malformed record does: a missing required field throws, a field of the wrong type is
-// left out.
+// What the pages read from their records (src/lib/page-records.mjs): a record in the lexicon's
+// shape comes back in the shape the pages use, and a malformed one is handled: a missing required
+// field throws, a field of the wrong type is left out. (Until the v4 launch this also checked that
+// the data files survived the trip to records and back, exactly.)
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   aboutFromRecord,
-  aboutRecord,
   cvFromRecord,
-  cvRecord,
   projectFromRecord,
-  projectRecords,
   projectUri,
   projectsFromRecords,
   servicesFromRecord,
-  servicesRecord,
   usesFromRecord,
-  usesRecord,
 } from '../src/lib/page-records.mjs';
 import { DID } from '../src/lib/standard-site.mjs';
-import about from '../src/data/about.ts';
-import highlights from '../src/data/highlights.ts';
-import projects from '../src/data/projects.ts';
-import services from '../src/data/services.ts';
-import uses, { usesUpdated } from '../src/data/uses.ts';
-import works from '../src/data/works.ts';
 
 const at = '2026-11-18T00:00:00.000Z';
 
-describe('page records, there and back', () => {
-  it('projects, in the order they were imported, whatever order the PDS lists them in', () => {
-    // The import writes them one at a time, in the data file's order
-    const records = [...projectRecords(projects, at)].map(([rkey, value], i) => ({
+describe('page records, read', () => {
+  it('projects come back in the order they were added, whatever order the PDS lists them in', () => {
+    const records = ['b', 'c', 'a'].map((rkey, i) => ({
       uri: projectUri(rkey),
-      value: { ...value, createdAt: new Date(Date.parse(at) + i * 300).toISOString() },
+      value: { name: rkey.toUpperCase(), description: 'd', source: `https://example.com/${rkey}`, createdAt: new Date(Date.parse(at) + i * 300).toISOString() },
     }));
-    assert.deepEqual(projectsFromRecords([...records].reverse()), projects);
-    assert.deepEqual(projectsFromRecords([...records].sort((a, b) => a.uri.localeCompare(b.uri))), projects);
+    const projects = projectsFromRecords([...records].reverse());
+    assert.deepEqual(projects.map((p) => p.id), ['b', 'c', 'a']);
+    // source is the pages' github
+    assert.equal(projects[0].github, 'https://example.com/b');
   });
 
-  it('the CV and its highlights', () => {
-    assert.deepEqual(cvFromRecord(cvRecord(works, highlights, at)), { works, highlights });
+  it('a position with no end is still the role', () => {
+    const { works } = cvFromRecord({ name: 'n', title: 't', experience: [{ company: 'C', positions: [{ role: 'R', start: '2020' }] }], certifications: [{ title: 'X', when: '2024' }] });
+    assert.equal(works.experience[0].positions[0].end, 'Present');
+    assert.deepEqual(works.certifications, [{ title: 'X', yearOrStatus: '2024' }]);
   });
 
-  it('services and testimonials', () => {
-    assert.deepEqual(servicesFromRecord(servicesRecord(services, at)), services);
+  it('a testimonial’s service is the pages’ serviceName', () => {
+    const s = servicesFromRecord({ services: [{ name: 'S', description: 'd' }], testimonials: [{ quote: 'q', author: 'a', rating: 5, service: 'S' }] });
+    assert.deepEqual(s.testimonials, [{ quote: 'q', author: 'a', serviceName: 'S', rating: 5 }]);
   });
 
-  it('uses, with its "last updated" month', () => {
-    assert.deepEqual(usesFromRecord(usesRecord(uses, usesUpdated)), { uses, usesUpdated });
+  it('uses says when it was last updated as a month and year', () => {
+    assert.equal(usesFromRecord({ sections: [], updatedAt: '2025-09-01T00:00:00.000Z' }).usesUpdated, 'September 2025');
   });
 
-  it('About', () => {
-    assert.deepEqual(aboutFromRecord(aboutRecord(about, at)), about);
+  it('About keeps its Markdown as it is', () => {
+    assert.equal(aboutFromRecord({ intro: '**Hi**', updatedAt: at }).intro, '**Hi**');
   });
 });
 

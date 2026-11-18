@@ -18,7 +18,7 @@ import { renderPost, type Heading, type PostImage } from '~/lib/post-html.mjs';
 import { listRecords } from '~/lib/pds';
 import type { PostData } from '~/lib/posts';
 import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
-import type { SeriesInfo } from '~/data/series';
+import type { SeriesInfo } from '~/types/series';
 
 const DOCUMENT = 'site.standard.document';
 const CATEGORIES = ['infra', 'atproto', 'homelab', 'life'] as const;

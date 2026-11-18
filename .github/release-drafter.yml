@@ -1,8 +1,8 @@
-# Release Drafter keeps a draft of the next release up to date as PRs merge into v3.
-# Publish it from GitHub → Releases (rename it, e.g. "v3.3 — <codename>", if you like).
+# Release Drafter keeps a draft of the next release up to date as PRs merge into v4.
+# Publish it from GitHub → Releases (rename it, e.g. "v4.1 — <codename>", if you like).
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
-# Two-part versions like the existing tags (v3.1, v3.2)
+# Two-part versions like the existing tags (v3.1, v4.0)
 version-template: "$MAJOR.$MINOR"
 version-resolver:
   major:
