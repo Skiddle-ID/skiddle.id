@@ -17,7 +17,8 @@ import { SERIES_COLLECTION, seriesRecord, seriesSlug } from '~/lib/post-record.m
 import { DID } from '~/lib/standard-site.mjs';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardSeriesOf, type CardSeries } from './card-text';
-import { el, errorText, formatTime, item, message, revalidate, row, viewLink } from './dom';
+import { dragHandle, sortable } from './sortable';
+import { el, errorText, formatTime, item, message, revalidate, row, saveState, viewLink } from './dom';
 import { PUBLISHING_LIVE, SERIES_NOT_LIVE_YET } from './launch';
 import { XrpcError, createRecord, deleteRecord, getRecord, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
 
@@ -109,6 +110,8 @@ export function setupSeries(c: SeriesContext) {
     remove.closest('li')?.remove();
     onChange();
   });
+  // Dragging a planned part moves it among the planned ones: they swap part numbers to match
+  sortable(el('seParts'), { items: ':scope > li[data-planned]', handle: '.admin-drag', onDrop: reorderPlanned });
   el('seAddPart').addEventListener('click', addPart);
   el('seCard').addEventListener('click', () => void showCard());
   el('seSave').addEventListener('click', () => void save());
@@ -170,19 +173,19 @@ export async function openSeries(route: string) {
   el('seConflict').hidden = true;
   el('seBackup').hidden = true;
   el('seForm').hidden = true;
-  el('seState').textContent = key ? 'Loading…' : '';
+  saveState('seState', key ? 'Loading…' : '');
   let opened: Open = {};
   if (key) {
     try {
       const record = await getRecord<SeriesRecord>(ctx.session, SERIES_COLLECTION, key);
       if (seriesRoute(location.hash) !== route) return; // moved on while it loaded
       if (!record) {
-        el('seState').textContent = '';
+        saveState('seState', '');
         return message('seMessage', 'This series doesn’t exist any more.', 'error');
       }
       opened = { key, cid: record.cid, record: record.value };
     } catch (err) {
-      el('seState').textContent = '';
+      saveState('seState', '');
       return message('seMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
     }
   }
@@ -193,16 +196,17 @@ export async function openSeries(route: string) {
   el('seCardImage').hidden = true;
   message('seCardMessage', '');
   fillForm(formOf(opened.record));
-  el('seState').textContent = opened.record
-    ? opened.record.updatedAt
-      ? `Saved ${formatTime(opened.record.updatedAt)}`
-      : ''
-    : 'A new series';
+  saveState('seState', opened.record ? (opened.record.updatedAt ? `Saved ${formatTime(opened.record.updatedAt)}` : '') : 'A new series');
   checkBackup();
   if (!key) el('seName').focus();
 }
 
 /** Closes the editor; unsaved changes stay on this device */
+/** ⌘S in the series editor: saves, if the Save button could */
+export function saveSeriesNow() {
+  if (current && !el<HTMLButtonElement>('seSave').disabled) void save();
+}
+
 export function leaveSeries() {
   if (!current) return;
   current = undefined;
@@ -261,9 +265,27 @@ function publishedRow(part: number, title: string, path: string) {
   return li;
 }
 
+/**
+ * After a drag: the planned parts take their part numbers in their new order (the same numbers,
+ * smallest first), and every part is put back in order by number, published ones where they were.
+ * If a planned part's number is empty or not a number, they keep the numbers they have.
+ */
+function reorderPlanned() {
+  const list = el('seParts');
+  const inputs = [...list.querySelectorAll<HTMLInputElement>(':scope > li[data-planned] input[type="number"]')];
+  const numbers = inputs.map((i) => Number(i.value)).filter((n) => Number.isInteger(n) && n > 0).sort((a, b) => a - b);
+  if (numbers.length === inputs.length) {
+    for (const [i, input] of inputs.entries()) input.value = String(numbers[i]);
+    const partOf = (li: Element) => Number(li.matches('[data-planned]') ? li.querySelector<HTMLInputElement>('input[type="number"]')!.value : li.querySelector('.admin-part-n')!.textContent);
+    for (const li of [...list.children].sort((a, b) => partOf(a) - partOf(b))) list.appendChild(li);
+  }
+  onChange();
+}
+
 function plannedRow(p: PlannedPart) {
   const li = item('');
   li.dataset.planned = '';
+  li.appendChild(dragHandle('Drag to move this planned part'));
   const n = document.createElement('input');
   n.type = 'number';
   n.min = '1';
@@ -382,7 +404,7 @@ function onChange() {
   if (!conflict) {
     dirty = true;
     saveBackup();
-    el('seState').textContent = PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device';
+    saveState('seState', PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device');
   }
   refresh();
 }
@@ -434,7 +456,7 @@ async function save(force = false) {
   const target = current;
   const key = keyFor(f);
   const step = (text: string) => {
-    if (current === target) el('seState').textContent = text;
+    if (current === target) saveState('seState', text);
   };
   el<HTMLButtonElement>('seSave').disabled = true;
   message('seMessage', '');
@@ -490,7 +512,7 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
       removeBackup(target.key);
       dirty = false;
       fillForm(formOf(latest.value));
-      el('seState').textContent = latest.value.updatedAt ? `Loaded the version saved ${formatTime(latest.value.updatedAt)}` : 'Loaded the saved version';
+      saveState('seState', latest.value.updatedAt ? `Loaded the version saved ${formatTime(latest.value.updatedAt)}` : 'Loaded the saved version');
     } else {
       await save(true);
     }
@@ -522,7 +544,7 @@ async function remove() {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') {
       conflict = true;
       el('seConflict').hidden = false;
-      el('seState').textContent = 'Not deleted: changed elsewhere';
+      saveState('seState', 'Not deleted: changed elsewhere');
     } else message('seMessage', `Couldn’t delete it: ${errorText(err)}`, 'error');
   }
 }

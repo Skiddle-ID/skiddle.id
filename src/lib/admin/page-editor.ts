@@ -25,7 +25,8 @@ import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
 import { ABOUT_COLLECTION, CV_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoryProblems } from '~/lib/categories.mjs';
 import { seriesSlug } from '~/lib/post-record.mjs';
-import { el, errorText, formatTime, message, revalidate } from './dom';
+import { ranked, valuesAt } from '~/lib/suggest.mjs';
+import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-form';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
@@ -152,7 +153,7 @@ export async function openPage(route: PageRoute) {
   el('peBackup').hidden = true;
   el('peForm').hidden = true;
   el('peNote').hidden = true;
-  el('peState').textContent = 'Loading…';
+  saveState('peState', 'Loading…');
   let record: RepoRecord<Value> | null;
   try {
     [record] = await Promise.all([
@@ -160,13 +161,13 @@ export async function openPage(route: PageRoute) {
       listRecords<Value>(session, PROJECT_COLLECTION).then((list) => (projects = list)),
     ]);
   } catch (err) {
-    el('peState').textContent = '';
+    saveState('peState', '');
     return message('peMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
   }
   const still = pageRoute(location.hash);
   if (!still || routeKey(still) !== key) return; // moved on while it loaded
   if ('project' in route && !record) {
-    el('peState').textContent = '';
+    saveState('peState', '');
     return message('peMessage', 'This project isn’t in your repo.', 'error');
   }
   current = { ...target, route: key, rkey: target.rkey, cid: record?.cid, record: record?.value, read: () => ({}) };
@@ -174,10 +175,15 @@ export async function openPage(route: PageRoute) {
   fill(record?.value ?? target.initial?.() ?? {});
   el('peForm').hidden = false;
   const updated = record?.value.updatedAt ?? record?.value.createdAt;
-  el('peState').textContent = record ? (typeof updated === 'string' ? `Saved ${formatTime(updated)}` : '') : 'Not saved yet';
+  saveState('peState', record ? (typeof updated === 'string' ? `Saved ${formatTime(updated)}` : '') : 'Not saved yet');
   // A page whose record wasn't imported starts empty
   el('peNote').hidden = !('page' in route) || !!record;
   checkBackup();
+}
+
+/** ⌘S in a page editor: saves, if the Save button could */
+export function savePageNow() {
+  if (current && !el<HTMLButtonElement>('peSave').disabled) void save();
 }
 
 /** Closes the editor; unsaved changes stay on this device */
@@ -199,6 +205,13 @@ function fill(value: Value) {
       projects
         .map((p) => ({ value: projectUri(rkeyOf(p.uri)), label: String(p.value.name ?? rkeyOf(p.uri)) }))
         .sort((a, b) => a.label.localeCompare(b.label)),
+    // Values already used in the same place: in this record, and in the other projects for a project
+    suggest: (path) => {
+      if (!current) return [];
+      const open = current;
+      const others = isProject(open) ? projects.filter((p) => rkeyOf(p.uri) !== open.rkey).map((p) => p.value) : [];
+      return ranked([open.read(), ...others].flatMap((v) => valuesAt(v, path)));
+    },
   });
   current.read = form.read as () => Value;
   el('peFields').replaceChildren(form.el);
@@ -249,7 +262,7 @@ function onChange() {
   if (!conflict) {
     dirty = true;
     saveBackup();
-    el('peState').textContent = PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device';
+    saveState('peState', PUBLISHING_LIVE ? 'Unsaved changes' : 'Changes kept on this device');
   }
   refresh();
 }
@@ -269,7 +282,7 @@ async function save(force = false) {
   if (issues(target, value).length) return;
   const key = keyFor(target, value);
   const step = (text: string) => {
-    if (current === target) el('peState').textContent = text;
+    if (current === target) saveState('peState', text);
   };
   el<HTMLButtonElement>('peSave').disabled = true;
   message('peMessage', '');
@@ -327,7 +340,7 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
       dirty = false;
       fill(latest.value);
       const updated = latest.value.updatedAt;
-      el('peState').textContent = typeof updated === 'string' ? `Loaded the version saved ${formatTime(updated)}` : 'Loaded the saved version';
+      saveState('peState', typeof updated === 'string' ? `Loaded the version saved ${formatTime(updated)}` : 'Loaded the saved version');
     } else {
       // Keep the form; write it over the newer version
       Object.assign(target, { cid: latest.cid, record: latest.value });
@@ -358,7 +371,7 @@ async function remove() {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') {
       conflict = true;
       el('peConflict').hidden = false;
-      el('peState').textContent = 'Not deleted: changed elsewhere';
+      saveState('peState', 'Not deleted: changed elsewhere');
     } else message('peMessage', `Couldn’t delete it: ${errorText(err)}`, 'error');
   }
 }

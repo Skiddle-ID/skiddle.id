@@ -191,7 +191,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
       <div id="editor" class="admin-editor" data-pane="write" data-kind="draft">
         <div class="admin-editor-bar">
           <a href="#posts" class="admin-btn admin-btn-ghost">← Posts</a>
-          <span id="editorState" class="admin-small" aria-live="polite"></span>
+          <div class="admin-bar-end">
+            <span id="editorState" class="admin-save-state" aria-live="polite"></span>
+            <button id="edFocus" type="button" class="admin-btn admin-btn-ghost" aria-pressed="false" title="Only the title and the text (Esc to leave)">Focus</button>
+          </div>
         </div>
         <div id="editorConflict" class="admin-notice" hidden>
           <p>This draft was changed on another device since you opened it.</p>
@@ -206,7 +209,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
         <p id="editorMessage" class="admin-message" role="status"></p>
 
         <form id="editorForm" class="admin-form" novalidate>
-          <div class="admin-field">
+          <div class="admin-field admin-field-title">
             <label for="edTitle">Title</label>
             <input id="edTitle" type="text" autocomplete="off" placeholder="Untitled" />
           </div>
@@ -253,7 +256,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           </div>
           <div class="admin-editor-panes">
             <div class="admin-pane-write">
-              <div class="admin-toolbar">
+              <div id="edTools" class="admin-toolbar admin-write-tools">
                 <label class="admin-btn admin-btn-ghost">Add image<input id="edImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="sr-only" /></label>
               </div>
               <div id="edImageBox" class="admin-image-box" hidden>
@@ -269,9 +272,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
               </div>
               <p id="edImageMessage" class="admin-message" role="status"></p>
               <label for="edMarkdown" class="sr-only">Post, in Markdown</label>
-              <textarea id="edMarkdown" class="admin-markdown" spellcheck="true" placeholder="Write in Markdown…"></textarea>
+              <textarea id="edMarkdown" class="admin-markdown" spellcheck="true" placeholder="Write in Markdown… Paste or drop images here." aria-describedby="edWords"></textarea>
+              <p id="edWords" class="admin-small admin-words"></p>
             </div>
-            <div class="admin-pane-preview">
+            <div id="edPreviewPane" class="admin-pane-preview">
               <div class="admin-card-preview">
                 <button id="edCard" type="button" class="admin-btn admin-btn-ghost">Show the share card</button>
                 <img id="edCardImage" alt="The post’s share card" width="1200" height="630" hidden />
@@ -311,7 +315,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
       <div id="seriesEditor" class="admin-editor">
         <div class="admin-editor-bar">
           <a href="#series" class="admin-btn admin-btn-ghost">← Series</a>
-          <span id="seState" class="admin-small" aria-live="polite"></span>
+          <span id="seState" class="admin-save-state" aria-live="polite"></span>
         </div>
         <div id="seConflict" class="admin-notice" hidden>
           <p>This series was changed on another device since you opened it.</p>
@@ -370,7 +374,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
       <div id="pageEditor" class="admin-editor">
         <div class="admin-editor-bar">
           <a id="peBack" href="#pages" class="admin-btn admin-btn-ghost">← Pages</a>
-          <span id="peState" class="admin-small" aria-live="polite"></span>
+          <span id="peState" class="admin-save-state" aria-live="polite"></span>
         </div>
         <h2 id="peTitle" class="admin-editor-title"></h2>
         <div id="peConflict" class="admin-notice" hidden>
@@ -749,6 +753,76 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   .admin-lexform-list details > .admin-lexform-controls {
     padding: 0 0.75rem 0.75rem;
   }
+  .admin-lexform-folding {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .admin-lexform-folding .admin-btn {
+    min-height: 2rem;
+    padding-inline: 0.5rem;
+    font-size: 0.8125rem;
+  }
+  /* Drag handles (src/lib/admin/sortable.ts) */
+  .admin-drag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 1.5rem;
+    min-height: 2.75rem;
+    color: var(--color-muted);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+  .admin-lexform-list summary .admin-drag {
+    min-height: 1.5rem;
+    margin-right: 0.25rem;
+    vertical-align: middle;
+  }
+  .admin-dragging {
+    opacity: 0.6;
+    outline: 2px dashed var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+  .admin-dragging .admin-drag {
+    cursor: grabbing;
+  }
+  /* A Markdown field's preview (src/lib/admin/lexicon-form.ts) */
+  .admin-field-preview {
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 0.375rem;
+    min-height: 6rem;
+  }
+  /* Tag suggestions (src/lib/admin/tag-suggest.ts), under the box */
+  .admin-has-suggest {
+    position: relative;
+  }
+  .admin-suggest {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 0.25rem;
+    max-height: 16rem;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg-alt);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  }
+  .admin-suggest li {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+  }
+  .admin-suggest li:hover,
+  .admin-suggest li[aria-selected='true'] {
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
   .admin-pages-name {
     color: var(--color-primary);
     font-weight: 600;
@@ -817,11 +891,145 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     flex-direction: column;
     gap: 0.75rem;
   }
+  /* Stays at the top of the screen, so the save state and ⌘S are always in reach */
   .admin-editor-bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    padding: 0.5rem 0;
+    background: var(--color-bg);
+  }
+  .admin-bar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  /* The save state (saveState() in src/lib/admin/dom.ts): a dot coloured by kind, then the words */
+  .admin-save-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    min-width: 0;
+  }
+  .admin-save-state:empty {
+    display: none;
+  }
+  .admin-save-state::before {
+    content: '';
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-muted);
+  }
+  .admin-save-state[data-state='saved']::before {
+    background: #22c55e;
+  }
+  .admin-save-state[data-state='unsaved'] {
+    color: var(--color-text);
+  }
+  .admin-save-state[data-state='unsaved']::before {
+    background: #f59e0b;
+  }
+  .admin-save-state[data-state='busy']::before {
+    background: var(--color-primary);
+    animation: admin-pulse 1s ease-in-out infinite alternate;
+  }
+  .admin-save-state[data-state='error'] {
+    color: #ef4444;
+  }
+  .admin-save-state[data-state='error']::before {
+    background: #ef4444;
+  }
+  @keyframes admin-pulse {
+    to {
+      opacity: 0.3;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .admin-save-state[data-state='busy']::before {
+      animation: none;
+    }
+  }
+  /* Markdown tools (src/lib/admin/markdown-tools.ts) */
+  .admin-md-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.125rem;
+  }
+  .admin-md-tool {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .admin-md-tool:hover {
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+  .admin-md-tool:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+  .admin-md-tool:nth-child(1) {
+    font-weight: 700;
+  }
+  .admin-md-tool:nth-child(2) {
+    font-style: italic;
+  }
+  .admin-write-tools {
+    align-items: center;
+    justify-content: space-between;
+  }
+  .admin-drop-target {
+    outline: 2px dashed var(--color-primary);
+    outline-offset: 2px;
+  }
+  .admin-words {
+    margin-top: 0.25rem;
+    text-align: right;
+  }
+  /* Focus mode (#editor[data-focus]): the title and the text, nothing else */
+  .admin-editor[data-focus] #editorForm > :not(.admin-field-title):not(.admin-editor-panes),
+  .admin-editor[data-focus] .admin-pane-preview,
+  .admin-editor[data-focus] #editorConflict,
+  .admin-editor[data-focus] #editorBackup {
+    display: none;
+  }
+  .admin-editor[data-focus] #editorForm {
+    max-width: 46rem;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .admin-editor[data-focus] .admin-field-title input {
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-color: transparent;
+    background: transparent;
+    padding-left: 0;
+  }
+  .admin-editor[data-focus] .admin-field-title label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .admin-editor[data-focus] .admin-markdown {
+    min-height: calc(100vh - 14rem);
+    font-size: 1.0625rem;
+    line-height: 1.75;
   }
   .admin textarea {
     width: 100%;
@@ -974,6 +1182,12 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     .admin-editor[data-pane] .admin-pane-preview {
       display: block;
     }
+    .admin-editor[data-focus] .admin-editor-panes {
+      display: block;
+    }
+    .admin-editor[data-focus] .admin-pane-preview {
+      display: none;
+    }
     .admin-pane-preview {
       position: sticky;
       top: 1rem;
@@ -1044,6 +1258,11 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   }
   .admin-parts li[data-published] {
     min-height: 2.75rem;
+    padding-left: 2rem;
+  }
+  /* A planned part: its drag handle first */
+  .admin-parts li[data-planned] {
+    grid-template-columns: 1.5rem 3.5rem minmax(0, 1fr) auto;
   }
   .admin-parts span.admin-part-n {
     padding-left: 0.75rem;

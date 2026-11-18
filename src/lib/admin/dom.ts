@@ -11,6 +11,30 @@ export function message(id: string, text: string, kind: 'ok' | 'error' | 'info' 
 
 export const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
+/**
+ * Sets an editor's save state (the line by its back button) and its kind, so it's styled the same
+ * in every editor (by [data-state] in src/pages/admin/index.astro):
+ *   - unsaved: "Unsaved changes", "Not saved yet", "Changes kept on this device"
+ *   - busy: anything still going on ("Saving…", "Writing the post…")
+ *   - saved: "Saved 18 Nov, 12:03", "Saved and live …", "Loaded the version saved …", "Published …"
+ *   - error: "Not saved", "Not saved: changed elsewhere", "Not deleted …", "Not finished"
+ */
+export function saveState(id: string, text: string) {
+  const s = el(id);
+  s.textContent = text;
+  s.dataset.state = !text
+    ? ''
+    : text.endsWith('…')
+      ? 'busy'
+      : /^(Saved|Loaded|Published)/.test(text)
+        ? 'saved'
+        : /^(Unsaved|Not saved yet|Changes kept)/.test(text)
+          ? 'unsaved'
+          : /^Not (saved|deleted|finished)/.test(text)
+            ? 'error'
+            : 'info';
+}
+
 export const formatTime = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 

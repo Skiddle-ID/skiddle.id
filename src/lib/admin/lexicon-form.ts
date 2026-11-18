@@ -6,8 +6,13 @@
  *     lexicon knows its values; a URL box for format "uri"; the projects for format "at-uri"
  *   - an integer: a number box; a boolean: a checkbox
  *   - an object (a ref to another def): its fields, grouped
- *   - a list: a row per item, each with move up, move down and remove, and a button to add one.
- *     Items that are objects fold, showing their first field.
+ *   - a list: a row per item, each with a handle to drag it, move up, move down and remove, and a
+ *     button to add one. Items that are objects fold, showing their first field; a list of two or
+ *     more has "Unfold all" and "Fold all".
+ *   - a Markdown field (its description says so): the post editor's formatting toolbar and
+ *     shortcuts (src/lib/admin/markdown-tools.ts), and a preview rendered as the site renders it
+ *   - a short text, or a short item in a list: suggestions of the values already used in the same
+ *     place (FormOptions.suggest), e.g. the employment types in the CV or a project's languages
  * Dates the app sets (format "datetime", e.g. createdAt and updatedAt) aren't shown.
  *
  * `read()` gives the record's fields from the form, leaving out empty ones (as the import does,
@@ -15,7 +20,10 @@
  * filled in: required fields, lengths (in characters as people see them, and in bytes), URLs,
  * numbers and list sizes. Saving also checks the whole record with @atproto/lexicon.
  */
+import { renderPost } from '~/lib/post-html.mjs';
 import { countChars } from '~/lib/status-states.mjs';
+import { markdownTools } from './markdown-tools';
+import { dragHandle, sortable } from './sortable';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a lexicon's schema is JSON of many shapes, read by `type`
 type Schema = Record<string, any>;
@@ -33,6 +41,11 @@ export interface FormOptions {
   onChange: () => void;
   /** What a string of format "at-uri" can point at, e.g. the projects */
   choices?: () => { value: string; label: string }[];
+  /**
+   * Values already used at a place in the record, to suggest, e.g. "tech.languages[]" (the path's
+   * form is src/lib/suggest.mjs's valuesAt)
+   */
+  suggest?: (path: string) => string[];
 }
 
 interface Field {
@@ -76,6 +89,11 @@ function resolve(doc: LexiconDoc, schema: Schema): Schema {
 /** A long text gets a bigger box */
 const isLong = (s: Schema) => (s.maxGraphemes ?? 0) >= 1000 || (!s.maxGraphemes && (s.maxLength ?? 0) >= 10000);
 const isMedium = (s: Schema) => (s.maxGraphemes ?? 0) >= 300;
+/** A field the site renders as Markdown, as its description says */
+const isMarkdown = (s: Schema) => typeof s.description === 'string' && /markdown/i.test(s.description);
+/** A short value that's likely to repeat: a short field, or a short item in a list (a tag, a language) */
+const isSuggestible = (s: Schema, item: boolean) =>
+  s.type === 'string' && !s.format && !s.knownValues && ((item && (s.maxGraphemes ?? 0) > 0 && s.maxGraphemes <= 100) || ((s.maxGraphemes ?? 0) > 0 && s.maxGraphemes <= 50));
 
 let ids = 0;
 const nextId = () => `lf-${++ids}`;
@@ -107,7 +125,7 @@ export function buildForm(doc: LexiconDoc, value: Value, options: FormOptions): 
   root.className = 'admin-lexform';
   const schema = recordSchema(doc);
   const fields = shown(schema).map(([key, s]) => {
-    const f = field(doc, key, s, value[key], (schema.required ?? []).includes(key), options);
+    const f = field(doc, key, s, value[key], (schema.required ?? []).includes(key), options, key);
     root.appendChild(f.el);
     return [key, f] as const;
   });
@@ -119,11 +137,12 @@ export function buildForm(doc: LexiconDoc, value: Value, options: FormOptions): 
   };
 }
 
-function field(doc: LexiconDoc, key: string, raw: Schema, value: unknown, required: boolean, options: FormOptions): Field {
+/** @param path Where the field is in the record, e.g. "experience[].company" (for suggestions) */
+function field(doc: LexiconDoc, key: string, raw: Schema, value: unknown, required: boolean, options: FormOptions, path: string): Field {
   const schema = resolve(doc, raw);
   const label = labelOf(key);
-  if (schema.type === 'object') return objectField(doc, label, schema, (value ?? {}) as Value, options, raw.description ?? schema.description);
-  if (schema.type === 'array') return listField(doc, label, schema, Array.isArray(value) ? value : [], options);
+  if (schema.type === 'object') return objectField(doc, label, schema, (value ?? {}) as Value, options, path, raw.description ?? schema.description);
+  if (schema.type === 'array') return listField(doc, label, schema, Array.isArray(value) ? value : [], options, path);
 
   const wrap = document.createElement('div');
   wrap.className = 'admin-field';
@@ -157,9 +176,10 @@ function field(doc: LexiconDoc, key: string, raw: Schema, value: unknown, requir
     head.appendChild(r);
   }
   wrap.appendChild(head);
-  const input = control(schema, value, options);
+  const input = control(schema, value, options, path, false);
   input.id = id;
-  wrap.appendChild(input);
+  if (input instanceof HTMLTextAreaElement && isMarkdown(schema)) markdownField(wrap, input);
+  else wrap.appendChild(input);
   const h = hint(schema.description);
   if (h) {
     h.id = `${id}-hint`;
@@ -169,8 +189,45 @@ function field(doc: LexiconDoc, key: string, raw: Schema, value: unknown, requir
   return { el: wrap, read: () => readControl(schema, input) };
 }
 
-/** The input for a string or an integer */
-function control(schema: Schema, value: unknown, options: FormOptions): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
+/**
+ * A Markdown field: the formatting toolbar over the box, and Preview, which shows it rendered as
+ * the site renders it (src/lib/post-html.mjs, as on the About page), until Write
+ */
+function markdownField(wrap: HTMLElement, area: HTMLTextAreaElement) {
+  const bar = document.createElement('div');
+  bar.className = 'admin-toolbar admin-write-tools';
+  const tools = markdownTools(area);
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'admin-btn admin-btn-ghost';
+  toggle.textContent = 'Preview';
+  toggle.setAttribute('aria-pressed', 'false');
+  const preview = document.createElement('div');
+  preview.className = 'prose prose-reading admin-field-preview';
+  preview.hidden = true;
+  toggle.addEventListener('click', () => {
+    const show = preview.hidden;
+    if (show) preview.innerHTML = area.value.trim() ? renderPost(area.value, { images: [] }).html : '<p class="admin-muted">Nothing yet.</p>';
+    preview.hidden = !show;
+    area.hidden = show;
+    tools.hidden = show;
+    toggle.textContent = show ? 'Write' : 'Preview';
+    toggle.setAttribute('aria-pressed', String(show));
+    if (!show) area.focus();
+  });
+  bar.appendChild(tools);
+  bar.appendChild(toggle);
+  wrap.appendChild(bar);
+  wrap.appendChild(area);
+  wrap.appendChild(preview);
+}
+
+/**
+ * The input for a string or an integer
+ * @param path Where it is in the record, for suggestions
+ * @param item Whether it's an item in a list (a tag, a language), which is suggested up to 100 characters
+ */
+function control(schema: Schema, value: unknown, options: FormOptions, path: string, item: boolean): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
   if (schema.type === 'integer') {
     const input = document.createElement('input');
     input.type = 'number';
@@ -202,7 +259,23 @@ function control(schema: Schema, value: unknown, options: FormOptions): HTMLInpu
   if (schema.format === 'uri') input.inputMode = 'url';
   input.autocomplete = 'off';
   input.value = text;
+  if (options.suggest && isSuggestible(schema, item)) suggestions(input, () => options.suggest!(path));
   return input;
+}
+
+/**
+ * Suggests values already used, as the browser's own list under the box. It's filled when the box
+ * is focused, so it includes what was just typed elsewhere in the form.
+ */
+function suggestions(input: HTMLInputElement, values: () => string[]) {
+  const list = document.createElement('datalist');
+  list.id = nextId();
+  input.setAttribute('list', list.id);
+  input.addEventListener('focus', () => {
+    const own = input.value.trim().toLowerCase();
+    list.replaceChildren(...values().filter((v) => v.toLowerCase() !== own).map((v) => new Option(v)));
+    if (!list.isConnected) input.parentNode?.insertBefore(list, input.nextSibling);
+  });
 }
 
 function readControl(schema: Schema, input: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): unknown {
@@ -212,7 +285,7 @@ function readControl(schema: Schema, input: HTMLInputElement | HTMLTextAreaEleme
   return v;
 }
 
-function objectField(doc: LexiconDoc, label: string, schema: Schema, value: Value, options: FormOptions, description?: string): Field {
+function objectField(doc: LexiconDoc, label: string, schema: Schema, value: Value, options: FormOptions, path: string, description?: string): Field {
   const set = document.createElement('fieldset');
   set.className = 'admin-field admin-lexform-group';
   const legend = document.createElement('legend');
@@ -222,14 +295,14 @@ function objectField(doc: LexiconDoc, label: string, schema: Schema, value: Valu
   const h = hint(description);
   if (h) set.appendChild(h);
   const fields = shown(schema).map(([key, s]) => {
-    const f = field(doc, key, s, value[key], (schema.required ?? []).includes(key), options);
+    const f = field(doc, key, s, value[key], (schema.required ?? []).includes(key), options, path ? `${path}.${key}` : key);
     set.appendChild(f.el);
     return [key, f] as const;
   });
   return { el: set, read: () => Object.fromEntries(fields.map(([key, f]) => [key, f.read()]).filter(([, v]) => !empty(v))) };
 }
 
-function listField(doc: LexiconDoc, label: string, schema: Schema, values: unknown[], options: FormOptions): Field {
+function listField(doc: LexiconDoc, label: string, schema: Schema, values: unknown[], options: FormOptions, path: string): Field {
   const items = resolve(doc, schema.items);
   const set = document.createElement('fieldset');
   set.className = 'admin-field admin-lexform-group';
@@ -239,11 +312,34 @@ function listField(doc: LexiconDoc, label: string, schema: Schema, values: unkno
   set.appendChild(legend);
   const h = hint(schema.description);
   if (h) set.appendChild(h);
+  // Folded items: open or close them all at once
+  const folding = document.createElement('div');
+  folding.className = 'admin-lexform-folding';
+  folding.hidden = true;
   const list = document.createElement('ol');
   list.className = 'admin-lexform-list';
+  const foldAll = (open: boolean) => {
+    for (const d of list.querySelectorAll<HTMLDetailsElement>(':scope > li > details')) d.open = open;
+  };
+  if (items.type === 'object') {
+    folding.appendChild(button('Unfold all', `Unfold every ${label.toLowerCase().replace(/s$/, '')}`, () => foldAll(true)));
+    folding.appendChild(button('Fold all', `Fold every ${label.toLowerCase().replace(/s$/, '')}`, () => foldAll(false)));
+    set.appendChild(folding);
+  }
   set.appendChild(list);
   const rows: { li: HTMLLIElement; read: () => unknown }[] = [];
   const noun = label.replace(/s$/, '').toLowerCase();
+  // Dragging a handle reorders the items; the rows follow the page's order
+  sortable(list, {
+    items: ':scope > li',
+    handle: '.admin-drag',
+    onDrop: () => {
+      const order = [...list.children];
+      rows.sort((a, b) => order.indexOf(a.li) - order.indexOf(b.li));
+      renumber();
+      options.onChange();
+    },
+  });
 
   const renumber = () => {
     for (const [i, r] of rows.entries()) {
@@ -252,6 +348,7 @@ function listField(doc: LexiconDoc, label: string, schema: Schema, values: unkno
       if (title) title.textContent = summaryOf(r.read(), items, i);
     }
     add.hidden = schema.maxLength !== undefined && rows.length >= schema.maxLength;
+    folding.hidden = rows.length < 2;
   };
 
   const addRow = (value: unknown, fresh: boolean) => {
@@ -265,9 +362,10 @@ function listField(doc: LexiconDoc, label: string, schema: Schema, values: unkno
       const summary = document.createElement('summary');
       const title = document.createElement('span');
       title.className = 'admin-lexform-title';
+      summary.appendChild(dragHandle(`Drag to move this ${noun}`));
       summary.appendChild(title);
       details.appendChild(summary);
-      const body = objectField(doc, '', items, (value ?? {}) as Value, options);
+      const body = objectField(doc, '', items, (value ?? {}) as Value, options, `${path}[]`);
       body.el.querySelector('legend')?.remove();
       body.el.classList.add('admin-lexform-item');
       details.appendChild(body.el);
@@ -276,9 +374,10 @@ function listField(doc: LexiconDoc, label: string, schema: Schema, values: unkno
       read = body.read;
       details.addEventListener('input', () => (title.textContent = summaryOf(read(), items, rows.findIndex((r) => r.li === li))));
     } else {
-      const input = control(items, value, options);
+      const input = control(items, value, options, `${path}[]`, true);
       input.setAttribute('aria-label', `${labelOf(noun)} ${rows.length + 1}`);
       li.className = 'admin-lexform-row';
+      li.appendChild(dragHandle(`Drag to move this ${noun}`));
       li.appendChild(input);
       li.appendChild(controls);
       read = () => readControl(items, input);
