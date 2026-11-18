@@ -1,0 +1,170 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.project",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "any",
+      "description": "A project on skiddle.id: the /projects/ page, the home page and the CV show them. The record key is its slug, e.g. checkdomain.",
+      "record": {
+        "type": "object",
+        "required": ["name", "description", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "e.g. 'CheckDomain'."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "One line, for cards."
+          },
+          "impact": {
+            "type": "string",
+            "maxLength": 5000,
+            "maxGraphemes": 500,
+            "description": "What came of it, in a sentence or two. Shown instead of the description where there's room."
+          },
+          "highlights": {
+            "type": "array",
+            "maxLength": 10,
+            "items": {
+              "type": "string",
+              "maxLength": 2000,
+              "maxGraphemes": 200
+            },
+            "description": "Short points about how it's built."
+          },
+          "tags": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 500,
+              "maxGraphemes": 50
+            }
+          },
+          "tech": {
+            "type": "ref",
+            "ref": "#tech"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1990,
+            "maximum": 2100,
+            "description": "The year it started."
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 320,
+            "maxGraphemes": 32,
+            "knownValues": [
+              "planned",
+              "in-progress",
+              "in-services",
+              "completed",
+              "archived"
+            ],
+            "description": "Where it stands."
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 320,
+            "maxGraphemes": 32,
+            "knownValues": [
+              "app",
+              "api",
+              "library",
+              "tool",
+              "service",
+              "website",
+              "other"
+            ],
+            "description": "What kind of project it is."
+          },
+          "featured": {
+            "type": "boolean",
+            "description": "Shown first, and on the home page."
+          },
+          "homepage": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where it runs."
+          },
+          "source": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where its code is, e.g. on GitHub or Tangled."
+          },
+          "writeup": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "A post about it: its path on skiddle.id, e.g. /posts/…/."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "tech": {
+      "type": "object",
+      "description": "What it's built with, by kind.",
+      "properties": {
+        "languages": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 50
+          }
+        },
+        "frameworks": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 50
+          }
+        },
+        "tools": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 50
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 50
+          }
+        },
+        "databases": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 50
+          }
+        }
+      }
+    }
+  }
+}

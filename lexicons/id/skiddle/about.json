@@ -1,0 +1,165 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.about",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "Who Jeff is, the /about/ page. One record, key 'self'.",
+      "record": {
+        "type": "object",
+        "required": ["intro", "updatedAt"],
+        "properties": {
+          "profile": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "ref",
+              "ref": "#fact"
+            },
+            "description": "Short facts beside the avatar, like a terminal's neofetch."
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 50000,
+            "maxGraphemes": 5000,
+            "description": "Markdown, rendered like a post's text: paragraphs, links, bold and italics."
+          },
+          "principles": {
+            "type": "array",
+            "maxLength": 10,
+            "items": {
+              "type": "ref",
+              "ref": "#principle"
+            },
+            "description": "How Jeff works."
+          },
+          "timeline": {
+            "type": "array",
+            "maxLength": 50,
+            "items": {
+              "type": "ref",
+              "ref": "#milestone"
+            },
+            "description": "Oldest first."
+          },
+          "current": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "What Jeff is doing now: the timeline's last line."
+          },
+          "outside": {
+            "type": "string",
+            "maxLength": 50000,
+            "maxGraphemes": 5000,
+            "description": "Outside of work. Markdown, rendered like a post's text: paragraphs, links, bold and italics."
+          },
+          "contact": {
+            "type": "ref",
+            "ref": "#contact"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": ["label", "value"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 300,
+          "maxGraphemes": 30,
+          "description": "e.g. 'Based'."
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        }
+      }
+    },
+    "principle": {
+      "type": "object",
+      "required": ["title", "body"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "required": ["year", "text"],
+      "properties": {
+        "year": {
+          "type": "string",
+          "maxLength": 100,
+          "maxGraphemes": 10
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "A link after the text: A path on skiddle.id, e.g. /posts/…/, or a full URL."
+        },
+        "link": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "The link's text, saying where it goes."
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "blurb": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#contactLink"
+          }
+        }
+      }
+    },
+    "contactLink": {
+      "type": "object",
+      "required": ["label", "url"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "e.g. 'work@skiddle.id'."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "e.g. mailto:… or https://…."
+        }
+      }
+    }
+  }
+}

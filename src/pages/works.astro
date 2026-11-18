@@ -18,14 +18,9 @@ const companyRange = (positions: { start: string; end: string }[]) => {
   return `${starts[0]} – ${ends.includes('Present') ? 'Present' : ends.sort().at(-1)}`;
 };
 
-const skillGroups = [
-  { title: 'Languages', items: works.skills.programmingLanguages },
-  { title: 'DevOps & infrastructure', items: works.skills.devopsInfrastructure },
-  { title: 'Frameworks & tools', items: works.skills.frameworksTools },
-  { title: 'Interests', items: works.skills.interests },
-];
+const skillGroups = works.skills;
 
-const selectedProjects = ['checkdomain', 'shortlink', 'blocklist']
+const selectedProjects = works.selectedProjects
   .map((id) => projects.find((p) => p.id === id))
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 ---

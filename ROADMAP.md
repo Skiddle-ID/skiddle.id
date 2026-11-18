@@ -34,34 +34,38 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 ## v4
 
-**Direction:** everything the site shows moves into Jeff's AT Protocol repo and is edited from the admin app: posts and series first, then the pages' content, Now, notes and flying. Git keeps the code, and the content leaves it. There's no redesign in v4. Pages keep v3's look, and the new pages (/now, /flying) use it too. The redesign is [v5](#v5-the-redesign). Decided on 2026-11-17.
+**Direction:** everything the site shows moves into Jeff's AT Protocol repo and is edited from the admin app: posts, series and the pages' content first, then Now, notes and flying. Git keeps the code, and the content leaves it. There's no redesign in v4. Pages keep v3's look, and the new pages (/now, /flying) use it too. The redesign is [v5](#v5-the-redesign). Decided on 2026-11-17.
 
-**Order:** v4.0 is the posts launch, so the admin app's Save and Publish work for real as soon as possible ([v4: posts and series](#v4-posts-and-series)). Each release after it moves more of the site onto AT Protocol. How the records are read and written is in [AT Protocol backend](#at-protocol-backend).
+**Order:** v4.0 is the launch: posts, series and the pages' content move onto AT Protocol, and the admin app's Save and Publish work for real ([v4: posts and series](#v4-posts-and-series)). v4.1 and v4.2 add Now, notes, music and flying. The pages' content moved into v4.0 on 2026-11-17, so its work can start now. How the records are read and written is in [AT Protocol backend](#at-protocol-backend).
 
 ### v4.0-pre: a safety net first
 
 - [x] Tests in CI, run against each PR's preview: theme and CSP checks, link checker, Lighthouse, accessibility (axe) ([#108](https://github.com/Skiddle-ID/skiddle.id/pull/108))
 - [ ] TypeScript 7, once typescript-eslint supports it ([#78](https://github.com/Skiddle-ID/skiddle.id/pull/78))
 
-### v4.0: posts on AT Protocol
+### v4.0: posts and pages on AT Protocol
 
-- [ ] Everything in [v4: posts and series](#v4-posts-and-series), then the [launch checklist](#the-v4-branch)
+Posts and series:
 
-### v4.1: the pages' content
+- [ ] Everything in [v4: posts and series](#v4-posts-and-series)
 
-Today it's in `src/data/` and the page files. Each part becomes records, which the pages read when someone asks for them and cache, like posts.
+The pages' content, today in `src/data/` and the page files. Each part becomes records, which the pages read when someone asks for them and cache, like posts. The plan is in [docs/v4/pages-on-atproto.md](docs/v4/pages-on-atproto.md):
 
 - [ ] Projects (`src/data/projects.ts`), the CV (`works.ts`), services (`services.ts`) and the highlights they share (`highlights.ts`)
 - [ ] Uses (`uses.ts`)
 - [ ] About: its text
-- [ ] Their lexicons, under `id.skiddle.*`, each designed before it ships, reusing existing lexicons where they fit
+- [x] Their lexicons: `id.skiddle.project` (one per project), `id.skiddle.cv`, `id.skiddle.services`, `id.skiddle.uses` and `id.skiddle.about` (one each), checked against today's data in CI (`npm run check:lexicons`). About's content moved into `src/data/about.ts` for it
+- [ ] Publish them, then import the records from the site's data, from the admin app
+- [ ] The pages read the records, with a parity check against production
 - [ ] The admin app: edit them in one new section, Pages, next to Posts, Series, Status and Site
 - [ ] Remove the data files from git once the pages read the records. What stays in git:
   - the code
   - the list pages' titles (`list-pages.ts`)
   - the built-in status the site falls back to when the PDS can't be read (`status.ts`)
 
-### v4.2: Now, notes and music
+Then the [launch checklist](#the-v4-branch).
+
+### v4.1: Now, notes and music
 
 - [ ] `id.skiddle.now` and /now, with a "last updated" date; updated from the admin app
 - [ ] Notes: your Bluesky posts with a chosen hashtag, read from your repo when the page is requested
@@ -69,7 +73,7 @@ Today it's in `src/data/` and the page files. Each part becomes records, which t
 - [ ] A Bluesky custom feed for Lab Notes
 - [ ] Music from teal.fm's records (`fm.teal.alpha.feed.play`) instead of Last.fm, with a top-of-the-week card. Your repo has teal.fm plays up to Feb 22, 2026, when they stopped, so its scrobbler needs to run again first
 
-### v4.3: flying
+### v4.2: flying
 
 - [ ] `id.skiddle.flight` for the logbook (needs your logbook data)
 - [ ] /flying: From Fear to Flight plus logbook stats, from the records
@@ -85,7 +89,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
 - **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
 
-**Launch checklist,** for v4.0 (posts on AT Protocol; the rest of the site follows in v4.1 to v4.3):
+**Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in v4.1 and v4.2):
 
 - [ ] Merge `v3` into `v4` one last time
 - [ ] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series))
@@ -98,10 +102,10 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 
 **Goal:** the site's data lives as records in Jeff's own AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), and a small admin app updates all of it by signing in with the Bluesky account (AT Protocol OAuth). There's no database of our own. It keeps working after a move to another PDS, because the site always looks up the PDS from the DID.
 
-v4 moves all of it. Posts and series come first: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. Then the pages' content, Now, notes and flying follow (v4.1 to v4.3).
+v4 moves all of it. Posts and series come first: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. The pages' content comes with them in v4.0. Then Now, notes and flying follow (v4.1 and v4.2).
 
 - **Lexicons:** under `id.skiddle.*`, reusing existing ones where they fit (Standard.site for posts, maybe teal.fm for music). Lexicons can only gain optional fields once they're in use, so each one is designed before it ships.
-- **Reading:** the Worker reads records when a page is requested and caches the result: the status, posts and series, and from v4.1 the rest. Only code changes need a build.
+- **Reading:** the Worker reads records when a page is requested and caches the result: the status, posts, series and the pages' content, and from v4.1 the rest. Only code changes need a build.
 - **The admin app:** mobile-first and installable as a PWA. Posts are written and published there.
 - **Everything in an AT Protocol repo is public.** Every published record and every edit goes out on the network.
 

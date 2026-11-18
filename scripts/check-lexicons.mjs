@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Checks the lexicons in lexicons/ and that every post and series fits them, as the AT Protocol
- * sync will write them (docs/v4/posts-on-atproto.md). Runs in CI: `npm run check:lexicons`.
+ * sync will write them (docs/v4/posts-on-atproto.md), and so does the pages' content: projects,
+ * the CV, services, uses and About (docs/v4/pages-on-atproto.md). Runs in CI: `npm run check:lexicons`.
  *
  *   - every lexicons/**\/*.json is a valid lexicon document
  *   - every post's id.skiddle.post content validates (a draft post: as an id.skiddle.draft record)
@@ -18,6 +19,7 @@ import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { frontmatter } from './bluesky-announce.mjs';
 import { blobRef, imageType } from './lib/blob.mjs';
 import { DRAFT_COLLECTION, POST_TYPE, SERIES_COLLECTION, imageSize, localImages, postContent, seriesRecords } from '../src/lib/post-record.mjs';
+import { ABOUT_COLLECTION, CV_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, aboutRecord, cvRecord, projectRecords, servicesRecord, usesRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const POSTS_DIR = join(ROOT, 'src/content/posts');
@@ -149,8 +151,39 @@ for (const [rkey, record] of series) {
   console.log(`  series ${rkey} (${parts} published${record.planned ? `, ${record.planned.length} planned` : ''}${record.ongoing ? ', ongoing' : ''})`);
 }
 
+// The pages' content, as the records it becomes (src/lib/page-records.mjs)
+const at = new Date().toISOString();
+const isRecordKey = (rkey) => /^[A-Za-z0-9._:~-]{1,512}$/.test(rkey) && rkey !== '.' && rkey !== '..';
+const [{ default: projects }, { default: works }, { default: highlights }, { default: services }, { default: uses, usesUpdated }, { default: about }] = await Promise.all(
+  ['projects', 'works', 'highlights', 'services', 'uses', 'about'].map((name) => import(`../src/data/${name}.ts`)),
+);
+let projectCount = 0;
+validate('src/data/projects.ts', () => {
+  for (const [rkey, record] of projectRecords(projects, at)) {
+    if (!isRecordKey(rkey)) fail(`project ${rkey}`, `"${rkey}" isn't a valid record key`);
+    validate(`project ${rkey}`, () => lex.assertValidRecord(PROJECT_COLLECTION, jsonToLex(record)));
+    projectCount++;
+  }
+});
+console.log(`  projects: ${projectCount}`);
+const pages = [
+  ['src/data/works.ts (the CV)', CV_COLLECTION, () => cvRecord(works, highlights, at)],
+  ['src/data/services.ts', SERVICES_COLLECTION, () => servicesRecord(services, at)],
+  ['src/data/uses.ts', USES_COLLECTION, () => usesRecord(uses, usesUpdated)],
+  ['src/data/about.ts', ABOUT_COLLECTION, () => aboutRecord(about, at)],
+];
+for (const [where, collection, make] of pages) {
+  validate(where, () => lex.assertValidRecord(collection, jsonToLex(make())));
+  console.log(`  ${collection} (${where})`);
+}
+// Links between them
+const ids = new Set(projects.map((p) => p.id));
+for (const id of works.selectedProjects) if (!ids.has(id)) fail('src/data/works.ts', `selectedProjects names "${id}", which isn't a project`);
+const serviceNames = new Set(services.services.map((s) => s.name));
+for (const t of services.testimonials) if (!serviceNames.has(t.serviceName)) fail('src/data/services.ts', `${t.author}'s testimonial is about "${t.serviceName}", which isn't a service`);
+
 if (errors.length) {
   console.error(`\n${errors.length} problem${errors.length > 1 ? 's' : ''}:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
   process.exit(1);
 }
-console.log(`\nAll ${posts.length} posts and ${series.size} series fit the lexicons.`);
+console.log(`\nAll ${posts.length} posts, ${series.size} series, ${projectCount} projects, the CV, services, uses and About fit the lexicons.`);

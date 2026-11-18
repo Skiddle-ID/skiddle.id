@@ -35,11 +35,9 @@ export interface EducationItem {
   description?: string;
 }
 
-export interface SkillsSection {
-  programmingLanguages: string[];
-  devopsInfrastructure: string[];
-  frameworksTools: string[];
-  interests: string[];
+export interface SkillGroup {
+  title: string; // e.g. "Languages"
+  items: string[];
 }
 
 export interface NotableProjectItem {
@@ -61,7 +59,9 @@ export interface WorksData {
   summary: string[]; // paragraphs
   experience: WorkExperience[];
   education: EducationItem[];
-  skills: SkillsSection;
+  skills: SkillGroup[];
+  /** Projects (their ids in src/data/projects.ts) shown as cards, in order */
+  selectedProjects: string[];
   projects: NotableProjectItem[];
   certifications: CertificationItem[];
 }

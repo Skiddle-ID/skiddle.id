@@ -11,7 +11,7 @@
 
 /**
  * What the app may do with the account, and nothing else: write these collections and upload
- * images. Bluesky's sign-in page lists them. A new collection (e.g. Now records in v4.2) is added
+ * images. Bluesky's sign-in page lists them. A new collection (e.g. Now records in v4.1) is added
  * here, and signing in again grants it; the app asks for that when its session lacks one
  * (missingScopes).
  *   - id.skiddle.status: the status
