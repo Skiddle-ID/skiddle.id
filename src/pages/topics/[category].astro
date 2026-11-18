@@ -1,0 +1,45 @@
+---
+/*
+  /topics/<id>/: one category's posts, to browse or share. The categories come from the
+  id.skiddle.categories record in Jeff's repo (src/lib/site-categories.ts); a category with no posts
+  yet still has its page. Any other id is the 404 page. /topics/tag/<tag>/ is a tag's page, which is
+  why "tag" can't be a category's id. Rendered on request and cached with the posts; like tag pages,
+  it shares with the Topics card.
+*/
+export const prerender = false;
+import { env } from 'cloudflare:workers';
+import Shell from '~/layouts/shell.astro';
+import PostList from '~/components/post-list.astro';
+import { getCategories, withUsed } from '~/lib/site-categories';
+import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
+
+const id = Astro.params.category ?? '';
+const [{ posts: all }, categories] = await Promise.all([sitePosts(), getCategories()]);
+const category = withUsed(categories, all).find((c) => c.id === id);
+if (!category) {
+  const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
+  return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+Astro.cache.set(POSTS_CACHE);
+const posts = all.filter((p) => p.data.category === id);
+const description = category.description || `Posts about ${category.label.toLowerCase()} on skiddle.id.`;
+---
+
+<Shell title={`${category.label} — Skiddle`} description={description} image="/og/pages/topics.png">
+  <div class="max-w-[70ch] w-full">
+    <p class="text-xs text-[var(--color-muted)] mb-3">
+      <a href="/posts/" class="hover:text-[var(--color-primary)]">posts</a>
+      <span aria-hidden="true"> / </span>
+      <a href="/topics/" class="hover:text-[var(--color-primary)]">topics</a>
+    </p>
+    <h1 class="font-semibold text-xl before-hash-1">{category.label}</h1>
+    {category.description && <p class="mt-3 leading-relaxed">{category.description}</p>}
+    <p class="text-sm text-[var(--color-muted)] mt-2">{posts.length ? `${posts.length} post${posts.length === 1 ? '' : 's'}` : 'No posts yet.'}</p>
+    {posts.length > 0 && (
+      <div class="mt-4">
+        <PostList posts={posts} descriptions />
+      </div>
+    )}
+    <p class="mt-10 text-sm"><a href="/topics/" class="link">All topics</a></p>
+  </div>
+</Shell>

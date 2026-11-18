@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { groupSeries, seriesUrl } from '~/lib/posts';
+import { categoryUrl, groupSeries, seriesUrl } from '~/lib/posts';
+import { getCategories, withUsed } from '~/lib/site-categories';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
 // Rendered on request: the post URLs come from the PDS (src/lib/site-posts.ts); drafts are left out
@@ -47,11 +48,20 @@ export const GET: APIRoute = async ({ site, request, cache }) => {
       urls.push(path);
       lastmod.set(path, p.data.updatedDate ?? p.data.pubDate);
     }
+    const newestOf = (list: typeof posts) => new Date(Math.max(...list.map((p) => (p.data.updatedDate ?? p.data.pubDate).valueOf())));
     // Each series' page, dated by its newest part
     for (const s of groupSeries(posts, seriesInfo)) {
       const path = seriesUrl(s.slug);
       urls.push(path);
-      lastmod.set(path, new Date(Math.max(...s.parts.map((p) => (p.data.updatedDate ?? p.data.pubDate).valueOf()))));
+      lastmod.set(path, newestOf(s.parts));
+    }
+    // Each category's page that has posts, dated by its newest
+    for (const c of withUsed(await getCategories(), posts)) {
+      const inIt = posts.filter((p) => p.data.category === c.id);
+      if (!inIt.length) continue;
+      const path = categoryUrl(c.id);
+      urls.push(path);
+      lastmod.set(path, newestOf(inIt));
     }
     const newest = Math.max(...[...lastmod.values()].map((d) => d.valueOf()));
     if (Number.isFinite(newest)) lastmod.set('/posts/', new Date(newest));

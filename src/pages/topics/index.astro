@@ -4,13 +4,15 @@ export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import PostList from '~/components/post-list.astro';
 import { LIST_PAGES } from '~/data/list-pages';
-import { categoryLabels } from '~/lib/posts';
+import { categoryUrl } from '~/lib/posts';
+import { getCategories, withUsed } from '~/lib/site-categories';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-const { posts } = await sitePosts();
+// The categories in the order of their record (src/lib/site-categories.ts); each has its own page too
+const [{ posts }, categories] = await Promise.all([sitePosts(), getCategories()]);
 Astro.cache.set(POSTS_CACHE);
-const cats = (Object.keys(categoryLabels) as (keyof typeof categoryLabels)[])
-  .map((id) => ({ id, label: categoryLabels[id], posts: posts.filter((p) => p.data.category === id) }))
+const cats = withUsed(categories, posts)
+  .map((c) => ({ ...c, posts: posts.filter((p) => p.data.category === c.id) }))
   .filter((c) => c.posts.length > 0);
 
 const tagCount = new Map<string, number>();
@@ -27,7 +29,7 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCo
 
     {cats.map((c) => (
       <section id={c.id} class="mt-10">
-        <h2 class="font-semibold before-hash-2 mb-1">{c.label}</h2>
+        <h2 class="font-semibold before-hash-2 mb-1"><a href={categoryUrl(c.id)} class="hover:text-[var(--color-primary)]">{c.label}</a></h2>
         <PostList posts={c.posts} />
       </section>
     ))}

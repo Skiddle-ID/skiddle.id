@@ -22,7 +22,7 @@
           "type": "string",
           "maxLength": 32,
           "knownValues": ["infra", "atproto", "homelab", "life"],
-          "description": "The section of the site the post belongs to. Readers that don't know the value can ignore it."
+          "description": "The section of the site the post belongs to: the id of one of the categories in Jeff's id.skiddle.categories record. Readers that don't know the value can ignore it."
         },
         "lang": {
           "type": "string",

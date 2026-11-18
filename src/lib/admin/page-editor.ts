@@ -1,6 +1,9 @@
 /**
  * The page editors (docs/v4/pages-on-atproto.md, step 5), opened from the Pages section:
  *   - #page/cv, #page/services, #page/uses and #page/about: each page's record, key `self`
+ *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
+ *     starts with the site's current categories if there's no record yet, and refuses ids that
+ *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
  *   - #project/<key>: a project; #new-project for a new one, whose key comes from its name
  *
  * Each form is made from its lexicon (src/lib/admin/lexicon-form.ts). Saving:
@@ -14,11 +17,13 @@
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import aboutLexicon from '../../../lexicons/id/skiddle/about.json';
+import categoriesLexicon from '../../../lexicons/id/skiddle/categories.json';
 import cvLexicon from '../../../lexicons/id/skiddle/cv.json';
 import projectLexicon from '../../../lexicons/id/skiddle/project.json';
 import servicesLexicon from '../../../lexicons/id/skiddle/services.json';
 import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
 import { ABOUT_COLLECTION, CV_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
+import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoryProblems } from '~/lib/categories.mjs';
 import { seriesSlug } from '~/lib/post-record.mjs';
 import { el, errorText, formatTime, message, revalidate } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
@@ -27,13 +32,36 @@ import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecor
 
 type Value = Record<string, unknown>;
 
-/** The pages with one record each, by their editor's address */
-export const PAGE_EDITORS = {
+interface PageEditor {
+  title: string;
+  collection: string;
+  lexicon: LexiconDoc;
+  /** Where it shows on the site */
+  page: string;
+  /** What the form starts with when there's no record yet (otherwise it starts empty) */
+  initial?: () => Value;
+  /** Problems the lexicon can't express */
+  check?: (value: Value) => string[];
+}
+
+/** How many posts and drafts use each category (src/lib/admin/editor.ts, via setupPageEditor) */
+let categoryUsage: () => Map<string, number> = () => new Map();
+
+/** The records with key `self` that have an editor, by their editor's address */
+export const PAGE_EDITORS: Record<'cv' | 'services' | 'uses' | 'about' | 'categories', PageEditor> = {
   cv: { title: 'The CV', collection: CV_COLLECTION, lexicon: cvLexicon as LexiconDoc, page: '/works/' },
   services: { title: 'Services', collection: SERVICES_COLLECTION, lexicon: servicesLexicon as LexiconDoc, page: '/services/' },
   uses: { title: 'Uses', collection: USES_COLLECTION, lexicon: usesLexicon as LexiconDoc, page: '/uses/' },
   about: { title: 'About', collection: ABOUT_COLLECTION, lexicon: aboutLexicon as LexiconDoc, page: '/about/' },
-} as const;
+  categories: {
+    title: 'Categories',
+    collection: CATEGORIES_COLLECTION,
+    lexicon: categoriesLexicon as LexiconDoc,
+    page: '/topics/',
+    initial: () => ({ categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })) }),
+    check: (value) => categoryProblems(Array.isArray(value.categories) ? (value.categories as { id?: string }[]) : [], categoryUsage()),
+  },
+};
 export type PageName = keyof typeof PAGE_EDITORS;
 
 export type PageRoute = { page: PageName } | { project: string } | { newProject: true };
@@ -44,7 +72,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 /** The page editor an address asks for, if any */
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
-  const page = /^#page\/(cv|services|uses|about)$/.exec(hash)?.[1];
+  const page = /^#page\/(cv|services|uses|about|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
@@ -65,6 +93,7 @@ interface Open {
   cid?: string;
   record?: Value;
   read: () => Value;
+  check?: (value: Value) => string[];
 }
 
 let session: OAuthSession;
@@ -82,11 +111,13 @@ const rkeyOf = (uri: string) => uri.split('/').pop() ?? '';
 
 /**
  * @param s The signed-in session
- * @param onSaved Called after a save or a delete, to refresh the Pages section
+ * @param onSaved Called after a save or a delete, to refresh the lists
+ * @param usage How many posts and drafts use each category, for the categories editor
  */
-export function setupPageEditor(s: OAuthSession, onSaved: () => Promise<void>) {
+export function setupPageEditor(s: OAuthSession, onSaved: () => Promise<void>, usage?: () => Map<string, number>) {
   session = s;
   saved = onSaved;
+  if (usage) categoryUsage = usage;
   el('peNotLive').textContent = PAGES_NOT_LIVE_YET;
   el('peNotLive').hidden = PUBLISHING_LIVE;
   el('peForm').addEventListener('submit', (event) => event.preventDefault());
@@ -107,11 +138,15 @@ export async function openPage(route: PageRoute) {
   if (current?.route === key) return;
   leavePage();
   document.body.dataset.view = 'page';
-  const target =
+  const target: PageEditor & { rkey?: string } =
     'page' in route
-      ? { ...PAGE_EDITORS[route.page], rkey: 'self' as string | undefined }
+      ? { ...PAGE_EDITORS[route.page], rkey: 'self' }
       : { title: 'project' in route ? route.project : 'A new project', collection: PROJECT_COLLECTION, lexicon: projectLexicon as LexiconDoc, page: '/projects/', rkey: 'project' in route ? route.project : undefined };
   el('peTitle').textContent = target.title;
+  // Categories open from the Posts section, the rest from Pages
+  const back = el<HTMLAnchorElement>('peBack');
+  back.href = target.collection === CATEGORIES_COLLECTION ? '#posts' : '#pages';
+  back.textContent = target.collection === CATEGORIES_COLLECTION ? '← Posts' : '← Pages';
   message('peMessage', '');
   el('peConflict').hidden = true;
   el('peBackup').hidden = true;
@@ -136,7 +171,7 @@ export async function openPage(route: PageRoute) {
   }
   current = { ...target, route: key, rkey: target.rkey, cid: record?.cid, record: record?.value, read: () => ({}) };
   if ('project' in route && record?.value.name) el('peTitle').textContent = String(record.value.name);
-  fill(record?.value ?? {});
+  fill(record?.value ?? target.initial?.() ?? {});
   el('peForm').hidden = false;
   const updated = record?.value.updatedAt ?? record?.value.createdAt;
   el('peState').textContent = record ? (typeof updated === 'string' ? `Saved ${formatTime(updated)}` : '') : 'Not saved yet';
@@ -175,7 +210,7 @@ const keyFor = (o: Open, value: Value) => o.rkey ?? seriesSlug(String(value.name
 
 /** What's wrong with the form: the lexicon's rules, and a new project's key */
 function issues(o: Open, value: Value): string[] {
-  const out = problems(o.lexicon, value);
+  const out = [...problems(o.lexicon, value), ...(o.check?.(value) ?? [])];
   if (isProject(o) && !o.rkey && value.name) {
     const key = keyFor(o, value);
     if (!key) out.push('The name needs a letter or a digit, for its key.');

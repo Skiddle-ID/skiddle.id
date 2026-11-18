@@ -15,7 +15,7 @@ import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atpr
 import { DID } from '~/lib/standard-site.mjs';
 import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { el, errorText, message } from './dom';
-import { loadPosts, route, setupPosts } from './editor';
+import { categoryUsage, loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
 import { setupPageEditor } from './page-editor';
@@ -361,7 +361,8 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupLexicons(session);
   setupPosts(session, signInAgain);
   setupPages(session, signInAgain);
-  setupPageEditor(session, loadPages);
+  // After a save: the Pages list, and the posts (whose Category menu follows the categories)
+  setupPageEditor(session, async () => void (await Promise.allSettled([loadPages(), loadPosts()])), categoryUsage);
   setupRedraw(session);
   const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');

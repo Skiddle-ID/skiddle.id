@@ -22,6 +22,7 @@
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
  *     edited or unpublished
  *   - id.skiddle.series: the series
+ *   - id.skiddle.categories: the post categories, edited from the Posts section
  * and, create only (CREATE_ONLY):
  *   - app.bsky.feed.post: the Bluesky post that announces a new post; the app never edits or
  *     deletes Bluesky posts
@@ -37,6 +38,7 @@ export const COLLECTIONS = [
   'id.skiddle.about',
   'site.standard.document',
   'id.skiddle.series',
+  'id.skiddle.categories',
 ] as const;
 /** Collections the app may only add to */
 export const CREATE_ONLY = ['app.bsky.feed.post'] as const;
