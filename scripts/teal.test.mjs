@@ -2,7 +2,7 @@
 // now, or else the last track played, and album art links for Apple Music tracks.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { appleArtwork, appleTrack, deezerCover, isrcOf, recentTrack, trackOf } from '../src/lib/teal.mjs';
+import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, isrcOf, mbidOf, recentTrack, trackOf } from '../src/lib/teal.mjs';
 
 const now = Date.parse('2026-11-18T08:12:00Z');
 const play = (trackName, playedTime, extra = {}) => ({ trackName, playedTime, artists: [{ artistName: 'Bernadya' }], ...extra });
@@ -52,6 +52,28 @@ describe('teal.fm records', () => {
     assert.equal(trackOf({ trackName: 'x', isrc: 'not an isrc' }, false).isrc, undefined);
     assert.equal(isrcOf('id-a68-26-00101'), 'IDA682600101');
     assert.equal(isrcOf('IDA6826001'), '');
+  });
+
+  it('a release’s MusicBrainz id loses piper’s "mbid:" prefix', () => {
+    const t = trackOf({ trackName: 'Ruang Sendiri', releaseMbId: 'mbid:D4B54A2F-c862-4679-8a65-160b808ceb32' }, false);
+    assert.equal(t.releaseMbId, 'd4b54a2f-c862-4679-8a65-160b808ceb32');
+    assert.equal(mbidOf('mbid:not-a-uuid'), '');
+    assert.equal(coverArtArchive(t.releaseMbId), 'https://coverartarchive.org/release/d4b54a2f-c862-4679-8a65-160b808ceb32/front-250');
+  });
+
+  it('a Deezer search result counts only if it’s this track by this artist', () => {
+    const cover = (n) => `https://cdn-images.dzcdn.net/images/cover/${n}/250x250-000000-80-0-0.jpg`;
+    const results = [
+      { title: 'Ruang Sendiri (Live)', artist: { name: 'Someone Else' }, album: { cover_medium: cover('a') } },
+      { title: 'Ruang Sendiri', artist: { name: 'Tulus' }, album: { cover_medium: cover('b') } },
+    ];
+    assert.equal(deezerMatch(results, { name: 'Ruang Sendiri', artist: 'Tulus' }), cover('b'));
+    // An acoustic or remastered version still finds the song
+    assert.equal(deezerMatch([{ title: 'Bunga Maaf', artist: { name: 'Grace Kaitlin' }, album: { cover_medium: cover('c') } }], { name: 'Bunga Maaf - Acoustic', artist: 'Grace Kaitlin' }), cover('c'));
+    // The first of several artists, or a featured one, is enough
+    assert.equal(deezerMatch([{ title: 'Bicara', artist: { name: 'TheOvertunes' }, album: { cover_medium: cover('d') } }], { name: 'Bicara (feat. Monita Tahalea)', artist: 'TheOvertunes, Monita Tahalea' }), cover('d'));
+    assert.equal(deezerMatch([{ title: 'Another Song', artist: { name: 'Tulus' }, album: { cover_medium: cover('e') } }], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
+    assert.equal(deezerMatch([], { name: 'Ruang Sendiri', artist: 'Tulus' }), '');
   });
 
   it('covers only from Deezer’s image servers', () => {
