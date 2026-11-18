@@ -6,7 +6,7 @@
   as a PWA. Kept out of search engines and the sitemap.
 */
 import Admin from '~/layouts/admin.astro';
-import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
+import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 ---
 
 <Admin title="Admin · Skiddle">
@@ -107,6 +107,7 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
           <h2 id="statusTitle">Your status</h2>
           <p class="admin-preview" aria-live="polite">
             <span id="previewDot" class="admin-dot" aria-hidden="true"></span>
+            <span id="previewEmoji" class="admin-preview-emoji" aria-hidden="true" hidden></span>
             <span id="previewText"></span>
           </p>
           <form id="statusForm" class="admin-form" novalidate>
@@ -128,6 +129,15 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
                 <span id="statusCount" class="admin-muted" aria-live="polite">0/64</span>
               </div>
               <input id="statusText" name="text" type="text" required maxlength="640" autocomplete="off" placeholder="open to consulting" aria-describedby="statusCount" />
+            </div>
+            <div class="admin-field">
+              <label for="statusEmoji">Emoji</label>
+              <input id="statusEmoji" name="emoji" type="text" maxlength="64" autocomplete="off" placeholder="None: the coloured dot" aria-describedby="statusEmojiHelp" />
+              <div class="admin-emoji-picks" role="group" aria-label="Quick picks">
+                {EMOJI_PICKS.map((e) => <button type="button" class="admin-btn admin-btn-ghost" data-emoji={e} aria-label={`Use ${e}`}>{e}</button>)}
+                <button type="button" class="admin-btn admin-btn-ghost" data-emoji="">No emoji</button>
+              </div>
+              <p id="statusEmojiHelp" class="admin-small">One emoji, shown instead of the dot on the site and the badge. Leave it empty for the dot.</p>
             </div>
             <div class="admin-field">
               <label for="statusLocation">Location</label>
@@ -547,6 +557,18 @@ import { STATES, STATE_INFO, toneColour } from '~/lib/status-states.mjs';
   .admin-segment label:has(input:focus-visible) {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
+  }
+  /* The status's emoji: quick picks under its box, and in the preview where the dot goes */
+  .admin-emoji-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .admin-emoji-picks .admin-btn {
+    padding-inline: 0.5rem;
+  }
+  .admin-preview-emoji {
+    line-height: 1;
   }
   .admin-segment {
     display: grid;

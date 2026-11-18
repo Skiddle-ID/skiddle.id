@@ -8,6 +8,8 @@ import type { StatusState } from '~/lib/status-states.mjs';
 export interface Status {
   /** What kind of status, which sets the dot's colour (src/lib/status-states.mjs) */
   state: StatusState;
+  /** One emoji shown instead of the dot, if set */
+  emoji?: string;
   /** What the badge says after the dot */
   label: string;
   /** Where you are, shown before the local time */

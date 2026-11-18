@@ -5,7 +5,7 @@ import SeriesBar from '../components/series-bar.astro';
 import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import { PAGES_TAG, getProjects, getServices } from '~/lib/page-content';
-import { status } from '../data/status';
+import { getStatus } from '~/lib/at-status';
 import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 // Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts), and
 // so do the project cards and the testimonial (src/lib/page-content.ts)
@@ -14,10 +14,12 @@ export const prerender = false;
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
 const profileImg = '/avatars/bluesky.jpg';
 
-const [{ posts, seriesInfo }, { projects }, { services }] = await Promise.all([
+const [{ posts, seriesInfo }, { projects }, { services }, status] = await Promise.all([
   sitePosts(),
   getProjects(),
   getServices(),
+  // The live status (or src/data/status.ts if the PDS can't be read); the line keeps itself current below
+  getStatus(Astro.url.origin),
 ]);
 const series = groupSeries(posts, seriesInfo);
 // Purged when either posts or the pages' records change
@@ -49,7 +51,7 @@ const selected = selectedIds
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const testimonial = services.testimonials[0];
-// The status line starts from src/data/status.ts and updates from /api/status.json (the AT Protocol record)
+// The status line starts from the status as the page was rendered and updates from /api/status.json
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const h2 = 'font-semibold before-hash-2';
 ---
@@ -64,7 +66,8 @@ const h2 = 'font-semibold before-hash-2';
         <h1 id="intro" class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
         <p class="text-[var(--color-primary)]">Protocol engineer · Founder of Skiddle Labs · Bangkok</p>
         <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
-          <span id="statusDot" class="size-2 rounded-full shrink-0" style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
+          <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.emoji && 'hidden']} style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
+          <span id="statusEmoji" class:list={['text-sm leading-none shrink-0', !status.emoji && 'hidden']} aria-hidden="true">{status.emoji}</span>
           <span id="statusState" class="sr-only">{STATE_INFO[status.state].label}: </span>
           <span id="statusText">{capitalise(status.label)}</span>
         </p>
@@ -204,16 +207,21 @@ const h2 = 'font-semibold before-hash-2';
     const text = document.getElementById('statusText');
     const label = document.getElementById('statusState');
     const dot = document.getElementById('statusDot');
-    if (!text || !label || !dot) return;
+    const emoji = document.getElementById('statusEmoji');
+    if (!text || !label || !dot || !emoji) return;
     try {
       const res = await fetch('/api/status.json');
       if (!res.ok) return;
-      const s = (await res.json()) as { state?: string; available?: boolean; text?: string };
+      const s = (await res.json()) as { state?: string; available?: boolean; text?: string; emoji?: string | null };
       if (typeof s.text !== 'string' || !s.text) return;
       const info = STATE_INFO[stateOf(s)];
       text.textContent = s.text.charAt(0).toUpperCase() + s.text.slice(1);
       label.textContent = `${info.label}: `;
       dot.style.background = toneColour(info.tone);
+      // An emoji takes the dot's place
+      emoji.textContent = s.emoji ?? '';
+      emoji.classList.toggle('hidden', !s.emoji);
+      dot.classList.toggle('hidden', !!s.emoji);
     } catch {
       // keep the status from the build
     }

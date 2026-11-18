@@ -13,7 +13,7 @@
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
-import { MAX_CHARS as MAX, STATE_INFO, countChars, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
+import { MAX_CHARS as MAX, STATE_INFO, countChars, isEmoji, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
 import { el, errorText, message } from './dom';
 import { categoryUsage, loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
@@ -34,6 +34,8 @@ interface StatusRecord {
   /** True only for 'available': kept for readers that don't know `state` */
   available: boolean;
   text: string;
+  /** One emoji shown instead of the dot */
+  emoji?: string;
   location?: string;
   timeZone?: string;
   updatedAt: string;
@@ -74,6 +76,7 @@ function formValues() {
   return {
     state: isState(state) ? state : 'available',
     text: String(data.get('text') ?? '').trim(),
+    emoji: String(data.get('emoji') ?? '').trim(),
     location: String(data.get('location') ?? '').trim() || DEFAULTS.location,
     timeZone: String(data.get('timeZone') ?? '').trim() || DEFAULTS.timeZone,
   };
@@ -90,6 +93,11 @@ function renderPreview() {
     : '??:??';
   const info = STATE_INFO[v.state];
   el('previewDot').style.background = toneColour(info.tone);
+  // The emoji takes the dot's place, once it's one emoji
+  const emoji = isEmoji(v.emoji) ? v.emoji : '';
+  el('previewEmoji').textContent = emoji;
+  el('previewEmoji').hidden = !emoji;
+  el('previewDot').hidden = !!emoji;
   el('previewText').textContent = `${info.label}: ${v.text || '…'} · ${v.location}, ${time}`;
   const device = el<HTMLButtonElement>('useDeviceZone');
   // Only when the device's clock differs (Asia/Phnom_Penh and Asia/Bangkok are both UTC+7)
@@ -148,6 +156,7 @@ function fillStatus(record: RepoRecord<Partial<StatusRecord>> | null) {
   statusCid = record?.cid;
   (form.elements.namedItem('state') as RadioNodeList).value = stateOf(value);
   el<HTMLInputElement>('statusText').value = value.text ?? '';
+  el<HTMLInputElement>('statusEmoji').value = value.emoji ?? '';
   el<HTMLInputElement>('statusLocation').value = value.location ?? DEFAULTS.location;
   selectZone(value.timeZone ?? DEFAULTS.timeZone);
   el('statusUpdated').textContent = record
@@ -163,6 +172,13 @@ async function loadStatus(session: OAuthSession) {
 function setupStatus(session: OAuthSession) {
   const form = el<HTMLFormElement>('statusForm');
   fillZones();
+  // Quick picks fill the emoji box (an empty one clears it, back to the dot)
+  for (const pick of document.querySelectorAll<HTMLButtonElement>('[data-emoji]')) {
+    pick.addEventListener('click', () => {
+      el<HTMLInputElement>('statusEmoji').value = pick.dataset.emoji ?? '';
+      form.dispatchEvent(new Event('input'));
+    });
+  }
   el('useDeviceZone').addEventListener('click', () => {
     selectZone(DEVICE_ZONE);
     form.dispatchEvent(new Event('input'));
@@ -177,9 +193,12 @@ function setupStatus(session: OAuthSession) {
     if (!v.text) return message('statusMessage', 'Say what your status is.', 'error');
     if (countChars(v.text) > MAX) return message('statusMessage', `Keep it to ${MAX} characters.`, 'error');
     if (countChars(v.location) > MAX) return message('statusMessage', `Keep the location to ${MAX} characters.`, 'error');
+    if (v.emoji && !isEmoji(v.emoji)) return message('statusMessage', 'The emoji box takes one emoji, like ✈️, or nothing for the dot.', 'error');
     if (!validTimeZone(v.timeZone)) return message('statusMessage', `Unknown time zone: ${v.timeZone}. Pick one from the list.`, 'error');
 
-    const record: StatusRecord = { $type: STATUS, ...v, available: v.state === 'available', updatedAt: new Date().toISOString() };
+    const { emoji, ...rest } = v;
+    // No emoji: left out, so the site shows the dot
+    const record: StatusRecord = { $type: STATUS, ...rest, ...(emoji ? { emoji } : {}), available: v.state === 'available', updatedAt: new Date().toISOString() };
     const button = el<HTMLButtonElement>('statusSave');
     button.disabled = true;
     message('statusMessage', 'Saving…');

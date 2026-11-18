@@ -124,13 +124,15 @@ Cards and badges in the site's terminal style, for a GitHub profile README, othe
 
 ### Status badge
 
-`/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The dot's colour is the status: available (green), busy (amber), do not disturb (red) or away (grey). The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
+`/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The dot's colour is the status: available (green), busy (amber), do not disturb (red) or away (grey). With an `emoji` set (one emoji, like ✈️), it takes the dot's place, there and on the home page. The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
 
 To set it, open [`/admin/`](#admin-app) and sign in with Bluesky. Or, from a computer (with `BLUESKY_APP_PASSWORD` set):
 
 ```bash
 npm run status -- --available --text "open to consulting"
 ```
+
+Add `--emoji ✈️` for an emoji instead of the dot, or `--no-emoji` to go back to the dot. Without either, the current emoji stays.
 
 `--busy` makes it busy, and `--state dnd` or `--state away` sets the others. `--location` and `--time-zone` keep their current values unless given, `--show` prints the record and `--dry-run` writes nothing. From a phone, use the **Set status** workflow (GitHub → Actions → Set status → Run workflow). GitHub offers that button only for workflows on the default branch. Everything in an AT Protocol repo is public.
 
