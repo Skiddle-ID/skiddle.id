@@ -4,11 +4,11 @@
  * everything else the site shows, and cached for 30 seconds, so embeds don't turn every view into
  * a request to the PDS. No API key, and nothing about anyone else's listening.
  *
- * Album art isn't in the records. For a track played on Apple Music it comes from Apple's public
- * lookup API (no key), as a data: URI, so it works inside an SVG shown through <img>. It's cached
- * for 7 days per track.
+ * Album art isn't in the records. It comes from Deezer's public API by the track's ISRC, or else
+ * Apple's lookup API for an Apple Music track (neither needs a key), as a data: URI, so it works
+ * inside an SVG shown through <img>. It's cached for 7 days per track.
  */
-import { appleArtwork, appleTrack, PLAY_COLLECTION, recentTrack, STATUS_COLLECTION, type PlayView, type Track } from '~/lib/teal.mjs';
+import { appleArtwork, appleTrack, deezerCover, PLAY_COLLECTION, recentTrack, STATUS_COLLECTION, type PlayView, type Track } from '~/lib/teal.mjs';
 import { cached, getRecord, latestRecords } from '~/lib/pds';
 
 export type { Track };
@@ -28,19 +28,48 @@ export async function getRecentTrack(): Promise<Track | null> {
   return recentTrack(status, plays.map((r) => r.value));
 }
 
-/** The track's cover as a data: URI, or undefined (not an Apple Music track, or no artwork) */
-export async function getAlbumArt(trackUrl: string): Promise<string | undefined> {
-  const track = appleTrack(trackUrl);
-  if (!track) return undefined;
+const USER_AGENT = 'skiddle.id (+https://skiddle.id)';
+
+/**
+ * The track's cover as a data: URI, or undefined: from Deezer by the track's ISRC, or else from
+ * Apple for an Apple Music track. Apple's lookup API refuses requests from Cloudflare's servers
+ * (403), so it's only the fallback.
+ */
+export async function getAlbumArt(track: Pick<Track, 'trackUrl' | 'isrc'>): Promise<string | undefined> {
+  if (track.isrc) {
+    const art = await cover(`art/deezer/${track.isrc}`, async () => {
+      const data = (await json(`https://api.deezer.com/2.0/track/isrc:${track.isrc}`)) as { error?: unknown; album?: { cover_medium?: string } };
+      if (data.error) throw new Error('not on Deezer');
+      return deezerCover(data.album?.cover_medium);
+    });
+    if (art) return art;
+  }
+  const apple = appleTrack(track.trackUrl);
+  if (apple) {
+    return cover(`art/apple/${apple.country}/${apple.id}`, async () => {
+      const data = (await json(`https://itunes.apple.com/lookup?id=${apple.id}&country=${apple.country}&entity=song`)) as { results?: { artworkUrl100?: string }[] };
+      return appleArtwork(data.results?.find((r) => r.artworkUrl100)?.artworkUrl100, ART_PX);
+    });
+  }
+  return undefined;
+}
+
+async function json(url: string): Promise<unknown> {
+  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' }, signal: AbortSignal.timeout(4000) });
+  if (!res.ok) throw new Error(`${new URL(url).hostname} ${res.status}`);
+  return res.json();
+}
+
+/**
+ * A cover as a data: URI, from the image link `find` gives, cached for 7 days under `key`. A
+ * failure isn't cached (cached() only keeps what loads), so the next view tries again.
+ */
+async function cover(key: string, find: () => Promise<string>): Promise<string | undefined> {
   try {
-    // A failure isn't cached (cached() only keeps what loads), so the next view tries again
-    return await cached(`art/apple/${track.country}/${track.id}`, ART_TTL, async () => {
-      const res = await fetch(`https://itunes.apple.com/lookup?id=${track.id}&country=${track.country}&entity=song`, { signal: AbortSignal.timeout(4000) });
-      if (!res.ok) throw new Error(`Apple lookup ${res.status}`);
-      const data = (await res.json()) as { results?: { artworkUrl100?: string }[] };
-      const src = appleArtwork(data.results?.find((r) => r.artworkUrl100)?.artworkUrl100, ART_PX);
+    return await cached(key, ART_TTL, async () => {
+      const src = await find();
       if (!src) throw new Error('no artwork');
-      const art = await fetch(src, { signal: AbortSignal.timeout(4000) });
+      const art = await fetch(src, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(4000) });
       const type = (art.headers.get('Content-Type') ?? '').split(';')[0].trim().toLowerCase();
       if (!art.ok || !/^image\/(?:png|jpeg|webp|gif)$/.test(type)) throw new Error(`artwork ${art.status} ${type}`);
       const bytes = await art.arrayBuffer();
@@ -48,7 +77,7 @@ export async function getAlbumArt(trackUrl: string): Promise<string | undefined>
       return `data:${type};base64,${toBase64(bytes)}`;
     });
   } catch (err) {
-    console.warn(`music art for ${trackUrl}:`, String(err));
+    console.warn(`music art (${key}):`, String(err));
     return undefined;
   }
 }

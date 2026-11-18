@@ -17,6 +17,7 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @property {string} [releaseName]
  * @property {string} [playedTime] ISO date
  * @property {string} [originUri] The track on the service it was played on, e.g. Apple Music
+ * @property {string} [isrc] The recording's ISRC
  */
 
 /**
@@ -27,6 +28,7 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @property {boolean} isCurrent Playing now
  * @property {number} [playedAt] Unix seconds when it was played (absent while it's playing)
  * @property {string} trackUrl The track on its service, or '' if the record has no usable link
+ * @property {string} [isrc] The recording's ISRC, e.g. IDA682600101, for finding its cover
  */
 
 const text = (/** @type {unknown} */ v) => (typeof v === 'string' ? v.trim() : '');
@@ -59,7 +61,25 @@ export function trackOf(v, isCurrent) {
     isCurrent,
     ...(!isCurrent && Number.isFinite(played) ? { playedAt: Math.floor(played / 1000) } : {}),
     trackUrl: httpsUrl(v?.originUri),
+    ...(isrcOf(v?.isrc) ? { isrc: isrcOf(v?.isrc) } : {}),
   };
+}
+
+/** An ISRC (two letters, three letters or digits, seven digits), upper case, or '' */
+export function isrcOf(/** @type {unknown} */ v) {
+  const code = text(v).replace(/-/g, '').toUpperCase();
+  return /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/.test(code) ? code : '';
+}
+
+/**
+ * Deezer's cover link from its track lookup (album.cover_medium, 250px), only from Deezer's image
+ * servers over https
+ * @param {unknown} url
+ * @returns {string}
+ */
+export function deezerCover(url) {
+  const link = httpsUrl(url);
+  return /^https:\/\/(cdn-images|e-cdns-images)\.dzcdn\.net\/images\/cover\//.test(link) ? link : '';
 }
 
 /**

@@ -27,7 +27,7 @@ export const GET: APIRoute = async ({ request }) => {
   let art: string | undefined;
   try {
     track = await getRecentTrack();
-    if (track?.trackUrl) art = await getAlbumArt(track.trackUrl);
+    if (track) art = await getAlbumArt(track);
   } catch (err) {
     // track stays null: the card shows "nothing playing"
     console.error('music.svg:', err);
