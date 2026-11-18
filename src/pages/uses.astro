@@ -1,11 +1,19 @@
 ---
 import Shell from '../layouts/shell.astro';
-import uses, { usesUpdated } from '../data/uses';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, getUses } from '~/lib/page-content';
+
+// Rendered on request: the page comes from its record (src/lib/page-content.ts)
+export const prerender = false;
+
+const { uses, usesUpdated, source } = await getUses();
+Astro.cache.set(PAGES_CACHE);
+Astro.response.headers.set('X-Content-Source', source);
 
 const itemCount = uses.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.items.length, 0), 0);
 ---
 
-<Shell title="Uses — Skiddle" description="The hardware, software and tools Jeff (Skiddle) uses every day: machines, homelab, dev setup, creative tools and the flight bag.">
+<Shell title={`${CONTENT_PAGES.uses.title} — Skiddle`} description={CONTENT_PAGES.uses.description}>
   <div class="max-w-[56rem] w-full">
     <header class="max-w-[70ch]">
       <h1 class="font-semibold text-xl before-hash-1">Uses</h1>

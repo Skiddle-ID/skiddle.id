@@ -5,6 +5,9 @@
 //     uploaded card), and images' src and srcset (see scripts/lib/html-compare.mjs).
 //   - the lists (home, posts, series, topics, a tag page): the same post links, in the same order
 //   - the feed, the sitemap, the search index and the latest post
+//   - the content pages (projects, the CV, services, uses, About), rendered from their records once
+//     they're imported (src/lib/page-content.ts): the whole <main>, plus the title, description and
+//     structured data; on the home page, the project cards and the testimonial
 // Remove at the v4 launch, when production renders from records too. Skipped when the preview is
 // production.
 import assert from 'node:assert/strict';
@@ -56,6 +59,37 @@ describe('parity with production', { skip }, () => {
       if (diff) problems.push(`${path}, at link ${diff.at}\n    production: ${JSON.stringify(diff.a)}\n    preview:    ${JSON.stringify(diff.b)}`);
     }
     assert.deepEqual(problems, [], 'lists that differ from production');
+  });
+
+  it('the content pages show the same as production', async () => {
+    // Astro's per-component class hashes change with the component's source, not the content
+    const parts = (html, path) => {
+      const strip = (s) => s.replace(/\sdata-astro-cid-[a-z0-9]+(="[^"]*")?/g, '');
+      const sections =
+        path === '/'
+          ? [/<section id="work"[\s\S]*?<\/section>/, /<section aria-label="Testimonial"[\s\S]*?<\/section>/].map((re) => re.exec(html)?.[0] ?? '')
+          : [/<main\b[\s\S]*<\/main>/.exec(html)?.[0] ?? ''];
+      return {
+        title: htmlText(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? ''),
+        description: htmlText(/<meta name="description" content="([^"]*)"/.exec(html)?.[1] ?? ''),
+        data: [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]),
+        body: tokens(strip(sections.join(''))),
+      };
+    };
+    const problems = [];
+    for (const path of ['/projects/', '/works/', '/services/', '/uses/', '/about/', '/']) {
+      const res = await fetch(`${BASE}${path}?parity=${Date.now()}`);
+      assert.ok(res.ok, `${BASE}${path} answered ${res.status}`);
+      const [preview, production] = [parts(await res.text(), path), parts(await page(PRODUCTION, path), path)];
+      console.log(`  ${path}: content from ${res.headers.get('X-Content-Source') ?? '?'}`);
+      assert.ok(production.body.length > 0, `${path}: nothing to compare on production`);
+      for (const key of ['title', 'description', 'data']) {
+        if (JSON.stringify(production[key]) !== JSON.stringify(preview[key])) problems.push(`${path} ${key}\n    production: ${JSON.stringify(production[key])}\n    preview:    ${JSON.stringify(preview[key])}`);
+      }
+      const diff = firstDifference(production.body, preview.body);
+      if (diff) problems.push(`${path}, at token ${diff.at}\n    production: ${JSON.stringify(diff.a)}\n    preview:    ${JSON.stringify(diff.b)}`);
+    }
+    assert.deepEqual(problems, [], 'content pages that differ from production');
   });
 
   it('the feed, sitemap, search index and latest post match', async () => {

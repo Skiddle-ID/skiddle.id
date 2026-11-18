@@ -1,9 +1,15 @@
 ---
 import Shell from '../layouts/shell.astro';
 import type { Project, ProjectStatus } from '../types/projects';
-import projects from '../data/projects';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, getProjects } from '~/lib/page-content';
 
-export const prerender = true;
+// Rendered on request: the projects come from their records (src/lib/page-content.ts)
+export const prerender = false;
+
+const { projects, source } = await getProjects();
+Astro.cache.set(PAGES_CACHE);
+Astro.response.headers.set('X-Content-Source', source);
 
 const byYear = (a: Project, b: Project) => (b.year ?? 0) - (a.year ?? 0);
 const featured = projects.filter((p) => p.featured).sort(byYear);
@@ -38,7 +44,7 @@ const stats = [
   years.length ? `building since ${Math.min(...years)}` : null,
 ].filter(Boolean);
 ---
-<Shell title="Projects — Skiddle" description="Open-source projects by Jeff (Skiddle): APIs, automation and tools, with links to source code, live demos and the stories behind them.">
+<Shell title={`${CONTENT_PAGES.projects.title} — Skiddle`} description={CONTENT_PAGES.projects.description}>
   <div class="max-w-[56rem] w-full">
     <header class="max-w-[70ch]">
       <h1 class="font-semibold text-xl before-hash-1">Projects</h1>

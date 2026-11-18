@@ -57,7 +57,7 @@ The pages' content, today in `src/data/` and the page files. Each part becomes r
 - [x] Their lexicons: `id.skiddle.project` (one per project), `id.skiddle.cv`, `id.skiddle.services`, `id.skiddle.uses` and `id.skiddle.about` (one each), checked against today's data in CI (`npm run check:lexicons`). About's content moved into `src/data/about.ts` for it ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138))
 - [x] The admin app's new section, Pages, between Series and Status, with a one-time import from the site's data. The sign-in asks for the five collections ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139))
 - [ ] Publish the lexicons (Site → Lexicons) and run the import (Pages), on staging. Both write to Jeff's repo
-- [ ] The pages read the records, with a parity check against production
+- [x] The pages read the records, falling back to the data files until the switch, with a parity check against production in every PR's preview checks ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140))
 - [ ] The admin app: edit them in the Pages section
 - [ ] Remove the data files from git once the pages read the records. What stays in git:
   - the code

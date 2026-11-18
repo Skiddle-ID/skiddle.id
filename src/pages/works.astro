@@ -1,9 +1,15 @@
 ---
 import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
-import works from '../data/works';
-import projects from '../data/projects';
-import highlights from '../data/highlights';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, contentSource, getCv, getProjects } from '~/lib/page-content';
+
+// Rendered on request: the CV and its projects come from their records (src/lib/page-content.ts)
+export const prerender = false;
+
+const [{ works, highlights, source: cvSource }, { projects, source: projectsSource }] = await Promise.all([getCv(), getProjects()]);
+Astro.cache.set(PAGES_CACHE);
+Astro.response.headers.set('X-Content-Source', contentSource(cvSource, projectsSource));
 
 const h2 = 'font-semibold before-hash-2 print:before:content-none';
 
@@ -25,7 +31,7 @@ const selectedProjects = works.selectedProjects
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 ---
 
-<Shell title="Works & CV — Skiddle" description="CV of Laurensius Jeffrey (Skiddle) — protocol engineer in Bangkok with a DevOps background: experience, skills, projects, education and certifications.">
+<Shell title={`${CONTENT_PAGES.works.title} — Skiddle`} description={CONTENT_PAGES.works.description}>
   <div class="max-w-[56rem] w-full print-urls">
 
     <!-- CV header -->

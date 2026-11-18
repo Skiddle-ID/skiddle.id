@@ -39,11 +39,23 @@ To get there, two changes to today's data, with no change to the pages:
 
 ## Reading them
 
-The pages work like the post pages. They read the records when someone asks for them (Astro live collections), keep the result in the route cache, and refresh after a save (`/api/revalidate`). Edits never need a build. If the PDS can't be reached, a cached page still shows. On staging, a parity check compares each page built from records with production, built from git, before the switch.
+The pages work like the post pages ([`src/lib/page-content.ts`](../../src/lib/page-content.ts)). /projects/, /works/, /services/, /uses/ and /about/ are rendered on request, and so are the home page's project cards and testimonial.
+- **Reading:** each page reads its records through `src/lib/pds.ts`, which caches them for a minute.
+- **Same shapes, same templates:** `page-records.mjs` turns the records back into the data files' shapes, so the templates are unchanged. A unit test checks that going to records and back gives the data files exactly.
+- **Caching and refresh:** pages are cached for a minute, then served stale for up to a day while a new copy renders (tag `pages`). `/api/revalidate` purges them after a save, so edits never need a build. If the PDS can't be reached, a cached page still shows.
+- **Fallback, until the switch:** a page falls back to its data file when there's no record yet, the record is malformed (a required field is missing), or the PDS can't be reached. The error is logged.
+- **Where content came from:** each page says so in the `X-Content-Source` header: `pds` or `git`.
+- **Parity:** `tests/parity.test.mjs` compares each page with production, built from git, in every PR's preview checks. It covers the whole `<main>`, plus the title, description and structured data. On the home page, it covers the project cards and the testimonial.
+
+**Until the switch, keep the records and the data files the same.** Production (v3) still renders the data files. The parity check fails when a record differs from them, as it does for posts. To change a page before the switch:
+1. Change the data file on v3 and on v4.
+2. Use Replace in the Pages section.
+
+Edit records freely once the pages read them in production.
 
 ## Filling them, and editing
 
-- **Import, once:** the admin app's **Pages** section ([`src/lib/admin/pages.ts`](../../src/lib/admin/pages.ts)) writes the records from the site's data. These collections are the site's own, and v3's sync never touches them, so they can be written now, not only at the launch. After the import, edit in the admin app, not in `src/data/`. The data files leave git at the switch, and the import with them.
+- **Import, once:** the admin app's **Pages** section ([`src/lib/admin/pages.ts`](../../src/lib/admin/pages.ts)) writes the records from the site's data. These collections are the site's own, and v3's sync never touches them, so they can be written now, not only at the launch. From the switch, edit in the admin app, not in `src/data/`; until then, keep both the same (see above). The data files leave git at the switch, and the import with them.
   - Each row compares the record in your repo with the one the site's data makes, leaving out the dates the import sets: not in your repo yet, the same, different, or only in your repo (a project since removed from `projects.ts`).
   - **Import** writes the records that aren't there yet, with `createRecord`, so it never overwrites one.
   - **Replace** writes the site's data over a record that differs, with `swapRecord`, after you confirm. A project keeps the date it was first imported.
@@ -60,7 +72,7 @@ The pages work like the post pages. They read the records when someone asks for 
 1. **The lexicons, checked against today's data in CI** ([#138](https://github.com/Skiddle-ID/skiddle.id/pull/138)). Done.
 2. **The Pages section,** the sign-in's new collections, and the one-time import ([#139](https://github.com/Skiddle-ID/skiddle.id/pull/139)). Done.
 3. **On staging, Jeff publishes the lexicons and runs the import.** Site → Lexicons lists the five new ones. Then Pages, after signing in again. Both write to his repo.
-4. **v4's pages read the records,** checked for parity against production.
+4. **v4's pages read the records,** with a fallback to the data files and a parity check against production ([#140](https://github.com/Skiddle-ID/skiddle.id/pull/140)). Done. Until the import, staging shows the data files (`X-Content-Source: git`).
 5. **The editors.**
 6. **At the switch:** remove the data files (`projects.ts`, `works.ts`, `highlights.ts`, `services.ts`, `uses.ts`, `about.ts`) and their types.
 
