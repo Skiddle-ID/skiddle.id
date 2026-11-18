@@ -4,11 +4,11 @@
  * everything else the site shows, and cached for 30 seconds, so embeds don't turn every view into
  * a request to the PDS. No API key, and nothing about anyone else's listening.
  *
- * Album art isn't in the records. It comes from Deezer's public API by the track's ISRC, or else
- * Apple's lookup API for an Apple Music track (neither needs a key), as a data: URI, so it works
- * inside an SVG shown through <img>. It's cached for 7 days per track.
+ * Album art isn't in the records. getAlbumArt() finds it from what a play carries (an ISRC, a
+ * MusicBrainz release, the names), from public sources that need no key, as a data: URI, so it
+ * works inside an SVG shown through <img>. It's cached for 7 days per track.
  */
-import { appleArtwork, appleTrack, deezerCover, PLAY_COLLECTION, recentTrack, STATUS_COLLECTION, type PlayView, type Track } from '~/lib/teal.mjs';
+import { appleArtwork, appleTrack, coverArtArchive, deezerCover, deezerMatch, PLAY_COLLECTION, recentTrack, STATUS_COLLECTION, type PlayView, type Track } from '~/lib/teal.mjs';
 import { cached, getRecord, latestRecords } from '~/lib/pds';
 
 export type { Track };
@@ -31,16 +31,32 @@ export async function getRecentTrack(): Promise<Track | null> {
 const USER_AGENT = 'skiddle.id (+https://skiddle.id)';
 
 /**
- * The track's cover as a data: URI, or undefined: from Deezer by the track's ISRC, or else from
- * Apple for an Apple Music track. Apple's lookup API refuses requests from Cloudflare's servers
- * (403), so it's only the fallback.
+ * The track's cover as a data: URI, or undefined, from the first of these that has one:
+ *   1. Deezer, by the track's ISRC (plays from Apple Music carry one)
+ *   2. the Cover Art Archive, by the release's MusicBrainz id (many plays that come through
+ *      Last.fm, i.e. from Spotify, carry one)
+ *   3. Deezer's search, by artist and track name, only for a result that is this track
+ *   4. Apple's lookup API, for an Apple Music track. It refuses requests from Cloudflare's servers
+ *      (403), so on skiddle.id it's only the last resort.
  */
-export async function getAlbumArt(track: Pick<Track, 'trackUrl' | 'isrc'>): Promise<string | undefined> {
+export async function getAlbumArt(track: Pick<Track, 'name' | 'artist' | 'trackUrl' | 'isrc' | 'releaseMbId'>): Promise<string | undefined> {
   if (track.isrc) {
     const art = await cover(`art/deezer/${track.isrc}`, async () => {
       const data = (await json(`https://api.deezer.com/2.0/track/isrc:${track.isrc}`)) as { error?: unknown; album?: { cover_medium?: string } };
       if (data.error) throw new Error('not on Deezer');
       return deezerCover(data.album?.cover_medium);
+    });
+    if (art) return art;
+  }
+  if (track.releaseMbId) {
+    const art = await cover(`art/caa/${track.releaseMbId}`, async () => coverArtArchive(track.releaseMbId!));
+    if (art) return art;
+  }
+  if (track.name && track.artist && track.artist !== 'Unknown artist') {
+    const query = `${track.artist.split(/,| feat\.? | ft\.? /i)[0]} ${track.name}`;
+    const art = await cover(`art/deezer-search/${query.toLowerCase()}`, async () => {
+      const data = (await json(`https://api.deezer.com/search?${new URLSearchParams({ q: query, limit: '5' })}`)) as { data?: Parameters<typeof deezerMatch>[0] };
+      return deezerMatch(data.data ?? [], track);
     });
     if (art) return art;
   }

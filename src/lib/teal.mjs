@@ -18,6 +18,7 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @property {string} [playedTime] ISO date
  * @property {string} [originUri] The track on the service it was played on, e.g. Apple Music
  * @property {string} [isrc] The recording's ISRC
+ * @property {string} [releaseMbId] The release's MusicBrainz id; piper writes it as "mbid:<uuid>"
  */
 
 /**
@@ -29,6 +30,7 @@ export const STATUS_COLLECTION = 'fm.teal.actor.status';
  * @property {number} [playedAt] Unix seconds when it was played (absent while it's playing)
  * @property {string} trackUrl The track on its service, or '' if the record has no usable link
  * @property {string} [isrc] The recording's ISRC, e.g. IDA682600101, for finding its cover
+ * @property {string} [releaseMbId] The release's MusicBrainz id (a UUID), for its cover
  */
 
 const text = (/** @type {unknown} */ v) => (typeof v === 'string' ? v.trim() : '');
@@ -62,7 +64,42 @@ export function trackOf(v, isCurrent) {
     ...(!isCurrent && Number.isFinite(played) ? { playedAt: Math.floor(played / 1000) } : {}),
     trackUrl: httpsUrl(v?.originUri),
     ...(isrcOf(v?.isrc) ? { isrc: isrcOf(v?.isrc) } : {}),
+    ...(mbidOf(v?.releaseMbId) ? { releaseMbId: mbidOf(v?.releaseMbId) } : {}),
   };
+}
+
+/** A MusicBrainz id, without piper's "mbid:" prefix, or '' */
+export function mbidOf(/** @type {unknown} */ v) {
+  const id = text(v).replace(/^mbid:/i, '').toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id) ? id : '';
+}
+
+/** The Cover Art Archive's front cover of a release, 250px (it redirects to the image) */
+export const coverArtArchive = (/** @type {string} */ releaseMbId) => `https://coverartarchive.org/release/${releaseMbId}/front-250`;
+
+/** Lower case letters and digits, for comparing names: "Bicara (feat. X)" → "bicara feat x" */
+const loose = (/** @type {string} */ s) =>
+  s.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+/**
+ * The cover of the first Deezer search result that is this track, by this artist: the title starts
+ * the same way (so "Bunga Maaf - Acoustic" matches "Bunga Maaf"), and the artists overlap. A wrong
+ * cover is worse than none, so anything less is no match.
+ * @param {{ title?: string, artist?: { name?: string }, album?: { cover_medium?: string } }[]} results
+ * @param {{ name: string, artist: string }} track
+ * @returns {string}
+ */
+export function deezerMatch(results, track) {
+  const title = loose(track.name);
+  const artist = loose(track.artist.split(/,| feat\.? | ft\.? /i)[0] ?? '');
+  if (!title || !artist) return '';
+  for (const r of results) {
+    const t = loose(text(r?.title));
+    const a = loose(text(r?.artist?.name));
+    if (!t || !a) continue;
+    if ((t.startsWith(title) || title.startsWith(t)) && (a.includes(artist) || artist.includes(a))) return deezerCover(r?.album?.cover_medium);
+  }
+  return '';
 }
 
 /** An ISRC (two letters, three letters or digits, seven digits), upper case, or '' */
