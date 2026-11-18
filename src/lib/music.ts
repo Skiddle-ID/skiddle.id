@@ -73,7 +73,9 @@ export async function getAlbumArt(track: Pick<Track, 'name' | 'artist' | 'album'
   if (track.name && track.artist && track.artist !== 'Unknown artist') {
     const query = `${track.artist.split(/,| feat\.? | ft\.? /i)[0]} ${track.name}`;
     const art = await cover(`art/deezer-search/${query.toLowerCase()}`, () =>
-      search(`deezer-sg/${query.toLowerCase()}`, async () => {
+      // Keyed by where the search ran, so a miss from here (Hong Kong, say) can't hide the covers
+      // Worker's answer
+      search(`${(env as { COVERS?: Fetcher }).COVERS ? 'deezer-covers' : 'deezer'}/${query.toLowerCase()}`, async () => {
         const link = deezerMatch(await deezerSearch(query), track);
         return link ? [link] : [];
       }),
