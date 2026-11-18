@@ -48,7 +48,7 @@ const isActive = (href: string) => {
     class="hidden lg:flex items-center mt-3 py-1 px-2 -mx-2 rounded text-[var(--color-muted)] transition-colors hover:text-[var(--color-primary)]"
   >
     <span aria-hidden="true" class="opacity-0">&gt; </span>search
-    <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5">⌘K</kbd>
+    <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5 empty:hidden"></kbd>
   </a>
 
   <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Opens the

@@ -1,7 +1,7 @@
 ---
 /*
   Command bar: search posts, jump to pages, run a few actions.
-  Opens with ⌘K / Ctrl+K or / on desktop, or anything with [data-cmdk-open] (the sidebar's
+  Opens with Ctrl+K (⌘K on a Mac) or / on desktop, or anything with [data-cmdk-open] (the sidebar's
   "search" row, the search icon in the mobile top bar). Those are links to /posts/, so search
   still works without JavaScript. Desktop: a box near the top. Mobile: a full-screen sheet.
   Posts, series and categories come from /search.json, fetched the first time the bar opens.
@@ -149,6 +149,8 @@
 </style>
 
 <script>
+  import { isMacPlatform, platformName, shortcutKey, shortcutLabel } from '~/lib/shortcuts.mjs';
+
   interface IndexedPost {
     title: string;
     url: string;
@@ -507,14 +509,18 @@
       } else if (e.key === 'Enter') {
         e.preventDefault();
         const it = items[active];
-        if (it) activate(it, Boolean(it.href) && (e.metaKey || e.ctrlKey));
+        // Ctrl+Enter (⌘Enter on a Mac) opens a link in a new tab, as Ctrl+click does
+        if (it) activate(it, Boolean(it.href) && (mac ? e.metaKey : e.ctrlKey));
       }
     });
 
     const typing = (t: EventTarget | null) =>
       t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    // Ctrl+K on Windows, Linux and ChromeOS, ⌘K on a Mac (src/lib/shortcuts.mjs, as in the admin app).
+    // Ctrl+K on a Mac stays the system's own (delete to the end of the line in a text box).
+    const mac = isMacPlatform(platformName());
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+      if (shortcutKey(e, mac) === 'k') {
         e.preventDefault();
         if (dialog.open) close();
         else open();
@@ -537,8 +543,10 @@
       trigger.addEventListener('focus', () => void load(), { once: true });
     }
 
-    // Show the right shortcut: ⌘K on Apple devices, Ctrl K elsewhere
-    const apple = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-    for (const k of document.querySelectorAll('[data-cmdk-key]')) k.textContent = apple ? '⌘K' : 'Ctrl K';
+    // Show the shortcut this computer uses: Ctrl+K, or ⌘K on a Mac. The labels start empty (and
+    // hidden), so Windows never shows ⌘K while the page loads, and no label shows without JavaScript,
+    // when the shortcut doesn't work.
+    for (const k of document.querySelectorAll('[data-cmdk-key]')) k.textContent = shortcutLabel('k', mac);
+    for (const t of document.querySelectorAll('[data-cmdk-open][aria-keyshortcuts]')) t.setAttribute('aria-keyshortcuts', `${mac ? 'Meta' : 'Control'}+K /`);
   }
 </script>
