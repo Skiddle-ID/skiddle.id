@@ -1,5 +1,5 @@
 /**
- * Shared pieces for the embeddable SVG cards the Worker serves (/lastfm.svg, /latest.svg,
+ * Shared pieces for the embeddable SVG cards the Worker serves (/music.svg, /latest.svg,
  * /status.svg): themes and accent colours, the font stack, text fitting and escaping, and the
  * HTTP response with an ETag.
  *

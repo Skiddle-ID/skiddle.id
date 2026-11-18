@@ -3,18 +3,11 @@
 // Runtime types generated with workerd@1.20261110.1 2025-07-18 nodejs_compat
 interface __BaseEnv_Env {
 	ASSETS: Fetcher;
-	LASTFM_USERNAME: "arcestia";
 }
 declare namespace Cloudflare {
 	interface Env extends __BaseEnv_Env {}
 }
 interface Env extends __BaseEnv_Env {}
-type StringifyValues<EnvType extends Record<string, unknown>> = {
-	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
-};
-declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "LASTFM_USERNAME">> {}
-}
 declare module "*.txt" {
 	const value: string;
 	export default value;

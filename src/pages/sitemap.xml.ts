@@ -16,8 +16,7 @@ function discoverStaticRoutes(): string[] {
       !p.endsWith('/sitemap.xml.ts') &&
       !p.endsWith('/rss.xml.ts') &&
       !p.endsWith('/robots.txt') &&
-      !p.match(/\[[^\]]+\]/) &&
-      !p.endsWith('/lastfm.svg.ts')
+      !p.match(/\[[^\]]+\]/)
     )
     .map((p) => {
       let route = p.replace(/^\.{1}\//, '/');

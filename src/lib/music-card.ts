@@ -1,5 +1,6 @@
 /**
- * SVG renderer for the Last.fm "now playing" card served at /lastfm.svg.
+ * SVG renderer for the "now playing" card served at /music.svg (and /lastfm.svg, its old address),
+ * from teal.fm's records (src/lib/music.ts).
  *
  * Album art comes in as a data: URI, because an SVG inside <img> can't load
  * anything external. Themes, colours and text helpers are shared with the
@@ -16,7 +17,7 @@ export interface CardTrack {
   artist: string;
   album?: string;
   isCurrent: boolean;
-  /** Unix seconds when the track was scrobbled (absent while it's playing) */
+  /** Unix seconds when the track was played (absent while it's playing) */
   playedAt?: number;
   /** Album art as a data:image/...;base64 URI */
   art?: string;
@@ -40,7 +41,7 @@ const TEXT_W = W - PAD - TEXT_X;
 const TITLE_PX = 15;
 const SUB_PX = 12.5;
 
-/** Renders the card. `track` null means nothing to show (no scrobbles yet, or Last.fm unavailable). */
+/** Renders the card. `track` null means nothing to show (nothing played yet, or the PDS unavailable). */
 export function renderCard(track: CardTrack | null, options: CardOptions = {}): string {
   const { theme, accent } = cardStyle(options);
   const now = options.now ?? Date.now() / 1000;
@@ -59,8 +60,8 @@ export function renderCard(track: CardTrack | null, options: CardOptions = {}): 
     ? 'Check back soon'
     : fit([artist || 'Unknown artist', showAlbum ? album : ''].filter(Boolean).join(' · '), Math.floor(TEXT_W / (SUB_PX * CHAR_EM)));
   const label = !track
-    ? 'Last.fm: nothing playing right now'
-    : `${track.isCurrent ? 'Now playing' : 'Last played'} on Last.fm: ${name} by ${artist}${when ? ` (${when})` : ''}`;
+    ? 'teal.fm: nothing playing right now'
+    : `${track.isCurrent ? 'Now playing' : 'Last played'} on teal.fm: ${name} by ${artist}${when ? ` (${when})` : ''}`;
 
   const colours = colourVars(theme, accent);
 
@@ -97,7 +98,7 @@ text{font-family:${FONT}}
 <defs><clipPath id="lfm-art"><rect x="${PAD}" y="${ART_Y}" width="${ART}" height="${ART}" rx="4"/></clipPath><clipPath id="lfm-text"><rect x="${TEXT_X}" y="44" width="${TEXT_W}" height="${H - 44}"/></clipPath></defs>
 <rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="8" class="card"/>
 <text x="${PAD}" y="27" class="p"><tspan class="acc">skiddle@web</tspan><tspan class="mute">:~$</tspan><tspan class="fg"> now-playing</tspan><tspan class="acc cur"> █</tspan></text>
-<text x="${W - PAD}" y="27" text-anchor="end" class="brand mute">last.fm</text>
+<text x="${W - PAD}" y="27" text-anchor="end" class="brand mute">teal.fm</text>
 <line x1="${PAD}" y1="41.5" x2="${W - PAD}" y2="41.5" class="rule"/>
 ${cover}
 <g clip-path="url(#lfm-text)">${status}

@@ -5,7 +5,7 @@
       <img src="https://skiddle.id/latest.svg" alt="Latest post on skiddle.id" width="540">
     </a>
 
-  Optional query params, as for /lastfm.svg:
+  Optional query params, as for /music.svg:
     - theme:  auto (default, follows the viewer's light/dark setting) | dark | light
     - accent: blue (default) | teal | purple | pink | green
 

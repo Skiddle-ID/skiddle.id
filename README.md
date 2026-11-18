@@ -74,7 +74,7 @@ Merging into `v4` deploys automatically through [Cloudflare Workers Builds](http
 - Deploy command: `npx wrangler deploy` (the default; it picks up the config Astro generates in `dist/server/`)
 - Root directory: `/`, no build variables needed (Node comes from `.node-version`)
 
-Secrets live in Cloudflare, not in the repo: `LASTFM_API_KEY` (`npx wrangler secret put LASTFM_API_KEY`). For local dev, put it in `.dev.vars`. The scheduler is its own Worker, with its own app password ([setup](workers/publisher/README.md)).
+The site's Worker has no secrets: everything it shows is public records. The scheduler is its own Worker, with its own app password ([setup](workers/publisher/README.md)).
 
 Manual deploy and rollback still work from any machine logged in with `npx wrangler login`: `npm run build && npm run deploy`, `npx wrangler rollback`.
 
@@ -136,17 +136,15 @@ npm run status -- --available --text "open to consulting"
 </a>
 ```
 
-### Last.fm card
+### Music card
 
-`/lastfm.svg` is a "now playing" card:
+`/music.svg` is a "now playing" card, from [teal.fm](https://teal.fm)'s records in Jeff's AT Protocol repo:
 
 ```html
-<a href="https://www.last.fm/user/arcestia">
-  <img src="https://skiddle.id/lastfm.svg" alt="Last.fm: now playing" width="540">
-</a>
+<img src="https://skiddle.id/music.svg" alt="Now playing on teal.fm" width="540">
 ```
 
-It always shows `LASTFM_USERNAME`, embeds the album art so it works inside `<img>`, and caches Last.fm for 30 seconds (artwork for 7 days). If Last.fm is down it shows "Nothing playing right now" instead of a broken image. The code is in `src/lib/lastfm.ts` (data) and `src/lib/lastfm-card.ts` (drawing).
+teal.fm keeps what you listen to as records in your own repo: its scrobbler (piper) writes an `fm.teal.feed.play` record per track, and `fm.teal.actor.status` while something's playing. The card shows what's playing now, or else the last track played. It reads them through `src/lib/pds.ts` like the rest of the site, cached for 30 seconds, with no API key. For an Apple Music track it embeds the album art from Apple's public lookup API (cached for 7 days), so it works inside `<img>`. If the PDS can't be read it shows "Nothing playing right now" instead of a broken image. The sidebar's "now playing" uses `/api/music.json`. `/lastfm.svg` and `/api/lastfm.json`, the old addresses from the Last.fm days, serve the same. The code is in `src/lib/music.ts` and `src/lib/teal.mjs` (data) and `src/lib/music-card.ts` (drawing).
 
 ### 88×31 button
 

@@ -1,6 +1,7 @@
 /**
  * Reading Jeff's AT Protocol repo from the Worker: the status (src/lib/at-status.ts), posts and
- * series (src/lib/pds-posts.ts), and images (/media/<cid>).
+ * series (src/lib/pds-posts.ts), the pages' content (src/lib/page-content.ts), music from teal.fm
+ * (src/lib/music.ts), and images (/media/<cid>).
  *
  * The PDS is found from the DID on each read, cached for an hour, so a move to another PDS just
  * works. Records are cached briefly in two places:
@@ -104,6 +105,18 @@ export function listRecords<T>(collection: string, { ttl = RECORD_TTL, fetcher =
       cursor = data.records?.length ? (data.cursor ?? '') : '';
     } while (cursor);
     return out;
+  });
+}
+
+/** The newest records in a collection, one page of them: for a collection too big to list in full, like teal.fm's plays */
+export function latestRecords<T>(collection: string, limit: number, { ttl = RECORD_TTL, fetcher = fetch }: { ttl?: number; fetcher?: Fetch } = {}): Promise<RepoRecord<T>[]> {
+  return cached(`latest/${collection}/${limit}`, ttl, async () => {
+    const pds = await pdsUrl(fetcher);
+    const res = await fetcher(`${pds}/xrpc/com.atproto.repo.listRecords?repo=${DID}&collection=${collection}&limit=${limit}`, {
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) throw new Error(`listRecords ${collection}: ${res.status}`);
+    return ((await res.json()) as { records?: RepoRecord<T>[] }).records ?? [];
   });
 }
 

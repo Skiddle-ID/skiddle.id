@@ -17,12 +17,6 @@ custom_domain = true
 pattern = "skiddle.blue"
 custom_domain = true
 
-[vars]
-LASTFM_USERNAME = "arcestia"
-# LASTFM_API_KEY is a secret, not a var: set it with `npx wrangler secret put LASTFM_API_KEY` (local dev: .dev.vars)
-# Worker Previews (builds of PR branches) don't inherit vars or secrets from production. The Last.fm
-# key is deliberately not given to previews, so the Now Playing card there shows "nothing playing".
-
 [observability]
 enabled = true
 
