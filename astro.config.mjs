@@ -32,12 +32,16 @@ if (process.env.WORKERS_CI) {
 // Git commit hash; falls back to the CI commit, then "dev" outside a git checkout
 const hash = git('rev-parse --short HEAD') || (process.env.WORKERS_CI_COMMIT_SHA ?? '').slice(0, 7) || 'dev';
 
-// Git tag if the current commit is exactly at a tag; otherwise empty
-const tag = git('describe --tags --exact-match');
+// Release tags only (v4.0, v3.7): the backup workflow's "backups" tag isn't a version, and on a v4
+// commit it was the nearest tag, so the footer said "backups"
+const RELEASES = `--match 'v[0-9]*'`;
 
-// Nearest tag description (e.g., v1.0.0-4-gabc123).
-// With --long, exact tags become v1.0.0-0-g<hash>. With --always, fallback is just the hash.
-const describe = git('describe --tags --always --long') || hash;
+// Git tag if the current commit is exactly at a release tag; otherwise empty
+const tag = git(`describe --tags --exact-match ${RELEASES}`);
+
+// Nearest release tag description (e.g., v4.0-4-gabc123).
+// With --long, exact tags become v4.0-0-g<hash>. With --always, fallback is just the hash.
+const describe = git(`describe --tags ${RELEASES} --always --long`) || hash;
 
 // Preview builds: Cloudflare Workers Builds of any branch except the production one. They include
 // draft posts (with a "Draft" banner) and ask search engines not to index the pages. Local builds,
