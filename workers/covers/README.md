@@ -8,16 +8,16 @@ So the site (`src/lib/music.ts`) sends the search here, through a service bindin
 
 - [`covers.mjs`](covers.mjs): what it answers, with Deezer passed in
   - `GET /deezer/search?q=…`: Deezer's results, trimmed to what the site's matcher uses
-  - `GET /where`: where it ran (Cloudflare's `cf-placement` header, e.g. `remote-SIN`) and the country Deezer sees
+  - `GET /where`: the data center it runs in (e.g. `SIN`) and the country Deezer sees from there. Cloudflare's `cf-placement` header would say this, but it isn't set on calls through a service binding.
 - [`covers.test.mjs`](covers.test.mjs): its tests (`npm run test:unit`, run in CI)
 - [`index.mjs`](index.mjs): the Worker
 - [`wrangler.toml`](wrangler.toml): placement, no URL, logs on
 
-It has no URL (`workers_dev = false`, no routes), so only the site's Worker can call it. It fits the free plan: it's only called when a track's cover isn't cached yet (once a day per track and data center at most), with one request to Deezer each time.
+It has no URL (`workers_dev = false`, no routes), so only the site's Worker can call it. It fits the free plan: it's only called when a track's cover isn't cached yet (once a day per track and data center at most), with one request to Deezer each time, plus two small ones when it starts, to say where it runs.
 
 ## Setting it up
 
-Deploy it **before** the site, since the site's binding needs a Worker named `skiddle-covers` to exist. Either:
+Deploy it **before** the site, since the site's binding needs a Worker named `skiddle-covers` to exist. PR previews of the site call this production Worker too: previews don't inherit bindings, so `wrangler.toml` declares it again under `[[previews.services]]`. Either:
 
 - **Workers Builds (recommended, so it redeploys with every merge):**
   - In the Cloudflare dashboard, create a Worker named `skiddle-covers` from this repository.
@@ -26,7 +26,7 @@ Deploy it **before** the site, since the site's binding needs a Worker named `sk
   - Production branch: the one skiddle.id is built from
 - **By hand:** `cd workers/covers && npx wrangler deploy --config wrangler.toml`
 
-Its logs (Workers & Pages → skiddle-covers → Logs) show each search.
+Its logs (Workers & Pages → skiddle-covers → Logs, or `npx wrangler tail skiddle-covers`) show each search, how many results came back, and where it ran, e.g. `search "…": 2 results (SIN, Deezer SG (open))`.
 
 ## Running it locally
 

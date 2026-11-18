@@ -121,8 +121,8 @@ async function deezerSearch(query: string): Promise<DeezerResults> {
   const covers = (env as { COVERS?: Fetcher }).COVERS;
   if (!covers) return (((await json(`https://api.deezer.com/search?${new URLSearchParams({ q: query, limit: '5' })}`)) as { data?: DeezerResults }).data ?? []);
   const res = await covers.fetch(`https://covers/deezer/search?${new URLSearchParams({ q: query })}`, { signal: AbortSignal.timeout(6000) });
-  const body = (await res.json().catch(() => ({}))) as { data?: DeezerResults; error?: string; placement?: string };
-  if (!res.ok) throw new Error(`covers Worker ${res.status}: ${body.error ?? ''} (${body.placement ?? 'no placement'})`);
+  const body = (await res.json().catch(() => ({}))) as { data?: DeezerResults; error?: string; where?: { colo?: string } };
+  if (!res.ok) throw new Error(`covers Worker ${res.status}: ${body.error ?? ''} (in ${body.where?.colo || '?'})`);
   return body.data ?? [];
 }
 
