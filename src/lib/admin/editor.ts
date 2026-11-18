@@ -32,8 +32,8 @@
  *   - The text box has a formatting toolbar and shortcuts (src/lib/admin/markdown-tools.ts), counts
  *     words and minutes to read as the post page does, and has a focus mode that hides the other
  *     fields. On wide screens the preview sits beside it and follows its scrolling.
- *   - ⌘S (Ctrl+S) saves whichever editor is open: a draft right away instead of after the pause, a
- *     published post's changes, a series or a page.
+ *   - Ctrl+S (⌘S on a Mac) saves whichever editor is open: a draft right away instead of after the
+ *     pause, a published post's changes, a series or a page. The Save buttons say which.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoriesFromRecord, type Category } from '~/lib/categories.mjs';
@@ -48,7 +48,7 @@ import { countChars } from '~/lib/status-states.mjs';
 import { cardKey, cardPostOf, postCard } from './card-text';
 import { el, errorText, formatTime, item, message, revalidate, row, saveState, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
-import { insertText, markdownTools } from './markdown-tools';
+import { ariaShortcut, insertText, markdownTools, pressedShortcut, shortcut } from './markdown-tools';
 import { missingScopes } from './oauth';
 import { leavePage, openPage, pageRoute, savePageNow } from './page-editor';
 import { sectionFromHash, showSection } from './sections';
@@ -283,8 +283,14 @@ function setupEditor() {
   el('editor').addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && el('editor').dataset.focus !== undefined) setFocus(false);
   });
+  // The save shortcut, on every Save button and save state
+  for (const id of ['edSavePost', 'seSave', 'peSave']) {
+    el(id).title = `Save (${shortcut('S')})`;
+    el(id).setAttribute('aria-keyshortcuts', ariaShortcut('S'));
+  }
+  for (const id of ['editorState', 'seState', 'peState']) el(id).title = `${shortcut('S')} saves now`;
   window.addEventListener('keydown', (event) => {
-    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 's') return;
+    if (pressedShortcut(event) !== 's') return;
     const view = document.body.dataset.view;
     if (view === 'editor') saveNow();
     else if (view === 'series') saveSeriesNow();

@@ -1,6 +1,6 @@
 /**
  * Markdown tools for a text box: a toolbar (bold, italic, link, heading, quote, lists, code), the
- * shortcuts ⌘B, ⌘I and ⌘K (Ctrl on Windows and Linux), Enter continuing a list, and pasting an
+ * shortcuts Ctrl+B, Ctrl+I and Ctrl+K (⌘B, ⌘I and ⌘K on a Mac), Enter continuing a list, and pasting an
  * address over selected text to make a link. Optionally, an image pasted or dropped into the box is
  * handed to `onImage`. Used by the post editor and the pages' Markdown fields.
  *
@@ -8,15 +8,21 @@
  * (⌘Z), and fires the box's input event, so the editors notice it like typing.
  */
 import { code, continueList, link, pasteLink, toggleLines, wrap, type Edit, type State } from '~/lib/markdown-edit.mjs';
+import { isMacPlatform, platformName, shortcutKey, shortcutLabel } from '~/lib/shortcuts.mjs';
 
 export interface ToolsOptions {
   /** An image pasted or dropped into the box; without it, images paste as the browser would */
   onImage?: (file: File) => void;
 }
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-/** "⌘B" on a Mac, "Ctrl+B" elsewhere */
-export const shortcut = (key: string) => (isMac ? `⌘${key}` : `Ctrl+${key}`);
+/** ⌘ on a Mac, an iPad or an iPhone; Ctrl on Windows, Linux and ChromeOS (src/lib/shortcuts.mjs) */
+const mac = isMacPlatform(platformName());
+/** "Ctrl+B" on Windows and Linux, "⌘B" on a Mac */
+export const shortcut = (key: string) => shortcutLabel(key, mac);
+/** For aria-keyshortcuts: "Control+B", or "Meta+B" on a Mac */
+export const ariaShortcut = (key: string) => `${mac ? 'Meta' : 'Control'}+${key.toUpperCase()}`;
+/** The letter of a shortcut being pressed with this computer's modifier, lower case, or '' */
+export const pressedShortcut = (event: KeyboardEvent) => shortcutKey(event, mac);
 
 interface Tool {
   label: string;
@@ -81,6 +87,7 @@ export function markdownTools(area: HTMLTextAreaElement, options: ToolsOptions =
     const name = tool.key ? `${tool.label} (${shortcut(tool.key)})` : tool.label;
     b.title = name;
     b.setAttribute('aria-label', name);
+    if (tool.key) b.setAttribute('aria-keyshortcuts', ariaShortcut(tool.key));
     // Keeps the selection in the box when the button is pressed
     b.addEventListener('mousedown', (event) => event.preventDefault());
     b.addEventListener('click', () => applyEdit(area, tool.edit(stateOf(area))));
@@ -90,16 +97,17 @@ export function markdownTools(area: HTMLTextAreaElement, options: ToolsOptions =
   area.addEventListener('keydown', (event) => {
     // Not while an input method is composing (Chinese, Japanese, Korean)
     if (event.isComposing) return;
-    const mod = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
-    if (mod && !event.altKey && !event.shiftKey) {
-      const tool = TOOLS.find((t) => t.key && t.key.toLowerCase() === event.key.toLowerCase());
+    const key = pressedShortcut(event);
+    if (key) {
+      const tool = TOOLS.find((t) => t.key?.toLowerCase() === key);
       if (tool) {
         event.preventDefault();
         applyEdit(area, tool.edit(stateOf(area)));
       }
+      // Anything else (Ctrl+S, Ctrl+Z) goes on to the editor and the browser
       return;
     }
-    if (event.key === 'Enter' && !mod && !event.altKey && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
       const e = continueList(stateOf(area));
       if (e) {
         event.preventDefault();
