@@ -3,6 +3,7 @@ import Shell from '../layouts/shell.astro';
 import Icon from '../components/icon.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { PAGES_CACHE, getCv, getServices } from '~/lib/page-content';
+import { ratingSummary, reviews, serviceAnchor, serviceKey, serviceOf, stars, testimonialGroups } from '~/lib/testimonials.mjs';
 
 // Rendered on request: the services and the CV's highlights come from their records (src/lib/page-content.ts)
 export const prerender = false;
@@ -14,6 +15,14 @@ const site = Astro.site!;
 const pageUrl = new URL('/services/', site).toString();
 const services = data.services;
 const testimonials = data.testimonials;
+// What the testimonials are about, for the filter and the service cards' "★ 5.0 · 1 review"
+const summary = ratingSummary(testimonials);
+const groups = testimonialGroups(testimonials, services);
+const groupOf = (name: string) => groups.find((g) => g.key === serviceKey(name));
+// The first few testimonials show, the rest behind "Show more" (the script below); the filter only
+// appears once there are more than that, about more than one thing
+const SHOWN = 6;
+const filterable = testimonials.length > SHOWN && groups.length > 1;
 
 const email = 'work@skiddle.id';
 const mailto = (subject: string, body?: string) =>
@@ -111,7 +120,7 @@ const jsonLd = {
       </p>
       <div class="mt-4 grid gap-3 md:grid-cols-2">
         {services.map((svc, i) => (
-          <article class="card p-5 flex flex-col hover:border-[var(--color-primary)] transition-colors">
+          <article id={serviceAnchor(svc.name)} class="card p-5 flex flex-col scroll-mt-16 hover:border-[var(--color-primary)] transition-colors">
             <header class="flex items-baseline justify-between gap-3">
               <h3 class="font-semibold text-[var(--color-primary)]">{svc.name}</h3>
               <span class="text-xs text-[var(--color-muted)] tabular-nums shrink-0" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
@@ -125,8 +134,16 @@ const jsonLd = {
                 ))}
               </ul>
             )}
-            <p class="mt-auto pt-4 text-sm">
+            <p class="mt-auto pt-4 text-sm flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <a href={mailto(`Inquiry: ${svc.name}`, briefTemplate)} class="link">Ask about this →</a>
+              {(() => {
+                const g = groupOf(svc.name);
+                return g?.summary && (
+                  <a href="#kind-words" data-show-reviews={g.key} class="text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)]">
+                    <span class="text-[var(--color-warn)]" aria-hidden="true">★</span> {g.summary.average} · {reviews(g.count)}
+                  </a>
+                );
+              })()}
             </p>
           </article>
         ))}
@@ -147,22 +164,51 @@ const jsonLd = {
       </ol>
     </section>
 
-    <!-- Testimonials -->
+    <!--
+      Testimonials, in the record's order (drag them in the admin app to reorder). Quotes of any
+      length pack into columns. With JavaScript: chips to show one service's, and "Show more" past
+      the first few. Without it, every one shows.
+    -->
     {testimonials.length > 0 && (
-      <section aria-labelledby="kind-words" class="mt-12">
-        <h2 id="kind-words" class="font-semibold before-hash-2">What people say</h2>
-        <div class="mt-4 grid gap-3 md:grid-cols-3">
-          {testimonials.map((t) => (
-            <figure class="card p-5 flex flex-col">
-              <blockquote class="text-sm leading-relaxed">“{t.quote}”</blockquote>
-              <figcaption class="mt-auto pt-4 text-xs text-[var(--color-muted)]">
-                <span class="block text-[var(--color-text)]">{t.author}</span>
-                {t.role}
-                <span class="block mt-1 text-[var(--color-primary)]">{t.serviceName}</span>
-              </figcaption>
-            </figure>
-          ))}
+      <section id="kind-words" aria-labelledby="kind-words-title" class="mt-12 scroll-mt-16" data-testimonials data-shown={SHOWN}>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 id="kind-words-title" class="font-semibold before-hash-2">What people say</h2>
+          {summary && (
+            <p class="text-xs text-[var(--color-muted)]">
+              <span class="text-[var(--color-warn)]" aria-hidden="true">★</span> {summary.average} average · {reviews(summary.count)}
+            </p>
+          )}
         </div>
+        {/* One row that scrolls sideways on a phone, so the chips don't push the testimonials down; wrapped on wider screens */}
+        {filterable && (
+          <div class="mt-3 -mx-1 px-1 pb-1 flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible [scrollbar-width:thin]" role="group" aria-label="Show testimonials about" data-filters hidden>
+            <button type="button" class="btn shrink-0 whitespace-nowrap aria-pressed:border-[var(--color-primary)] aria-pressed:text-[var(--color-primary)]" aria-pressed="true" data-filter="">All <span class="text-[var(--color-muted)] tabular-nums">{testimonials.length}</span></button>
+            {groups.map((g) => (
+              <button type="button" class="btn shrink-0 whitespace-nowrap aria-pressed:border-[var(--color-primary)] aria-pressed:text-[var(--color-primary)]" aria-pressed="false" data-filter={g.key}>{g.label} <span class="text-[var(--color-muted)] tabular-nums">{g.count}</span></button>
+            ))}
+          </div>
+        )}
+        <div class="mt-4 columns-1 md:columns-2 lg:columns-3 gap-3" data-list aria-live="polite">
+          {testimonials.map((t, i) => {
+            const service = serviceOf(services, t.serviceName);
+            return (
+              <figure class="card p-5 mb-3 break-inside-avoid" data-service={serviceKey(service?.name ?? t.serviceName ?? '')} data-index={i}>
+                <p class="text-[var(--color-warn)] text-sm tracking-[0.15em]" role="img" aria-label={`${t.rating} out of 5 stars`}>{stars(t.rating)}</p>
+                <blockquote class="text-sm leading-relaxed mt-2">“{t.quote}”</blockquote>
+                <figcaption class="pt-4 text-xs text-[var(--color-muted)]">
+                  <span class="block text-[var(--color-text)]">{t.author}</span>
+                  {t.role}
+                  {service ? (
+                    <a href={`#${serviceAnchor(service.name)}`} class="block mt-1 text-[var(--color-primary)] hover:underline">{service.name}</a>
+                  ) : (
+                    t.serviceName && <span class="block mt-1 text-[var(--color-primary)]">{t.serviceName}</span>
+                  )}
+                </figcaption>
+              </figure>
+            );
+          })}
+        </div>
+        <button type="button" class="btn" data-more hidden></button>
       </section>
     )}
 
@@ -185,3 +231,49 @@ const jsonLd = {
     </section>
   </div>
 </Shell>
+
+<script>
+  // The testimonials' filter and "Show more" (the section above). Without this, every one shows.
+  const root = document.querySelector<HTMLElement>('[data-testimonials]');
+  if (root) {
+    // The first few show (data-shown); the rest wait behind "Show more", so a long list doesn't bury the contact form
+    const SHOWN = Number(root.dataset.shown) || 6;
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-list] > figure')];
+    const filters = root.querySelector<HTMLElement>('[data-filters]');
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const more = root.querySelector<HTMLButtonElement>('[data-more]')!;
+    let current = '';
+    let all = false;
+
+    const render = () => {
+      const matching = cards.filter((c) => !current || c.dataset.service === current);
+      const visible = all ? matching : matching.slice(0, SHOWN);
+      for (const c of cards) c.hidden = !visible.includes(c);
+      const rest = matching.length - visible.length;
+      more.hidden = rest <= 0;
+      more.textContent = `Show ${rest} more`;
+      for (const b of buttons) b.setAttribute('aria-pressed', String((b.dataset.filter ?? '') === current));
+    };
+    const choose = (key: string) => {
+      current = key;
+      all = false;
+      render();
+    };
+
+    if (filters) filters.hidden = false;
+    for (const b of buttons) b.addEventListener('click', () => choose(b.dataset.filter ?? ''));
+    more.addEventListener('click', () => {
+      const first = cards.find((c) => c.hidden && (!current || c.dataset.service === current));
+      all = true;
+      render();
+      // Keyboard users carry on from the first one that appeared
+      if (first) {
+        first.tabIndex = -1;
+        first.focus({ preventScroll: true });
+      }
+    });
+    // A service card's "★ 5.0 · 1 review" shows just that service's
+    for (const a of document.querySelectorAll<HTMLElement>('[data-show-reviews]')) a.addEventListener('click', () => choose(a.dataset.showReviews ?? ''));
+    render();
+  }
+</script>

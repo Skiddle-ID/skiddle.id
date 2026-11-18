@@ -1,0 +1,211 @@
+---
+/*
+  The home page's testimonials: every one from the services record, one at a time, sliding.
+  - Swipe or scroll it sideways (CSS scroll snap), or use ‹ ›, the dots, or ← → with it focused.
+  - It moves on by itself every 7 seconds, pausing while the pointer or focus is on it and while
+    the tab is hidden. It stops for good once someone moves it themselves, and never starts for
+    people who ask for less motion (prefers-reduced-motion).
+  - Without JavaScript it's still a sideways-scrolling row, just without the buttons.
+  "all →" goes to every testimonial on /services/.
+*/
+import type { TestimonialItem } from '~/types/services';
+
+interface Props {
+  testimonials: TestimonialItem[];
+}
+
+const { testimonials } = Astro.props;
+const n = testimonials.length;
+// Dots for a handful; a counter beyond that, where dots would get too small to hit
+const dots = n <= 8;
+---
+
+{n > 0 && (
+  <section aria-label="What people say" class="mt-12" data-slider>
+    <div
+      class="slider-track"
+      data-track
+      role={n > 1 ? 'region' : undefined}
+      aria-roledescription={n > 1 ? 'carousel' : undefined}
+      aria-label={n > 1 ? 'Testimonials' : undefined}
+      tabindex={n > 1 ? 0 : undefined}
+    >
+      {testimonials.map((t, i) => (
+        <figure class="slider-slide border-l-2 border-[var(--color-primary)] pl-4" data-slide aria-roledescription={n > 1 ? 'slide' : undefined} aria-label={n > 1 ? `${i + 1} of ${n}` : undefined}>
+          <blockquote class="text-sm leading-relaxed">“{t.quote}”</blockquote>
+          <figcaption class="text-xs text-[var(--color-muted)] mt-2">
+            — <span class="text-[var(--color-text)]">{t.author}</span>{t.role && <>, {t.role}</>}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+    <div class="mt-3 flex items-center gap-2 text-xs text-[var(--color-muted)]">
+      {n > 1 && (
+        <div class="flex items-center gap-1" data-controls hidden>
+          <button type="button" class="slider-btn" data-prev aria-label="Previous testimonial">‹</button>
+          {dots ? (
+            <span class="flex items-center">
+              {testimonials.map((t, i) => (
+                <button type="button" class="slider-dot" data-dot={i} aria-label={`Testimonial ${i + 1}: ${t.author}`} aria-current={i === 0 ? 'true' : undefined}>
+                  <span aria-hidden="true"></span>
+                </button>
+              ))}
+            </span>
+          ) : (
+            <span class="tabular-nums px-1" data-count aria-hidden="true">1 / {n}</span>
+          )}
+          <button type="button" class="slider-btn" data-next aria-label="Next testimonial">›</button>
+        </div>
+      )}
+      <a href="/services/#kind-words" class="ml-auto hover:text-[var(--color-primary)]">{n > 1 ? `all ${n} →` : 'more →'}</a>
+    </div>
+  </section>
+)}
+
+<style>
+  .slider-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border-radius: 2px;
+  }
+  .slider-track::-webkit-scrollbar {
+    display: none;
+  }
+  .slider-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+  }
+  /* Each slide is the track's whole width; the tallest sets the height, so nothing jumps */
+  .slider-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+  .slider-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .slider-btn:hover {
+    color: var(--color-primary);
+  }
+  /* A dot inside a bigger button, so it's easy to hit */
+  .slider-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.75rem;
+    cursor: pointer;
+  }
+  .slider-dot > span {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 999px;
+    background: var(--color-border);
+    transition: background-color 0.2s, width 0.2s;
+  }
+  .slider-dot[aria-current='true'] > span {
+    width: 0.875rem;
+    background: var(--color-primary);
+  }
+  .slider-dot:hover > span {
+    background: var(--color-primary);
+  }
+  .slider-btn:focus-visible,
+  .slider-dot:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slider-dot > span {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const INTERVAL_MS = 7000;
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-slider]')) {
+    const track = root.querySelector<HTMLElement>('[data-track]');
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const controls = root.querySelector<HTMLElement>('[data-controls]');
+    if (!track || !controls || slides.length < 2) continue;
+    controls.hidden = false;
+
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-dot]')];
+    const count = root.querySelector<HTMLElement>('[data-count]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    // Stopped: someone moved it themselves, or asked for less motion. Paused: pointer or focus on it.
+    let stopped = reduce.matches;
+    let paused = false;
+
+    const show = () => {
+      dots.forEach((d, i) => (i === index ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+      if (count) count.textContent = `${index + 1} / ${slides.length}`;
+    };
+
+    const go = (i: number, byPerson: boolean) => {
+      index = (i + slides.length) % slides.length;
+      track.scrollTo({ left: index * track.clientWidth, behavior: reduce.matches ? 'auto' : 'smooth' });
+      show();
+      if (byPerson) {
+        stopped = true;
+        // Screen readers hear the new slide when someone moves it, not while it moves by itself
+        track.setAttribute('aria-live', 'polite');
+      }
+    };
+
+    root.querySelector('[data-prev]')?.addEventListener('click', () => go(index - 1, true));
+    root.querySelector('[data-next]')?.addEventListener('click', () => go(index + 1, true));
+    dots.forEach((d, i) => d.addEventListener('click', () => go(i, true)));
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        go(index + (e.key === 'ArrowRight' ? 1 : -1), true);
+      }
+    });
+
+    // A swipe or a sideways scroll moves it too: follow it, and stop moving on by itself
+    for (const type of ['pointerdown', 'wheel', 'touchstart'] as const) track.addEventListener(type, () => (stopped = true), { passive: true });
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    track.addEventListener('scroll', () => {
+      clearTimeout(settle);
+      settle = setTimeout(() => {
+        const at = Math.round(track.scrollLeft / track.clientWidth);
+        if (at !== index && at >= 0 && at < slides.length) {
+          index = at;
+          show();
+        }
+      }, 120);
+    });
+
+    // Keep the same slide in view when the width changes
+    new ResizeObserver(() => track.scrollTo({ left: index * track.clientWidth, behavior: 'auto' })).observe(track);
+
+    root.addEventListener('pointerenter', () => (paused = true));
+    root.addEventListener('pointerleave', () => (paused = false));
+    root.addEventListener('focusin', () => (paused = true));
+    root.addEventListener('focusout', (e) => {
+      if (!root.contains(e.relatedTarget as Node | null)) paused = false;
+    });
+    reduce.addEventListener('change', () => {
+      if (reduce.matches) stopped = true;
+    });
+
+    setInterval(() => {
+      if (!stopped && !paused && !document.hidden) go(index + 1, false);
+    }, INTERVAL_MS);
+  }
+</script>
