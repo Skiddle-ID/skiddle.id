@@ -4,6 +4,7 @@ import Icon from '../components/icon.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { PAGES_CACHE, getCv, getServices } from '~/lib/page-content';
 import { ratingSummary, reviews, serviceAnchor, serviceKey, serviceOf, stars, testimonialGroups } from '~/lib/testimonials.mjs';
+import { scriptJson } from '~/lib/script-json.mjs';
 
 // Rendered on request: the services and the CV's highlights come from their records (src/lib/page-content.ts)
 export const prerender = false;
@@ -72,7 +73,7 @@ const jsonLd = {
 ---
 
 <Shell title={`${CONTENT_PAGES.services.title} — Skiddle`} description={CONTENT_PAGES.services.description}>
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
   <div class="max-w-[56rem] w-full">
 
     <!-- Pitch -->

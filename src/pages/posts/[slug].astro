@@ -15,6 +15,7 @@ import BlueskyComments from '~/components/bluesky-comments.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
 import { categoryLabel } from '~/lib/categories.mjs';
+import { scriptJson } from '~/lib/script-json.mjs';
 import { categoryUrl, postUrl, readingMinutes, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
 import { getCategories } from '~/lib/site-categories';
 import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
@@ -113,7 +114,7 @@ const jsonLd = {
 ---
 
 <Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage} atDocument={atDocument}>
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
 
   <!-- Wide screens: article plus a sticky "On this page" column, centred together -->
   <div class="w-full xl:flex xl:justify-center xl:gap-14">

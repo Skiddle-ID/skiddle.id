@@ -13,6 +13,7 @@ import SeriesBar from '~/components/series-bar.astro';
 import SeriesEntries from '~/components/series-entries.astro';
 import { groupSeries, postUrl, seriesSlug, seriesStatus, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
+import { scriptJson } from '~/lib/script-json.mjs';
 import { env } from 'cloudflare:workers';
 
 const slug = Astro.params.slug ?? '';
@@ -48,7 +49,7 @@ const jsonLd = {
 ---
 
 <Shell title={`${series.name} — Skiddle`} description={description} image={shareImage}>
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
   <div class="max-w-[70ch] w-full">
     <p class="text-xs text-[var(--color-muted)] mb-3">
       <a href="/series/" class="hover:text-[var(--color-primary)]">series</a>
