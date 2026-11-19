@@ -1,0 +1,95 @@
+---
+title: From Fear to Flight
+nav: writing
+description: From Fear to Flight, a series in six parts: how I went from hating heights to flying as a private pilot.
+reading: yes
+---
+<style>
+.fl-head { display: grid; gap: 2rem; align-items: center; padding-block: clamp(2rem, 1.2rem + 3vw, 4rem) clamp(1.5rem, 1rem + 2vw, 2.5rem); }
+.fl-head .text { display: grid; gap: 1rem; }
+.fl-fig img { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); aspect-ratio: 1000 / 666; object-fit: cover; }
+.fl-fig figcaption { margin-top: 0.5rem; font-size: var(--fs-xs); color: var(--muted); }
+@media (min-width: 60rem) {
+  .fl-head { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+}
+.plan-strip { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.plan-strip-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.625rem 1.125rem; border-bottom: 1px dashed var(--border); font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.plan-strip-head b { color: var(--text); font-weight: 600; }
+.plan-strip .route-big { padding: 1.5rem 1.125rem 1.25rem; }
+.route-big .wp { padding-bottom: 1.5rem; }
+.route-big .wp::before { background: var(--bg-alt); }
+.route-big .wp.is-done::before { background: var(--primary); }
+.route-big .wp.is-planned::before { border-style: solid; border-color: var(--border-strong); }
+.route-big .wp-title { font-size: var(--fs-md); }
+.route-big .wp-desc { display: block; margin-top: 0.25rem; font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); max-width: 26rem; }
+.route-big .wp-title[href] { text-decoration: none; }
+.route-big .wp-title[href]:hover { color: var(--primary); text-decoration: underline; }
+.wp-next { display: inline-block; margin-left: 0.5rem; padding: 0 0.375rem; border: 1px dashed var(--primary); border-radius: 3px; color: var(--primary); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; vertical-align: 0.15em; }
+.wp-ends.wp-pad { display: none; }
+.wp-ends { display: block; font-size: var(--fs-xs); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+/* Wide screens: the route runs left to right, like a route on a chart */
+@media (min-width: 64rem) {
+  .route-big .wp-ends.wp-pad { display: block; }
+  .plan-strip .route-big { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding-top: 1.75rem; }
+  .route-big .wp { padding: 1.75rem 1rem 0 0; }
+  .route-big .wp::before { left: 0; top: 0; }
+  .route-big .wp::after { left: 0.875rem; right: 0.25rem; top: 0.375rem; bottom: auto; border-left: 0; border-top: 2px solid var(--primary); }
+  .route-big .wp.is-planned::after, .route-big .wp:has(+ .is-planned)::after { border-left: 0; border-top: 2px dashed var(--muted); }
+}
+.after { display: grid; gap: 1rem; }
+@media (min-width: 48rem) { .after { grid-template-columns: 1fr 1fr; } }
+</style>
+<main id="main">
+  <header class="wrap fl-head">
+    <div class="text">
+      <p class="crumbs"><a href="writing.html">writing</a> <span aria-hidden="true">/</span> <a href="series.html">series</a></p>
+      <h1 class="display">From Fear to Flight</h1>
+      <p class="lede">Post of Series of my Flight Journey.</p>
+      <dl class="readouts">
+        <div><dt>Published</dt><dd>1 of 6</dd></div>
+        <div><dt>Next</dt><dd>Ground School</dd></div>
+        <div><dt>Started</dt><dd><time datetime="2025-09-30">Sep 2025</time></dd></div>
+      </dl>
+      <div class="actions">
+        <a class="btn btn-primary" href="post.html">Start at part 1 <span aria-hidden="true">→</span></a>
+        <a class="btn" href="#rss">Follow with RSS</a>
+      </div>
+    </div>
+    <figure class="fl-fig">
+      <img src="img/flight-1000.webp" srcset="img/flight-640.webp 640w, img/flight-1000.webp 1000w" sizes="(min-width: 60rem) 36rem, 100vw" width="1000" height="666" alt="Illustration of a couple looking out of an airplane window at a sunset above the clouds" fetchpriority="high">
+      <figcaption>From part 1, How It All Started</figcaption>
+    </figure>
+  </header>
+
+  <section class="wrap section" aria-labelledby="route-h">
+    <div class="plan-strip">
+      <h2 id="route-h" class="plan-strip-head"><span>Route · <b>6 parts</b></span><span>1 flown · 5 planned</span></h2>
+      <ol class="route-v route-big">
+        <li class="wp is-done"><span class="wp-ends">Departure</span><span class="wp-part">Part 01</span><a class="wp-title" href="post.html">How It All Started #1</a><span class="wp-meta"><time datetime="2025-09-30">30 Sep 2025</time> · 2 min</span><span class="wp-desc">From hating heights to a surprise skydive to PPL ground school: how I ended up learning to fly.</span></li>
+        <li class="wp is-planned"><span class="wp-ends wp-pad" aria-hidden="true">&nbsp;</span><span class="wp-part">Part 02</span><span class="wp-title">Ground School <span class="wp-next">next</span></span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-ends wp-pad" aria-hidden="true">&nbsp;</span><span class="wp-part">Part 03</span><span class="wp-title">First Flights</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-ends wp-pad" aria-hidden="true">&nbsp;</span><span class="wp-part">Part 04</span><span class="wp-title">First Solo</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-ends wp-pad" aria-hidden="true">&nbsp;</span><span class="wp-part">Part 05</span><span class="wp-title">Planning Real Flights</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-ends">Arrival</span><span class="wp-part">Part 06</span><span class="wp-title">The Checkride</span><span class="wp-meta">planned</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="more-h">
+    <div class="sec-head"><h2 id="more-h">Around this series</h2></div>
+    <div class="after">
+      <article class="strip is-flight"><span class="strip-bay" aria-hidden="true">Flight</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title"><a href="flying.html">Flying</a></h3><p class="strip-desc">The logbook, its totals and this series in one place. Coming in v4.2, from my own flight records.</p></div></div></article>
+      <article class="strip"><span class="strip-bay" aria-hidden="true">Series</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title"><a href="series.html">All series</a></h3><p class="strip-desc">Lab Notes, Rebuilding skiddle.id, checkdomain and this one, each as a route.</p></div></div></article>
+    </div>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>One series, one chart.</b> On wide screens the six parts run left to right as a route with a departure and an arrival; on phones the same list runs top to bottom.</li>
+    <li>It's still one ordered list; the direction is only CSS. Planned parts say "planned" in text, and part 2 carries a "next" label.</li>
+    <li>The illustration is the page's only image: 22 KB on phones and 42 KB on laptops (WebP with <code>srcset</code>), sized so nothing shifts while it loads.</li>
+    <li>The description is the series record's own ("Post of Series of my Flight Journey."); a rewrite in the admin would serve this page well.</li>
+    <li>The page ends with where to go next: the coming Flying page and the other series.</li>
+  </ul>
+</template>

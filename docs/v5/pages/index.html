@@ -1,0 +1,153 @@
+---
+title: Overview
+nav: none
+description: The v5 redesign of skiddle.id, "Logbook": every page mocked up, with the idea, the parts and the budgets.
+---
+<style>
+.trio { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.trio .card { padding: 1.25rem; gap: 0.625rem; }
+.trio .card h3 { font-size: var(--fs-md); }
+.trio .card ul { list-style: none; padding: 0; display: grid; gap: 0.25rem; font-size: var(--fs-sm); color: var(--text); }
+.trio .card li::before { content: '→ ' / ''; color: var(--primary); }
+.pages { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+.pages h3 { font-size: var(--fs-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+.pages ul { list-style: none; padding: 0; display: grid; border-top: 1px solid var(--border); }
+.pages li a { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.pages li a b { font-weight: 600; }
+.pages li a span { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.pages li a:hover b { color: var(--primary); }
+.pages .soon { color: var(--t-flight); font-family: var(--font-mono); font-size: var(--fs-xs); }
+.demo { display: grid; gap: 1rem; }
+.demo-row { display: grid; gap: 0.75rem 1.5rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--rule); }
+.demo-row:last-child { border-bottom: 0; }
+.demo-row h3 { font-size: var(--fs-base); }
+.demo-row p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+@media (min-width: 52rem) { .demo-row { grid-template-columns: 16rem minmax(0, 1fr); } }
+.decide { counter-reset: d; display: grid; gap: 0.75rem; }
+.decide li { counter-increment: d; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0.25rem 0.75rem; font-family: var(--font-sans); letter-spacing: 0; }
+.decide li::before { content: counter(d, decimal-leading-zero); font-family: var(--font-mono); color: var(--primary); font-weight: 600; grid-row: span 2; }
+.decide b { font-family: var(--font-mono); letter-spacing: -0.01em; }
+.decide span { color: var(--muted); font-size: var(--fs-sm); }
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ cat docs/v5/README</p>
+    <h1 class="display">v5 · Logbook</h1>
+    <p class="lede">A redesign of every page. Each one is a page of your logbook: posts, builds, plays and flights are all <strong>entries</strong>, because since v4 they're all <strong>records</strong> in your repo. It keeps the terminal, adds the flight deck, and shows the protocol underneath.</p>
+    <p class="lede"><strong>Mono speaks for the machine; Sans speaks for Jeff.</strong> Labels, titles, dates and code are Geist Mono. Anything you'd read as a sentence is Geist Sans.</p>
+    <div class="actions"><a class="btn btn-primary" href="home.html">Start at the home page <span aria-hidden="true">→</span></a><a class="btn" href="post.html">See a post</a></div>
+  </header>
+
+  <section class="wrap section" aria-labelledby="three-h">
+    <div class="sec-head"><h2 id="three-h">Three of you, one language</h2></div>
+    <div class="trio">
+      <article class="card"><h3>The terminal <span class="muted">· engineer</span></h3><p>What people liked about v1 and v3 stays.</p><ul><li>the <code>skiddle@web:~$</code> prompt</li><li><code>##</code> headings</li><li>search with Ctrl K or ⌘K</li><li>a blinking cursor (steady with reduced motion)</li></ul></article>
+      <article class="card"><h3>The flight deck <span class="muted">· pilot</span></h3><p>Borrowed from cockpits and air traffic control, so flying is part of the site, not a page of it.</p><ul><li>flight strips for entries</li><li>series drawn as routes</li><li>Bangkok and Zulu time</li><li>a hold-short line before the call to action</li><li>NOTE and CAUTION callouts</li></ul></article>
+      <article class="card"><h3>The repo <span class="muted">· protocol</span></h3><p>v4 put everything in AT Protocol. v5 lets it show, quietly.</p><ul><li>a crew card numbered with your DID</li><li>"Lately, in my repo" with collection names</li><li>"This post is a record"</li><li>totals carried forward in the footer</li></ul></article>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="parts-h">
+    <div class="sec-head"><h2 id="parts-h">The parts</h2></div>
+    <div class="demo">
+      <div class="demo-row">
+        <div><h3>Strip</h3><p>One entry: a post, a build, a play, a flight. The coloured bay names its type in words.</p></div>
+        <article class="strip"><span class="strip-bay" aria-hidden="true">Post</span><div class="strip-main"><div class="strip-body"><h4 class="strip-title"><a href="post.html">Fast and Accessible</a></h4><p class="strip-desc">What a Lighthouse audit found on my site, and how the home page went from 274 KB to 82 KB.</p></div><dl class="cells"><div class="cell"><dt>Date</dt><dd><time datetime="2026-11-14">14 Nov 26</time></dd></div><div class="cell"><dt>Read</dt><dd>4 min</dd></div></dl></div></article>
+      </div>
+      <div class="demo-row">
+        <div><h3>Route</h3><p>A series as a flight plan. Filled is published, dashed is planned, the ringed one is where you are.</p></div>
+        <ol class="route-v" aria-label="From Fear to Flight, 1 of 6 parts published">
+          <li class="wp is-done is-here"><span class="wp-part">Part 1</span><a class="wp-title" href="series-flight.html">How It All Started</a><span class="wp-here">you're here</span></li>
+          <li class="wp is-planned"><span class="wp-part">Part 2 · planned</span><span class="wp-title">Ground School</span></li>
+          <li class="wp is-planned"><span class="wp-part">Part 3 · planned</span><span class="wp-title">First Flights</span></li>
+        </ol>
+      </div>
+      <div class="demo-row">
+        <div><h3>Readouts</h3><p>A row of labelled numbers, like an instrument's data block.</p></div>
+        <dl class="readouts"><div><dt>Posts</dt><dd>15</dd></div><div><dt>Series</dt><dd>4</dd></div><div><dt>Plays, 7 days</dt><dd>107</dd></div></dl>
+      </div>
+      <div class="demo-row">
+        <div><h3>Callouts</h3><p>Named like a pilot's operating handbook.</p></div>
+        <div class="prose" style="font-size: var(--fs-base)"><div class="callout"><b>NOTE</b>Every record in a repo is public, drafts included.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="pages-h">
+    <div class="sec-head"><h2 id="pages-h">Every page</h2><span class="more">19 mockups</span></div>
+    <div class="pages">
+      <div><h3>Writing</h3><ul>
+        <li><a href="home.html"><b>Home</b><span>Crew card, the repo's log, Now, writing, work, kind words</span></a></li>
+        <li><a href="writing.html"><b>Writing</b><span>Every post as a ruled logbook, by year</span></a></li>
+        <li><a href="post.html"><b>Post</b><span>Lab Notes #2, with its route and a checklist of sections</span></a></li>
+        <li><a href="series.html"><b>Series</b><span>Every series as a route</span></a></li>
+        <li><a href="series-flight.html"><b>One series</b><span>From Fear to Flight</span></a></li>
+        <li><a href="topics.html"><b>Topics</b><span>Categories and tags</span></a></li>
+        <li><a href="notes.html"><b>Notes <span class="soon">v4.1</span></b><span>Short posts from Bluesky</span></a></li>
+      </ul></div>
+      <div><h3>Work</h3><ul>
+        <li><a href="work.html"><b>Work</b><span>Works, projects and services under one menu item</span></a></li>
+        <li><a href="services.html"><b>Services</b><span>What I can help with, and kind words</span></a></li>
+        <li><a href="projects.html"><b>Projects</b><span>Builds, running and done</span></a></li>
+        <li><a href="cv.html"><b>CV</b><span>Prints cleanly on A4</span></a></li>
+        <li><a href="changelog.html"><b>Changelog <span class="soon">later</span></b><span>Releases as logbook entries</span></a></li>
+      </ul></div>
+      <div><h3>Me</h3><ul>
+        <li><a href="about.html"><b>About</b><span>The story, how I work, so far</span></a></li>
+        <li><a href="now.html"><b>Now <span class="soon">v4.1</span></b><span>A position report</span></a></li>
+        <li><a href="listening.html"><b>Listening</b><span>Now playing, this week, every play</span></a></li>
+        <li><a href="flying.html"><b>Flying <span class="soon">v4.2</span></b><span>The series, the logbook, the weather</span></a></li>
+        <li><a href="uses.html"><b>Uses</b><span>An equipment list</span></a></li>
+        <li><a href="404.html"><b>404</b><span>Not in the database</span></a></li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="budget-h">
+    <div class="sec-head"><h2 id="budget-h">Fast and accessible, by design</h2></div>
+    <div class="grid-2 even">
+      <div class="table-wrap">
+        <table class="data">
+          <caption>Budget per page, gzipped</caption>
+          <thead><tr><th scope="col">What</th><th scope="col" class="num">Budget</th><th scope="col">How</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">CSS</th><td class="num">≤ 10 KB</td><td>one stylesheet, no framework</td></tr>
+            <tr><th scope="row">JavaScript</th><td class="num">≤ 3 KB</td><td>clock, theme, search, slides, checklist; all optional</td></tr>
+            <tr><th scope="row">Fonts</th><td class="num">2 × ~12 KB</td><td>Mono 400 and Sans 400 preloaded, the rest on use</td></tr>
+            <tr><th scope="row">Third parties</th><td class="num">0</td><td>everything from the site's own domain</td></tr>
+            <tr><th scope="row">Layout shift</th><td class="num">0</td><td>every image sized, no injected banners</td></tr>
+            <tr><th scope="row">Largest paint</th><td class="num">text</td><td>the heading, never waiting on an image</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="bullets">
+        <li>WCAG 2.2 AA: 4.5:1 text in both themes and every accent, 3:1 for input borders, visible focus everywhere.</li>
+        <li>Works without JavaScript: menus are links, sliders scroll, search falls back to the writing page.</li>
+        <li>Nothing moves for people who ask for less motion; the testimonials have a Pause button.</li>
+        <li>Colour is never the only signal: every type, state and part has a word too.</li>
+        <li>Targets meet the 24 px minimum of WCAG 2.2; buttons are 36–44 px.</li>
+        <li>Windows high contrast keeps every border, waypoint and badge. It has its own CSS rules, but isn't tested on Windows yet.</li>
+        <li>Indonesian titles carry <code>lang="id"</code>, so screen readers pronounce them right.</li>
+        <li>Page changes cross-fade with view transitions, no script.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="decide-h">
+    <div class="sec-head"><h2 id="decide-h">For you to decide</h2></div>
+    <ol class="decide">
+      <li><b>Logbook as the v5 direction?</b><span>It replaces the open choice between home designs A–D. Bits of A (terminal) and C (tmux) live on in it.</span></li>
+      <li><b>The menu: writing · work · flying · about · uses</b><span>Works, projects and services become "work", as the roadmap planned. Now, listening and notes sit under about and in the footer.</span></li>
+      <li><b>The default accent</b><span>Blue stays the default. Magenta, the colour of a flight display's active leg, is new; try it in the yellow panel.</span></li>
+      <li><b>How much flying</b><span>Strips, routes, Zulu time and the hold-short line are subtle on their own. Each can go without breaking the rest.</span></li>
+    </ol>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li>Open the yellow <b>v5 mockup</b> panel on any page to jump between pages, switch theme and accent, and run the text-spacing check.</li>
+    <li>Rebuild after editing a page in <code>docs/v5/pages/</code>: <code>node docs/v5/build.mjs</code>.</li>
+    <li>Content is the live site's (Nov 18, 2026). Pages planned for v4.1 and v4.2 show where their data will come from.</li>
+  </ul>
+</template>

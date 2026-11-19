@@ -1,0 +1,157 @@
+---
+title: Projects
+nav: work
+description: Things I've built in the open, mostly small tools that solve a problem I had, then turned out to be useful to other people too.
+---
+<style>
+
+.feat .bullets { font-size: var(--fs-sm); color: var(--muted); gap: 0.125rem; margin-top: 0.25rem; }
+.feat .tags { margin-top: 0.375rem; }
+.state { display: inline-flex; align-items: center; gap: 0.375rem; }
+
+/* More projects: a terminal window running ls -l */
+.term { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-alt); overflow: hidden; }
+.term-bar { display: flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); color: var(--muted); }
+.term-bar i { width: 0.625rem; height: 0.625rem; border-radius: 50%; border: 1px solid var(--border-strong); }
+.term-bar span { margin-left: 0.5rem; }
+.term-body { padding: 0.875rem 1rem 1rem; font-size: var(--fs-sm); }
+.term-total { color: var(--muted); margin: 0.25rem 0 0.5rem; }
+.ls { display: grid; }
+.ls li { display: grid; grid-template-columns: 6rem 3rem minmax(0, 1fr); gap: 0.125rem 1rem; padding: 0.5rem 0; border-top: 1px dashed var(--border); align-items: baseline; }
+.ls-perm { display: none; color: var(--muted); }
+.ls-state { display: inline-flex; align-items: center; gap: 0.375rem; color: var(--muted); }
+.ls-state.is-running { color: var(--ok); }
+.ls-year { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ls-name { font-weight: 600; }
+.ls-name a { color: var(--primary); }
+.ls-desc { grid-column: 1 / -1; font-family: var(--font-sans); letter-spacing: 0; color: var(--muted); }
+.ls-links { grid-column: 1 / -1; display: flex; gap: 1rem; }
+.ls-links a { color: var(--primary); }
+@media (min-width: 52rem) {
+  .ls li { grid-template-columns: 7rem 5.5rem 3rem 10rem minmax(0, 1fr) auto; }
+  .ls-perm { display: block; }
+  .ls-desc, .ls-links { grid-column: auto; }
+}
+.term-prompt { margin-top: 0.75rem; color: var(--muted); }
+.term-prompt .u { color: var(--primary); }
+.more-on { margin-top: 1rem; font-family: var(--font-sans); letter-spacing: 0; color: var(--muted); }
+.more-on a { color: var(--primary); }
+</style>
+<main id="main">
+  <nav class="wrap subnav" aria-label="Work pages">
+    <ul>
+      <li><a href="services.html"><span class="n" aria-hidden="true">1:</span>services</a></li>
+      <li><a href="projects.html" aria-current="page"><span class="n" aria-hidden="true">2:</span>projects</a></li>
+      <li><a href="cv.html"><span class="n" aria-hidden="true">3:</span>cv</a></li>
+    </ul>
+  </nav>
+
+  <header class="wrap pagehead">
+    <p class="crumbs"><a href="work.html">work</a> <span aria-hidden="true">/</span> projects</p>
+    <h1 class="display">Projects</h1>
+    <p class="lede">Things I've built in the open, mostly small tools that solve a problem I had, then turned out to be useful to other people too. Contributions and feedback are always welcome.</p>
+    <dl class="readouts">
+      <div><dt>Projects</dt><dd>6</dd></div>
+      <div><dt>Running now</dt><dd>2</dd></div>
+      <div><dt>Building since</dt><dd>2016</dd></div>
+    </dl>
+  </header>
+
+  <section class="wrap section" aria-labelledby="feat-h">
+    <div class="sec-head"><h2 id="feat-h">Featured</h2></div>
+    <ul class="strips feat">
+      <li class="strip strip-feature is-build">
+        <span class="strip-bay" aria-hidden="true">Build</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><a href="post.html">CheckDomain</a></h3>
+          <p class="strip-desc">A free public API for checking whether a domain is blocked by Indonesia's Trust+ list. It grew from 2–5M to ~500M requests a month before I closed it to the public.</p>
+          <ul class="bullets"><li>Simple API for checking domain status</li><li>Written in Node.js</li><li>Runs on Cloudflare Workers</li></ul>
+          <p class="tags"><span class="tag">javascript</span></p>
+          <p class="strip-links"><a href="post.html">read the story</a><a href="https://github.com/Skiddle-ID/checkdomain">source ↗</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Year</dt><dd>2024</dd></div><div class="cell"><dt>Kind</dt><dd>api</dd></div><div class="cell"><dt>State</dt><dd>done</dd></div></dl></div>
+      </li>
+      <li class="strip is-build">
+        <span class="strip-bay" aria-hidden="true">Build</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><a href="https://skiddle.link/">Shortlink</a></h3>
+          <p class="strip-desc">A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.</p>
+          <ul class="bullets"><li>Built with Hono for optimal performance</li><li>Deployed on Cloudflare Workers for global edge distribution</li><li>RESTful API with comprehensive documentation</li></ul>
+          <p class="tags"><span class="tag">typescript</span><span class="tag">react</span><span class="tag">cloudflare workers</span></p>
+          <p class="strip-links"><a href="https://skiddle.link/">live ↗</a><a href="https://github.com/arcestia/shortlink/">source ↗</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Year</dt><dd>2025</dd></div><div class="cell"><dt>Kind</dt><dd>service</dd></div><div class="cell"><dt>State</dt><dd>done</dd></div></dl></div>
+      </li>
+      <li class="strip is-build">
+        <span class="strip-bay" aria-hidden="true">Build</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><a href="https://github.com/Skiddle-ID/blocklist">Blocklist</a></h3>
+          <p class="strip-desc">Keeps a public copy of the Kominfo blocklist fresh, automatically, every hour.</p>
+          <ul class="bullets"><li>Simple script for updating blocklist</li><li>Written in Bash</li><li>Runs on Github Actions</li></ul>
+          <p class="tags"><span class="tag">bash</span><span class="tag">githubactions</span></p>
+          <p class="strip-links"><a href="https://github.com/Skiddle-ID/blocklist">source ↗</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Year</dt><dd>2024</dd></div><div class="cell"><dt>Kind</dt><dd>tool</dd></div><div class="cell"><dt>State</dt><dd class="state"><span class="dot dot-ok" aria-hidden="true"></span>running</dd></div></dl></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="wrap section" aria-labelledby="more-h">
+    <div class="sec-head"><h2 id="more-h">More projects</h2></div>
+    <div class="term">
+      <p class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>skiddle@web: ~/projects</span></p>
+      <div class="term-body">
+        <p><span class="muted">skiddle@web:~$</span> ls -l projects/</p>
+        <p class="term-total" aria-hidden="true">total 3</p>
+        <ul class="ls">
+          <li>
+            <span class="ls-perm" aria-hidden="true">drwxr-xr-x</span>
+            <span class="ls-state is-running"><span class="dot dot-ok" aria-hidden="true"></span>running</span>
+            <span class="ls-year">2024</span>
+            <h3 class="ls-name"><a href="https://skiddle-id.github.io/proxylist">proxylist/</a></h3>
+            <p class="ls-desc">A proxy scraper | Proxy list - Updates every hours.</p>
+            <p class="ls-links"><a href="https://github.com/Skiddle-ID/proxylist">source<span class="sr-only"> of proxylist</span> ↗</a></p>
+          </li>
+          <li>
+            <span class="ls-perm" aria-hidden="true">dr-xr-xr-x</span>
+            <span class="ls-state"><span class="dot" aria-hidden="true"></span>archived</span>
+            <span class="ls-year">2024</span>
+            <h3 class="ls-name"><a href="https://github.com/skiddle-archives/domainchecker">domainchecker/</a></h3>
+            <p class="ls-desc">A Fast Domain Block Checker /w Hono &amp; Turso deployed on Cloudflare Workers.</p>
+            <p class="ls-links"><a href="post.html" hreflang="id">story<span class="sr-only"> of domainchecker, in Indonesian</span></a> <span class="lang" aria-hidden="true">ID</span></p>
+          </li>
+          <li>
+            <span class="ls-perm" aria-hidden="true">dr-xr-xr-x</span>
+            <span class="ls-state"><span class="dot" aria-hidden="true"></span>archived</span>
+            <span class="ls-year">2016</span>
+            <h3 class="ls-name"><a href="https://github.com/skiddle-archives/klasemate">klasemate/</a></h3>
+            <p class="ls-desc">Klasemate Open Source discussion board (Forum) Software.</p>
+          </li>
+        </ul>
+        <p class="term-prompt" aria-hidden="true"><span class="u">skiddle@web</span>:~$ <span class="cursor"></span></p>
+      </div>
+    </div>
+    <p class="more-on">More on <a href="https://github.com/arcestia">GitHub</a> and <a href="https://github.com/Skiddle-ID">Skiddle-ID</a>.</p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="hold-h">
+    <div class="holdshort">
+      <div>
+        <h2 id="hold-h">Want something like this built?</h2>
+        <p>Small tools, APIs on the edge, and the pipelines that keep them running, through Skiddle Labs.</p>
+      </div>
+      <a class="btn btn-primary" href="services.html">Let's talk <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>Featured builds are strips</b> with Year, Kind and State cells. State is always a word ("running", "done", "archived"); the green dot only repeats it.</li>
+    <li>CheckDomain, the biggest story, gets the larger strip.</li>
+    <li><b>More projects</b> is a terminal window running <code>ls -l</code>. The permissions column, the window buttons and the prompt are decoration, hidden from screen readers; each project is a heading with its link, so they're easy to jump between.</li>
+    <li>On phones the <code>ls</code> columns fold into two lines per project; nothing scrolls sideways.</li>
+    <li>"source" links say which project they're for to screen readers.</li>
+    <li>No images, no script of its own.</li>
+  </ul>
+</template>

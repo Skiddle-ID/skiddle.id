@@ -1,0 +1,100 @@
+---
+title: Flying
+nav: flying
+description: Jeff is a private pilot. From Fear to Flight, the story so far, and his logbook.
+---
+<style>
+.fly-hero { display: grid; gap: 2rem; align-items: center; padding-block: clamp(2rem, 1.2rem + 3vw, 4rem) clamp(1.5rem, 1rem + 2vw, 2.5rem); }
+.fly-hero figure { margin: 0; }
+.fly-hero img { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); }
+.fly-hero figcaption { margin-top: 0.5rem; font-size: var(--fs-xs); color: var(--muted); }
+.fly-hero figcaption::before { content: 'FIG. ' / ''; color: var(--primary); }
+@media (min-width: 60rem) {
+  .fly-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+}
+.planned { display: inline-flex; align-items: center; gap: 0.5rem; width: fit-content; padding: 0.125rem 0.5rem; border: 1px dashed var(--t-flight); border-radius: var(--radius); color: var(--t-flight); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; }
+.lb-stats { margin-bottom: 0.75rem; }
+.lb-stats dd { color: var(--muted); }
+table.data .empty td { padding: 1.25rem 0.875rem; text-align: center; color: var(--muted); font-family: var(--font-sans); letter-spacing: 0; }
+.fineprint { margin-top: 0.625rem; font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.fineprint code { color: var(--text); }
+/* METAR: a weather report card that waits for its airport */
+.metar { display: grid; gap: 0.75rem; padding: 1.125rem 1.25rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-alt); }
+.metar-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.metar-line { padding: 0.75rem 0.875rem; border: 1px dashed var(--border); border-radius: var(--radius); font-size: var(--fs-md); letter-spacing: 0.02em; color: var(--muted); overflow-wrap: anywhere; }
+.metar-line b { color: var(--t-flight); font-weight: 600; }
+
+.metar-note { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.fly-route .wp-title a { color: var(--text); }
+.fly-route .wp.is-done .wp-title a { color: var(--primary); }
+</style>
+<main id="main">
+  <div class="wrap fly-hero">
+    <header class="pagehead" style="padding: 0">
+      <p class="prompt"><span class="u">skiddle@web</span>:~$ cat logbook.md</p>
+      <p class="planned">Planned for v4.2</p>
+      <h1 class="display">Flying</h1>
+      <p class="lede">I'm a private pilot: I earned my PPL in early 2026, after starting ground school in 2025. This is the story so far in <a href="series-flight.html">From Fear to Flight</a>, and soon my logbook.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="series-flight.html">Read the series <span aria-hidden="true">→</span></a>
+        <a class="btn" href="uses.html#aviation">What's in the flight bag</a>
+      </div>
+    </header>
+    <figure>
+      <img src="img/flight-1000.webp" srcset="img/flight-640.webp 640w, img/flight-1000.webp 1000w" sizes="(min-width: 60rem) 36rem, 100vw" width="1000" height="666" alt="Illustration of a couple looking out of an airplane window at a sunset above the clouds" fetchpriority="high">
+      <figcaption>From How It All Started, part 1 of From Fear to Flight.</figcaption>
+    </figure>
+  </div>
+
+  <div class="wrap section grid-2">
+    <section aria-labelledby="route-h">
+      <div class="sec-head"><h2 id="route-h">From Fear to Flight</h2><span class="more">1 of 6 published</span></div>
+      <ol class="route-v fly-route">
+        <li class="wp is-done"><span class="wp-part">Part 1</span><span class="wp-title"><a href="post.html">How It All Started</a></span><span class="wp-meta"><time datetime="2025-09-30">Sep 30, 2025</time> · 2 min read</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 2 · next</span><span class="wp-title">Ground School</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 3</span><span class="wp-title">First Flights</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 4</span><span class="wp-title">First Solo</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 5</span><span class="wp-title">Planning Real Flights</span><span class="wp-meta">planned</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 6</span><span class="wp-title">The Checkride</span><span class="wp-meta">planned</span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="wx-h">
+      <div class="sec-head"><h2 id="wx-h">Weather at home</h2></div>
+      <div class="metar">
+        <div class="metar-head"><p class="label">METAR · home airport</p><p class="label">needs set-up</p></div>
+        <p class="metar-line"><b>????</b> ------Z ----- -- ---- --/-- Q----</p>
+        <p class="metar-note">This card shows the live weather report for my home airport, from <code>/metar.svg?station=…</code>. It needs the airport's ICAO code first.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="wrap section" aria-labelledby="log-h">
+    <div class="sec-head"><h2 id="log-h">Logbook</h2><span class="more">from <code>id.skiddle.flight</code></span></div>
+    <dl class="readouts lb-stats">
+      <div><dt>Total time</dt><dd>—<span class="sr-only"> not logged yet</span></dd></div>
+      <div><dt>As PIC</dt><dd>—<span class="sr-only"> not logged yet</span></dd></div>
+      <div><dt>Landings</dt><dd>—<span class="sr-only"> not logged yet</span></dd></div>
+      <div><dt>Cross-country</dt><dd>—<span class="sr-only"> not logged yet</span></dd></div>
+      <div><dt>Licence</dt><dd style="color: var(--text)">PPL, 2026</dd></div>
+    </dl>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Flights, scrolls sideways">
+      <table class="data">
+        <caption>Flights, newest first</caption>
+        <thead><tr><th scope="col">Date</th><th scope="col">Aircraft</th><th scope="col">Route</th><th scope="col" class="num">Time</th><th scope="col" class="num">Landings</th><th scope="col">Remarks</th></tr></thead>
+        <tbody><tr class="empty"><td colspan="6">No flights logged yet.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="fineprint">The numbers and rows fill from <code>id.skiddle.flight</code> records once the logbook is added, one record per flight, logged from the admin app. The same totals go on a card for other sites, <code>/flying.svg</code>.</p>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>Planned for v4.2:</b> this is the hub for flying. Nothing here is made up: the logbook shows "—" and an empty table until <code>id.skiddle.flight</code> records exist (each "—" is read out as "not logged yet").</li>
+    <li><b>From Fear to Flight</b> as a route: part 1 filled, the five planned parts dashed, with their real titles.</li>
+    <li>The <b>METAR card</b> is a placeholder: it needs your home airport's ICAO code, so it shows dashes instead of guessing one.</li>
+    <li>The logbook is a real table (date, aircraft, route, time, landings, remarks), so it reads well with a screen reader and scrolls inside its box on phones.</li>
+    <li>The illustration is the only image: WebP, 22 KB on phones, sized and loaded first because it's above the fold.</li>
+  </ul>
+</template>

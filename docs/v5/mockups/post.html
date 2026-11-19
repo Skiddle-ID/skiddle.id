@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" data-page="post">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Notes #2: The Whole Site Lives in My Repo Now · skiddle.id v5 mockup</title>
+<meta name="description" content="v4.0 is out. Posts, pages, categories, my status and the music I play are now records in my own AT Protocol repo.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<script>
+  /* Before first paint: the theme someone picked here, else the device's setting (no flash) */
+  (function () {
+    var d = document.documentElement, t = null, a = null;
+    try { t = localStorage.getItem('v5.theme'); a = localStorage.getItem('v5.accent'); } catch (e) {}
+    if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    if (a) d.dataset.accent = a;
+  })();
+</script>
+<link rel="preload" href="fonts/geist-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="v5.css">
+<link rel="stylesheet" href="mock.css">
+<link rel="icon" href="data:,">
+<style>
+.post-head { display: grid; gap: 1rem; padding-block: clamp(2rem, 1.2rem + 3vw, 4rem) 1.75rem; }
+.post-title { font-size: clamp(2rem, 1.3rem + 2.8vw, 3.25rem); line-height: 1.08; font-weight: 600; letter-spacing: -0.05em; text-wrap: balance; }
+.post-head .lede { font-size: var(--fs-read); color: var(--text); }
+.post-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+.post-side { display: none; }
+.post-inline-aids { display: grid; gap: 0.5rem; margin-bottom: 2rem; }
+.aid { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.aid summary { cursor: pointer; padding: 0.625rem 0.875rem; font-size: var(--fs-sm); list-style: none; display: flex; justify-content: space-between; gap: 1rem; min-height: 2.75rem; align-items: center; }
+.aid summary::-webkit-details-marker { display: none; }
+.aid summary::after { content: '+' / ''; color: var(--muted); }
+.aid[open] summary::after { content: '−' / ''; }
+.aid > div { padding: 0.25rem 0.875rem 1rem; }
+.side-h { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 400; margin-bottom: 0.75rem; }
+.side-h b { color: var(--text); font-weight: 600; }
+@media (min-width: 76rem) {
+  .post-grid { grid-template-columns: 13rem minmax(0, var(--measure)) 13rem; justify-content: center; gap: 3.5rem; }
+  .post-side { display: block; }
+  .post-side > div { position: sticky; top: 1.5rem; }
+  .post-inline-aids { display: none; }
+  .post-head { grid-column: 2; }
+}
+.post-route .wp { padding-bottom: 1rem; font-size: var(--fs-sm); }
+.post-route .wp-title { font-weight: 400; }
+.post-route .wp.is-here .wp-title { font-weight: 600; }
+.record { display: grid; gap: 0.75rem; margin-top: 3rem; padding: 1rem 1.125rem; border: 1px dashed var(--border-strong); border-radius: var(--radius); font-size: var(--fs-sm); }
+.record code { overflow-wrap: anywhere; color: var(--text); }
+.record .kv dd { min-width: 0; }
+.next-prev { display: grid; gap: 0.75rem; margin-top: 2rem; }
+@media (min-width: 40rem) { .next-prev { grid-template-columns: 1fr 1fr; } }
+.np { position: relative; display: grid; gap: 0.25rem; padding: 0.875rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.np:hover { border-color: var(--primary); }
+.np a { text-decoration: none; font-weight: 600; }
+.np a::after { content: ''; position: absolute; inset: 0; }
+.np.is-next { text-align: right; }
+.np.is-planned { border-style: dashed; background: transparent; }
+.comments { margin-top: 3rem; }
+.comments .readouts { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress" aria-hidden="true"></div>
+<aside class="ann" aria-label="Status line">
+  <div class="wrap ann-row">
+    <p class="ann-clock"><time data-clock="bkk">--:--</time> <span class="muted">Bangkok</span> <span class="ann-sep" aria-hidden="true">/</span> <time data-clock="utc">--:--</time><span class="muted">Z</span></p>
+    <p class="ann-status"><a href="now.html"><span class="dot dot-ok" aria-hidden="true"></span><span class="sr-only">Status: </span>Available<span class="muted"> · Finally, v4.0 of my site released.</span></a></p>
+    <p class="ann-play"><a href="listening.html"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">Now playing: </span>From the Start <span class="muted">· Laufey</span></a></p>
+  </div>
+</aside>
+<header class="deck">
+  <div class="wrap deck-row">
+    <a class="brand" href="home.html"><span class="brand-user">skiddle</span><span class="muted">@</span>web<span class="muted">:~$</span><span class="cursor" aria-hidden="true"></span><span class="sr-only"> (home)</span></a>
+    <nav class="route" aria-label="Main"><ul><li><a href="writing.html" aria-current="page">writing</a></li><li><a href="work.html">work</a></li><li><a href="flying.html">flying</a></li><li><a href="about.html">about</a></li><li><a href="uses.html">uses</a></li></ul></nav>
+    <div class="deck-tools">
+      <button class="tool" type="button" data-search-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg><span class="tool-label">Search</span><kbd data-shortcut>Ctrl K</kbd></button>
+      <button class="tool tool-icon" type="button" data-theme-toggle aria-label="Switch to light theme"><span class="i-sun"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <article>
+    <div class="wrap post-grid">
+      <header class="post-head">
+        <p class="crumbs"><a href="writing.html">writing</a> <span aria-hidden="true">/</span> <a href="topics.html">atproto &amp; the open web</a></p>
+        <h1 class="post-title" style="view-transition-name: post-lab-notes-2">Lab Notes #2: The Whole Site Lives in My Repo Now</h1>
+        <p class="lede">v4.0 is out. Posts, pages, categories, my status and the music I play are now records in my own AT Protocol repo, edited from an admin app I sign in to with Bluesky.</p>
+        <dl class="readouts">
+          <div><dt>Published</dt><dd><time datetime="2026-11-18">18 Nov 2026</time></dd></div>
+          <div><dt>Read</dt><dd>8 min</dd></div>
+          <div><dt>Series</dt><dd>Lab Notes, 2</dd></div>
+        </dl>
+        <p class="tags"><a class="tag" href="topics.html">#atproto</a><a class="tag" href="topics.html">#bluesky</a><a class="tag" href="topics.html">#astro</a><a class="tag" href="topics.html">#cloudflare</a><a class="tag" href="topics.html">#standard-site</a></p>
+      </header>
+    </div>
+
+    <div class="wrap post-grid">
+      <aside class="post-side" aria-labelledby="route-h">
+        <div>
+          <h2 id="route-h" class="side-h">Series · <b>Lab Notes</b></h2>
+          <ol class="route-v post-route">
+            <li class="wp is-done"><span class="wp-part">Part 1</span><a class="wp-title" href="post.html">Where Am I in This Series?</a></li>
+            <li class="wp is-done is-here"><span class="wp-part">Part 2</span><span class="wp-title" aria-current="page">The Whole Site Lives in My Repo Now</span><span class="wp-here">you're here</span></li>
+          </ol>
+          <p class="wp-tail">new twice a week</p>
+        </div>
+      </aside>
+
+      <div class="post-body">
+        <div class="post-inline-aids">
+          <details class="aid"><summary>Lab Notes · part 2 of 2, ongoing</summary><div>
+            <ol class="route-v post-route">
+              <li class="wp is-done"><span class="wp-part">Part 1</span><a class="wp-title" href="post.html">Where Am I in This Series?</a></li>
+              <li class="wp is-done is-here"><span class="wp-part">Part 2</span><span class="wp-title">The Whole Site Lives in My Repo Now</span><span class="wp-here">you're here</span></li>
+            </ol>
+          </div></details>
+          <details class="aid"><summary>On this page · 8 sections</summary><div>
+            <nav class="checklist" aria-label="On this page"><ol>
+              <li><a href="#out">v4.0 is out</a></li><li><a href="#source">From copy to source</a></li><li><a href="#posts">Posts, without git</a></li><li><a href="#admin">An admin app, signed in with Bluesky</a></li><li><a href="#pages">The pages too</a></li><li><a href="#switch">The switch</a></li><li><a href="#music">Music, from my repo</a></li><li><a href="#free">Still on the free plan</a></li>
+            </ol></nav>
+          </div></details>
+        </div>
+
+        <div class="prose">
+          <h2 id="out">v4.0 is out</h2>
+          <p>Lab Notes #1 was about one feature. This one is about a whole version, so it's long.</p>
+          <p>v4.0 is out, and everything this site shows now comes from records in my own AT Protocol repo:</p>
+          <ul>
+            <li>posts and series, and the drafts I'm still writing</li>
+            <li>the pages: <a href="cv.html">CV</a>, <a href="services.html">services</a>, <a href="uses.html">uses</a>, <a href="about.html">about</a> and <a href="projects.html">projects</a></li>
+            <li>the post categories</li>
+            <li>the status line on the home page</li>
+            <li>the music I play</li>
+          </ul>
+          <p>The GitHub repo only holds code now. There's no database of my own, and I edit all of it from an admin app on my phone or laptop, signed in with my Bluesky account.</p>
+
+          <h2 id="source">From copy to source</h2>
+          <p>Every Bluesky account has a repo: a small database of records on your PDS (personal data server). In <a href="post.html">Publishing My Blog to AT Protocol</a> I started putting copies of my posts there, so Standard.site readers could find them.</p>
+          <p>v4 flips that around. The records aren't copies anymore, they're the only source. The site looks up my PDS from my DID on every read, so if I move to my own PDS one day, the site follows without a change.</p>
+          <div class="callout"><b>NOTE</b>Every record in a repo is public, drafts included. Anyone who looks can read a draft, the same way anyone could read drafts in my public git repo before.</div>
+
+          <h2 id="posts">Posts, without git</h2>
+          <p>Each post is still a <code>site.standard.document</code>, so Leaflet, pckt and other readers keep finding it. Inside it is my own <code>id.skiddle.post</code>: the Markdown, the images as blobs, the category, the language and the series part. Series and drafts have records of their own.</p>
+          <p>The site used to be plain static files, built from Markdown in git. Now a page is rendered when someone asks for it, straight from the records, and Cloudflare caches it: fresh for a minute, then served while a new copy renders, for up to a day.</p>
+
+          <h2 id="admin">An admin app, signed in with Bluesky</h2>
+          <p>The admin app lives at <code>/admin/</code>. I sign in with Bluesky, and Bluesky's own page lists what the app may change. It can't edit or delete anything else. It also installs as an app on my phone.</p>
+          <figure>
+            <img src="img/admin-editor-1280.webp" srcset="img/admin-editor-720.webp 720w, img/admin-editor-1280.webp 1280w" sizes="(min-width: 44rem) 40rem, 100vw" width="1280" height="800" loading="lazy" decoding="async" alt="The admin app's post editor on a wide screen: the formatting toolbar and the Markdown on the left, the live preview on the right, and the word count under the text.">
+            <figcaption>The post editor: Markdown on the left, the site's own renderer on the right.</figcaption>
+          </figure>
+          <p>Drafts save as I type, a second and a half after I stop. They're records, so a draft I start on the laptop is on my phone a moment later.</p>
+
+          <h2 id="pages">The pages too</h2>
+          <p>The CV, services, uses, about and projects pages each got a lexicon and a record. Their editors aren't hand-made: each one is built from its lexicon, one field per property.</p>
+
+          <h2 id="switch">The switch</h2>
+          <p>I wrote every step of the switch down before doing it, with who does what.</p>
+          <div class="callout callout-caution"><b>CAUTION</b>On release day, the footer showed “backups” instead of the version. The version comes from the nearest git tag, and the backup's release has a tag of its own, which happened to be nearer.</div>
+
+          <h2 id="music">Music, from my repo</h2>
+          <p>The “now playing” card and the music card used to come from Last.fm's API. Now they come from teal.fm, which keeps every play as a record in my repo. A tiny second Worker runs Deezer's search near Singapore. Its first log line on the live site:</p>
+          <pre tabindex="0" aria-label="Log line"><code>search "…": 2 results (SIN, Deezer SG (open))</code></pre>
+
+          <h2 id="free">Still on the free plan</h2>
+          <p>All of this runs on Cloudflare's free plan, now with three Workers: the site, the scheduler and the covers.</p>
+          <p class="muted"><em>(The rest of the post continues here in the real page.)</em></p>
+        </div>
+
+        <aside class="record" aria-labelledby="record-h">
+          <h2 id="record-h" class="label">This post is a record</h2>
+          <dl class="kv">
+            <dt>URI</dt><dd><code>at://did:plc:xaj6j6abvpgwps5v6k4t6clv/site.standard.document/3n2lul62d2s7b</code></dd>
+            <dt>Lexicons</dt><dd><code>site.standard.document</code> + <code>id.skiddle.post</code></dd>
+          </dl>
+          <p><a class="link-arrow" href="https://pdsls.dev/at://did:plc:xaj6j6abvpgwps5v6k4t6clv/site.standard.document/3n2lul62d2s7b">View the record ↗</a></p>
+        </aside>
+
+        <nav class="next-prev" aria-label="Lab Notes">
+          <div class="np"><span class="label">← Part 1</span><a href="post.html">Where Am I in This Series?</a></div>
+          <div class="np is-next is-planned"><span class="label">Part 3</span><span class="muted">Next Lab Notes, later this week</span></div>
+        </nav>
+
+        <section class="comments" aria-labelledby="comments-h">
+          <div class="sec-head"><h2 id="comments-h">Comments</h2><a class="more" href="https://bsky.app/profile/skiddle.blue">reply on Bluesky ↗</a></div>
+          <p class="muted sans">Replies to the post's announcement on Bluesky show here, with its likes and reposts.</p>
+        </section>
+      </div>
+
+      <aside class="post-side" aria-label="On this page">
+        <div>
+          <p class="side-h">Checklist · <b>8 sections</b></p>
+          <nav class="checklist" aria-label="Sections"><ol>
+            <li><a href="#out">v4.0 is out</a></li><li><a href="#source">From copy to source</a></li><li><a href="#posts">Posts, without git</a></li><li><a href="#admin">An admin app, signed in with Bluesky</a></li><li><a href="#pages">The pages too</a></li><li><a href="#switch">The switch</a></li><li><a href="#music">Music, from my repo</a></li><li><a href="#free">Still on the free plan</a></li>
+          </ol></nav>
+        </div>
+      </aside>
+    </div>
+  </article>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>Three columns on wide screens:</b> the series as a route on the left, the text at 40rem (about 70 characters a line), and a <b>checklist</b> of sections on the right that ticks off <code>[x]</code> what you've read.</li>
+    <li>On phones and tablets both fold into two buttons above the text, so nothing pushes the text aside.</li>
+    <li>The <b>reading-progress bar</b> is drawn by the browser from the scroll (CSS scroll-driven animation), no script. Browsers without it don't show one.</li>
+    <li>The title morphs from the home page's "Latest" strip (a cross-document <b>view transition</b>), only without reduced motion.</li>
+    <li>Callouts are named like a pilot's handbook: <b>NOTE</b>, <b>CAUTION</b>, <b>WARNING</b>. Figures get captions.</li>
+    <li>"This post is a record": its <code>at://</code> URI, its lexicons and a link to the record.</li>
+    <li>The figure is lazy-loaded, sized, and 28 KB on phones (WebP, <code>srcset</code>).</li>
+  </ul>
+</template>
+
+<footer class="foot">
+  <div class="wrap">
+    <section class="foot-totals" aria-labelledby="totals-h">
+      <h2 id="totals-h" class="foot-label">Totals carried forward</h2>
+      <dl class="totals">
+        <div><dt>Posts</dt><dd>15</dd></div>
+        <div><dt>Series</dt><dd>4</dd></div>
+        <div><dt>Projects</dt><dd>6</dd></div>
+        <div><dt>Plays, 7 days</dt><dd>107</dd></div>
+        <div><dt>Writing since</dt><dd>2015</dd></div>
+      </dl>
+    </section>
+    <div class="foot-grid">
+      <nav aria-labelledby="f-writing"><h2 id="f-writing" class="foot-h">Writing</h2><ul><li><a href="writing.html">All posts</a></li><li><a href="series.html">Series</a></li><li><a href="topics.html">Topics</a></li><li><a href="notes.html">Notes</a></li></ul></nav>
+      <nav aria-labelledby="f-me"><h2 id="f-me" class="foot-h">Me</h2><ul><li><a href="about.html">About</a></li><li><a href="now.html">Now</a></li><li><a href="listening.html">Listening</a></li><li><a href="flying.html">Flying</a></li><li><a href="uses.html">Uses</a></li></ul></nav>
+      <nav aria-labelledby="f-work"><h2 id="f-work" class="foot-h">Work</h2><ul><li><a href="services.html">Services</a></li><li><a href="projects.html">Projects</a></li><li><a href="cv.html">CV</a></li><li><a href="changelog.html">Changelog</a></li></ul></nav>
+      <nav aria-labelledby="f-else"><h2 id="f-else" class="foot-h">Elsewhere</h2><ul class="foot-icons"><li><a href="https://bsky.app/profile/skiddle.blue" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.2 3.3C7.9 5.3 10.8 9.4 12 11.7c1.2-2.3 4.1-6.4 6.8-8.4 1.9-1.4 5.1-2.6 5.1 1 0 .7-.4 6.1-.7 7-.9 3.1-4.1 3.9-7 3.4 5 .9 6.3 3.7 3.5 6.5-5.2 5.4-7.5-1.3-8-3.1L12 18l-.4-.2c-.6 1.8-2.8 8.5-8 3.1-2.8-2.8-1.5-5.6 3.5-6.5-2.9.5-6.1-.3-7-3.4C.4 10.4 0 5 0 4.3c0-3.6 3.2-2.4 5.2-1Z"/></svg>Bluesky</a></li><li><a href="https://github.com/arcestia" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>GitHub</a></li><li><a href="#rss"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4.5a1 1 0 0 1 1-1C14.1 3.5 20.5 9.9 20.5 19a1 1 0 1 1-2 0c0-8-5.5-13.5-13.5-13.5a1 1 0 0 1-1-1Zm0 6a1 1 0 0 1 1-1 9.5 9.5 0 0 1 9.5 9.5 1 1 0 1 1-2 0A7.5 7.5 0 0 0 5 11.5a1 1 0 0 1-1-1ZM6 20.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>RSS</a></li><li><a href="mailto:work@skiddle.id"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g></svg>Email</a></li></ul></nav>
+    </div>
+    <p class="foot-record">Every page here is read from records in my <abbr title="AT Protocol">ATProto</abbr> repo, <code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code>.</p>
+    <p class="foot-legal">© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd. · Code MIT · Writing all rights reserved, no AI training · <a href="changelog.html">v5.0</a></p>
+  </div>
+</footer>
+
+<dialog class="cmd" aria-labelledby="cmd-title">
+  <form method="dialog" class="cmd-box" role="search">
+    <h2 id="cmd-title" class="sr-only">Search</h2>
+    <label class="cmd-prompt" for="cmd-q"><span class="muted">skiddle@web:~$</span> find</label>
+    <input id="cmd-q" class="cmd-input" type="search" autocomplete="off" spellcheck="false" placeholder="posts, series, topics, pages" aria-describedby="cmd-count">
+    <p id="cmd-count" class="cmd-count" aria-live="polite">19 results</p>
+    <ul class="cmd-list"><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #2: The Whole Site Lives in My Repo Now</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #1: Where Am I in This Series?</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Never Quite Done</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Publishing My Blog to AT Protocol</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Fast and Accessible</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">How It All Started #1</span></a></li><li><a href="post.html" lang="id"><span class="cmd-kind">post</span><span class="cmd-label">Penutupan Akses Publik API Checknawala</span></a></li><li><a href="series-flight.html"><span class="cmd-kind">series</span><span class="cmd-label">From Fear to Flight</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Rebuilding skiddle.id</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Lab Notes</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">ATProto & the open web</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">Infra & delivery</span></a></li><li><a href="services.html"><span class="cmd-kind">page</span><span class="cmd-label">Services</span></a></li><li><a href="cv.html"><span class="cmd-kind">page</span><span class="cmd-label">CV</span></a></li><li><a href="projects.html"><span class="cmd-kind">page</span><span class="cmd-label">Projects</span></a></li><li><a href="listening.html"><span class="cmd-kind">page</span><span class="cmd-label">Listening</span></a></li><li><a href="now.html"><span class="cmd-kind">page</span><span class="cmd-label">Now</span></a></li><li><a href="notes.html"><span class="cmd-kind">page</span><span class="cmd-label">Notes</span></a></li><li><a href="changelog.html"><span class="cmd-kind">page</span><span class="cmd-label">Changelog</span></a></li></ul>
+    <p class="cmd-help"><kbd>Esc</kbd> to close</p>
+  </form>
+</dialog>
+<script src="v5.js" defer></script>
+<script src="mock.js" defer></script>
+</body>
+</html>

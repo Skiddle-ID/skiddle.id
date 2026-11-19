@@ -1,0 +1,127 @@
+---
+title: Notes
+nav: writing
+description: Short notes from my Bluesky account, kept on the site: the small things that don't need a post.
+---
+<style>
+.notes-wrap { display: grid; gap: 2.5rem; }
+@media (min-width: 64rem) { .notes-wrap { grid-template-columns: minmax(0, 1fr) 18rem; gap: 3.5rem; align-items: start; } }
+.month { font-size: var(--fs-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 0 0 0.5rem; border-bottom: 1px solid var(--border); margin: 2.5rem 0 0; }
+section:first-of-type > .month { margin-top: 0; }
+.tape { display: grid; }
+.note { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.375rem; padding: 1rem 0 1rem 1.25rem; border-bottom: 1px solid var(--rule); }
+.note::before { content: ''; position: absolute; left: 0; top: 1.15rem; bottom: 1rem; width: 2px; background: var(--t-note); border-radius: 1px; }
+.note-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 0.875rem; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.note-meta time { color: var(--text); }
+.note-text { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-md); line-height: 1.6; text-wrap: pretty; max-width: 38rem; }
+.note-text .ht { color: var(--primary); }
+.note-foot { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: var(--fs-xs); color: var(--muted); }
+.note-foot a { color: var(--muted); }
+.note-foot a:hover { color: var(--primary); }
+.side { display: grid; gap: 1rem; }
+@media (min-width: 64rem) { .side { position: sticky; top: 1.5rem; } }
+.side .card h2 { font-size: var(--fs-base); font-weight: 600; }
+.side .card p + p { margin-top: 0.5rem; }
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ tail -f notes.log</p>
+    <h1 class="display">Notes</h1>
+    <p class="lede">The small things that don't need a post, from my Bluesky account. They stay on Bluesky; this page reads them from my repo when you open it.</p>
+    <dl class="readouts">
+      <div><dt>Source</dt><dd>app.bsky.feed.post</dd></div>
+      <div><dt>Hashtag</dt><dd>not chosen</dd></div>
+      <div><dt>Ships in</dt><dd>v4.1</dd></div>
+    </dl>
+  </header>
+
+  <div class="wrap notes-wrap">
+    <div>
+      <div class="callout" style="margin-bottom: 2rem"><b>NOTE</b>A sample of real recent posts from my Bluesky account. The live page will only show the posts I tag with the chosen hashtag, without replies or the announcements of new posts.</div>
+
+      <section aria-labelledby="m-nov">
+        <h2 class="month" id="m-nov">November 2026</h2>
+        <ol class="tape">
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-11-18T16:23:46Z">18 Nov 16:23Z</time><span>thread of 3</span></p>
+            <p class="note-text">I’m getting pretty excited about pushing my AI limits to rebuild my site exactly how I planned! I was aiming for next month, but my agents finished it in just a week—how cool is that?</p>
+            <p class="note-foot"><a href="https://bsky.app/profile/skiddle.blue/post/3n2lxrrd6b22u">on Bluesky ↗</a></p>
+          </li>
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-11-18T15:42:36Z">18 Nov 15:42Z</time><span>quotes a post</span></p>
+            <p class="note-text">I created 10 new lexicons so my sites operate entirely on Atmosphere; even the admin dashboard for posting and site management relies on it. All source code is available on my GitHub.</p>
+            <p class="note-foot"><a href="https://bsky.app/profile/skiddle.blue/post/3n2lvi5kaus2g">on Bluesky ↗</a></p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="m-jul">
+        <h2 class="month" id="m-jul">July 2026</h2>
+        <ol class="tape">
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-07-09T17:31:32Z">9 Jul 17:31Z</time></p>
+            <p class="note-text">Finally became an audiophile once again.</p>
+            <p class="note-foot"><a href="listening.html">what I'm listening to</a><a href="https://bsky.app/profile/skiddle.blue/post/3mqa5zfp4rc2o">on Bluesky ↗</a></p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="m-apr">
+        <h2 class="month" id="m-apr">April 2026</h2>
+        <ol class="tape">
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-04-16T11:57:46Z">16 Apr 11:57Z</time></p>
+            <p class="note-text">The Heat in Bangkok just reach a dangerous level. Need to stay hydrated. also Happy Songkran.</p>
+            <p class="note-foot"><a href="https://bsky.app/profile/skiddle.blue/post/3mjme7b36uc2l">on Bluesky ↗</a></p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="m-mar">
+        <h2 class="month" id="m-mar">March 2026</h2>
+        <ol class="tape">
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-03-18T16:47:09Z">18 Mar 16:47Z</time></p>
+            <p class="note-text">I’m back doing code again. There is new 2 open source project planned this year.</p>
+            <p class="note-foot"><a href="https://bsky.app/profile/skiddle.blue/post/3mhdwtzik6c2q">on Bluesky ↗</a></p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="m-feb">
+        <h2 class="month" id="m-feb">February 2026</h2>
+        <ol class="tape">
+          <li class="note">
+            <p class="note-meta"><time datetime="2026-02-20T18:40Z">20 Feb 18:40Z</time><span>1 image</span></p>
+            <p class="note-text">From JS/Cloudflare to Node/Redis, then Python/PHP (Laravel), I’ve finally ported the core to Go + Postgres.</p>
+            <p class="note-text">What took years to architect took hours to ship. The 4th language is the charm for performance and scale. Production is live. 🚀 <span class="ht">#Golang</span> <span class="ht">#DevOps</span></p>
+            <p class="note-foot"><a href="https://bsky.app/profile/skiddle.blue/post/3mfcr2neov22x">on Bluesky, with the image ↗</a></p>
+          </li>
+        </ol>
+      </section>
+    </div>
+
+    <aside class="side" aria-labelledby="how-h">
+      <div class="card">
+        <h2 id="how-h">How notes work</h2>
+        <p>I post on Bluesky as usual. Posts with the chosen hashtag also show here, read from my repo when the page is requested and cached like everything else.</p>
+        <p>Times are in UTC ("Zulu"), like the status line at the top.</p>
+      </div>
+      <div class="card">
+        <h2>Follow along</h2>
+        <p><a class="link-arrow" href="https://bsky.app/profile/skiddle.blue">@skiddle.blue on Bluesky ↗</a></p>
+        <p><a class="link-arrow" href="#rss">Notes as RSS</a></p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>Notes are a tape</b> (<code>tail -f</code>): one line of metadata, the words in Geist Sans, a link back to Bluesky. Each sits on a purple rule, the colour notes have everywhere in v5.</li>
+    <li>Planned for v4.1: only Bluesky posts with a chosen hashtag. The hashtag isn't picked yet, so this sample shows real recent posts; it skips replies and post announcements, as the page will.</li>
+    <li>Times are UTC with a <b>Z</b>, matching the status line; each <code>&lt;time&gt;</code> carries the full timestamp for machines and screen readers.</li>
+    <li>Images stay on Bluesky ("1 image", with a link), so the page loads no pictures; one fetch, cached, like the rest of the site.</li>
+    <li>Months are headings, so a screen-reader user can jump between them.</li>
+  </ul>
+</template>
