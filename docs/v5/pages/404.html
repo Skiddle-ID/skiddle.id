@@ -1,0 +1,58 @@
+---
+title: Not found
+description: This page isn't on skiddle.id. Search, or pick another destination.
+---
+<style>
+.lost { display: grid; gap: 1rem; }
+.term { display: grid; gap: 0.125rem; padding: 0.875rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.term .err { color: var(--err); }
+.alternates { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+.alt { position: relative; display: grid; align-content: start; gap: 0.25rem; padding: 0.875rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.alt:hover, .alt:focus-within { border-color: var(--primary); }
+.alt h3 { font-size: var(--fs-base); font-weight: 600; }
+.alt h3 a { text-decoration: none; }
+.alt h3 a::after { content: ''; position: absolute; inset: 0; }
+.alt h3 a:focus-visible { outline: none; }
+.alt h3 a:focus-visible::after { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
+.alt p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+</style>
+<main id="main">
+  <header class="wrap pagehead lost">
+    <div class="term">
+      <p><span class="muted">skiddle@web:~$</span> cd /this-page</p>
+      <p class="err">cd: no such file or directory: /this-page</p>
+    </div>
+    <p class="label">Error 404</p>
+    <h1 class="display">Not in the database.</h1>
+    <p class="lede">That waypoint isn't on any chart I have. The link may be old or mistyped. Search for it, or pick an alternate below.</p>
+    <dl class="readouts">
+      <div><dt>Requested</dt><dd>/this-page</dd></div>
+      <div><dt>Status</dt><dd>404</dd></div>
+    </dl>
+    <div class="actions">
+      <button class="btn btn-primary" type="button" data-search-open aria-haspopup="dialog">Search the site</button>
+      <a class="btn" href="home.html">Back to home</a>
+    </div>
+  </header>
+
+  <section class="wrap section" aria-labelledby="alt-h">
+    <div class="sec-head"><h2 id="alt-h">Alternates</h2><span class="more">pick one</span></div>
+    <ul class="alternates">
+      <li class="alt"><h3><a href="writing.html">Writing</a></h3><p>All 15 posts, series and topics.</p></li>
+      <li class="alt"><h3><a href="work.html">Work</a></h3><p>Services, projects and my CV.</p></li>
+      <li class="alt"><h3><a href="flying.html">Flying</a></h3><p>From Fear to Flight, and soon my logbook.</p></li>
+      <li class="alt"><h3><a href="about.html">About</a></h3><p>Who I am, and what I'm doing now.</p></li>
+      <li class="alt"><h3><a href="uses.html">Uses</a></h3><p>From the dev box to the flight bag.</p></li>
+      <li class="alt"><h3><a href="home.html">Home</a></h3><p>Start again from the top.</p></li>
+    </ul>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>"Not in the database"</b> is what a flight computer says about a waypoint it doesn't know, and <code>cd: no such file or directory</code> is the terminal's version.</li>
+    <li>The page says what was asked for, then offers <b>Search</b> (the same dialog as the header) and six <b>alternates</b>, the flight-plan word for where you go instead.</li>
+    <li>The real page fills in the requested path on the server and returns status 404, so it stays out of search results.</li>
+    <li>No images and no extra script; it's as light as a page gets.</li>
+  </ul>
+</template>

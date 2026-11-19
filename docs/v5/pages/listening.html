@@ -1,0 +1,142 @@
+---
+title: Listening
+nav: about
+description: What Jeff has been listening to, from his plays on teal.fm, kept as records in his own AT Protocol repo.
+---
+<style>
+/* The radio stack: now playing is the active frequency, the last play is on standby */
+.radio { display: grid; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-alt); overflow: hidden; }
+.radio-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: center; padding: 1rem 1.25rem; }
+.radio-row + .radio-row { border-top: 1px dashed var(--border); }
+.radio-tag { display: none; }
+.art { --h: 200; display: grid; place-items: center; width: 4.5rem; aspect-ratio: 1; border-radius: 4px; font-weight: 600; font-size: var(--fs-sm); letter-spacing: 0.04em; color: #fff; background: linear-gradient(135deg, hsl(var(--h) 55% 38%), hsl(calc(var(--h) + 50) 60% 22%)); border: 1px solid var(--border); }
+.is-standby .art { width: 3rem; opacity: 0.75; }
+.radio-text { min-width: 0; display: grid; gap: 0.125rem; }
+.radio-label { display: flex; align-items: center; gap: 0.5rem; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.is-active .radio-label { color: var(--t-play); font-weight: 600; }
+.radio-title { font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.04em; line-height: 1.2; overflow-wrap: anywhere; }
+.is-standby .radio-title { font-size: var(--fs-md); letter-spacing: -0.02em; }
+.radio-sub { font-family: var(--font-sans); letter-spacing: 0; color: var(--muted); font-size: var(--fs-sm); }
+@media (min-width: 40rem) {
+  .radio-row { grid-template-columns: 3.5rem auto minmax(0, 1fr); }
+  .radio-tag { display: block; font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.12em; color: var(--muted); }
+  .is-active .radio-tag { color: var(--t-play); }
+  .art { width: 5.5rem; }
+  .is-standby .art { width: 3.5rem; justify-self: end; }
+}
+/* Bar meters: the number is always written next to the bar */
+.meter { display: grid; gap: 0.375rem; }
+.meter li { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) 2rem; grid-template-areas: 'rank name n' '. bar bar'; gap: 0.125rem 0.625rem; align-items: baseline; }
+.m-rank { grid-area: rank; font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.m-name { grid-area: name; min-width: 0; font-family: var(--font-sans); letter-spacing: 0; overflow-wrap: anywhere; }
+.m-name small { display: block; font-size: var(--fs-xs); color: var(--muted); }
+.m-n { grid-area: n; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.m-bar { grid-area: bar; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+.m-bar i { display: block; height: 100%; width: calc(var(--v) * 100%); background: var(--t-play); border-radius: 3px; }
+.day { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem; font-size: var(--fs-md); font-weight: 600; letter-spacing: -0.02em; }
+.day span { font-size: var(--fs-xs); font-weight: 400; color: var(--muted); letter-spacing: 0.04em; }
+.plays { display: grid; border-top: 1px solid var(--border); }
+.plays li { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: 0 0.875rem; align-items: baseline; padding: 0.5rem 0; border-bottom: 1px solid var(--rule); }
+.plays time { font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.p-title { display: block; font-family: var(--font-sans); letter-spacing: 0; font-weight: 600; overflow-wrap: anywhere; }
+.p-sub { display: block; font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); overflow-wrap: anywhere; }
+.src { font-size: 0.6875rem; color: var(--muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.3rem; white-space: nowrap; }
+.plays-more { padding: 0.75rem 0; font-size: var(--fs-sm); color: var(--muted); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.plays-more a { color: var(--primary); }
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ tail -f plays.log</p>
+    <h1 class="display">Listening</h1>
+    <p class="lede">What I've been listening to, from my plays on <a href="https://teal.fm">teal.fm</a>, which keeps them as records in my own AT Protocol repo. They come from Apple Music, and from Spotify through Last.fm.</p>
+  </header>
+
+  <section class="wrap" aria-labelledby="np-h">
+    <h2 id="np-h" class="sr-only">Now playing</h2>
+    <div class="radio">
+      <div class="radio-row is-active">
+        <span class="radio-tag" aria-hidden="true">ACTIVE</span>
+        <span class="art" style="--h: 330" aria-hidden="true">FS</span>
+        <div class="radio-text">
+          <p class="radio-label"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>Now playing</p>
+          <p class="radio-title">From the Start</p>
+          <p class="radio-sub">Laufey · Bewitched</p>
+        </div>
+      </div>
+      <div class="radio-row is-standby">
+        <span class="radio-tag" aria-hidden="true">STBY</span>
+        <span class="art" style="--h: 25" aria-hidden="true">LL</span>
+        <div class="radio-text">
+          <p class="radio-label">Before that · <time datetime="2026-11-18T23:36+07:00">23:36</time> · last.fm</p>
+          <p class="radio-title">The Look of Love</p>
+          <p class="radio-sub">Diana Krall · The Look of Love</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="week-h">
+    <div class="sec-head"><h2 id="week-h">This week</h2><span class="more">last 7 days</span></div>
+    <dl class="readouts" style="margin-bottom: 1.75rem">
+      <div><dt>Plays</dt><dd>107</dd></div>
+      <div><dt>Top artist</dt><dd>Ink Waruntorn</dd></div>
+      <div><dt>Top track</dt><dd>Jumping Machine</dd></div>
+    </dl>
+    <div class="grid-2 even">
+      <div>
+        <h3 class="sec-sub" style="margin-top: 0">Top artists</h3>
+        <ol class="meter">
+          <li><span class="m-rank">1</span><span class="m-name">Ink Waruntorn</span><span class="m-n">14<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 1"></i></span></li>
+          <li><span class="m-rank">2</span><span class="m-name">Bernadya</span><span class="m-n">11<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.786"></i></span></li>
+          <li><span class="m-rank">3</span><span class="m-name">Mark Forster</span><span class="m-n">5<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.357"></i></span></li>
+          <li><span class="m-rank">4</span><span class="m-name">Epik High</span><span class="m-n">4<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.286"></i></span></li>
+          <li><span class="m-rank">5</span><span class="m-name">LBI &amp; WUKONG</span><span class="m-n">4<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.286"></i></span></li>
+        </ol>
+      </div>
+      <div>
+        <h3 class="sec-sub" style="margin-top: 0">Top tracks</h3>
+        <ol class="meter">
+          <li><span class="m-rank">1</span><span class="m-name">Jumping Machine（<span lang="zh">跳楼机</span>）-WUKONG Remix<small>LBI<span lang="zh">利比</span></small></span><span class="m-n">3<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 1"></i></span></li>
+          <li><span class="m-rank">2</span><span class="m-name"><span lang="ko">1분 1초 (feat. 타루)</span><small>Epik High</small></span><span class="m-n">2<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.667"></i></span></li>
+          <li><span class="m-rank">3</span><span class="m-name">Be My Lover<small>La Bouche</small></span><span class="m-n">2<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.667"></i></span></li>
+          <li><span class="m-rank">4</span><span class="m-name"><span lang="id">Jantung Aman Kan?</span><small>Fani Rahmansyah</small></span><span class="m-n">2<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.667"></i></span></li>
+          <li><span class="m-rank">5</span><span class="m-name">Jumping Machine(<span lang="zh">跳楼机</span>)-WUKONG Remix<small>LBI &amp; WUKONG</small></span><span class="m-n">2<span class="sr-only"> plays</span></span><span class="m-bar" aria-hidden="true"><i style="--v: 0.667"></i></span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="recent-h">
+    <div class="sec-head"><h2 id="recent-h">Recent plays</h2><span class="more">Bangkok time</span></div>
+    <h3 class="day">Today <span><time datetime="2026-11-18">18 Nov</time> · 50 plays</span></h3>
+    <ol class="plays">
+      <li><time datetime="2026-11-18T23:36+07:00">23:36</time><p><span class="p-title">The Look of Love</span><span class="p-sub">Diana Krall · The Look of Love</span></p><span class="src">last.fm</span></li>
+      <li><time datetime="2026-11-18T23:31+07:00">23:31</time><p><span class="p-title">Fields of Gold (songbird)</span><span class="p-sub">Eva Cassidy · Songbird</span></p><span class="src">last.fm</span></li>
+      <li><time datetime="2026-11-18T23:28+07:00">23:28</time><p><span class="p-title">Don't Know Why</span><span class="p-sub">Norah Jones · …'Til We Meet Again</span></p><span class="src">last.fm</span></li>
+      <li><time datetime="2026-11-18T23:24+07:00">23:24</time><p><span class="p-title">Easy on Me</span><span class="p-sub">Adele · 30</span></p><span class="src">last.fm</span></li>
+      <li><time datetime="2026-11-18T23:21+07:00">23:21</time><p><span class="p-title" lang="de">Was Du nicht tust s/w (Paris Piano Session)</span><span class="p-sub">Mark Forster · <span lang="de">LIEBE s/w</span></span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:17+07:00">23:17</time><p><span class="p-title" lang="de">Liebe s/w (Paris Piano Session)</span><span class="p-sub">Mark Forster · <span lang="de">Liebe s/w</span></span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:13+07:00">23:13</time><p><span class="p-title" lang="de">Einmal s/w (Paris Piano Session)</span><span class="p-sub">Mark Forster · <span lang="de">Liebe s/w</span></span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:09+07:00">23:09</time><p><span class="p-title">Comeback s/w (Paris Piano Session)</span><span class="p-sub">Mark Forster · <span lang="de">Liebe s/w</span></span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:06+07:00">23:06</time><p><span class="p-title" lang="de">Wie früher Mal Dich</span><span class="p-sub">Mark Forster · <span lang="de">Liebe s/w</span></span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:04+07:00">23:04</time><p><span class="p-title" lang="de">Bilder im Kopf</span><span class="p-sub">Sido · #Beste</span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T23:01+07:00">23:01</time><p><span class="p-title" lang="de">Hoch</span><span class="p-sub">Tim Bendzko · FILTER</span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T22:59+07:00">22:59</time><p><span class="p-title" lang="de">110 (Prolog)</span><span class="p-sub">LEA · <span lang="de">Treppenhaus</span> (Deluxe)</span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T22:56+07:00">22:56</time><p><span class="p-title" lang="de">Leider Berlin</span><span class="p-sub">Clueso · ALBUM</span></p><span class="src">apple music</span></li>
+      <li><time datetime="2026-11-18T22:53+07:00">22:53</time><p><span class="p-title" lang="de">Lieblingsmensch</span><span class="p-sub">Namika · Nador</span></p><span class="src">apple music</span></li>
+    </ol>
+    <p class="plays-more"><span>14 of today's 50 plays</span><a href="listening.html">Older plays <span aria-hidden="true">→</span></a></p>
+    <p class="sans muted" style="font-size: var(--fs-sm)">Times are Bangkok time. The records are public: see them on <a href="https://pdsls.dev/at://did:plc:xaj6j6abvpgwps5v6k4t6clv/fm.teal.feed.play">pdsls</a>.</p>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>A radio stack:</b> now playing is the active frequency, the play before it is on standby, like a cockpit's comm radio. "ACTIVE" and "STBY" are decoration (hidden from screen readers); the visible labels say "Now playing" and "Before that".</li>
+    <li>Top artists and tracks are <b>bar meters with the number written beside each bar</b>, so the bars never carry the information alone.</li>
+    <li>Titles in other languages are marked up (<code>lang="de"</code>, <code>ko</code>, <code>zh</code>, <code>id</code>), so screen readers pronounce them properly.</li>
+    <li>Album art here is a placeholder square; the real page uses the covers from Deezer and the Cover Art Archive, lazy-loaded and sized so nothing jumps.</li>
+    <li>Recent plays are grouped by day with the source (apple music or last.fm) on each row; the full list pages back through the older collection.</li>
+    <li>The equaliser bars only move without reduced motion.</li>
+  </ul>
+</template>

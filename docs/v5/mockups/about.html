@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en" data-page="about">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About · skiddle.id v5 mockup</title>
+<meta name="description" content="Jeff, known online as Skiddle: protocol engineer, founder of Skiddle Labs, private pilot, in Bangkok.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<script>
+  /* Before first paint: the theme someone picked here, else the device's setting (no flash) */
+  (function () {
+    var d = document.documentElement, t = null, a = null;
+    try { t = localStorage.getItem('v5.theme'); a = localStorage.getItem('v5.accent'); } catch (e) {}
+    if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    if (a) d.dataset.accent = a;
+  })();
+</script>
+<link rel="preload" href="fonts/geist-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="v5.css">
+<link rel="stylesheet" href="mock.css">
+<link rel="icon" href="data:,">
+<style>
+.about-hero { display: grid; gap: 2.5rem; align-items: start; padding-block: clamp(2rem, 1.2rem + 3vw, 4rem) clamp(1.5rem, 1rem + 2vw, 2.5rem); }
+.about-hero .prose { font-size: var(--fs-read); }
+.about-hero .crew { width: 100%; }
+.neo-rule { color: var(--muted); font-size: var(--fs-xs); letter-spacing: 0; margin-top: -0.125rem; }
+@media (min-width: 60rem) {
+  .about-hero { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .about-hero .crew { justify-self: end; position: sticky; top: 1.5rem; }
+}
+.principles { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); counter-reset: none; }
+.principle { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.25rem 0.75rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); }
+.principle-box { grid-row: span 2; color: var(--ok); font-size: var(--fs-sm); }
+.principle h3 { font-size: var(--fs-base); font-weight: 600; letter-spacing: -0.02em; }
+.principle h3 span { color: var(--muted); font-weight: 400; margin-right: 0.5rem; }
+.principle p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); }
+.years .wp { padding-bottom: 1.125rem; }
+.years .wp-part { font-size: var(--fs-sm); font-weight: 600; color: var(--text); letter-spacing: 0; }
+.years .wp-text { display: block; font-family: var(--font-sans); letter-spacing: 0; line-height: 1.55; }
+.years .wp-text a { color: var(--primary); }
+.years .is-here .wp-part { color: var(--primary); }
+.say-hi .kv { font-size: var(--fs-base); gap: 0.5rem 1.25rem; }
+.say-hi .kv a { color: var(--primary); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside class="ann" aria-label="Status line">
+  <div class="wrap ann-row">
+    <p class="ann-clock"><time data-clock="bkk">--:--</time> <span class="muted">Bangkok</span> <span class="ann-sep" aria-hidden="true">/</span> <time data-clock="utc">--:--</time><span class="muted">Z</span></p>
+    <p class="ann-status"><a href="now.html"><span class="dot dot-ok" aria-hidden="true"></span><span class="sr-only">Status: </span>Available<span class="muted"> · Finally, v4.0 of my site released.</span></a></p>
+    <p class="ann-play"><a href="listening.html"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">Now playing: </span>From the Start <span class="muted">· Laufey</span></a></p>
+  </div>
+</aside>
+<header class="deck">
+  <div class="wrap deck-row">
+    <a class="brand" href="home.html"><span class="brand-user">skiddle</span><span class="muted">@</span>web<span class="muted">:~$</span><span class="cursor" aria-hidden="true"></span><span class="sr-only"> (home)</span></a>
+    <nav class="route" aria-label="Main"><ul><li><a href="writing.html">writing</a></li><li><a href="work.html">work</a></li><li><a href="flying.html">flying</a></li><li><a href="about.html" aria-current="page">about</a></li><li><a href="uses.html">uses</a></li></ul></nav>
+    <div class="deck-tools">
+      <button class="tool" type="button" data-search-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg><span class="tool-label">Search</span><kbd data-shortcut>Ctrl K</kbd></button>
+      <button class="tool tool-icon" type="button" data-theme-toggle aria-label="Switch to light theme"><span class="i-sun"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap about-hero">
+    <div class="pagehead" style="padding: 0">
+      <p class="prompt"><span class="u">skiddle@web</span>:~$ cat about.md</p>
+      <h1 class="display">About me</h1>
+      <div class="prose">
+        <p>I'm Jeff, known online as Skiddle. I'm based in Bangkok and run <strong>Skiddle Labs Pte. Ltd.</strong>, my own company. Since Q3 2026, my team and I have been on a protocol-engineering contract for a client I can't name. My background is in platforms and infrastructure: building pipelines, automating ops, and keeping things running across cloud and my homelab.</p>
+        <p>I co-founded <strong>Aerialite</strong>, a security and privacy startup here in Bangkok, and now sit on its advisory board. Skiddle Labs is also home to my personal projects and the clients I've worked with for years, and Skiddle ID is part of it. The full version is on my <a href="cv.html">CV</a>, and the open-source bits are on <a href="projects.html">projects</a>.</p>
+      </div>
+    </div>
+
+    <aside class="crew" aria-labelledby="neo-h">
+      <div class="crew-top"><h2 id="neo-h" class="crew-h">neofetch</h2><span aria-hidden="true">jeff@skiddle</span></div>
+      <div class="crew-body">
+        <img class="crew-photo" src="img/jeff-224.webp" width="112" height="112" alt="Illustrated avatar of Jeff giving a thumbs up on a mountain trail" fetchpriority="high">
+        <dl class="crew-fields">
+          <dt>Role</dt><dd>Protocol engineer (contract)</dd>
+          <dt>Company</dt><dd>Skiddle Labs (founder)</dd>
+          <dt>Based</dt><dd>Bangkok, Thailand</dd>
+          <dt>Hours</dt><dd>Night owl</dd>
+          <dt>Langs</dt><dd>Go, TypeScript, PHP, Python</dd>
+          <dt>Infra</dt><dd>Kubernetes, Proxmox, Cloudflare</dd>
+          <dt>Editor</dt><dd>Zed + Neovim</dd>
+          <dt>Terminal</dt><dd>Ghostty</dd>
+          <dt>Studying</dt><dd>Master's in AI &amp; ML</dd>
+          <dt>Flying</dt><dd>Private pilot (PPL, 2026)</dd>
+          <dt>Uptime</dt><dd>Blogging since 2015</dd>
+        </dl>
+      </div>
+      <p class="crew-id"><span>DID</span><code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code></p>
+    </aside>
+  </div>
+
+  <section class="wrap section" aria-labelledby="how-h">
+    <div class="sec-head"><h2 id="how-h">How I work</h2><span class="more">checklist · 4 of 4</span></div>
+    <ol class="principles">
+      <li class="principle"><span class="principle-box" aria-hidden="true">[x]</span><h3><span>01</span>Automate the toil</h3><p>A small tool beats doing the same manual step twice.</p></li>
+      <li class="principle"><span class="principle-box" aria-hidden="true">[x]</span><h3><span>02</span>Reliability, security, cost</h3><p>I weigh all three on every change, not just the first one.</p></li>
+      <li class="principle"><span class="principle-box" aria-hidden="true">[x]</span><h3><span>03</span>Own your data</h3><p>Open protocols and self-hosting, where it makes sense.</p></li>
+      <li class="principle"><span class="principle-box" aria-hidden="true">[x]</span><h3><span>04</span>Share what I learn</h3><p>I write up what I build, including the parts that went wrong.</p></li>
+    </ol>
+  </section>
+
+  <div class="wrap section grid-2">
+    <section aria-labelledby="sofar-h">
+      <div class="sec-head"><h2 id="sofar-h">So far</h2><span class="more">2015 → now</span></div>
+      <ol class="route-v years">
+        <li class="wp is-done"><span class="wp-part">2015</span><span class="wp-text">Started blogging, on Jekyll and GitHub Pages. <a href="series.html">How the site evolved <span aria-hidden="true">→</span></a></span></li>
+        <li class="wp is-done"><span class="wp-part">2016</span><span class="wp-text">Built Klasemate, my first app from scratch: open-source forum software in PHP.</span></li>
+        <li class="wp is-done"><span class="wp-part">2019</span><span class="wp-text">First infra engineer role: LDAP, device management, backups.</span></li>
+        <li class="wp is-done"><span class="wp-part">2020</span><span class="wp-text">Founded Skiddle ID, building web apps and running infrastructure for clients. It's now part of Skiddle Labs.</span></li>
+        <li class="wp is-done"><span class="wp-part">2021</span><span class="wp-text">Started a bachelor's in AI &amp; machine learning at Chulalongkorn.</span></li>
+        <li class="wp is-done"><span class="wp-part">2022</span><span class="wp-text">Co-founded Aerialite, a security &amp; privacy startup in Bangkok, as DevOps engineer.</span></li>
+        <li class="wp is-done"><span class="wp-part">2024</span><span class="wp-text">Launched CheckDomain and Blocklist, and started my master's.</span></li>
+        <li class="wp is-done"><span class="wp-part">2025</span><span class="wp-text">Moved to Aerialite's advisory board and started pilot ground school. <a href="series-flight.html">The flying story <span aria-hidden="true">→</span></a></span></li>
+        <li class="wp is-done"><span class="wp-part">2026</span><span class="wp-text">Earned my Private Pilot License, then took on a protocol-engineering contract with my Skiddle Labs team.</span></li>
+        <li class="wp is-done is-here"><span class="wp-part">Now <span class="wp-here">you're here</span></span><span class="wp-text">Protocol engineering, my master's, and flying. <a href="now.html">What I'm doing now <span aria-hidden="true">→</span></a></span></li>
+      </ol>
+    </section>
+
+    <div>
+      <section aria-labelledby="outside-h">
+        <div class="sec-head"><h2 id="outside-h">Outside of work</h2></div>
+        <div class="prose" style="font-size: var(--fs-md)">
+          <p>I have ADHD, and it doesn't stop me doing the work. I game, I read, and I keep odd hours. I'm also a private pilot: I earned my PPL in early 2026, and I write about <a href="series-flight.html">how that journey started</a>.</p>
+          <p>I care about open protocols and owning your own data, and I'm into ATProto. Curious what I run all this on? It's on the <a href="uses.html">uses page</a>.</p>
+        </div>
+      </section>
+
+      <section class="section say-hi" aria-labelledby="hi-h" style="padding-bottom: 0">
+        <div class="sec-head"><h2 id="hi-h">Say hi</h2></div>
+        <p class="sans muted" style="margin-bottom: 1rem">For work, email is best. For everything else, Bluesky is where I hang out.</p>
+        <dl class="kv">
+          <dt>Work</dt><dd><a href="mailto:work@skiddle.id">work@skiddle.id</a></dd>
+          <dt>Bluesky</dt><dd><a href="https://bsky.app/profile/skiddle.blue" rel="me">@skiddle.blue</a></dd>
+          <dt>GitHub</dt><dd><a href="https://github.com/arcestia" rel="me">arcestia</a></dd>
+          <dt>Email</dt><dd><a href="mailto:jeff@skiddle.id">jeff@skiddle.id</a></dd>
+        </dl>
+      </section>
+    </div>
+  </div>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>neofetch as a crew card:</b> the same eleven facts as today, in the card from the home page, numbered with your DID. On wide screens it stays beside the story as you read.</li>
+    <li>The story is in <b>Geist Sans</b> at reading size; labels, years and headings stay in Mono.</li>
+    <li><b>How I work</b> is a checklist with all four boxes ticked. The <code>[x]</code> marks are decorative (hidden from screen readers); the numbers and titles are real headings.</li>
+    <li><b>So far</b> is a route: one waypoint per year, and "you're here" at now, with links to the site's history and the flying story where the timeline already had them.</li>
+    <li>Every fact is from today's About record (<code>id.skiddle.about</code>); nothing new is said.</li>
+    <li>No extra images or scripts: one 16 KB avatar, sized, loaded with high priority because it's above the fold.</li>
+  </ul>
+</template>
+
+<footer class="foot">
+  <div class="wrap">
+    <section class="foot-totals" aria-labelledby="totals-h">
+      <h2 id="totals-h" class="foot-label">Totals carried forward</h2>
+      <dl class="totals">
+        <div><dt>Posts</dt><dd>15</dd></div>
+        <div><dt>Series</dt><dd>4</dd></div>
+        <div><dt>Projects</dt><dd>6</dd></div>
+        <div><dt>Plays, 7 days</dt><dd>107</dd></div>
+        <div><dt>Writing since</dt><dd>2015</dd></div>
+      </dl>
+    </section>
+    <div class="foot-grid">
+      <nav aria-labelledby="f-writing"><h2 id="f-writing" class="foot-h">Writing</h2><ul><li><a href="writing.html">All posts</a></li><li><a href="series.html">Series</a></li><li><a href="topics.html">Topics</a></li><li><a href="notes.html">Notes</a></li></ul></nav>
+      <nav aria-labelledby="f-me"><h2 id="f-me" class="foot-h">Me</h2><ul><li><a href="about.html">About</a></li><li><a href="now.html">Now</a></li><li><a href="listening.html">Listening</a></li><li><a href="flying.html">Flying</a></li><li><a href="uses.html">Uses</a></li></ul></nav>
+      <nav aria-labelledby="f-work"><h2 id="f-work" class="foot-h">Work</h2><ul><li><a href="services.html">Services</a></li><li><a href="projects.html">Projects</a></li><li><a href="cv.html">CV</a></li><li><a href="changelog.html">Changelog</a></li></ul></nav>
+      <nav aria-labelledby="f-else"><h2 id="f-else" class="foot-h">Elsewhere</h2><ul class="foot-icons"><li><a href="https://bsky.app/profile/skiddle.blue" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.2 3.3C7.9 5.3 10.8 9.4 12 11.7c1.2-2.3 4.1-6.4 6.8-8.4 1.9-1.4 5.1-2.6 5.1 1 0 .7-.4 6.1-.7 7-.9 3.1-4.1 3.9-7 3.4 5 .9 6.3 3.7 3.5 6.5-5.2 5.4-7.5-1.3-8-3.1L12 18l-.4-.2c-.6 1.8-2.8 8.5-8 3.1-2.8-2.8-1.5-5.6 3.5-6.5-2.9.5-6.1-.3-7-3.4C.4 10.4 0 5 0 4.3c0-3.6 3.2-2.4 5.2-1Z"/></svg>Bluesky</a></li><li><a href="https://github.com/arcestia" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>GitHub</a></li><li><a href="#rss"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4.5a1 1 0 0 1 1-1C14.1 3.5 20.5 9.9 20.5 19a1 1 0 1 1-2 0c0-8-5.5-13.5-13.5-13.5a1 1 0 0 1-1-1Zm0 6a1 1 0 0 1 1-1 9.5 9.5 0 0 1 9.5 9.5 1 1 0 1 1-2 0A7.5 7.5 0 0 0 5 11.5a1 1 0 0 1-1-1ZM6 20.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>RSS</a></li><li><a href="mailto:work@skiddle.id"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g></svg>Email</a></li></ul></nav>
+    </div>
+    <p class="foot-record">Every page here is read from records in my <abbr title="AT Protocol">ATProto</abbr> repo, <code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code>.</p>
+    <p class="foot-legal">© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd. · Code MIT · Writing all rights reserved, no AI training · <a href="changelog.html">v5.0</a></p>
+  </div>
+</footer>
+
+<dialog class="cmd" aria-labelledby="cmd-title">
+  <form method="dialog" class="cmd-box" role="search">
+    <h2 id="cmd-title" class="sr-only">Search</h2>
+    <label class="cmd-prompt" for="cmd-q"><span class="muted">skiddle@web:~$</span> find</label>
+    <input id="cmd-q" class="cmd-input" type="search" autocomplete="off" spellcheck="false" placeholder="posts, series, topics, pages" aria-describedby="cmd-count">
+    <p id="cmd-count" class="cmd-count" aria-live="polite">19 results</p>
+    <ul class="cmd-list"><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #2: The Whole Site Lives in My Repo Now</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #1: Where Am I in This Series?</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Never Quite Done</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Publishing My Blog to AT Protocol</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Fast and Accessible</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">How It All Started #1</span></a></li><li><a href="post.html" lang="id"><span class="cmd-kind">post</span><span class="cmd-label">Penutupan Akses Publik API Checknawala</span></a></li><li><a href="series-flight.html"><span class="cmd-kind">series</span><span class="cmd-label">From Fear to Flight</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Rebuilding skiddle.id</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Lab Notes</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">ATProto & the open web</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">Infra & delivery</span></a></li><li><a href="services.html"><span class="cmd-kind">page</span><span class="cmd-label">Services</span></a></li><li><a href="cv.html"><span class="cmd-kind">page</span><span class="cmd-label">CV</span></a></li><li><a href="projects.html"><span class="cmd-kind">page</span><span class="cmd-label">Projects</span></a></li><li><a href="listening.html"><span class="cmd-kind">page</span><span class="cmd-label">Listening</span></a></li><li><a href="now.html"><span class="cmd-kind">page</span><span class="cmd-label">Now</span></a></li><li><a href="notes.html"><span class="cmd-kind">page</span><span class="cmd-label">Notes</span></a></li><li><a href="changelog.html"><span class="cmd-kind">page</span><span class="cmd-label">Changelog</span></a></li></ul>
+    <p class="cmd-help"><kbd>Esc</kbd> to close</p>
+  </form>
+</dialog>
+<script src="v5.js" defer></script>
+<script src="mock.js" defer></script>
+</body>
+</html>

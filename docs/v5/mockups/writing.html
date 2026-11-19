@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en" data-page="writing">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Writing · skiddle.id v5 mockup</title>
+<meta name="description" content="Every post on skiddle.id, newest first: infra, the open web, homelab experiments and life, including flying.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<script>
+  /* Before first paint: the theme someone picked here, else the device's setting (no flash) */
+  (function () {
+    var d = document.documentElement, t = null, a = null;
+    try { t = localStorage.getItem('v5.theme'); a = localStorage.getItem('v5.accent'); } catch (e) {}
+    if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    if (a) d.dataset.accent = a;
+  })();
+</script>
+<link rel="preload" href="fonts/geist-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="v5.css">
+<link rel="stylesheet" href="mock.css">
+<link rel="icon" href="data:,">
+<style>
+.find { display: grid; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); margin-bottom: 2.5rem; }
+.find-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.find-form label { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+.find-form label .u { color: var(--primary); }
+.find-input { flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; padding: 0 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); }
+.filters { display: grid; gap: 0.5rem; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 0.375rem; align-items: center; font-size: var(--fs-sm); }
+.filter-row .label { width: 5.5rem; flex: none; }
+.chip { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 2rem; padding: 0 0.625rem; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; color: var(--muted); }
+.chip b { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+.chip[aria-current='page'] { border-color: var(--primary); background: var(--primary); color: var(--on-primary); font-weight: 600; }
+.chip[aria-current='page'] b { color: var(--on-primary); }
+.lb-series { display: inline-block; margin-right: 0.5rem; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--primary); }
+.lb-upd { display: block; margin-top: 0.125rem; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--muted); }
+.lb-row .lang { margin-left: 0.5rem; }
+section + section .lb-year { margin-top: 3rem; }
+/* Phones: date and minutes on one line, the entry full width under them */
+@media (max-width: 40rem) {
+  .lb-head { display: none; }
+  .logbook .lb-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'date min' 'entry entry'; row-gap: 0.25rem; }
+  .lb-row .lb-date { grid-area: date; }
+  .lb-row > div { grid-area: entry; }
+  .lb-row .lb-min { grid-area: min; }
+  .lb-row .lb-min::after { content: ' min' / ''; }
+}
+@media (max-width: 30rem) {
+  .filter-row .label { width: 100%; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside class="ann" aria-label="Status line">
+  <div class="wrap ann-row">
+    <p class="ann-clock"><time data-clock="bkk">--:--</time> <span class="muted">Bangkok</span> <span class="ann-sep" aria-hidden="true">/</span> <time data-clock="utc">--:--</time><span class="muted">Z</span></p>
+    <p class="ann-status"><a href="now.html"><span class="dot dot-ok" aria-hidden="true"></span><span class="sr-only">Status: </span>Available<span class="muted"> · Finally, v4.0 of my site released.</span></a></p>
+    <p class="ann-play"><a href="listening.html"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">Now playing: </span>From the Start <span class="muted">· Laufey</span></a></p>
+  </div>
+</aside>
+<header class="deck">
+  <div class="wrap deck-row">
+    <a class="brand" href="home.html"><span class="brand-user">skiddle</span><span class="muted">@</span>web<span class="muted">:~$</span><span class="cursor" aria-hidden="true"></span><span class="sr-only"> (home)</span></a>
+    <nav class="route" aria-label="Main"><ul><li><a href="writing.html" aria-current="page">writing</a></li><li><a href="work.html">work</a></li><li><a href="flying.html">flying</a></li><li><a href="about.html">about</a></li><li><a href="uses.html">uses</a></li></ul></nav>
+    <div class="deck-tools">
+      <button class="tool" type="button" data-search-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg><span class="tool-label">Search</span><kbd data-shortcut>Ctrl K</kbd></button>
+      <button class="tool tool-icon" type="button" data-theme-toggle aria-label="Switch to light theme"><span class="i-sun"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ ls -lt writing/</p>
+    <h1 class="display">Writing</h1>
+    <p class="lede">Infra, the open web, homelab experiments and life, including flying. Every post, newest first, with the time it takes to read.</p>
+    <dl class="readouts">
+      <div><dt>Posts</dt><dd>15</dd></div>
+      <div><dt>Series</dt><dd>4</dd></div>
+      <div><dt>Topics</dt><dd>4</dd></div>
+      <div><dt>Languages</dt><dd>EN · ID</dd></div>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <div class="find">
+      <form class="find-form" action="https://skiddle.id/posts/" method="get" role="search">
+        <label for="q"><span class="u">skiddle@web</span>:~$ grep</label>
+        <input id="q" class="find-input" type="search" name="q" placeholder="titles, tags, text" autocomplete="off">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <nav class="filters" aria-label="Filter posts">
+        <div class="filter-row">
+          <span class="label" id="f-topic">Topic</span>
+          <ul class="filter-row" aria-labelledby="f-topic">
+            <li><a class="chip" href="writing.html" aria-current="page">All <b>15</b></a></li>
+            <li><a class="chip" href="topics.html#infra">Infra &amp; delivery <b>10</b></a></li>
+            <li><a class="chip" href="topics.html#atproto">ATProto &amp; the open web <b>2</b></a></li>
+            <li><a class="chip" href="topics.html#homelab">Homelab <b>1</b></a></li>
+            <li><a class="chip" href="topics.html#life">Life <b>2</b></a></li>
+          </ul>
+        </div>
+        <div class="filter-row">
+          <span class="label" id="f-lang">Language</span>
+          <ul class="filter-row" aria-labelledby="f-lang">
+            <li><a class="chip" href="writing.html">English <b>14</b></a></li>
+            <li><a class="chip" href="writing.html" lang="id">Bahasa Indonesia <b>1</b></a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <section aria-labelledby="y2026">
+      <h2 class="lb-year" id="y2026">2026 <span>9 entries · 34 min</span></h2>
+      <div class="lb-head" aria-hidden="true"><span>Date</span><span>Entry</span><span class="lb-topic">Topic</span><span class="lb-min">Min</span></div>
+      <ol class="logbook">
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-18">18 Nov</time><div><a class="lb-title" href="post.html">Lab Notes #2: The Whole Site Lives in My Repo Now</a><span class="lb-sub"><span class="lb-series">Lab Notes · 2</span>v4.0 is out. Posts, pages, categories, my status and the music I play are now records in my own AT Protocol repo.</span></div><span class="lb-topic">ATProto &amp; the open web</span><span class="lb-min">8<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-17">17 Nov</time><div><a class="lb-title" href="post.html">Lab Notes #1: Where Am I in This Series?</a><span class="lb-sub"><span class="lb-series">Lab Notes · 1</span>A new weekly series about Skiddle Labs. First up: series on this site now show where you are, what's next and what's planned.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-16">16 Nov</time><div><a class="lb-title" href="post.html">Never Quite Done</a><span class="lb-sub"><span class="lb-series">Rebuilding · 7</span>The site follows your device's theme, every page gets a share card, and I blocked my own analytics again.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">5<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Publishing My Blog to AT Protocol</a><span class="lb-sub">My posts now also live as records in my own AT Protocol repo, where Standard.site readers can find them.</span></div><span class="lb-topic">ATProto &amp; the open web</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Fast and Accessible</a><span class="lb-sub"><span class="lb-series">Rebuilding · 6</span>What a Lighthouse audit found on my site, and how the home page went from 274 KB to 82 KB.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">4<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Locking Down My Personal Site</a><span class="lb-sub"><span class="lb-series">Rebuilding · 5</span>Security headers, a script-locking CSP, secret scanning, and how I accidentally blocked my own analytics.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Share Cards and Comments Without a Backend</a><span class="lb-sub"><span class="lb-series">Rebuilding · 4</span>Preview images made at build time, and Bluesky replies as comments: no database, accounts or tracking.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-13">13 Nov</time><div><a class="lb-title" href="post.html">Shipping My Personal Site Like Production</a><span class="lb-sub"><span class="lb-series">Rebuilding · 3</span>Merge to deploy, a preview for every pull request, checks that run themselves, and the day a post disappeared.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-12">12 Nov</time><div><a class="lb-title" href="post.html">Bringing Back the v1 Design</a><span class="lb-sub"><span class="lb-series">Rebuilding · 2</span>People liked the old design better, so v3.2 brings it back, modernised, with a proper portfolio.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="y2025">
+      <h2 class="lb-year" id="y2025">2025 <span>6 entries · 13 min</span></h2>
+      <div class="lb-head" aria-hidden="true"><span>Date</span><span>Entry</span><span class="lb-topic">Topic</span><span class="lb-min">Min</span></div>
+      <ol class="logbook">
+        <li class="lb-row"><time class="lb-date" datetime="2025-11-23">23 Nov</time><div><a class="lb-title" href="post.html" hreflang="id"><span lang="id">Penutupan Akses Publik API Checknawala</span></a><span class="lang">ID<span class="sr-only">, in Indonesian</span></span><span class="lb-sub"><span class="lb-series">checkdomain · 2</span><span lang="id">500M req/mo sunset</span>: why the public API closed and the supporter path forward.</span><span class="lb-upd">updated <time datetime="2025-11-24">24 Nov 2025</time></span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">1<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-11-23">23 Nov</time><div><a class="lb-title" href="post.html">The Story Behind Taking Down My Free checkdomain API</a><span class="lb-sub"><span class="lb-series">checkdomain · 1</span>Two years free, then abuse, reselling, and DDoS: why the API closed.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-30">30 Sep</time><div><a class="lb-title" href="post.html">How It All Started #1</a><span class="lb-sub"><span class="lb-series">From Fear to Flight · 1</span>From hating heights to a surprise skydive to PPL ground school: how I ended up learning to fly.</span><span class="lb-upd">updated <time datetime="2026-11-14">14 Nov 2026</time></span></div><span class="lb-topic">Life</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-24">24 Sep</time><div><a class="lb-title" href="post.html">I Migrate All My Email to Purelymail</a><span class="lb-sub">From self-hosted Postfix to Google Workspace to Cloudflare Routing: why Purelymail hit the sweet spot.</span><span class="lb-upd">updated <time datetime="2025-10-02">2 Oct 2025</time></span></div><span class="lb-topic">Homelab</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-19">19 Sep</time><div><a class="lb-title" href="post.html">My Last Month at Aerialite</a><span class="lb-sub">Co-founding a security &amp; privacy startup in Bangkok, and stepping back after loss.</span></div><span class="lb-topic">Life</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-15">15 Sep</time><div><a class="lb-title" href="post.html">A Newest Refactoring of My Personal Sites</a><span class="lb-sub"><span class="lb-series">Rebuilding · 1</span>Dozens of redesigns, from Jekyll in 2015 to Astro 6 warm blue.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="wrap section" aria-labelledby="order-h" style="padding-top: 3rem">
+    <div class="sec-head"><h2 id="order-h">Read in order</h2><a class="more" href="series.html">all series <span aria-hidden="true">→</span></a></div>
+    <ul class="series-grid">
+      <li class="series-card"><h3><a href="series.html#lab-notes">Lab Notes</a></h3><div class="miniroute ongoing" role="img" aria-label="2 parts so far, ongoing"><i class="d"></i><i class="d"></i><i class="p"></i><i class="p"></i></div><p>2 parts · new twice a week</p></li>
+      <li class="series-card"><h3><a href="series.html#rebuilding">Rebuilding skiddle.id</a></h3><div class="miniroute" role="img" aria-label="7 of 7 parts, complete"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i></div><p>7 parts · complete</p></li>
+      <li class="series-card"><h3><a href="series-flight.html">From Fear to Flight</a></h3><div class="miniroute" role="img" aria-label="1 of 6 parts published"><i class="d"></i><i class="p"></i><i class="p"></i><i class="p"></i><i class="p"></i><i class="p"></i></div><p>1 of 6 · next: Ground School</p></li>
+      <li class="series-card"><h3><a href="series.html#checkdomain">checkdomain</a></h3><div class="miniroute" role="img" aria-label="2 of 2 parts, complete"><i class="d"></i><i class="d"></i></div><p>2 parts · one in Indonesian</p></li>
+    </ul>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>A logbook, not a feed.</b> Ruled rows with column heads (date, entry, topic, minutes), grouped by year, each year with its page totals: "9 entries · 34 min".</li>
+    <li>Rows are a plain ordered list with the title as the only link (its hit area covers the row), so screen readers hear one link per post, not five.</li>
+    <li>Search is a real <code>GET</code> form to <code>/posts/?q=</code>: it works without JavaScript; the command bar (Ctrl K / ⌘K) is the fast path.</li>
+    <li><b>Filters are links</b> (topic, language), so they're shareable and need no script. The Indonesian post has <code>lang="id"</code> and <code>hreflang</code>, and an <b>ID</b> label read as "in Indonesian".</li>
+    <li>Series parts show inline ("Rebuilding · 6"), so the list doubles as a reading order.</li>
+    <li>On phones the topic column folds away and the row is date, title and minutes; nothing scrolls sideways.</li>
+  </ul>
+</template>
+
+<footer class="foot">
+  <div class="wrap">
+    <section class="foot-totals" aria-labelledby="totals-h">
+      <h2 id="totals-h" class="foot-label">Totals carried forward</h2>
+      <dl class="totals">
+        <div><dt>Posts</dt><dd>15</dd></div>
+        <div><dt>Series</dt><dd>4</dd></div>
+        <div><dt>Projects</dt><dd>6</dd></div>
+        <div><dt>Plays, 7 days</dt><dd>107</dd></div>
+        <div><dt>Writing since</dt><dd>2015</dd></div>
+      </dl>
+    </section>
+    <div class="foot-grid">
+      <nav aria-labelledby="f-writing"><h2 id="f-writing" class="foot-h">Writing</h2><ul><li><a href="writing.html">All posts</a></li><li><a href="series.html">Series</a></li><li><a href="topics.html">Topics</a></li><li><a href="notes.html">Notes</a></li></ul></nav>
+      <nav aria-labelledby="f-me"><h2 id="f-me" class="foot-h">Me</h2><ul><li><a href="about.html">About</a></li><li><a href="now.html">Now</a></li><li><a href="listening.html">Listening</a></li><li><a href="flying.html">Flying</a></li><li><a href="uses.html">Uses</a></li></ul></nav>
+      <nav aria-labelledby="f-work"><h2 id="f-work" class="foot-h">Work</h2><ul><li><a href="services.html">Services</a></li><li><a href="projects.html">Projects</a></li><li><a href="cv.html">CV</a></li><li><a href="changelog.html">Changelog</a></li></ul></nav>
+      <nav aria-labelledby="f-else"><h2 id="f-else" class="foot-h">Elsewhere</h2><ul class="foot-icons"><li><a href="https://bsky.app/profile/skiddle.blue" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.2 3.3C7.9 5.3 10.8 9.4 12 11.7c1.2-2.3 4.1-6.4 6.8-8.4 1.9-1.4 5.1-2.6 5.1 1 0 .7-.4 6.1-.7 7-.9 3.1-4.1 3.9-7 3.4 5 .9 6.3 3.7 3.5 6.5-5.2 5.4-7.5-1.3-8-3.1L12 18l-.4-.2c-.6 1.8-2.8 8.5-8 3.1-2.8-2.8-1.5-5.6 3.5-6.5-2.9.5-6.1-.3-7-3.4C.4 10.4 0 5 0 4.3c0-3.6 3.2-2.4 5.2-1Z"/></svg>Bluesky</a></li><li><a href="https://github.com/arcestia" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>GitHub</a></li><li><a href="#rss"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4.5a1 1 0 0 1 1-1C14.1 3.5 20.5 9.9 20.5 19a1 1 0 1 1-2 0c0-8-5.5-13.5-13.5-13.5a1 1 0 0 1-1-1Zm0 6a1 1 0 0 1 1-1 9.5 9.5 0 0 1 9.5 9.5 1 1 0 1 1-2 0A7.5 7.5 0 0 0 5 11.5a1 1 0 0 1-1-1ZM6 20.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>RSS</a></li><li><a href="mailto:work@skiddle.id"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g></svg>Email</a></li></ul></nav>
+    </div>
+    <p class="foot-record">Every page here is read from records in my <abbr title="AT Protocol">ATProto</abbr> repo, <code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code>.</p>
+    <p class="foot-legal">© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd. · Code MIT · Writing all rights reserved, no AI training · <a href="changelog.html">v5.0</a></p>
+  </div>
+</footer>
+
+<dialog class="cmd" aria-labelledby="cmd-title">
+  <form method="dialog" class="cmd-box" role="search">
+    <h2 id="cmd-title" class="sr-only">Search</h2>
+    <label class="cmd-prompt" for="cmd-q"><span class="muted">skiddle@web:~$</span> find</label>
+    <input id="cmd-q" class="cmd-input" type="search" autocomplete="off" spellcheck="false" placeholder="posts, series, topics, pages" aria-describedby="cmd-count">
+    <p id="cmd-count" class="cmd-count" aria-live="polite">19 results</p>
+    <ul class="cmd-list"><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #2: The Whole Site Lives in My Repo Now</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #1: Where Am I in This Series?</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Never Quite Done</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Publishing My Blog to AT Protocol</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Fast and Accessible</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">How It All Started #1</span></a></li><li><a href="post.html" lang="id"><span class="cmd-kind">post</span><span class="cmd-label">Penutupan Akses Publik API Checknawala</span></a></li><li><a href="series-flight.html"><span class="cmd-kind">series</span><span class="cmd-label">From Fear to Flight</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Rebuilding skiddle.id</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Lab Notes</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">ATProto & the open web</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">Infra & delivery</span></a></li><li><a href="services.html"><span class="cmd-kind">page</span><span class="cmd-label">Services</span></a></li><li><a href="cv.html"><span class="cmd-kind">page</span><span class="cmd-label">CV</span></a></li><li><a href="projects.html"><span class="cmd-kind">page</span><span class="cmd-label">Projects</span></a></li><li><a href="listening.html"><span class="cmd-kind">page</span><span class="cmd-label">Listening</span></a></li><li><a href="now.html"><span class="cmd-kind">page</span><span class="cmd-label">Now</span></a></li><li><a href="notes.html"><span class="cmd-kind">page</span><span class="cmd-label">Notes</span></a></li><li><a href="changelog.html"><span class="cmd-kind">page</span><span class="cmd-label">Changelog</span></a></li></ul>
+    <p class="cmd-help"><kbd>Esc</kbd> to close</p>
+  </form>
+</dialog>
+<script src="v5.js" defer></script>
+<script src="mock.js" defer></script>
+</body>
+</html>

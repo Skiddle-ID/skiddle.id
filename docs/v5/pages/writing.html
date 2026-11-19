@@ -1,0 +1,128 @@
+---
+title: Writing
+nav: writing
+description: Every post on skiddle.id, newest first: infra, the open web, homelab experiments and life, including flying.
+---
+<style>
+.find { display: grid; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); margin-bottom: 2.5rem; }
+.find-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.find-form label { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+.find-form label .u { color: var(--primary); }
+.find-input { flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; padding: 0 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); }
+.filters { display: grid; gap: 0.5rem; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 0.375rem; align-items: center; font-size: var(--fs-sm); }
+.filter-row .label { width: 5.5rem; flex: none; }
+.chip { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 2rem; padding: 0 0.625rem; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; color: var(--muted); }
+.chip b { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+.chip[aria-current='page'] { border-color: var(--primary); background: var(--primary); color: var(--on-primary); font-weight: 600; }
+.chip[aria-current='page'] b { color: var(--on-primary); }
+.lb-series { display: inline-block; margin-right: 0.5rem; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--primary); }
+.lb-upd { display: block; margin-top: 0.125rem; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--muted); }
+.lb-row .lang { margin-left: 0.5rem; }
+section + section .lb-year { margin-top: 3rem; }
+/* Phones: date and minutes on one line, the entry full width under them */
+@media (max-width: 40rem) {
+  .lb-head { display: none; }
+  .logbook .lb-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'date min' 'entry entry'; row-gap: 0.25rem; }
+  .lb-row .lb-date { grid-area: date; }
+  .lb-row > div { grid-area: entry; }
+  .lb-row .lb-min { grid-area: min; }
+  .lb-row .lb-min::after { content: ' min' / ''; }
+}
+@media (max-width: 30rem) {
+  .filter-row .label { width: 100%; }
+}
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ ls -lt writing/</p>
+    <h1 class="display">Writing</h1>
+    <p class="lede">Infra, the open web, homelab experiments and life, including flying. Every post, newest first, with the time it takes to read.</p>
+    <dl class="readouts">
+      <div><dt>Posts</dt><dd>15</dd></div>
+      <div><dt>Series</dt><dd>4</dd></div>
+      <div><dt>Topics</dt><dd>4</dd></div>
+      <div><dt>Languages</dt><dd>EN · ID</dd></div>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <div class="find">
+      <form class="find-form" action="https://skiddle.id/posts/" method="get" role="search">
+        <label for="q"><span class="u">skiddle@web</span>:~$ grep</label>
+        <input id="q" class="find-input" type="search" name="q" placeholder="titles, tags, text" autocomplete="off">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <nav class="filters" aria-label="Filter posts">
+        <div class="filter-row">
+          <span class="label" id="f-topic">Topic</span>
+          <ul class="filter-row" aria-labelledby="f-topic">
+            <li><a class="chip" href="writing.html" aria-current="page">All <b>15</b></a></li>
+            <li><a class="chip" href="topics.html#infra">Infra &amp; delivery <b>10</b></a></li>
+            <li><a class="chip" href="topics.html#atproto">ATProto &amp; the open web <b>2</b></a></li>
+            <li><a class="chip" href="topics.html#homelab">Homelab <b>1</b></a></li>
+            <li><a class="chip" href="topics.html#life">Life <b>2</b></a></li>
+          </ul>
+        </div>
+        <div class="filter-row">
+          <span class="label" id="f-lang">Language</span>
+          <ul class="filter-row" aria-labelledby="f-lang">
+            <li><a class="chip" href="writing.html">English <b>14</b></a></li>
+            <li><a class="chip" href="writing.html" lang="id">Bahasa Indonesia <b>1</b></a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <section aria-labelledby="y2026">
+      <h2 class="lb-year" id="y2026">2026 <span>9 entries · 34 min</span></h2>
+      <div class="lb-head" aria-hidden="true"><span>Date</span><span>Entry</span><span class="lb-topic">Topic</span><span class="lb-min">Min</span></div>
+      <ol class="logbook">
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-18">18 Nov</time><div><a class="lb-title" href="post.html">Lab Notes #2: The Whole Site Lives in My Repo Now</a><span class="lb-sub"><span class="lb-series">Lab Notes · 2</span>v4.0 is out. Posts, pages, categories, my status and the music I play are now records in my own AT Protocol repo.</span></div><span class="lb-topic">ATProto &amp; the open web</span><span class="lb-min">8<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-17">17 Nov</time><div><a class="lb-title" href="post.html">Lab Notes #1: Where Am I in This Series?</a><span class="lb-sub"><span class="lb-series">Lab Notes · 1</span>A new weekly series about Skiddle Labs. First up: series on this site now show where you are, what's next and what's planned.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-16">16 Nov</time><div><a class="lb-title" href="post.html">Never Quite Done</a><span class="lb-sub"><span class="lb-series">Rebuilding · 7</span>The site follows your device's theme, every page gets a share card, and I blocked my own analytics again.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">5<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Publishing My Blog to AT Protocol</a><span class="lb-sub">My posts now also live as records in my own AT Protocol repo, where Standard.site readers can find them.</span></div><span class="lb-topic">ATProto &amp; the open web</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Fast and Accessible</a><span class="lb-sub"><span class="lb-series">Rebuilding · 6</span>What a Lighthouse audit found on my site, and how the home page went from 274 KB to 82 KB.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">4<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Locking Down My Personal Site</a><span class="lb-sub"><span class="lb-series">Rebuilding · 5</span>Security headers, a script-locking CSP, secret scanning, and how I accidentally blocked my own analytics.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-14">14 Nov</time><div><a class="lb-title" href="post.html">Share Cards and Comments Without a Backend</a><span class="lb-sub"><span class="lb-series">Rebuilding · 4</span>Preview images made at build time, and Bluesky replies as comments: no database, accounts or tracking.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-13">13 Nov</time><div><a class="lb-title" href="post.html">Shipping My Personal Site Like Production</a><span class="lb-sub"><span class="lb-series">Rebuilding · 3</span>Merge to deploy, a preview for every pull request, checks that run themselves, and the day a post disappeared.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2026-11-12">12 Nov</time><div><a class="lb-title" href="post.html">Bringing Back the v1 Design</a><span class="lb-sub"><span class="lb-series">Rebuilding · 2</span>People liked the old design better, so v3.2 brings it back, modernised, with a proper portfolio.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="y2025">
+      <h2 class="lb-year" id="y2025">2025 <span>6 entries · 13 min</span></h2>
+      <div class="lb-head" aria-hidden="true"><span>Date</span><span>Entry</span><span class="lb-topic">Topic</span><span class="lb-min">Min</span></div>
+      <ol class="logbook">
+        <li class="lb-row"><time class="lb-date" datetime="2025-11-23">23 Nov</time><div><a class="lb-title" href="post.html" hreflang="id"><span lang="id">Penutupan Akses Publik API Checknawala</span></a><span class="lang">ID<span class="sr-only">, in Indonesian</span></span><span class="lb-sub"><span class="lb-series">checkdomain · 2</span><span lang="id">500M req/mo sunset</span>: why the public API closed and the supporter path forward.</span><span class="lb-upd">updated <time datetime="2025-11-24">24 Nov 2025</time></span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">1<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-11-23">23 Nov</time><div><a class="lb-title" href="post.html">The Story Behind Taking Down My Free checkdomain API</a><span class="lb-sub"><span class="lb-series">checkdomain · 1</span>Two years free, then abuse, reselling, and DDoS: why the API closed.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-30">30 Sep</time><div><a class="lb-title" href="post.html">How It All Started #1</a><span class="lb-sub"><span class="lb-series">From Fear to Flight · 1</span>From hating heights to a surprise skydive to PPL ground school: how I ended up learning to fly.</span><span class="lb-upd">updated <time datetime="2026-11-14">14 Nov 2026</time></span></div><span class="lb-topic">Life</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-24">24 Sep</time><div><a class="lb-title" href="post.html">I Migrate All My Email to Purelymail</a><span class="lb-sub">From self-hosted Postfix to Google Workspace to Cloudflare Routing: why Purelymail hit the sweet spot.</span><span class="lb-upd">updated <time datetime="2025-10-02">2 Oct 2025</time></span></div><span class="lb-topic">Homelab</span><span class="lb-min">3<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-19">19 Sep</time><div><a class="lb-title" href="post.html">My Last Month at Aerialite</a><span class="lb-sub">Co-founding a security &amp; privacy startup in Bangkok, and stepping back after loss.</span></div><span class="lb-topic">Life</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+        <li class="lb-row"><time class="lb-date" datetime="2025-09-15">15 Sep</time><div><a class="lb-title" href="post.html">A Newest Refactoring of My Personal Sites</a><span class="lb-sub"><span class="lb-series">Rebuilding · 1</span>Dozens of redesigns, from Jekyll in 2015 to Astro 6 warm blue.</span></div><span class="lb-topic">Infra &amp; delivery</span><span class="lb-min">2<span class="sr-only"> minute read</span></span></li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="wrap section" aria-labelledby="order-h" style="padding-top: 3rem">
+    <div class="sec-head"><h2 id="order-h">Read in order</h2><a class="more" href="series.html">all series <span aria-hidden="true">→</span></a></div>
+    <ul class="series-grid">
+      <li class="series-card"><h3><a href="series.html#lab-notes">Lab Notes</a></h3><div class="miniroute ongoing" role="img" aria-label="2 parts so far, ongoing"><i class="d"></i><i class="d"></i><i class="p"></i><i class="p"></i></div><p>2 parts · new twice a week</p></li>
+      <li class="series-card"><h3><a href="series.html#rebuilding">Rebuilding skiddle.id</a></h3><div class="miniroute" role="img" aria-label="7 of 7 parts, complete"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i></div><p>7 parts · complete</p></li>
+      <li class="series-card"><h3><a href="series-flight.html">From Fear to Flight</a></h3><div class="miniroute" role="img" aria-label="1 of 6 parts published"><i class="d"></i><i class="p"></i><i class="p"></i><i class="p"></i><i class="p"></i><i class="p"></i></div><p>1 of 6 · next: Ground School</p></li>
+      <li class="series-card"><h3><a href="series.html#checkdomain">checkdomain</a></h3><div class="miniroute" role="img" aria-label="2 of 2 parts, complete"><i class="d"></i><i class="d"></i></div><p>2 parts · one in Indonesian</p></li>
+    </ul>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>A logbook, not a feed.</b> Ruled rows with column heads (date, entry, topic, minutes), grouped by year, each year with its page totals: "9 entries · 34 min".</li>
+    <li>Rows are a plain ordered list with the title as the only link (its hit area covers the row), so screen readers hear one link per post, not five.</li>
+    <li>Search is a real <code>GET</code> form to <code>/posts/?q=</code>: it works without JavaScript; the command bar (Ctrl K / ⌘K) is the fast path.</li>
+    <li><b>Filters are links</b> (topic, language), so they're shareable and need no script. The Indonesian post has <code>lang="id"</code> and <code>hreflang</code>, and an <b>ID</b> label read as "in Indonesian".</li>
+    <li>Series parts show inline ("Rebuilding · 6"), so the list doubles as a reading order.</li>
+    <li>On phones the topic column folds away and the row is date, title and minutes; nothing scrolls sideways.</li>
+  </ul>
+</template>

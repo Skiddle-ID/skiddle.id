@@ -175,13 +175,13 @@ The switch, at launch:
 
 Moved out of v4 on 2026-11-17, so v4 is only about moving to AT Protocol.
 
-**Direction:** keep the terminal identity, make reading great, and make the site more about Jeff than about the site itself. The mockups are in [docs/v4/](docs/v4/).
+**Direction:** keep the terminal identity, make reading great, and make the site more about Jeff than about the site itself. The first mockups, four home pages, are in [docs/v4/](docs/v4/). **Logbook**, a design for every page, is in [docs/v5/](docs/v5/).
 
 ### Decisions
 
 - [x] Reading font: Geist Sans for post text ([#98](https://github.com/Skiddle-ID/skiddle.id/pull/98))
 - [x] Series show their planned parts ([#99](https://github.com/Skiddle-ID/skiddle.id/pull/99))
-- [ ] Home page design: A terminal, B editorial, C tmux or D bento ([mockups](docs/v4/))
+- [ ] Design: Logbook for every page ([docs/v5/](docs/v5/)), or one of the home pages A terminal, B editorial, C tmux or D bento ([docs/v4/](docs/v4/))
 - [ ] Home intro: lead with you, or with consulting
 
 ### The redesign

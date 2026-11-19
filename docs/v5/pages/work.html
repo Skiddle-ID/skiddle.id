@@ -1,0 +1,123 @@
+---
+title: Work
+nav: work
+description: Infrastructure that's secure, automated and boring in the best way. Services, projects and my CV, through Skiddle Labs.
+---
+<style>
+.hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); border: 1px solid var(--border); border-radius: var(--radius); }
+.hl li { display: grid; gap: 0.25rem; align-content: start; padding: 1rem 1.125rem; border-top: 1px solid var(--border); margin-top: -1px; border-left: 1px solid var(--border); margin-left: -1px; }
+.hl-n { font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.04em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hl-t { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.hl-t a { color: var(--primary); }
+.hl-wrap { overflow: hidden; border-radius: var(--radius); }
+.status-line { font-size: var(--fs-sm); color: var(--muted); }
+.status-line .dot { margin-right: 0.5rem; }
+
+/* Where to next: a departure board, one row per page */
+.board { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-alt); overflow: hidden; }
+.board-head, .board-row { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: 0.25rem 1rem; align-items: center; padding: 0.875rem 1rem; }
+.board-head { padding-block: 0.5rem; border-bottom: 2px solid var(--border); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.board-head span:last-child { display: none; }
+.board-row { position: relative; border-bottom: 1px solid var(--rule); }
+.board-row:last-child { border-bottom: 0; }
+.board-row:hover, .board-row:focus-within { background: var(--surface); }
+.board-gate { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 3px; background: linear-gradient(transparent calc(50% - 0.5px), var(--bg-alt) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)), var(--bg); border: 1px solid var(--border); color: var(--t-flight); font-size: var(--fs-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.board-dest { min-width: 0; display: grid; gap: 0.125rem; }
+.board-dest h3 { font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.03em; line-height: 1.3; }
+.board-dest h3 a { text-decoration: none; }
+.board-dest h3 a::after { content: ''; position: absolute; inset: 0; }
+.board-dest h3 a:focus-visible { outline: none; }
+.board-dest h3 a:focus-visible::after { outline: 2px solid var(--primary); outline-offset: -2px; }
+.board-row:hover h3 a { color: var(--primary); }
+.board-dest p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.board-remark { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0 0.5rem; border: 1px solid currentColor; border-radius: 3px; font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ok); white-space: nowrap; }
+.board-remark.is-info { color: var(--t-flight); }
+@media (min-width: 40rem) {
+  .board-head, .board-row { grid-template-columns: 3.25rem minmax(0, 1fr) auto; }
+  .board-head span:last-child { display: block; }
+  .board-remark { grid-column: auto; }
+}
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ cd work/</p>
+    <h1 class="display">Work</h1>
+    <p class="lede">Infrastructure that's secure, automated and boring in the best way, so you can get back to your product. I help small teams and individuals with servers, pipelines, monitoring and self-hosting.</p>
+    <p class="lede">Client work runs through <strong>Skiddle Labs Pte. Ltd.</strong>, my own company.</p>
+    <p class="status-line"><span class="dot dot-ok" aria-hidden="true"></span>Open to consulting · based in Bangkok (UTC+7)</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Email work@skiddle.id</a>
+      <a class="btn" href="services.html">See what I do</a>
+    </div>
+  </header>
+
+  <section class="wrap section" aria-labelledby="hl-h">
+    <h2 id="hl-h" class="sr-only">Highlights</h2>
+    <div class="hl-wrap">
+      <ul class="hl">
+        <li><span class="hl-n">since 2020</span><span class="hl-t">helping clients through Skiddle ID, now part of Skiddle Labs</span></li>
+        <li><span class="hl-n">3 years</span><span class="hl-t">as co-founder and DevOps engineer at Aerialite, a security startup</span></li>
+        <li><span class="hl-n">60%</span><span class="hl-t">less deployment time after automating Aerialite's releases</span></li>
+        <li><span class="hl-n">~500M</span><span class="hl-t">requests a month served by my free CheckDomain API (<a href="post.html">story</a>)</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="wrap section grid-2">
+    <section aria-labelledby="next-h">
+      <div class="sec-head"><h2 id="next-h">Where to next</h2></div>
+      <div class="board">
+        <p class="board-head" aria-hidden="true"><span>Gate</span><span>Destination</span><span>Remarks</span></p>
+        <ul class="board-list">
+          <li class="board-row">
+            <span class="board-gate" aria-hidden="true">01</span>
+            <div class="board-dest"><h3><a href="services.html">Services</a></h3><p>Six things I can set up for you, how a project runs, and what clients say.</p></div>
+            <span class="board-remark"><span class="dot dot-ok" aria-hidden="true"></span>Open</span>
+          </li>
+          <li class="board-row">
+            <span class="board-gate" aria-hidden="true">02</span>
+            <div class="board-dest"><h3><a href="projects.html">Projects</a></h3><p>Things I've built in the open: 6 projects, building since 2016.</p></div>
+            <span class="board-remark">2 running</span>
+          </li>
+          <li class="board-row">
+            <span class="board-gate" aria-hidden="true">03</span>
+            <div class="board-dest"><h3><a href="cv.html">CV</a></h3><p>7+ years in infrastructure: experience, skills, education and certifications.</p></div>
+            <span class="board-remark is-info">Print ready</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="route-h">
+      <div class="sec-head"><h2 id="route-h">The route so far</h2><a class="more" href="cv.html">full CV <span aria-hidden="true">→</span></a></div>
+      <ol class="route-v">
+        <li class="wp is-done"><span class="wp-part">2019 – 2020</span><span class="wp-title">Infra Engineer</span><span class="wp-meta">LDAP, device management, backups and company infrastructure</span></li>
+        <li class="wp is-done"><span class="wp-part">2020</span><span class="wp-title">Founded Skiddle Labs</span><span class="wp-meta">Founder &amp; CEO; Skiddle ID is part of it</span></li>
+        <li class="wp is-done"><span class="wp-part">2022 – 2025</span><span class="wp-title">Co-Founder &amp; DevOps Engineer, Aerialite</span><span class="wp-meta">CI/CD, infrastructure as code, 60% faster deployments</span></li>
+        <li class="wp is-done"><span class="wp-part">2025</span><span class="wp-title">Aerialite's advisory board</span><span class="wp-meta">Advising on ISO 9001 and ISO 27001</span></li>
+        <li class="wp is-done is-here"><span class="wp-part">Q3 2026 – now</span><span class="wp-title">Protocol engineer, on contract</span><span class="wp-meta">for an undisclosed client, via Skiddle Labs</span></li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="wrap section" aria-labelledby="hold-h">
+    <div class="holdshort">
+      <div>
+        <h2 id="hold-h">Need a hand with infrastructure?</h2>
+        <p>A few lines is plenty: what you need, what "done" looks like, your timeline and your current setup.</p>
+      </div>
+      <a class="btn btn-primary" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Email work@skiddle.id</a>
+    </div>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>One "work" door</b> for the roadmap's shorter menu: services, projects and the CV each keep their page, and this hub sends you to the right one.</li>
+    <li><b>Where to next</b> is a departure board: gate, destination, remarks. The remarks are words ("Open", "2 running", "Print ready"), never colour alone.</li>
+    <li>The four highlights from the CV and services pages, each with its number first and the claim beside it, read as one sentence by screen readers.</li>
+    <li><b>The route so far</b>: the career as a flight plan, ending at the waypoint you're at now. The current client stays unnamed, as on the CV.</li>
+    <li>The whole row of a board entry is clickable, but only the heading is the link, so screen readers hear each destination once.</li>
+    <li>No images and no script of its own: text paints first, nothing shifts.</li>
+  </ul>
+</template>

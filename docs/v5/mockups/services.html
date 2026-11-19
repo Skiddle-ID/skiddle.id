@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en" data-page="services">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services · skiddle.id v5 mockup</title>
+<meta name="description" content="Servers, pipelines, monitoring and self-hosting for small teams and individuals, through Skiddle Labs. Open to consulting, based in Bangkok.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<script>
+  /* Before first paint: the theme someone picked here, else the device's setting (no flash) */
+  (function () {
+    var d = document.documentElement, t = null, a = null;
+    try { t = localStorage.getItem('v5.theme'); a = localStorage.getItem('v5.accent'); } catch (e) {}
+    if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    if (a) d.dataset.accent = a;
+  })();
+</script>
+<link rel="preload" href="fonts/geist-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="v5.css">
+<link rel="stylesheet" href="mock.css">
+<link rel="icon" href="data:,">
+<style>
+.status-line { font-size: var(--fs-sm); color: var(--muted); }
+.status-line .dot { margin-right: 0.5rem; }
+
+.svc-grid { display: grid; gap: 0.75rem; }
+@media (min-width: 60rem) { .svc-grid { grid-template-columns: 1fr 1fr; } }
+.svc-grid .strip { scroll-margin-top: 1rem; }
+.svc-no { color: var(--muted); font-weight: 400; margin-right: 0.5rem; }
+.checks { display: grid; gap: 0.125rem; margin-top: 0.375rem; font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); }
+.checks li { position: relative; padding-left: 1.5rem; }
+.checks li::before { content: '✓' / ''; position: absolute; left: 0.125rem; color: var(--ok); font-family: var(--font-mono); }
+.svc-grid .strip-links { margin-top: 0.5rem; }
+.svc-grid .strip-links a { text-decoration: none; }
+.svc-grid .strip-links a:hover { text-decoration: underline; }
+.svc-grid .strip-links .rev { color: var(--t-flight); }
+
+/* How it works: four waypoints, in a row on wide screens */
+.steps { display: grid; counter-reset: step; }
+@media (min-width: 52rem) {
+  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; }
+  .steps .wp { padding: 2rem 0 0; }
+  .steps .wp::before { left: 0; top: 0; }
+  .steps .wp::after { left: 1rem; right: -1.5rem; top: 0.3125rem; bottom: auto; border-left: 0; border-top: 2px solid var(--primary); }
+  .steps .wp:last-child::after { display: none; }
+}
+.steps .wp-meta { display: block; margin-top: 0.25rem; font-family: var(--font-sans); letter-spacing: 0; color: var(--muted); }
+
+.ts-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; margin-bottom: 1rem; }
+.ts-summary .stars { font-size: var(--fs-lg); }
+.ts-summary b { font-size: var(--fs-lg); font-weight: 600; }
+.ts .slide { flex-basis: 85%; position: relative; }
+@media (min-width: 40rem) { .ts .slide { flex-basis: calc((100% - 0.75rem) / 2); } }
+@media (min-width: 64rem) { .ts .slide { flex-basis: calc((100% - 1.5rem) / 3); } }
+.ts .slide blockquote { font-size: var(--fs-base); }
+.ts .slide figcaption { display: grid; gap: 0.125rem; }
+.ts .slide figcaption a { color: var(--primary); text-decoration: none; font-size: var(--fs-xs); }
+.ts .slide figcaption a:hover { text-decoration: underline; }
+.template { display: grid; gap: 0.25rem; margin-top: 0.5rem; }
+.holdshort .bullets { color: var(--muted); font-size: var(--fs-sm); }
+.cta-actions { display: grid; gap: 0.5rem; justify-items: start; }
+@media (min-width: 48rem) { .cta-actions { justify-items: end; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside class="ann" aria-label="Status line">
+  <div class="wrap ann-row">
+    <p class="ann-clock"><time data-clock="bkk">--:--</time> <span class="muted">Bangkok</span> <span class="ann-sep" aria-hidden="true">/</span> <time data-clock="utc">--:--</time><span class="muted">Z</span></p>
+    <p class="ann-status"><a href="now.html"><span class="dot dot-ok" aria-hidden="true"></span><span class="sr-only">Status: </span>Available<span class="muted"> · Finally, v4.0 of my site released.</span></a></p>
+    <p class="ann-play"><a href="listening.html"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">Now playing: </span>From the Start <span class="muted">· Laufey</span></a></p>
+  </div>
+</aside>
+<header class="deck">
+  <div class="wrap deck-row">
+    <a class="brand" href="home.html"><span class="brand-user">skiddle</span><span class="muted">@</span>web<span class="muted">:~$</span><span class="cursor" aria-hidden="true"></span><span class="sr-only"> (home)</span></a>
+    <nav class="route" aria-label="Main"><ul><li><a href="writing.html">writing</a></li><li><a href="work.html" aria-current="page">work</a></li><li><a href="flying.html">flying</a></li><li><a href="about.html">about</a></li><li><a href="uses.html">uses</a></li></ul></nav>
+    <div class="deck-tools">
+      <button class="tool" type="button" data-search-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg><span class="tool-label">Search</span><kbd data-shortcut>Ctrl K</kbd></button>
+      <button class="tool tool-icon" type="button" data-theme-toggle aria-label="Switch to light theme"><span class="i-sun"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <nav class="wrap subnav" aria-label="Work pages">
+    <ul>
+      <li><a href="services.html" aria-current="page"><span class="n" aria-hidden="true">1:</span>services</a></li>
+      <li><a href="projects.html"><span class="n" aria-hidden="true">2:</span>projects</a></li>
+      <li><a href="cv.html"><span class="n" aria-hidden="true">3:</span>cv</a></li>
+    </ul>
+  </nav>
+
+  <header class="wrap pagehead">
+    <p class="crumbs"><a href="work.html">work</a> <span aria-hidden="true">/</span> services</p>
+    <h1 class="display">Services</h1>
+    <p class="lede">Infrastructure that's secure, automated and boring in the best way, so you can get back to your product. I help small teams and individuals with servers, pipelines, monitoring and self-hosting. If you don't see exactly what you need, ask anyway and we'll figure it out.</p>
+    <p class="lede">Client work runs through <strong>Skiddle Labs Pte. Ltd.</strong>, my own company.</p>
+    <p class="status-line"><span class="dot dot-ok" aria-hidden="true"></span>Open to consulting · based in Bangkok (UTC+7)</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Email work@skiddle.id</a>
+      <a class="btn" href="cv.html">View my CV</a>
+    </div>
+    <dl class="readouts">
+      <div><dt>Clients since</dt><dd>2020</dd></div>
+      <div><dt>Rating</dt><dd>★ 5.0</dd></div>
+      <div><dt>Reviews</dt><dd>4</dd></div>
+    </dl>
+  </header>
+
+  <section class="wrap section" aria-labelledby="help-h">
+    <div class="sec-head"><h2 id="help-h">What I can help with</h2><span class="more" aria-hidden="true">ls services/</span></div>
+    <ul class="svc-grid">
+      <li class="strip" id="service-server-setup-hardening">
+        <span class="strip-bay" aria-hidden="true">Svc 01</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">01</span>Server Setup &amp; Hardening</h3>
+          <p class="strip-desc">Provisioning, firewall/TLS, users, backups, and secure defaults on Linux servers.</p>
+          <ul class="checks"><li>Firewall, TLS, SSH and users</li><li>Backups &amp; recovery drills</li><li>Baseline hardening</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20Server%20Setup%20%26%20Hardening&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: Server Setup &amp; Hardening</span> <span aria-hidden="true">→</span></a><a class="rev" href="#kind-words">★ 5.0 · 1 review</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>infrastructure</dd></div></dl></div>
+      </li>
+      <li class="strip" id="service-ci-cd-implementation">
+        <span class="strip-bay" aria-hidden="true">Svc 02</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">02</span>CI/CD Implementation</h3>
+          <p class="strip-desc">Build/test/deploy pipelines with GitHub Actions or GitLab CI, environments, and releases.</p>
+          <ul class="checks"><li>GitHub Actions / GitLab CI</li><li>Multi‑env deployments</li><li>Release workflows</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20CI%2FCD%20Implementation&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: CI/CD Implementation</span> <span aria-hidden="true">→</span></a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>devops</dd></div></dl></div>
+      </li>
+      <li class="strip" id="service-automation-with-ansible">
+        <span class="strip-bay" aria-hidden="true">Svc 03</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">03</span>Automation with Ansible</h3>
+          <p class="strip-desc">Playbooks, roles, inventories, idempotent provisioning and repeatable ops.</p>
+          <ul class="checks"><li>Playbooks &amp; roles</li><li>Inventories &amp; secrets</li><li>Server fleet automation</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20Automation%20with%20Ansible&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: Automation with Ansible</span> <span aria-hidden="true">→</span></a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>automation</dd></div></dl></div>
+      </li>
+      <li class="strip" id="service-self-hosting-homelab-consultation">
+        <span class="strip-bay" aria-hidden="true">Svc 04</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">04</span>Self‑Hosting &amp; Homelab Consultation</h3>
+          <p class="strip-desc">Architecture, SSO, backups/restore, monitoring guidance, and safe internet exposure.</p>
+          <ul class="checks"><li>Reverse proxy &amp; TLS</li><li>Single‑sign on (SSO)</li><li>Backups &amp; monitoring guidance</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20Self%E2%80%91Hosting%20%26%20Homelab%20Consultation&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: Self‑Hosting &amp; Homelab Consultation</span> <span aria-hidden="true">→</span></a><a class="rev" href="#kind-words">★ 5.0 · 1 review</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>consulting</dd></div></dl></div>
+      </li>
+      <li class="strip" id="service-website-project-setup-custom-or-cms">
+        <span class="strip-bay" aria-hidden="true">Svc 05</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">05</span>Website Project Setup (Custom or CMS)</h3>
+          <p class="strip-desc">From Astro/Next.js custom builds to CMS setups (e.g., WordPress, Ghost) with sensible defaults.</p>
+          <ul class="checks"><li>Astro / Next.js</li><li>WordPress / Ghost</li><li>Content &amp; SEO basics</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20Website%20Project%20Setup%20(Custom%20or%20CMS)&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: Website Project Setup</span> <span aria-hidden="true">→</span></a><a class="rev" href="#kind-words">★ 5.0 · 1 review</a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>web</dd></div></dl></div>
+      </li>
+      <li class="strip" id="service-monitoring-setup-grafana-prometheus">
+        <span class="strip-bay" aria-hidden="true">Svc 06</span>
+        <div class="strip-main"><div class="strip-body">
+          <h3 class="strip-title"><span class="svc-no" aria-hidden="true">06</span>Monitoring Setup (Grafana &amp; Prometheus)</h3>
+          <p class="strip-desc">Dashboards, alerting, and metrics pipelines for actionable insights.</p>
+          <ul class="checks"><li>Grafana dashboards &amp; panels</li><li>Prometheus scraping &amp; exporters</li><li>Alertmanager routing &amp; notifications</li></ul>
+          <p class="strip-links"><a href="mailto:work@skiddle.id?subject=Inquiry%3A%20Monitoring%20Setup%20(Grafana%20%26%20Prometheus)&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Ask about this<span class="sr-only">: Monitoring Setup</span> <span aria-hidden="true">→</span></a></p>
+        </div>
+        <dl class="cells"><div class="cell"><dt>Area</dt><dd>observability</dd></div></dl></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="wrap section" aria-labelledby="how-h">
+    <div class="sec-head"><h2 id="how-h">How it works</h2></div>
+    <ol class="route-v steps">
+      <li class="wp is-done"><span class="wp-part">Step 1</span><span class="wp-title">Tell me about it</span><span class="wp-meta">Email what you need, your goal, timeline and constraints. The template below helps.</span></li>
+      <li class="wp is-done"><span class="wp-part">Step 2</span><span class="wp-title">Get a plan</span><span class="wp-meta">I reply with next steps and a lightweight plan, so you know what you're getting before we start.</span></li>
+      <li class="wp is-done"><span class="wp-part">Step 3</span><span class="wp-title">Build it</span><span class="wp-meta">I set it up, keep you posted, and stick to what we agreed.</span></li>
+      <li class="wp is-done is-here"><span class="wp-part">Step 4</span><span class="wp-title">Hand over</span><span class="wp-meta">You get notes on what was set up and how to run it, so you're not dependent on me.</span></li>
+    </ol>
+  </section>
+
+  <section class="wrap section" id="kind-words" aria-labelledby="say-h">
+    <div class="sec-head"><h2 id="say-h">What people say</h2></div>
+    <p class="ts-summary"><span class="stars" aria-hidden="true">★★★★★</span><b>5.0 average</b><span class="muted">· 4 reviews</span></p>
+    <div class="slides ts" data-slides role="region" aria-roledescription="carousel" aria-label="Testimonials">
+      <div class="slides-track" tabindex="0" role="group" aria-label="Testimonials, scroll sideways">
+        <figure class="slide">
+          <p class="stars"><span aria-hidden="true">★★★★★</span><span class="sr-only">Rated 5 out of 5</span></p>
+          <blockquote>“Jeff helped us set up a firewall at the start of our project. After that we keep consulting with him for any security related issues.”</blockquote>
+          <figcaption><span><b>Adhy Musaad</b>, CTO, Kwikku Nusantara</span><a href="#service-server-setup-hardening">Server Setup &amp; Hardening</a></figcaption>
+        </figure>
+        <figure class="slide">
+          <p class="stars"><span aria-hidden="true">★★★★★</span><span class="sr-only">Rated 5 out of 5</span></p>
+          <blockquote>“Our website and mail setup was done in a matter of hours. Saved us a lot of time and money.”</blockquote>
+          <figcaption><span><b>Jason Lim</b>, Business Owner</span><a href="#service-website-project-setup-custom-or-cms">Website Project Setup (Custom or CMS)</a></figcaption>
+        </figure>
+        <figure class="slide">
+          <p class="stars"><span aria-hidden="true">★★★★★</span><span class="sr-only">Rated 5 out of 5</span></p>
+          <blockquote>“My homelab is messed before. After consulting with Jeff, it is now stable, monitored, and easy to maintain. Thanks a lot!”</blockquote>
+          <figcaption><span><b>K. Tan</b>, Indie Dev</span><a href="#service-self-hosting-homelab-consultation">Self‑Hosting &amp; Homelab Consultation</a></figcaption>
+        </figure>
+        <figure class="slide">
+          <p class="stars"><span aria-hidden="true">★★★★★</span><span class="sr-only">Rated 5 out of 5</span></p>
+          <blockquote>“Thanks for the support on help me navigate, in the tech space. He mentored and guide me built the tech stack and everything that suitable to my needs.”</blockquote>
+          <figcaption><span><b>Cael Lin</b>, Self-Learning Developer</span><span class="muted">Consultation</span></figcaption>
+        </figure>
+      </div>
+      <div class="slides-ctl" hidden>
+        <button type="button" data-prev aria-label="Previous testimonial">‹</button>
+        <button type="button" data-next aria-label="Next testimonial">›</button>
+        <output aria-live="off">1 / 4</output>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="tell-h">
+    <div class="holdshort">
+      <div>
+        <h2 id="tell-h">Tell me about your project</h2>
+        <p>A few lines is plenty. The email button opens with a short template so you don't have to think about what to include:</p>
+        <ul class="bullets template"><li>what you need help with</li><li>what "done" looks like</li><li>your timeline</li><li>your current setup and any constraints</li></ul>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="mailto:work@skiddle.id?subject=Service%20inquiry%20from%20skiddle.id&amp;body=Hi%20Jeff%2C%0A%0AWhat%20I%20need%20help%20with%3A%0A%0AGoal%20%2F%20what%20%22done%22%20looks%20like%3A%0A%0ATimeline%3A%0A%0ACurrent%20setup%20and%20constraints%3A%0A">Email work@skiddle.id</a>
+        <a class="link-arrow" href="https://bsky.app/profile/skiddle.blue">Or say hi on Bluesky ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>Work's three pages share a tab row</b> drawn like tmux windows (<code>1:services 2:projects 3:cv</code>); the numbers are hidden from screen readers, the current tab has <code>aria-current</code>.</li>
+    <li>Each service is a <b>strip</b> with its checklist and its own "Ask about this" email, pre-filled with a subject and the template. Each link says which service it's about to screen readers.</li>
+    <li><b>How it works</b> is a four-waypoint route: across the page on wide screens, down the page on phones.</li>
+    <li><b>What people say</b>: the rating summary, then the card slider (1, 2 or 3 cards in view). It never moves by itself here; ‹ › and sideways scrolling only. Every card links to its service, which scrolls to that strip.</li>
+    <li>Stars are hidden from screen readers and replaced by "Rated 5 out of 5".</li>
+    <li>No images; the slider's buttons only appear when the script runs, and without it the row still scrolls.</li>
+  </ul>
+</template>
+
+<footer class="foot">
+  <div class="wrap">
+    <section class="foot-totals" aria-labelledby="totals-h">
+      <h2 id="totals-h" class="foot-label">Totals carried forward</h2>
+      <dl class="totals">
+        <div><dt>Posts</dt><dd>15</dd></div>
+        <div><dt>Series</dt><dd>4</dd></div>
+        <div><dt>Projects</dt><dd>6</dd></div>
+        <div><dt>Plays, 7 days</dt><dd>107</dd></div>
+        <div><dt>Writing since</dt><dd>2015</dd></div>
+      </dl>
+    </section>
+    <div class="foot-grid">
+      <nav aria-labelledby="f-writing"><h2 id="f-writing" class="foot-h">Writing</h2><ul><li><a href="writing.html">All posts</a></li><li><a href="series.html">Series</a></li><li><a href="topics.html">Topics</a></li><li><a href="notes.html">Notes</a></li></ul></nav>
+      <nav aria-labelledby="f-me"><h2 id="f-me" class="foot-h">Me</h2><ul><li><a href="about.html">About</a></li><li><a href="now.html">Now</a></li><li><a href="listening.html">Listening</a></li><li><a href="flying.html">Flying</a></li><li><a href="uses.html">Uses</a></li></ul></nav>
+      <nav aria-labelledby="f-work"><h2 id="f-work" class="foot-h">Work</h2><ul><li><a href="services.html">Services</a></li><li><a href="projects.html">Projects</a></li><li><a href="cv.html">CV</a></li><li><a href="changelog.html">Changelog</a></li></ul></nav>
+      <nav aria-labelledby="f-else"><h2 id="f-else" class="foot-h">Elsewhere</h2><ul class="foot-icons"><li><a href="https://bsky.app/profile/skiddle.blue" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.2 3.3C7.9 5.3 10.8 9.4 12 11.7c1.2-2.3 4.1-6.4 6.8-8.4 1.9-1.4 5.1-2.6 5.1 1 0 .7-.4 6.1-.7 7-.9 3.1-4.1 3.9-7 3.4 5 .9 6.3 3.7 3.5 6.5-5.2 5.4-7.5-1.3-8-3.1L12 18l-.4-.2c-.6 1.8-2.8 8.5-8 3.1-2.8-2.8-1.5-5.6 3.5-6.5-2.9.5-6.1-.3-7-3.4C.4 10.4 0 5 0 4.3c0-3.6 3.2-2.4 5.2-1Z"/></svg>Bluesky</a></li><li><a href="https://github.com/arcestia" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>GitHub</a></li><li><a href="#rss"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4.5a1 1 0 0 1 1-1C14.1 3.5 20.5 9.9 20.5 19a1 1 0 1 1-2 0c0-8-5.5-13.5-13.5-13.5a1 1 0 0 1-1-1Zm0 6a1 1 0 0 1 1-1 9.5 9.5 0 0 1 9.5 9.5 1 1 0 1 1-2 0A7.5 7.5 0 0 0 5 11.5a1 1 0 0 1-1-1ZM6 20.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>RSS</a></li><li><a href="mailto:work@skiddle.id"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g></svg>Email</a></li></ul></nav>
+    </div>
+    <p class="foot-record">Every page here is read from records in my <abbr title="AT Protocol">ATProto</abbr> repo, <code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code>.</p>
+    <p class="foot-legal">© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd. · Code MIT · Writing all rights reserved, no AI training · <a href="changelog.html">v5.0</a></p>
+  </div>
+</footer>
+
+<dialog class="cmd" aria-labelledby="cmd-title">
+  <form method="dialog" class="cmd-box" role="search">
+    <h2 id="cmd-title" class="sr-only">Search</h2>
+    <label class="cmd-prompt" for="cmd-q"><span class="muted">skiddle@web:~$</span> find</label>
+    <input id="cmd-q" class="cmd-input" type="search" autocomplete="off" spellcheck="false" placeholder="posts, series, topics, pages" aria-describedby="cmd-count">
+    <p id="cmd-count" class="cmd-count" aria-live="polite">19 results</p>
+    <ul class="cmd-list"><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #2: The Whole Site Lives in My Repo Now</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #1: Where Am I in This Series?</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Never Quite Done</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Publishing My Blog to AT Protocol</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Fast and Accessible</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">How It All Started #1</span></a></li><li><a href="post.html" lang="id"><span class="cmd-kind">post</span><span class="cmd-label">Penutupan Akses Publik API Checknawala</span></a></li><li><a href="series-flight.html"><span class="cmd-kind">series</span><span class="cmd-label">From Fear to Flight</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Rebuilding skiddle.id</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Lab Notes</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">ATProto & the open web</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">Infra & delivery</span></a></li><li><a href="services.html"><span class="cmd-kind">page</span><span class="cmd-label">Services</span></a></li><li><a href="cv.html"><span class="cmd-kind">page</span><span class="cmd-label">CV</span></a></li><li><a href="projects.html"><span class="cmd-kind">page</span><span class="cmd-label">Projects</span></a></li><li><a href="listening.html"><span class="cmd-kind">page</span><span class="cmd-label">Listening</span></a></li><li><a href="now.html"><span class="cmd-kind">page</span><span class="cmd-label">Now</span></a></li><li><a href="notes.html"><span class="cmd-kind">page</span><span class="cmd-label">Notes</span></a></li><li><a href="changelog.html"><span class="cmd-kind">page</span><span class="cmd-label">Changelog</span></a></li></ul>
+    <p class="cmd-help"><kbd>Esc</kbd> to close</p>
+  </form>
+</dialog>
+<script src="v5.js" defer></script>
+<script src="mock.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en" data-page="cv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CV · skiddle.id v5 mockup</title>
+<meta name="description" content="Laurensius Jeffrey (Jeff): protocol engineer and founder of Skiddle Labs, Bangkok. 7+ years in infrastructure. Experience, skills, education and certifications.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<script>
+  /* Before first paint: the theme someone picked here, else the device's setting (no flash) */
+  (function () {
+    var d = document.documentElement, t = null, a = null;
+    try { t = localStorage.getItem('v5.theme'); a = localStorage.getItem('v5.accent'); } catch (e) {}
+    if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    if (a) d.dataset.accent = a;
+  })();
+</script>
+<link rel="preload" href="fonts/geist-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="v5.css">
+<link rel="stylesheet" href="mock.css">
+<link rel="icon" href="data:,">
+<style>
+.cv { width: min(100% - 2 * var(--gutter), 60rem); margin-inline: auto; }
+.cv-head { display: grid; gap: 0.75rem; padding-block: clamp(2rem, 1.2rem + 3vw, 3.5rem) 1.5rem; border-bottom: 2px solid var(--text); }
+.cv-name { font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.05em; }
+.cv-name span { color: var(--muted); font-weight: 400; }
+.cv-role { font-size: var(--fs-md); }
+.cv-contact { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: var(--fs-sm); }
+.cv-contact a { color: var(--primary); text-decoration: none; }
+.cv-contact a:hover { text-decoration: underline; }
+.cv-contact .k { color: var(--muted); }
+.cv-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; }
+.cv-summary { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-read); line-height: 1.65; max-width: 44rem; text-wrap: pretty; }
+
+/* Each section: its name in a narrow column on the left, like a logbook's ruled margin */
+.cv-sec { display: grid; gap: 0.75rem 2rem; padding-block: 1.75rem; border-bottom: 1px solid var(--border); }
+.cv-sec > h2 { font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); }
+@media (min-width: 48rem) {
+  .cv-sec { grid-template-columns: 9.5rem minmax(0, 1fr); }
+  .cv-sec > h2 { padding-top: 0.2rem; }
+}
+.cv-body { display: grid; gap: 1.5rem; min-width: 0; }
+.hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 1rem 1.5rem; }
+.hl li { display: grid; gap: 0.125rem; align-content: start; }
+.hl-n { font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.hl-t { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.45; }
+.hl-foot { font-size: var(--fs-sm); color: var(--muted); }
+.hl-foot a { color: var(--primary); }
+
+.job { display: grid; gap: 0.5rem; }
+.job-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; }
+.job-head h3 { font-size: var(--fs-md); font-weight: 600; letter-spacing: -0.02em; }
+.when { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.job-desc { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.role { display: grid; gap: 0.375rem; margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid var(--border); }
+.role-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; }
+.role-head h4 { font-size: var(--fs-base); font-weight: 600; }
+.role-sub { font-size: var(--fs-sm); color: var(--muted); }
+.role .bullets { font-size: var(--fs-sm); gap: 0.25rem; }
+.sub-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 0.75rem; }
+
+.skills { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.625rem 1.25rem; align-items: baseline; font-size: var(--fs-sm); }
+.skills dt { color: var(--muted); }
+@media (max-width: 30rem) { .skills { grid-template-columns: 1fr; gap: 0.25rem; } .skills dd { margin-bottom: 0.5rem; } }
+
+.proj { display: grid; gap: 0.75rem; }
+.proj li { display: grid; gap: 0.125rem; }
+.proj-head { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
+.proj-head b { font-weight: 600; }
+.proj p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.proj .links { display: flex; gap: 1rem; font-size: var(--fs-sm); }
+.proj .links a { color: var(--primary); }
+.edu p { font-family: var(--font-sans); letter-spacing: 0; font-size: var(--fs-sm); color: var(--muted); }
+.cv .table-wrap { max-width: 36rem; }
+
+.cv-cta { display: grid; gap: 0.75rem; padding-block: 2rem 0; }
+.cv-cta h2 { font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.03em; }
+.cv-cta p { font-family: var(--font-sans); letter-spacing: 0; color: var(--muted); }
+
+/* Print: one clean A4 document, no site chrome, no buttons */
+@media print {
+  @page { size: A4; margin: 14mm 15mm 16mm; }
+  .subnav, .cv-print, .cv-cta, .hl-foot .dot, .hl-foot .noprint, .proj .links { display: none !important; }
+  body { font-size: 9pt; line-height: 1.45; }
+  .cv { width: 100%; }
+  .cv-head { padding-top: 0; border-bottom-width: 1.5pt; }
+  .cv-name { font-size: 20pt; }
+  .cv-summary { font-size: 10pt; }
+  .cv-sec { grid-template-columns: 30mm minmax(0, 1fr); gap: 4pt 6mm; padding-block: 10pt; }
+  .cv-sec > h2 { color: #000; }
+  .role, .edu, .proj li, tr, .job-head + .job-desc { break-inside: avoid; }
+  h2, h3, h4, .job-head, .role-head { break-after: avoid; }
+  .cv-contact a, .proj .links a, .hl-foot a { color: #000; }
+  .tag { border-color: #999; color: #000; }
+  .table-wrap { border: 0; }
+  table.data th, table.data td { padding: 2pt 6pt 2pt 0; }
+  table.data caption { padding-left: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside class="ann" aria-label="Status line">
+  <div class="wrap ann-row">
+    <p class="ann-clock"><time data-clock="bkk">--:--</time> <span class="muted">Bangkok</span> <span class="ann-sep" aria-hidden="true">/</span> <time data-clock="utc">--:--</time><span class="muted">Z</span></p>
+    <p class="ann-status"><a href="now.html"><span class="dot dot-ok" aria-hidden="true"></span><span class="sr-only">Status: </span>Available<span class="muted"> · Finally, v4.0 of my site released.</span></a></p>
+    <p class="ann-play"><a href="listening.html"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">Now playing: </span>From the Start <span class="muted">· Laufey</span></a></p>
+  </div>
+</aside>
+<header class="deck">
+  <div class="wrap deck-row">
+    <a class="brand" href="home.html"><span class="brand-user">skiddle</span><span class="muted">@</span>web<span class="muted">:~$</span><span class="cursor" aria-hidden="true"></span><span class="sr-only"> (home)</span></a>
+    <nav class="route" aria-label="Main"><ul><li><a href="writing.html">writing</a></li><li><a href="work.html" aria-current="page">work</a></li><li><a href="flying.html">flying</a></li><li><a href="about.html">about</a></li><li><a href="uses.html">uses</a></li></ul></nav>
+    <div class="deck-tools">
+      <button class="tool" type="button" data-search-open aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></svg><span class="tool-label">Search</span><kbd data-shortcut>Ctrl K</kbd></button>
+      <button class="tool tool-icon" type="button" data-theme-toggle aria-label="Switch to light theme"><span class="i-sun"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></span><span class="i-moon"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <nav class="wrap subnav" aria-label="Work pages">
+    <ul>
+      <li><a href="services.html"><span class="n" aria-hidden="true">1:</span>services</a></li>
+      <li><a href="projects.html"><span class="n" aria-hidden="true">2:</span>projects</a></li>
+      <li><a href="cv.html" aria-current="page"><span class="n" aria-hidden="true">3:</span>cv</a></li>
+    </ul>
+  </nav>
+
+  <div class="cv">
+    <header class="cv-head">
+      <div class="cv-top">
+        <p class="prompt noprint"><span class="u">skiddle@web</span>:~$ cat cv.md</p>
+        <button type="button" class="btn cv-print" data-print hidden>Print / save as PDF</button>
+      </div>
+      <h1 class="cv-name">Laurensius Jeffrey <span>(Jeff)</span></h1>
+      <p class="cv-role">Protocol Engineer &amp; Founder, Skiddle Labs · Bangkok, Thailand</p>
+      <ul class="cv-contact">
+        <li><span class="k">Email</span> <a href="mailto:jeff@skiddle.id">jeff@skiddle.id</a></li>
+        <li><span class="k">Web</span> <a href="https://skiddle.id">skiddle.id</a></li>
+        <li><span class="k">GitHub</span> <a href="https://github.com/arcestia">arcestia</a></li>
+        <li><span class="k">Bluesky</span> <a href="https://bsky.app/profile/skiddle.blue">@skiddle.blue</a></li>
+      </ul>
+    </header>
+
+    <section class="cv-sec" aria-labelledby="sum-h">
+      <h2 id="sum-h">Summary</h2>
+      <div class="cv-body">
+        <p class="cv-summary">Founder of Skiddle Labs and protocol engineer with a DevOps background, who codes end‑to‑end: building platforms, automating delivery and operations, and running networks across cloud and self‑hosted. Passionate about AI, and outside of work I'm a licensed private pilot (PPL, 2026).</p>
+        <ul class="hl">
+          <li><span class="hl-n">since 2020</span><span class="hl-t">helping clients through Skiddle ID, now part of Skiddle Labs</span></li>
+          <li><span class="hl-n">3 years</span><span class="hl-t">as co-founder and DevOps engineer at Aerialite, a security startup</span></li>
+          <li><span class="hl-n">60%</span><span class="hl-t">less deployment time after automating Aerialite's releases</span></li>
+          <li><span class="hl-n">~500M</span><span class="hl-t">requests a month served by my free CheckDomain API</span></li>
+        </ul>
+        <p class="hl-foot"><span class="dot dot-ok" aria-hidden="true"></span> 7+ years in infrastructure · open to consulting<span class="noprint"> · <a href="services.html">services</a></span></p>
+      </div>
+    </section>
+
+    <section class="cv-sec" aria-labelledby="exp-h">
+      <h2 id="exp-h">Experience</h2>
+      <div class="cv-body">
+        <article class="job" aria-labelledby="job-labs">
+          <div class="job-head"><h3 id="job-labs">Skiddle Labs Pte. Ltd.</h3><p class="when">2020 – Present</p></div>
+          <p class="job-desc">My own company for personal projects and long-term clients. Skiddle ID is part of Skiddle Labs.</p>
+          <div class="role">
+            <div class="role-head"><h4>Founder &amp; CEO</h4><p class="when">2020 – Present</p></div>
+            <ul class="bullets">
+              <li>Run my personal projects and long-term client work under one company, including the Skiddle ID brand</li>
+              <li>Developed and maintained web applications using multiple frameworks and technologies</li>
+              <li>Supported infrastructure, including server management, backups and deployment</li>
+              <li>Managed cloud and virtualisation platforms such as AWS, Cloudflare and Proxmox</li>
+              <li>Coordinated and supported client projects from start to finish</li>
+            </ul>
+          </div>
+          <p class="sub-label">Client engagement</p>
+          <div class="role">
+            <div class="role-head"><h4>Protocol Engineer, contract</h4><p class="when">Q3 2026 – Present</p></div>
+            <p class="role-sub">for an undisclosed client · via Skiddle Labs</p>
+            <ul class="bullets"><li>Protocol engineering on contract, delivered by me and my Skiddle Labs team</li></ul>
+          </div>
+        </article>
+
+        <article class="job" aria-labelledby="job-aerialite">
+          <div class="job-head"><h3 id="job-aerialite">Aerialite</h3><p class="when">2022 – Present</p></div>
+          <div class="role">
+            <div class="role-head"><h4>Advisory Board Member</h4><p class="when">2025 – Present</p></div>
+            <ul class="bullets">
+              <li>Moved to the advisory board; no longer involved in day-to-day operations</li>
+              <li>Advising on the company's ISO 9001 and ISO 27001 certification</li>
+            </ul>
+          </div>
+          <div class="role">
+            <div class="role-head"><h4>Co-Founder &amp; DevOps Engineer</h4><p class="when">2022 – 2025</p></div>
+            <ul class="bullets">
+              <li>Built and maintained CI/CD pipelines for multiple applications</li>
+              <li>Managed infrastructure using Infrastructure as Code (IaC)</li>
+              <li>Implemented monitoring and logging</li>
+              <li>Automated deployments, cutting deployment time by 60%</li>
+              <li>Supported the company's ISO 9001 and ISO 27001 certification work</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="job" aria-labelledby="job-undisclosed">
+          <div class="job-head"><h3 id="job-undisclosed">Undisclosed Company</h3><p class="when">2019 – 2020</p></div>
+          <div class="role">
+            <div class="role-head"><h4>Infra Engineer</h4><p class="when">2019 – 2020</p></div>
+            <ul class="bullets">
+              <li>Implemented LDAP integration for user authentication</li>
+              <li>Configured mobile device management (MDM) for company devices</li>
+              <li>Automated backups and reduced backup time</li>
+              <li>Set up and maintained company infrastructure</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="cv-sec" aria-labelledby="skills-h">
+      <h2 id="skills-h">Skills</h2>
+      <dl class="skills">
+        <dt>Languages</dt><dd class="tags"><span class="tag">TypeScript</span><span class="tag">Go</span><span class="tag">PHP</span><span class="tag">Rust</span><span class="tag">JavaScript</span><span class="tag">Python</span></dd>
+        <dt>DevOps &amp; infrastructure</dt><dd class="tags"><span class="tag">Docker</span><span class="tag">Kubernetes</span><span class="tag">Proxmox</span><span class="tag">Unraid</span><span class="tag">TrueNAS</span><span class="tag">CI/CD</span><span class="tag">Monitoring</span></dd>
+        <dt>Frameworks &amp; tools</dt><dd class="tags"><span class="tag">Vue.js</span><span class="tag">React.js</span><span class="tag">Astro</span><span class="tag">Node.js</span><span class="tag">Git</span><span class="tag">Linux</span></dd>
+        <dt>Interests</dt><dd class="tags"><span class="tag">Aviation</span><span class="tag">Machine Learning</span><span class="tag">Open Source</span><span class="tag">Self-hosting</span></dd>
+      </dl>
+    </section>
+
+    <section class="cv-sec" aria-labelledby="proj-h">
+      <h2 id="proj-h">Selected projects</h2>
+      <div class="cv-body">
+      <ul class="proj">
+        <li><p class="proj-head"><b>CheckDomain</b><span class="when">2024</span></p><p>A free public API for checking whether a domain is blocked by Indonesia's Trust+ list. It grew from 2–5M to ~500M requests a month before I closed it to the public.</p><p class="links"><a href="post.html">story</a><a href="https://github.com/Skiddle-ID/checkdomain">source<span class="sr-only"> of CheckDomain</span></a></p></li>
+        <li><p class="proj-head"><b>Shortlink</b><span class="when">2025</span></p><p>A URL shortener on Cloudflare Workers and Turso. It runs skiddle.link.</p><p class="links"><a href="https://skiddle.link/">live<span class="sr-only"> Shortlink</span></a><a href="https://github.com/arcestia/shortlink/">source<span class="sr-only"> of Shortlink</span></a></p></li>
+        <li><p class="proj-head"><b>Blocklist</b><span class="when">2024</span></p><p>Keeps a public copy of the Kominfo blocklist fresh, automatically, every hour.</p><p class="links"><a href="https://github.com/Skiddle-ID/blocklist">source<span class="sr-only"> of Blocklist</span></a></p></li>
+        <li><p class="proj-head"><b>Personal Website &amp; Blog</b></p><p>This site: Astro and Markdown, deployed to Cloudflare Workers, with a terminal-inspired design</p><p class="links"><a href="https://skiddle.id">live<span class="sr-only"> website</span></a><a href="https://github.com/Skiddle-ID/skiddle.id">source<span class="sr-only"> of the website</span></a></p></li>
+        <li><p class="proj-head"><b>Home Lab Infrastructure</b><span class="when">ongoing</span></p><p>Self-hosted services running on Kubernetes cluster with automated backups and monitoring</p></li>
+      </ul>
+      <p class="hl-foot noprint"><a href="projects.html">all projects →</a></p>
+      </div>
+    </section>
+
+    <section class="cv-sec" aria-labelledby="edu-h">
+      <h2 id="edu-h">Education</h2>
+      <div class="cv-body">
+        <div class="job edu">
+          <div class="job-head"><h3>Master's Degree in Artificial Intelligence and Machine Learning</h3><p class="when">2024 – Present</p></div>
+          <p class="role-sub">Chulalongkorn University</p>
+          <p>Continuing advanced studies in AI and ML with focus on deep learning, neural networks, and practical AI applications in industry.</p>
+        </div>
+        <div class="job edu">
+          <div class="job-head"><h3>Bachelor's Degree in Artificial Intelligence and Machine Learning</h3><p class="when">2021 – 2024</p></div>
+          <p class="role-sub">Chulalongkorn University</p>
+          <p>Focused on machine learning algorithms, data science, and AI applications. Graduated with GPA 4.0.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cv-sec" aria-labelledby="cert-h">
+      <h2 id="cert-h">Certifications</h2>
+      <div class="table-wrap">
+        <table class="data">
+          <caption class="sr-only">Certifications, newest first</caption>
+          <thead><tr><th scope="col">Certification</th><th scope="col" class="num">Year</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Private Pilot License (PPL)</th><td class="num">2026</td></tr>
+            <tr><th scope="row">AWS Certified Machine Learning - Specialty</th><td class="num">2024</td></tr>
+            <tr><th scope="row">CompTIA Security+</th><td class="num">2023</td></tr>
+            <tr><th scope="row">Microsoft Certified: DevOps Engineer Expert</th><td class="num">2022</td></tr>
+            <tr><th scope="row">Microsoft Certified: Azure Fundamentals</th><td class="num">2022</td></tr>
+            <tr><th scope="row">AWS Certified Developer-Associate</th><td class="num">2021</td></tr>
+            <tr><th scope="row">AWS Certified Solutions Architect-Associate</th><td class="num">2021</td></tr>
+            <tr><th scope="row">Cisco Certified Internetwork Expert (CCIE)</th><td class="num">2021</td></tr>
+            <tr><th scope="row">Cisco Certified Security Professional (CCSP)</th><td class="num">2020</td></tr>
+            <tr><th scope="row">Cisco Certified Network Associate (CCNA)</th><td class="num">2020</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="cv-cta" aria-labelledby="cta-h">
+      <h2 id="cta-h">Want to work together?</h2>
+      <p>Roles, consulting or a quick question: email is the fastest way to reach me.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="mailto:work@skiddle.id?subject=Hello%20from%20your%20CV">Email work@skiddle.id</a>
+        <a class="btn" href="services.html">See services</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  // Mockup: in the site this goes in the page's bundled script, since the CSP allows no inline scripts
+  for (const b of document.querySelectorAll('[data-print]')) {
+    b.hidden = false;
+    b.addEventListener('click', () => print());
+  }
+</script>
+
+<template id="notes">
+  <ul>
+    <li><b>Print first.</b> Printing (or "Save as PDF") gives a plain A4 document: no status line, menu, tabs, buttons or footer, black text, and no entry split across pages.</li>
+    <li>Each section's name sits in a ruled left margin, like a logbook page; on phones it moves above the section.</li>
+    <li>Experience reads company → role → dates → what I did; dates are right-aligned so the eye can run down them.</li>
+    <li>Certifications are a real table (certification, year) with row headers, because that's what they are.</li>
+    <li>Contact lines show the address itself ("arcestia", "@skiddle.blue"), so the printed copy still works.</li>
+    <li>The Print button only appears when the script runs; without it, the browser's own Print does the same.</li>
+    <li>The current client stays "an undisclosed client", as on today's CV.</li>
+  </ul>
+</template>
+
+<footer class="foot">
+  <div class="wrap">
+    <section class="foot-totals" aria-labelledby="totals-h">
+      <h2 id="totals-h" class="foot-label">Totals carried forward</h2>
+      <dl class="totals">
+        <div><dt>Posts</dt><dd>15</dd></div>
+        <div><dt>Series</dt><dd>4</dd></div>
+        <div><dt>Projects</dt><dd>6</dd></div>
+        <div><dt>Plays, 7 days</dt><dd>107</dd></div>
+        <div><dt>Writing since</dt><dd>2015</dd></div>
+      </dl>
+    </section>
+    <div class="foot-grid">
+      <nav aria-labelledby="f-writing"><h2 id="f-writing" class="foot-h">Writing</h2><ul><li><a href="writing.html">All posts</a></li><li><a href="series.html">Series</a></li><li><a href="topics.html">Topics</a></li><li><a href="notes.html">Notes</a></li></ul></nav>
+      <nav aria-labelledby="f-me"><h2 id="f-me" class="foot-h">Me</h2><ul><li><a href="about.html">About</a></li><li><a href="now.html">Now</a></li><li><a href="listening.html">Listening</a></li><li><a href="flying.html">Flying</a></li><li><a href="uses.html">Uses</a></li></ul></nav>
+      <nav aria-labelledby="f-work"><h2 id="f-work" class="foot-h">Work</h2><ul><li><a href="services.html">Services</a></li><li><a href="projects.html">Projects</a></li><li><a href="cv.html">CV</a></li><li><a href="changelog.html">Changelog</a></li></ul></nav>
+      <nav aria-labelledby="f-else"><h2 id="f-else" class="foot-h">Elsewhere</h2><ul class="foot-icons"><li><a href="https://bsky.app/profile/skiddle.blue" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.2 3.3C7.9 5.3 10.8 9.4 12 11.7c1.2-2.3 4.1-6.4 6.8-8.4 1.9-1.4 5.1-2.6 5.1 1 0 .7-.4 6.1-.7 7-.9 3.1-4.1 3.9-7 3.4 5 .9 6.3 3.7 3.5 6.5-5.2 5.4-7.5-1.3-8-3.1L12 18l-.4-.2c-.6 1.8-2.8 8.5-8 3.1-2.8-2.8-1.5-5.6 3.5-6.5-2.9.5-6.1-.3-7-3.4C.4 10.4 0 5 0 4.3c0-3.6 3.2-2.4 5.2-1Z"/></svg>Bluesky</a></li><li><a href="https://github.com/arcestia" rel="me"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>GitHub</a></li><li><a href="#rss"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4.5a1 1 0 0 1 1-1C14.1 3.5 20.5 9.9 20.5 19a1 1 0 1 1-2 0c0-8-5.5-13.5-13.5-13.5a1 1 0 0 1-1-1Zm0 6a1 1 0 0 1 1-1 9.5 9.5 0 0 1 9.5 9.5 1 1 0 1 1-2 0A7.5 7.5 0 0 0 5 11.5a1 1 0 0 1-1-1ZM6 20.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>RSS</a></li><li><a href="mailto:work@skiddle.id"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g></svg>Email</a></li></ul></nav>
+    </div>
+    <p class="foot-record">Every page here is read from records in my <abbr title="AT Protocol">ATProto</abbr> repo, <code>did:plc:xaj6j6abvpgwps5v6k4t6clv</code>.</p>
+    <p class="foot-legal">© 2026 Laurensius Jeffrey · Skiddle Labs Pte. Ltd. · Code MIT · Writing all rights reserved, no AI training · <a href="changelog.html">v5.0</a></p>
+  </div>
+</footer>
+
+<dialog class="cmd" aria-labelledby="cmd-title">
+  <form method="dialog" class="cmd-box" role="search">
+    <h2 id="cmd-title" class="sr-only">Search</h2>
+    <label class="cmd-prompt" for="cmd-q"><span class="muted">skiddle@web:~$</span> find</label>
+    <input id="cmd-q" class="cmd-input" type="search" autocomplete="off" spellcheck="false" placeholder="posts, series, topics, pages" aria-describedby="cmd-count">
+    <p id="cmd-count" class="cmd-count" aria-live="polite">19 results</p>
+    <ul class="cmd-list"><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #2: The Whole Site Lives in My Repo Now</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Lab Notes #1: Where Am I in This Series?</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Never Quite Done</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Publishing My Blog to AT Protocol</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">Fast and Accessible</span></a></li><li><a href="post.html"><span class="cmd-kind">post</span><span class="cmd-label">How It All Started #1</span></a></li><li><a href="post.html" lang="id"><span class="cmd-kind">post</span><span class="cmd-label">Penutupan Akses Publik API Checknawala</span></a></li><li><a href="series-flight.html"><span class="cmd-kind">series</span><span class="cmd-label">From Fear to Flight</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Rebuilding skiddle.id</span></a></li><li><a href="series.html"><span class="cmd-kind">series</span><span class="cmd-label">Lab Notes</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">ATProto & the open web</span></a></li><li><a href="topics.html"><span class="cmd-kind">topic</span><span class="cmd-label">Infra & delivery</span></a></li><li><a href="services.html"><span class="cmd-kind">page</span><span class="cmd-label">Services</span></a></li><li><a href="cv.html"><span class="cmd-kind">page</span><span class="cmd-label">CV</span></a></li><li><a href="projects.html"><span class="cmd-kind">page</span><span class="cmd-label">Projects</span></a></li><li><a href="listening.html"><span class="cmd-kind">page</span><span class="cmd-label">Listening</span></a></li><li><a href="now.html"><span class="cmd-kind">page</span><span class="cmd-label">Now</span></a></li><li><a href="notes.html"><span class="cmd-kind">page</span><span class="cmd-label">Notes</span></a></li><li><a href="changelog.html"><span class="cmd-kind">page</span><span class="cmd-label">Changelog</span></a></li></ul>
+    <p class="cmd-help"><kbd>Esc</kbd> to close</p>
+  </form>
+</dialog>
+<script src="v5.js" defer></script>
+<script src="mock.js" defer></script>
+</body>
+</html>

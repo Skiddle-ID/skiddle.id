@@ -1,0 +1,88 @@
+---
+title: Now
+nav: about
+description: What Jeff is doing now: protocol engineering, advising Aerialite, a master's in AI and flying.
+---
+<style>
+.posrep { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-alt); }
+.posrep-call { font-size: var(--fs-lg); line-height: 1.5; letter-spacing: -0.02em; text-wrap: balance; }
+.posrep-call b { color: var(--primary); font-weight: 600; }
+.posrep-call time { font-variant-numeric: tabular-nums; }
+.posrep .readouts > div { background: var(--bg-alt); }
+.posrep-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.now-list .strip-title { font-size: var(--fs-base); }
+.now-list .strip-desc { font-size: var(--fs-base); color: var(--text); }
+.now-list .strip-desc a { position: relative; z-index: 1; color: var(--primary); }
+.next a.wp-title, .next .wp-title a { color: var(--primary); }
+.record-note { display: grid; gap: 0.5rem; padding: 1rem 1.125rem; border: 1px dashed var(--border-strong); border-radius: var(--radius); font-size: var(--fs-sm); color: var(--muted); }
+.record-note code { color: var(--text); }
+</style>
+<main id="main">
+  <header class="wrap pagehead">
+    <p class="prompt"><span class="u">skiddle@web</span>:~$ cat now.md</p>
+    <h1 class="display">Now</h1>
+    <p class="lede">What I'm focused on at the moment. It's one record in my repo, updated from the admin app, so it changes as often as my life does.</p>
+  </header>
+
+  <section class="wrap" aria-labelledby="pos-h">
+    <div class="posrep">
+      <div class="posrep-head">
+        <h2 id="pos-h" class="label">Position report</h2>
+        <p class="label">updated <time datetime="2026-11">Nov 2026</time></p>
+      </div>
+      <p class="posrep-call"><b>Skiddle</b>, Bangkok, time <time data-clock="bkk">--:--</time>, available. Next: Ground School.</p>
+      <dl class="readouts">
+        <div><dt>Position</dt><dd>Bangkok, TH</dd></div>
+        <div><dt>Local</dt><dd><time data-clock="bkk">--:--</time></dd></div>
+        <div><dt>Zulu</dt><dd><time data-clock="utc">--:--</time>Z</dd></div>
+        <div><dt>Status</dt><dd><span class="dot dot-ok" aria-hidden="true"></span> Available</dd></div>
+        <div><dt>Next</dt><dd>Ground School</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="doing-h">
+    <div class="sec-head"><h2 id="doing-h">Doing now</h2><span class="more">4 things</span></div>
+    <ul class="strips now-list">
+      <li class="strip is-build"><span class="strip-bay" aria-hidden="true">Work</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title">Work</h3><p class="strip-desc">Protocol engineering on contract for an undisclosed client, with my Skiddle Labs team.</p></div><dl class="cells"><div class="cell"><dt>Since</dt><dd>Q3 2026</dd></div></dl></div></li>
+      <li class="strip is-note"><span class="strip-bay" aria-hidden="true">Advise</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title">Advising</h3><p class="strip-desc">Advising Aerialite, the security &amp; privacy startup I co-founded.</p></div><dl class="cells"><div class="cell"><dt>Since</dt><dd>2025</dd></div></dl></div></li>
+      <li class="strip"><span class="strip-bay" aria-hidden="true">Study</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title">Studying</h3><p class="strip-desc">Studying for a master's in AI &amp; machine learning at Chulalongkorn.</p></div><dl class="cells"><div class="cell"><dt>Since</dt><dd>2024</dd></div></dl></div></li>
+      <li class="strip is-flight"><span class="strip-bay" aria-hidden="true">Fly</span><div class="strip-main"><div class="strip-body"><h3 class="strip-title">Flying</h3><p class="strip-desc">Flying as a newly licensed private pilot. <a href="series-flight.html">How it started</a></p></div><dl class="cells"><div class="cell"><dt>Licensed</dt><dd>early 2026</dd></div></dl></div></li>
+    </ul>
+  </section>
+
+  <div class="wrap section grid-2 even">
+    <section aria-labelledby="next-h">
+      <div class="sec-head"><h2 id="next-h">Next on the route</h2></div>
+      <ol class="route-v next">
+        <li class="wp is-done"><span class="wp-part">From Fear to Flight · part 1</span><a class="wp-title" href="post.html">How It All Started</a><span class="wp-meta">Sep 30, 2025</span></li>
+        <li class="wp is-planned"><span class="wp-part">Part 2 · next</span><span class="wp-title"><a href="series-flight.html">Ground School</a></span><span class="wp-meta">planned</span></li>
+      </ol>
+      <p class="wp-tail">4 more parts planned</p>
+      <ol class="route-v next" style="margin-top: 1.5rem">
+        <li class="wp is-done"><span class="wp-part">Lab Notes · part 2</span><a class="wp-title" href="post.html">The Whole Site Lives in My Repo Now</a><span class="wp-meta">Nov 18, 2026</span></li>
+      </ol>
+      <p class="wp-tail">new twice a week</p>
+    </section>
+
+    <section aria-labelledby="rec-h">
+      <div class="sec-head"><h2 id="rec-h">Where this comes from</h2></div>
+      <div class="record-note">
+        <p>This page is one record, <code>id.skiddle.now</code>, with a "last updated" date. I edit it in the admin app; the site reads it when someone asks for the page.</p>
+        <p>The home page shows the same list, and the status line at the top of every page comes from <code>id.skiddle.status</code>.</p>
+        <p><a class="link-arrow" href="about.html">More about me <span aria-hidden="true">→</span></a></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<template id="notes">
+  <ul>
+    <li><b>A pilot's position report:</b> who, where, what time, and what's next, read out in one line, then as readouts (local and UTC time tick from the same clock as the status line).</li>
+    <li>The four <b>Now</b> items are the home page's list, as strips with a bay for each kind (work, advise, study, fly). Each bay is paired with a heading, so the colour never carries meaning alone.</li>
+    <li>"Since" cells only use dates the site already has (the About timeline); nothing new.</li>
+    <li><b>Next on the route</b>: the next planned post, Ground School, as the ringed waypoint, plus Lab Notes' cadence.</li>
+    <li>Planned for v4.1: the list lives in an <code>id.skiddle.now</code> record with a "last updated" date, edited from the admin app.</li>
+    <li>No images; the only script is the clock, and without it the times show as <code>--:--</code> instead of a wrong time.</li>
+  </ul>
+</template>
