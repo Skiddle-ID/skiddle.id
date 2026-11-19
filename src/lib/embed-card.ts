@@ -54,9 +54,12 @@ const graphemes = (s: string): string[] => (segmenter ? Array.from(segmenter.seg
 // Approximate width of one grapheme in monospace columns (~0.6em each), from browser measurements:
 // Latin/Cyrillic 1; CJK, Hangul and emoji ~1.4-1.7 (counted as 2); Thai ~1.05, and the other
 // scripts that fall back to proportional fonts vary by platform (counted as 1.2)
+// The ranges are written as \u escapes, not the characters themselves: Unicode normalisation (NFC)
+// turns U+F900, the first CJK compatibility ideograph, into U+8C48, which once stretched that range
+// over Latin Extended, Javanese, Cherokee and private-use characters.
 const WIDE =
-  /[ᄀ-ᅟ⺀-〾ぁ-㏿㐀-䶿一-鿿ꀀ-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{1F000}-\u{1FAFF}\u{20000}-\u{3FFFD}]|\p{Extended_Pictographic}/u;
-const PROPORTIONAL = /[֐-ࣿऀ-෿฀-໿ༀ-႟ក-៿]/u;
+  /[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60\uFFE0-\uFFE6\u{1F000}-\u{1FAFF}\u{20000}-\u{3FFFD}]|\p{Extended_Pictographic}/u;
+const PROPORTIONAL = /[\u0590-\u08FF\u0900-\u0DFF\u0E00-\u0EFF\u0F00-\u109F\u1780-\u17FF]/u;
 const columns = (g: string) => (WIDE.test(g) ? 2 : PROPORTIONAL.test(g) ? 1.2 : 1);
 
 /** Width of text in monospace columns */

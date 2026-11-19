@@ -4,6 +4,7 @@ import Sidebar from '../components/sidebar.astro';
 import Footer from '../components/footer.astro';
 import Icon from '../components/icon.astro';
 import CommandBar from '../components/command-bar.astro';
+import { scriptJson } from '../lib/script-json.mjs';
 
 import '../style.css';
 
@@ -91,7 +92,7 @@ const jsonLd = {
         if (m && document.documentElement.dataset.theme === 'light') m.setAttribute('content', '#ffffff');
       })();
     </script>
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
   </head>
   <body class="antialiased font-mono tracking-normal leading-normal min-h-screen text-[15px]">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-[var(--color-bg)] focus:border focus:rounded">Skip to content</a>
