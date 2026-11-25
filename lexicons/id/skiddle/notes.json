@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.notes",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "Older Bluesky posts that /notes/ shows besides the ones tagged #note. One record, key 'self'.",
+      "record": {
+        "type": "object",
+        "required": ["posts", "updatedAt"],
+        "properties": {
+          "posts": {
+            "type": "array",
+            "maxLength": 200,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 3000
+            },
+            "description": "Links to older Bluesky posts to show on /notes/ without the #note tag. Paste a post's bsky.app link."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
