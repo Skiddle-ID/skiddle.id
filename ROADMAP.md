@@ -71,7 +71,8 @@ Then the [launch checklist](#the-v4-branch).
 - [ ] `id.skiddle.now` and /now, with a "last updated" date; updated from the admin app
 - [ ] Notes: your Bluesky posts with a chosen hashtag, read from your repo when the page is requested
 - [ ] Latest Bluesky post card, `/bluesky.svg`
-- [ ] A Bluesky custom feed for Lab Notes
+- [x] A Bluesky custom feed for Lab Notes, served by the site's Worker as `did:web:skiddle.id`; any series can publish one from its editor ([#164](https://github.com/Skiddle-ID/skiddle.id/pull/164))
+- [x] An RSS feed per series, `/series/<key>/rss.xml`, switched on or off in the series editor ([#163](https://github.com/Skiddle-ID/skiddle.id/pull/163))
 - [x] Music from teal.fm's records (`fm.teal.feed.play`, and `fm.teal.actor.status` for what's playing now) instead of Last.fm: `/music.svg` and the sidebar's "now playing", with album art from Deezer (by ISRC, or a matching search run near Singapore by [`workers/covers`](workers/covers/README.md), since Deezer isn't open in Hong Kong) and the Cover Art Archive (by MusicBrainz release or release group, or a MusicBrainz search by album and track). piper sends plays from Apple Music, and from Spotify through Last.fm. The old `/lastfm.svg` serves the same card. The alpha collections stopped on Feb 22, 2026, when teal.fm moved off them; piper has written the new ones since Nov 12
 - [x] /listening/: now playing, this week's top artists and tracks, and every play, paged back through the alpha collection; the sidebar's "now playing" opens it
 - [ ] A top-of-the-week music card, from the plays
@@ -101,7 +102,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - [x] Cloudflare: make `v4` the production branch in the skiddle-id Worker's build settings
 - [x] GitHub: make `v4` the default branch
 - [x] Switch everything that names `v3` to `v4`: the workflows, the license links, robots.txt, the README. A post's "Suggest an edit" became "View the record", since posts left git ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143))
-- [ ] Release v4.0, then keep `v3` as an archived major, like `v1` and `v2`
+- [x] Release v4.0 (2026-11-18), then keep `v3` as an archived major, like `v1` and `v2`
 
 ## AT Protocol backend
 
