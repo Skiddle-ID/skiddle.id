@@ -1,13 +1,13 @@
 /**
  * The Pages section: the pages' content in Jeff's repo (docs/v4/pages-on-atproto.md), one record
- * each for the CV, services, uses and About (key `self`), and one id.skiddle.project record per
+ * each for the CV, services, uses, About and Now (key `self`), and one id.skiddle.project record per
  * project. Each name opens its editor, and New project starts one (src/lib/admin/page-editor.ts).
  *
  * Until the v4 launch this section also imported the records from the data files in src/data/,
  * once; they've left git since.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
-import { ABOUT_COLLECTION, CV_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION } from '~/lib/page-records.mjs';
+import { ABOUT_COLLECTION, CV_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION } from '~/lib/page-records.mjs';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, formatTime, item, message, viewLink } from './dom';
 import { missingScopes } from './oauth';
@@ -23,11 +23,13 @@ interface Row {
   page: string;
   /** Its editor's address */
   editor: string;
+  /** What the page shows while there's no record, if it can show without one */
+  fallback?: string;
   /** The record in the repo, if there is one */
   have?: RepoRecord<PageRecord>;
 }
 
-const COLLECTIONS = [PROJECT_COLLECTION, CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION];
+const COLLECTIONS = [PROJECT_COLLECTION, CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION];
 
 /** The pages with one record each, in the order the section lists them */
 const PAGES: Omit<Row, 'rkey' | 'have'>[] = [
@@ -35,6 +37,7 @@ const PAGES: Omit<Row, 'rkey' | 'have'>[] = [
   { title: 'Services', collection: SERVICES_COLLECTION, page: '/services/', editor: '#page/services' },
   { title: 'Uses', collection: USES_COLLECTION, page: '/uses/', editor: '#page/uses' },
   { title: 'About', collection: ABOUT_COLLECTION, page: '/about/', editor: '#page/about' },
+  { title: 'Now', collection: NOW_COLLECTION, page: '/now/', editor: '#page/now', fallback: 'the built-in list' },
 ];
 
 let session: OAuthSession;
@@ -102,7 +105,7 @@ function rowItem(row: Row) {
   const note = document.createElement('span');
   const updated = row.have?.value.updatedAt ?? row.have?.value.createdAt;
   note.className = row.have ? 'admin-muted' : '';
-  note.textContent = !row.have ? 'no record yet: the page can’t show' : typeof updated === 'string' ? `saved ${formatTime(updated)}` : 'in your repo';
+  note.textContent = !row.have ? `no record yet: the page ${row.fallback ? `shows ${row.fallback}` : 'can’t show'}` : typeof updated === 'string' ? `saved ${formatTime(updated)}` : 'in your repo';
   li.appendChild(head);
   li.appendChild(note);
   return li;
