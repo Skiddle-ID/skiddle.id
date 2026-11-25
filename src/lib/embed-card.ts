@@ -1,7 +1,7 @@
 /**
- * Shared pieces for the embeddable SVG cards the Worker serves (/music.svg, /latest.svg,
- * /bluesky.svg, /status.svg): themes and accent colours, the font stack, text fitting, wrapping and
- * escaping, and the HTTP response with an ETag.
+ * Shared pieces for the embeddable SVG cards the Worker serves (/music.svg, /music-week.svg,
+ * /latest.svg, /bluesky.svg, /status.svg): themes and accent colours, the font stack, text fitting,
+ * wrapping and escaping, and the HTTP response with an ETag.
  *
  * The cards are mostly shown through an <img> tag (a GitHub profile README, other sites). An SVG
  * inside <img> can't load anything external, so the text uses the system monospace fonts and
