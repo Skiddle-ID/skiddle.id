@@ -1,6 +1,6 @@
 /**
  * The pages' content (docs/v4/pages-on-atproto.md) from its AT Protocol records: projects, the CV,
- * services, uses and About, from the shapes in lexicons/id/skiddle/{project,cv,services,uses,about}.json
+ * services, uses, About and Now, from the shapes in lexicons/id/skiddle/{project,cv,services,uses,about,now}.json
  * to the shapes the pages use (src/types/). The pages read them through src/lib/page-content.ts;
  * the admin app edits them (src/lib/admin/page-editor.ts).
  *
@@ -16,6 +16,7 @@ export const CV_COLLECTION = 'id.skiddle.cv';
 export const SERVICES_COLLECTION = 'id.skiddle.services';
 export const USES_COLLECTION = 'id.skiddle.uses';
 export const ABOUT_COLLECTION = 'id.skiddle.about';
+export const NOW_COLLECTION = 'id.skiddle.now';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -218,4 +219,23 @@ export function aboutFromRecord(v) {
       links: objects(contact.links).map((l) => ({ label: need(where, l, 'label'), url: need(where, l, 'url') })),
     },
   };
+}
+
+/**
+ * The Now page and the home page's Now list, as they use them (src/types/now.ts). An item that isn't
+ * text is left out; the Markdown is kept as it is.
+ * @param {Record<string, any>} v The id.skiddle.now record
+ */
+export function nowFromRecord(v) {
+  const where = 'now';
+  if (!Array.isArray(v.items)) throw new Error(`${where}: no items`);
+  const updatedAt = need(where, v, 'updatedAt');
+  if (Number.isNaN(Date.parse(updatedAt))) throw new Error(`${where}: updatedAt "${updatedAt}" isn't a date`);
+  return defined({
+    intro: str(v.intro) || undefined,
+    items: objects(v.items)
+      .map((i) => str(i.text))
+      .filter((text) => !!text),
+    updatedAt,
+  });
 }

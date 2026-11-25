@@ -1,0 +1,49 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.now",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "What Jeff is doing now: the /now/ page, and the Now list on the home page. One record, key 'self'.",
+      "record": {
+        "type": "object",
+        "required": ["items", "updatedAt"],
+        "properties": {
+          "intro": {
+            "type": "string",
+            "maxLength": 10000,
+            "maxGraphemes": 1000,
+            "description": "Shown above the list on /now/ only. Markdown, rendered like a post's text: paragraphs, links, bold and italics."
+          },
+          "items": {
+            "type": "array",
+            "maxLength": 20,
+            "items": {
+              "type": "ref",
+              "ref": "#item"
+            },
+            "description": "In the order they show."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Shown as 'last updated'."
+          }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300,
+          "description": "One line of Markdown: links, bold and italics, no paragraphs or lists."
+        }
+      }
+    }
+  }
+}
