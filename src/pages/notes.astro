@@ -2,12 +2,15 @@
 /*
   /notes/: Jeff's Bluesky posts tagged #note, and the older ones he picks in the admin app
   (src/lib/notes.mjs), read from his repo when the page is requested, newest first, 20 to a page.
-  /notes/?page=2 and on page back; a page that isn't there goes back to /notes/.
+  /notes/?page=2 and on page back; a page that isn't there goes back to /notes/. The posts this
+  page's notes quote are read from Bluesky's public AppView and shown as cards; one it can't read
+  is a [quote] link.
 */
 import Shell from '../layouts/shell.astro';
 import FormattedDate from '../components/formatted-date.astro';
+import QuoteCard from '../components/quote-card.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
-import { PAGES_CACHE, getNotes } from '~/lib/page-content';
+import { PAGES_CACHE, getNotes, getQuotedPosts } from '~/lib/page-content';
 import { HANDLE, notesPage, pageNumber } from '~/lib/notes.mjs';
 
 export const prerender = false;
@@ -20,6 +23,7 @@ if (!shown) return Astro.redirect('/notes/', 302);
 Astro.cache.set(PAGES_CACHE);
 
 const { notes, page, pages } = shown;
+const quoted = await getQuotedPosts(notes);
 const meta = CONTENT_PAGES.notes;
 const profile = `https://bsky.app/profile/${HANDLE}`;
 const pageUrl = (n: number) => (n === 1 ? '/notes/' : `/notes/?page=${n}`);
@@ -71,6 +75,10 @@ const pageUrl = (n: number) => (n === 1 ? '/notes/' : `/notes/?page=${n}`);
                     );
                   case 'video':
                     return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[video]</a></p>;
+                  case 'quote': {
+                    const post = quoted.get(a.uri);
+                    return post ? <QuoteCard post={post} /> : <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[quote]</a></p>;
+                  }
                   case 'record':
                     return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[{a.label}]</a></p>;
                 }

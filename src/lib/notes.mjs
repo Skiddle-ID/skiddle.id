@@ -24,8 +24,22 @@ const CDN = 'https://cdn.bsky.app/img';
  * @typedef {{ kind: 'images', images: NoteImage[] }
  *   | { kind: 'link', url: string, title: string, domain: string }
  *   | { kind: 'video', url: string }
+ *   | { kind: 'quote', uri: string, url: string }
  *   | { kind: 'record', label: string, url: string }} Attachment
  * @typedef {{ rkey: string, createdAt: string, url: string, html: string, attachments: Attachment[] }} Note
+ * @typedef {{ thumb: string, alt: string, width?: number, height?: number }} QuotedImage
+ * @typedef {{
+ *   uri: string,
+ *   url: string,
+ *   author: { did: string, handle: string, displayName?: string, avatar?: string },
+ *   text: string,
+ *   facets?: unknown[],
+ *   createdAt: string,
+ *   images: QuotedImage[],
+ *   external?: { url: string, title: string, domain: string },
+ *   video?: true,
+ *   quotes?: true,
+ * }} QuotedPost A post a note quotes, as its card shows it
  */
 
 /** @param {unknown} v */
@@ -194,8 +208,9 @@ function facetHtml(feature, text) {
 
 /**
  * What a post carries besides its text, from its embed (app.bsky.embed.*): images as thumbnails
- * on Bluesky's CDN, a link card, a video (shown as a link to the post), or another record (a quote,
- * a feed, a list, a starter pack), linked on Bluesky without reading it
+ * on Bluesky's CDN, a link card, a video (shown as a link to the post), a quoted post (its at://
+ * address, to read from the AppView, and its link), or another record (a feed, a list, a starter
+ * pack), linked on Bluesky without reading it. A quote with media has the media first.
  * @param {unknown} embed
  * @param {string} url The post on Bluesky
  * @returns {Attachment[]}
@@ -210,14 +225,13 @@ function attachmentsOf(embed, url) {
     case 'app.bsky.embed.video':
       return [{ kind: 'video', url }];
     case 'app.bsky.embed.external': {
-      const ext = isObject(embed.external) ? embed.external : {};
-      const link = httpUrl(str(ext.uri));
-      return link ? [{ kind: 'link', url: link.href, title: str(ext.title) || link.href, domain: link.hostname.replace(/^www\./, '') }] : [];
+      const link = linkOf(embed.external);
+      return link ? [{ kind: 'link', ...link }] : [];
     }
     case 'app.bsky.embed.record':
       return recordOf(embed.record);
     case 'app.bsky.embed.recordWithMedia':
-      return [...recordOf(isObject(embed.record) ? embed.record.record : undefined), ...attachmentsOf(embed.media, url)];
+      return [...attachmentsOf(embed.media, url), ...recordOf(isObject(embed.record) ? embed.record.record : undefined)];
     default:
       return [];
   }
@@ -229,19 +243,37 @@ function imageOf(image) {
   const blob = image.image;
   const cid = isObject(blob.ref) ? str(blob.ref.$link) : str(blob.cid);
   if (!/^[a-z0-9]+$/i.test(cid)) return undefined;
-  const ratio = isObject(image.aspectRatio) ? image.aspectRatio : {};
-  const size = Number.isInteger(ratio.width) && Number.isInteger(ratio.height) && Number(ratio.width) > 0 && Number(ratio.height) > 0;
   return {
     thumb: `${CDN}/feed_thumbnail/plain/${DID}/${cid}@jpeg`,
     fullsize: `${CDN}/feed_fullsize/plain/${DID}/${cid}@jpeg`,
     alt: str(image.alt),
-    ...(size ? { width: Number(ratio.width), height: Number(ratio.height) } : {}),
+    ...sizeOf(image.aspectRatio),
   };
+}
+
+/**
+ * An image's width and height from its aspectRatio, when it has whole positive ones
+ * @param {unknown} ratio
+ * @returns {{ width?: number, height?: number }}
+ */
+function sizeOf(ratio) {
+  if (!isObject(ratio)) return {};
+  const { width, height } = ratio;
+  return Number.isInteger(width) && Number.isInteger(height) && Number(width) > 0 && Number(height) > 0 ? { width: Number(width), height: Number(height) } : {};
+}
+
+/**
+ * A link card's address, title and domain; undefined if the address isn't http(s)
+ * @param {unknown} external An app.bsky.embed.external#external, or its #viewExternal
+ */
+function linkOf(external) {
+  const ext = isObject(external) ? external : {};
+  const link = httpUrl(str(ext.uri));
+  return link && { url: link.href, title: str(ext.title) || link.href, domain: link.hostname.replace(/^www\./, '') };
 }
 
 /** What another record's at:// address is, and where it is on Bluesky */
 const RECORD_KINDS = {
-  'app.bsky.feed.post': { label: 'quote', path: 'post' },
   'app.bsky.feed.generator': { label: 'feed', path: 'feed' },
   'app.bsky.graph.list': { label: 'list', path: 'lists' },
   'app.bsky.graph.starterpack': { label: 'starter pack', path: 'starter-pack' },
@@ -253,8 +285,97 @@ const RECORD_KINDS = {
  */
 function recordOf(ref) {
   const m = /^at:\/\/(did:[a-z]+:[A-Za-z0-9._:%-]+)\/([a-z0-9.]+)\/([A-Za-z0-9._:~-]+)$/i.exec(isObject(ref) ? str(ref.uri) : '');
+  if (m?.[2] === POST_COLLECTION) return [{ kind: 'quote', uri: m[0], url: `https://bsky.app/profile/${m[1]}/post/${m[3]}` }];
   const kind = m && RECORD_KINDS[/** @type {keyof typeof RECORD_KINDS} */ (m[2])];
   if (!m || !kind) return [];
   const url = kind.path === 'starter-pack' ? `https://bsky.app/starter-pack/${m[1]}/${m[3]}` : `https://bsky.app/profile/${m[1]}/${kind.path}/${m[3]}`;
   return [{ kind: 'record', label: kind.label, url }];
+}
+
+const POST_URI = /^at:\/\/(did:[a-z]+:[A-Za-z0-9._:%-]+)\/app\.bsky\.feed\.post\/([A-Za-z0-9._:~-]+)$/;
+
+/**
+ * The at:// addresses of the posts these notes quote, each once, sorted
+ * @param {Note[]} notes
+ */
+export const quotedUris = (notes) => [...new Set(notes.flatMap((n) => n.attachments.flatMap((a) => (a.kind === 'quote' ? [a.uri] : []))))].sort();
+
+/**
+ * The posts in a response from Bluesky's AppView to app.bsky.feed.getPosts
+ * (https://docs.bsky.app/docs/api/app-bsky-feed-get-posts). It leaves out a post it can't find.
+ * @param {unknown} body
+ * @returns {QuotedPost[]}
+ */
+export const quotedPostsOf = (body) => (isObject(body) && Array.isArray(body.posts) ? body.posts : []).map(quotedPostOf).filter((p) => p !== undefined);
+
+/**
+ * A post as the AppView shows it (app.bsky.feed.defs#postView), as its quote card shows it;
+ * undefined for anything else, like a post that's gone (#notFoundPost) or blocked (#blockedPost).
+ * Images are kept only from Bluesky's CDN, and the avatar is its small version.
+ * @param {unknown} view
+ * @returns {QuotedPost | undefined}
+ */
+export function quotedPostOf(view) {
+  if (!isObject(view) || (view.$type !== undefined && view.$type !== 'app.bsky.feed.defs#postView')) return undefined;
+  const { author, record } = view;
+  const m = POST_URI.exec(str(view.uri));
+  if (!m || !isObject(author) || !isObject(record) || !str(author.did) || !str(author.handle)) return undefined;
+  const displayName = str(author.displayName).trim();
+  const avatar = cdnUrl(author.avatar)?.replace('/img/avatar/', '/img/avatar_thumbnail/');
+  return {
+    uri: m[0],
+    url: `https://bsky.app/profile/${m[1]}/post/${m[2]}`,
+    author: { did: str(author.did), handle: str(author.handle), ...(displayName ? { displayName } : {}), ...(avatar ? { avatar } : {}) },
+    text: str(record.text),
+    ...(Array.isArray(record.facets) ? { facets: record.facets } : {}),
+    createdAt: str(record.createdAt) || str(view.indexedAt),
+    images: [],
+    ...embedViewOf(view.embed),
+  };
+}
+
+/**
+ * What a quoted post carries besides its text, from its embed view (app.bsky.embed.*#view)
+ * @param {unknown} embed
+ * @returns {Pick<QuotedPost, 'images' | 'external' | 'video' | 'quotes'> | {}}
+ */
+function embedViewOf(embed) {
+  if (!isObject(embed)) return {};
+  switch (embed.$type) {
+    case 'app.bsky.embed.images#view': {
+      const images = (Array.isArray(embed.images) ? embed.images : []).flatMap((image) => {
+        const thumb = isObject(image) ? cdnUrl(image.thumb) : undefined;
+        return thumb ? [{ thumb, alt: str(image.alt), ...sizeOf(image.aspectRatio) }] : [];
+      });
+      return { images };
+    }
+    case 'app.bsky.embed.external#view': {
+      const external = linkOf(embed.external);
+      return external ? { external } : {};
+    }
+    case 'app.bsky.embed.video#view':
+      return { video: true };
+    case 'app.bsky.embed.record#view':
+      return isQuote(embed.record) ? { quotes: true } : {};
+    case 'app.bsky.embed.recordWithMedia#view':
+      return { ...embedViewOf(embed.media), ...(isObject(embed.record) && isQuote(embed.record.record) ? { quotes: true } : {}) };
+    default:
+      return {};
+  }
+}
+
+/**
+ * Whether an embedded record's view is a post (also one that's gone or blocked), not a feed, a list
+ * or a starter pack
+ * @param {unknown} record
+ */
+const isQuote = (record) => isObject(record) && str(record.$type).startsWith('app.bsky.embed.record#view');
+
+/**
+ * An image's address if it's on Bluesky's CDN
+ * @param {unknown} s
+ */
+function cdnUrl(s) {
+  const url = httpUrl(str(s));
+  return url?.hostname === 'cdn.bsky.app' ? url.href : undefined;
 }
