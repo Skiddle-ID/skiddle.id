@@ -11,8 +11,14 @@ const post = (text, extra = {}) => ({ text, createdAt: '2026-11-25T06:40:51.224Z
 const render = (p, options = {}) => renderBlueskyCard(p, { now: NOW, ...options });
 
 const unescape = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+/** Drops the markup inside a <text> element (its <tspan>s), again until none is left */
+const stripTags = (s) => {
+  let out = s;
+  for (let prev; prev !== out; ) [prev, out] = [out, out.replace(/<[^>]*>/g, '')];
+  return out;
+};
 /** The text of each <text> element with `cls`, unescaped */
-const texts = (svg, cls) => [...svg.matchAll(new RegExp(`<text [^>]*class="${cls}"[^>]*>(.*?)</text>`, 'g'))].map((m) => unescape(m[1].replace(/<[^>]+>/g, '')));
+const texts = (svg, cls) => [...svg.matchAll(new RegExp(`<text [^>]*class="${cls}"[^>]*>(.*?)</text>`, 'g'))].map((m) => unescape(stripTags(m[1])));
 const body = (svg) => [...texts(svg, 'b fg'), ...texts(svg, 'b mute')];
 const meta = (svg) => texts(svg, 'k').join(' | ') + ' | ' + texts(svg, 'k mute').join(' | ');
 
