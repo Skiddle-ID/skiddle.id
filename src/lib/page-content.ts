@@ -1,11 +1,12 @@
 /**
  * The pages' content (docs/v4/pages-on-atproto.md), read when a page is requested: projects, the CV
- * and its highlights, services, uses and About, from their records in Jeff's AT Protocol repo
+ * and its highlights, services, uses, About and Now, from their records in Jeff's AT Protocol repo
  * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs).
  * The admin app edits them (src/lib/admin/page-editor.ts).
  *
  * If a record is missing or malformed, or the PDS can't be reached, this throws rather than show a
- * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE).
+ * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now is
+ * the exception for a missing record: the pages show the list in src/data/now.ts instead.
  *
  * Pages that use this are rendered on request and tag their cache with PAGES_TAG, so
  * /api/revalidate can purge them after a save.
@@ -13,11 +14,13 @@
 import {
   ABOUT_COLLECTION,
   CV_COLLECTION,
+  NOW_COLLECTION,
   PROJECT_COLLECTION,
   SERVICES_COLLECTION,
   USES_COLLECTION,
   aboutFromRecord,
   cvFromRecord,
+  nowFromRecord,
   projectsFromRecords,
   servicesFromRecord,
   usesFromRecord,
@@ -25,6 +28,7 @@ import {
 import { getRecord, listRecords } from '~/lib/pds';
 import type { About } from '~/types/about';
 import type { Highlight } from '~/types/highlights';
+import type { Now } from '~/types/now';
 import type { Project } from '~/types/projects';
 import type { ServicesData } from '~/types/services';
 import type { UsesSection } from '~/types/uses';
@@ -39,7 +43,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION].map((c) => `record/${c}/self`),
+  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION].map((c) => `record/${c}/self`),
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -70,4 +74,10 @@ export async function getUses(): Promise<{ uses: UsesSection[]; usesUpdated: str
 
 export async function getAbout(): Promise<{ about: About }> {
   return { about: aboutFromRecord(await record(ABOUT_COLLECTION)) as About };
+}
+
+/** What Jeff is doing now, or null if there's no record yet */
+export async function getNow(): Promise<Now | null> {
+  const value = await getRecord<Record<string, unknown>>(NOW_COLLECTION, 'self');
+  return value ? (nowFromRecord(value) as Now) : null;
 }

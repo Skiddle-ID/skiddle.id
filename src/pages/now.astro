@@ -1,0 +1,33 @@
+---
+import Shell from '../layouts/shell.astro';
+import FormattedDate from '../components/formatted-date.astro';
+import NowList from '../components/now-list.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { FALLBACK_NOW } from '~/data/now';
+import { PAGES_CACHE, getNow } from '~/lib/page-content';
+import { nowIntroHtml } from '~/lib/now-html';
+
+// Rendered on request: the page comes from its record (src/lib/page-content.ts), or the built-in
+// list until there is one
+export const prerender = false;
+
+const now = await getNow();
+Astro.cache.set(PAGES_CACHE);
+---
+
+<Shell title={`${CONTENT_PAGES.now.title} — Skiddle`} description={CONTENT_PAGES.now.description}>
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">Now</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        What I'm focused on these days. A <a href="https://nownownow.com/about" class="link" target="_blank" rel="noopener">now page</a>
+        answers "what are you up to?" for anyone who hasn't caught up with me in a while.
+      </p>
+      {now && <p class="text-xs text-[var(--color-muted)] mt-3">Last updated <FormattedDate date={new Date(now.updatedAt)} /></p>}
+    </header>
+
+    {now?.intro && <div class="prose mt-6" set:html={nowIntroHtml(now.intro)} />}
+
+    <NowList items={now?.items ?? FALLBACK_NOW} class="mt-6" />
+  </div>
+</Shell>
