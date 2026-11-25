@@ -3,7 +3,8 @@
  * and its highlights, services, uses, About and Now, from their records in Jeff's AT Protocol repo
  * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs).
  * The admin app edits them (src/lib/admin/page-editor.ts). Also the notes: his Bluesky posts tagged
- * #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs).
+ * #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs), and the posts they quote,
+ * from Bluesky's public AppView.
  *
  * If a record is missing or malformed, or the PDS can't be reached, this throws rather than show a
  * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now is
@@ -26,8 +27,8 @@ import {
   servicesFromRecord,
   usesFromRecord,
 } from '~/lib/page-records.mjs';
-import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, type Note } from '~/lib/notes.mjs';
-import { getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
+import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
+import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import type { About } from '~/types/about';
 import type { Highlight } from '~/types/highlights';
 import type { Now } from '~/types/now';
@@ -109,4 +110,37 @@ export async function getNotes(): Promise<Note[]> {
     console.error('notes: reading the posts failed:', err);
     throw err;
   }
+}
+
+const GET_POSTS = 'https://public.api.bsky.app/xrpc/app.bsky.feed.getPosts';
+/** app.bsky.feed.getPosts reads at most this many posts at once */
+const GET_POSTS_MAX = 25;
+/** Quoted posts are cached for 5 minutes: a card shows no counts, and an edit or deletion is rare */
+const QUOTES_TTL = 300;
+
+/**
+ * The posts these notes quote, by at:// address, from Bluesky's public AppView (no key). A post it
+ * doesn't return (deleted, blocked), or a read that fails, is left out, and the page links to it.
+ */
+export async function getQuotedPosts(notes: Note[]): Promise<Map<string, QuotedPost>> {
+  const uris = quotedUris(notes);
+  const batches = Array.from({ length: Math.ceil(uris.length / GET_POSTS_MAX) }, (_, i) => uris.slice(i * GET_POSTS_MAX, (i + 1) * GET_POSTS_MAX));
+  const found = await Promise.all(
+    batches.map(async (batch) => {
+      try {
+        return await cached(`bsky/posts/${batch.join(' ')}`, QUOTES_TTL, async () => {
+          const res = await fetch(`${GET_POSTS}?${new URLSearchParams(batch.map((uri) => ['uris', uri]))}`, {
+            headers: { Accept: 'application/json' },
+            signal: AbortSignal.timeout(3000),
+          });
+          if (!res.ok) throw new Error(`getPosts ${res.status}`);
+          return quotedPostsOf(await res.json());
+        });
+      } catch (err) {
+        console.error(`notes: reading ${batch.length} quoted posts from public.api.bsky.app failed:`, String(err));
+        return [];
+      }
+    }),
+  );
+  return new Map(found.flat().map((post) => [post.uri, post]));
 }

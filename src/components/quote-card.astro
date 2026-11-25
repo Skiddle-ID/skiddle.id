@@ -1,0 +1,51 @@
+---
+/*
+  A post a note quotes, as Bluesky shows it (src/lib/notes.mjs, QuotedPost). The date is the link to
+  the post, stretched over the card so a click anywhere opens it; the links in the text sit above it,
+  so no link is inside another.
+*/
+import FormattedDate from './formatted-date.astro';
+import { richTextHtml, type QuotedPost } from '~/lib/notes.mjs';
+
+interface Props {
+  post: QuotedPost;
+}
+const { post } = Astro.props;
+const { author } = post;
+const name = author.displayName || author.handle;
+const html = richTextHtml(post.text, post.facets);
+const date = Date.parse(post.createdAt) ? new Date(post.createdAt) : undefined;
+---
+
+<div class="card relative mt-3 p-3 hover:border-[var(--color-primary)]">
+  <p class="flex items-center gap-2 text-xs min-w-0">
+    {author.avatar ? (
+      <img src={author.avatar} alt="" width="20" height="20" loading="lazy" decoding="async" class="size-5 rounded-full border shrink-0 bg-[var(--color-bg-alt)]" />
+    ) : (
+      <span class="size-5 rounded-full border shrink-0 bg-[var(--color-bg-alt)]"></span>
+    )}
+    <span class="font-semibold truncate">{name}</span>
+    <span class="text-[var(--color-muted)] truncate">@{author.handle}</span>
+    <a href={post.url} class="ml-auto shrink-0 text-[var(--color-muted)] hover:text-[var(--color-primary)] after:absolute after:inset-0 after:content-['']" target="_blank" rel="noopener">
+      <span class="sr-only">Quoted post by {name},</span>
+      {date ? <FormattedDate date={date} /> : 'view on Bluesky'}
+    </a>
+  </p>
+  {html && <p class="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap break-words line-clamp-6 [&_a]:relative" set:html={html} />}
+  {post.images.length > 0 && (
+    <div class="mt-2 flex flex-wrap gap-2">
+      {post.images.map((img) => (
+        <img src={img.thumb} alt={img.alt} width="80" height="80" loading="lazy" decoding="async" class="size-20 rounded border object-cover bg-[var(--color-bg-alt)]" />
+      ))}
+    </div>
+  )}
+  {post.external && (
+    <p class="mt-2 flex gap-2 text-xs min-w-0">
+      <a href={post.external.url} class="link relative truncate" rel="noopener">{post.external.title}</a>
+      <span class="text-[var(--color-muted)] shrink-0">{post.external.domain}</span>
+    </p>
+  )}
+  {(post.video || post.quotes) && (
+    <p class="mt-2 text-xs text-[var(--color-muted)]">{[post.video && '[video]', post.quotes && '[quote]'].filter(Boolean).join(' ')}</p>
+  )}
+</div>
