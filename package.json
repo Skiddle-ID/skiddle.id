@@ -24,7 +24,7 @@
     "@resvg/resvg-wasm": "2.6.2",
     "astro": "^7.4.12",
     "github-slugger": "2.0.0",
-    "marked": "15.0.12",
+    "marked": "18.2.1",
     "marked-smartypants": "1.1.12"
   },
   "devDependencies": {
