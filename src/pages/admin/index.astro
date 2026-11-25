@@ -347,6 +347,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <label for="seCadence">How often new parts come out</label>
             <div class="admin-affix"><span>new&nbsp;</span><input id="seCadence" type="text" autocomplete="off" placeholder="every week" /></div>
           </div>
+          <div>
+            <label class="admin-check"><input id="seFeed" type="checkbox" aria-describedby="seFeedHint" /> RSS feed for this series</label>
+            <p id="seFeedHint" class="admin-small"></p>
+          </div>
           <fieldset class="admin-field">
             <legend class="admin-legend">Parts</legend>
             <ol id="seParts" class="admin-parts"></ol>

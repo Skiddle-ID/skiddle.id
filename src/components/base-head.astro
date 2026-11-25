@@ -14,9 +14,11 @@ interface Props {
   type?: 'website' | 'article';
   /** at:// URI of the page's site.standard.document record (posts only) */
   atDocument?: string;
+  /** The page's own RSS feed (a series'), linked next to the site's */
+  feed?: { title: string; href: string };
 }
 
-const { title, description, image, type = 'website', atDocument } = Astro.props as Props;
+const { title, description, image, type = 'website', atDocument, feed } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle';
@@ -43,6 +45,7 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
 <meta name="theme-color" content="#161616" id="themeColor" />
 <link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />
+{feed && <link rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href} />}
 <link rel="me" href="https://bsky.app/profile/skiddle.blue" />
 <link rel="me" href="https://github.com/arcestia" />
 <!-- Standard.site (AT Protocol): this site's publication record and, on posts, the post's document

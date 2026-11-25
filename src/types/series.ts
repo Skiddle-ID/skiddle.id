@@ -25,4 +25,6 @@ export interface SeriesInfo {
   ongoing?: boolean;
   /** How often new parts come out, e.g. 'every week' */
   cadence?: string;
+  /** Whether it has its own RSS feed, /series/<key>/rss.xml: on unless the record says false */
+  feed?: boolean;
 }

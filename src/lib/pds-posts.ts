@@ -69,6 +69,7 @@ interface SeriesRecord {
   description?: string;
   ongoing?: boolean;
   cadence?: string;
+  feed?: boolean;
   planned?: { part: number; title: string }[];
   coverImage?: { ref?: { $link?: string }; mimeType?: string };
 }
@@ -97,6 +98,8 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
         description: r.value.description,
         ongoing: r.value.ongoing ?? false,
         cadence: r.value.cadence,
+        // On unless the record turns it off (records saved before the field existed have none)
+        feed: r.value.feed !== false,
         planned: (r.value.planned ?? []).map((p) => ({ order: p.part, title: p.title })),
         ...(r.value.coverImage?.ref?.$link ? { coverImage: { cid: r.value.coverImage.ref.$link, mimeType: r.value.coverImage.mimeType ?? 'image/png' } } : {}),
       },

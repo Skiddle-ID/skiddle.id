@@ -15,6 +15,8 @@ interface Props {
   type?: 'website' | 'article';
   /** at:// URI of the page's site.standard.document record (posts only) */
   atDocument?: string;
+  /** The page's own RSS feed (a series'), linked next to the site's */
+  feed?: { title: string; href: string };
 }
 
 const {
@@ -23,6 +25,7 @@ const {
   image,
   type = 'website',
   atDocument,
+  feed,
 } = Astro.props;
 const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
@@ -85,7 +88,7 @@ const jsonLd = {
         if (a) d.dataset.accent = a;
       })();
     </script>
-    <BaseHead title={title} description={description} image={shareImage} type={type} atDocument={atDocument} />
+    <BaseHead title={title} description={description} image={shareImage} type={type} atDocument={atDocument} feed={feed} />
     <script is:inline>
       (function () {
         const m = document.getElementById('themeColor');

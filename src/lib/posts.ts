@@ -46,6 +46,8 @@ export interface Series {
   ongoing: boolean;
   /** How often new parts come out, e.g. 'every week' */
   cadence?: string;
+  /** It has its own RSS feed, at seriesFeedUrl(slug) */
+  feed: boolean;
   /** What the series is about */
   description?: string;
   /** Its share card (from the record) */
@@ -60,6 +62,9 @@ export { seriesSlug };
 
 /** A series' own page, by its record's key (Series.slug) */
 export const seriesUrl = (slug: string) => `/series/${slug}/`;
+
+/** A series' own RSS feed (when Series.feed is on) */
+export const seriesFeedUrl = (slug: string) => `/series/${slug}/rss.xml`;
 
 /**
  * Group posts into series, newest series (by its latest part) first
@@ -92,6 +97,7 @@ export function groupSeries(posts: Post[], info: Record<string, SeriesInfo>): Se
         entries,
         ongoing: extra.ongoing ?? false,
         cadence: extra.cadence,
+        feed: extra.feed ?? true,
         description: extra.description,
         coverImage: extra.coverImage,
       };

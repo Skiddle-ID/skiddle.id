@@ -11,7 +11,8 @@ export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesEntries from '~/components/series-entries.astro';
-import { groupSeries, postUrl, seriesSlug, seriesStatus, seriesUrl } from '~/lib/posts';
+import Icon from '~/components/icon.astro';
+import { groupSeries, postUrl, seriesFeedUrl, seriesSlug, seriesStatus, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import { scriptJson } from '~/lib/script-json.mjs';
 import { env } from 'cloudflare:workers';
@@ -36,6 +37,7 @@ const shareImage = series.coverImage ? `/media/${series.coverImage.cid}` : '/og/
 const latest = series.parts.at(-1);
 const first = series.parts[0];
 const canonical = new URL(seriesUrl(series.slug), Astro.site!).toString();
+const feed = series.feed ? { title: `${series.name} · Skiddle`, href: seriesFeedUrl(series.slug) } : undefined;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CreativeWorkSeries',
@@ -48,7 +50,7 @@ const jsonLd = {
 };
 ---
 
-<Shell title={`${series.name} — Skiddle`} description={description} image={shareImage}>
+<Shell title={`${series.name} — Skiddle`} description={description} image={shareImage} feed={feed}>
   <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
   <div class="max-w-[70ch] w-full">
     <p class="text-xs text-[var(--color-muted)] mb-3">
@@ -57,6 +59,12 @@ const jsonLd = {
     <h1 class="font-semibold text-xl before-hash-1">{series.name}</h1>
     <p class="text-sm text-[var(--color-muted)] mt-2">{status}</p>
     {series.description && <p class="mt-4 leading-relaxed">{series.description}</p>}
+    {feed && (
+      <p class="mt-4 text-sm flex items-center gap-1.5">
+        <Icon name="rss" size={13} class="text-[var(--color-primary)]" />
+        <span>Follow this series with its <a href={feed.href} class="link">RSS feed</a>.</span>
+      </p>
+    )}
     <SeriesBar series={series} class="max-w-xs mt-5 mb-6" />
 
     <SeriesEntries series={series} />

@@ -22,6 +22,11 @@
             "maxGraphemes": 64,
             "description": "How often new parts come out, e.g. 'every week'."
           },
+          "feed": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the series has its own RSS feed, at /series/<key>/rss.xml. On unless set to false."
+          },
           "planned": {
             "type": "array",
             "maxLength": 100,
