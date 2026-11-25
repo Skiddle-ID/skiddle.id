@@ -4,12 +4,12 @@
  * (src/lib/music.ts), and images (/media/<cid>).
  *
  * The PDS is found from the DID on each read, cached for an hour, so a move to another PDS just
- * works. Records are cached briefly in two places:
- *   - in memory, per Worker isolate, so one page render that needs a collection twice fetches it once
- *   - Cloudflare's edge cache (caches.default), shared by the isolates in a data centre. It does
- *     nothing on *.workers.dev (staging and previews), only on skiddle.id.
+ * works. Records are cached briefly, in memory and at the edge (src/lib/edge-cache.ts).
  */
+import { cached } from '~/lib/edge-cache';
 import { DID } from '~/lib/standard-site.mjs';
+
+export { cached, forget } from '~/lib/edge-cache';
 
 type Fetch = typeof fetch;
 
@@ -17,49 +17,11 @@ type Fetch = typeof fetch;
 export const RECORD_TTL = 60;
 const PDS_TTL = 3600;
 const TIMEOUT_MS = 4000;
-/** Edge cache keys live under this made-up origin; nothing is ever fetched from it */
-const CACHE_ORIGIN = 'https://pds-cache.skiddle.id';
 
 export interface RepoRecord<T = Record<string, unknown>> {
   uri: string;
   cid: string;
   value: T;
-}
-
-const edgeCache = (): Cache | undefined => (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
-const memory = new Map<string, { until: number; value: Promise<unknown> }>();
-
-/** `load()`'s result, cached in memory and at the edge for `ttl` seconds under `key` */
-export async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
-  const now = Date.now();
-  const hit = memory.get(key);
-  if (hit && hit.until > now) return hit.value as Promise<T>;
-  const value = (async () => {
-    const cache = edgeCache();
-    const request = new Request(`${CACHE_ORIGIN}/${encodeURIComponent(key)}`);
-    const stored = await cache?.match(request).catch(() => undefined);
-    if (stored) return (await stored.json()) as T;
-    const fresh = await load();
-    await cache
-      ?.put(request, new Response(JSON.stringify(fresh), { headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${ttl}` } }))
-      .catch(() => {});
-    return fresh;
-  })();
-  memory.set(key, { until: now + ttl * 1000, value });
-  // A failed load isn't kept, so the next request tries again
-  value.catch(() => memory.delete(key));
-  return value;
-}
-
-/** Forgets cached records, e.g. after a save, so the next read fetches them again */
-export async function forget(keys: string[]): Promise<void> {
-  const cache = edgeCache();
-  await Promise.all(
-    keys.map((key) => {
-      memory.delete(key);
-      return cache?.delete(new Request(`${CACHE_ORIGIN}/${encodeURIComponent(key)}`)).catch(() => false);
-    }),
-  );
 }
 
 /** The PDS address from the DID document (did:plc via plc.directory, did:web via /.well-known/did.json) */
