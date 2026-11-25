@@ -181,8 +181,8 @@ export async function route() {
 }
 
 export async function loadPosts() {
-  // Writing drafts, uploading images, publishing (the document, its series, the Bluesky post)
-  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob|standard\.document|series|feed\.post|categories/.test(s));
+  // Writing drafts, uploading images, publishing (the document, its series, the Bluesky post), a series' Bluesky feed
+  const missing = missingScopes((await session.getTokenInfo()).scope).filter((s) => /draft|blob|standard\.document|series|feed\.(post|generator)|categories/.test(s));
   el('postsScope').hidden = missing.length === 0;
   el<HTMLButtonElement>('newDraft').disabled = missing.length > 0;
   const [d, docs, s, cats] = await Promise.all([

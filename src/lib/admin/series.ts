@@ -11,10 +11,13 @@
  *   - Changes are kept on this device until they're saved, as with posts. Saving and deleting
  *     follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  *   - A series can only be deleted while no post or draft belongs to it.
+ *   - A saved series can have a Bluesky feed: publishing it writes an `app.bsky.feed.generator`
+ *     record under the series' key, with its saved name and description (src/lib/bluesky-feed.mjs).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { SERIES_COLLECTION, seriesRecord, seriesSlug } from '~/lib/post-record.mjs';
 import { DID } from '~/lib/standard-site.mjs';
+import { GENERATOR_COLLECTION, blueskyFeedUrl, generatorRecord } from '~/lib/bluesky-feed.mjs';
 import { seriesFeedUrl } from '~/lib/posts';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardSeriesOf, type CardSeries } from './card-text';
@@ -67,6 +70,8 @@ interface Open {
   key?: string;
   cid?: string;
   record?: SeriesRecord;
+  /** Its Bluesky feed's record, once that's published */
+  generator?: RepoRecord<Record<string, unknown>>;
 }
 
 /** The address of the editor for a new series */
@@ -79,6 +84,7 @@ let current: Open | undefined;
 /** The form has changes that aren't saved */
 let dirty = false;
 let conflict = false;
+let publishingFeed = false;
 
 const now = () => new Date().toISOString();
 const rkeyOf = (uri: string) => uri.split('/').pop() ?? '';
@@ -120,6 +126,7 @@ export function setupSeries(c: SeriesContext) {
   el('seCard').addEventListener('click', () => void showCard());
   el('seSave').addEventListener('click', () => void save());
   el('seDelete').addEventListener('click', () => void remove());
+  el('seBlueskyPublish').addEventListener('click', () => void publishFeed());
   el('seLoadTheirs').addEventListener('click', () => void resolveConflict('theirs'));
   el('seKeepMine').addEventListener('click', () => void resolveConflict('mine'));
   el('seRestore').addEventListener('click', restoreBackup);
@@ -174,6 +181,7 @@ export async function openSeries(route: string) {
   document.body.dataset.view = 'series';
   const key = route === NEW ? undefined : route;
   message('seMessage', '');
+  message('seBlueskyMessage', '');
   el('seConflict').hidden = true;
   el('seBackup').hidden = true;
   el('seForm').hidden = true;
@@ -181,13 +189,16 @@ export async function openSeries(route: string) {
   let opened: Open = {};
   if (key) {
     try {
-      const record = await getRecord<SeriesRecord>(ctx.session, SERIES_COLLECTION, key);
+      const [record, generator] = await Promise.all([
+        getRecord<SeriesRecord>(ctx.session, SERIES_COLLECTION, key),
+        getRecord<Record<string, unknown>>(ctx.session, GENERATOR_COLLECTION, key),
+      ]);
       if (seriesRoute(location.hash) !== route) return; // moved on while it loaded
       if (!record) {
         saveState('seState', '');
         return message('seMessage', 'This series doesn’t exist any more.', 'error');
       }
-      opened = { key, cid: record.cid, record: record.value };
+      opened = { key, cid: record.cid, record: record.value, ...(generator ? { generator } : {}) };
     } catch (err) {
       saveState('seState', '');
       return message('seMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
@@ -390,6 +401,15 @@ function refresh(): string[] {
   view.hidden = !published.length || !current?.record?.name;
   if (current?.key) view.href = `/series/${current.key}/`;
 
+  // The Bluesky feed: once the series is saved
+  el('seBluesky').hidden = !current?.key;
+  const publish = el<HTMLButtonElement>('seBlueskyPublish');
+  publish.textContent = current?.generator ? 'Update the Bluesky feed' : 'Publish a Bluesky feed';
+  publish.disabled = !PUBLISHING_LIVE || publishingFeed;
+  const open = el<HTMLAnchorElement>('seBlueskyOpen');
+  open.hidden = !current?.generator;
+  if (current?.key) open.href = blueskyFeedUrl(current.key);
+
   // Deleting: only an existing series that nothing belongs to
   const del = el<HTMLButtonElement>('seDelete');
   const uri = current?.key && uriOf(current.key);
@@ -502,6 +522,30 @@ async function save(force = false) {
       step('Not saved');
       message('seMessage', `Couldn’t save: ${errorText(err)}. Your changes are kept on this device.`, 'error');
     }
+    if (current === target) refresh();
+  }
+}
+
+/** Publishes the series' Bluesky feed, or updates it to the series' saved name and description */
+async function publishFeed() {
+  const target = current;
+  const key = target?.key;
+  const saved = target?.record;
+  if (!PUBLISHING_LIVE || !target || !key || !saved || publishingFeed) return;
+  const wasNew = !target.generator;
+  publishingFeed = true;
+  refresh();
+  message('seBlueskyMessage', wasNew ? 'Publishing…' : 'Updating…');
+  try {
+    const record = generatorRecord({ name: saved.name ?? key, description: saved.description }, target.generator?.value);
+    const res = await putRecord(ctx.session, GENERATOR_COLLECTION, key, record, target.generator?.cid);
+    target.generator = { uri: res.uri, cid: res.cid, value: record };
+    await revalidate();
+    if (current === target) message('seBlueskyMessage', wasNew ? 'Published. People can find it on Bluesky and pin it.' : 'Updated.', 'ok');
+  } catch (err) {
+    if (current === target) message('seBlueskyMessage', `Couldn’t ${wasNew ? 'publish' : 'update'} it: ${errorText(err)}`, 'error');
+  } finally {
+    publishingFeed = false;
     if (current === target) refresh();
   }
 }
