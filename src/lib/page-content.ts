@@ -2,7 +2,8 @@
  * The pages' content (docs/v4/pages-on-atproto.md), read when a page is requested: projects, the CV
  * and its highlights, services, uses, About and Now, from their records in Jeff's AT Protocol repo
  * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs).
- * The admin app edits them (src/lib/admin/page-editor.ts).
+ * The admin app edits them (src/lib/admin/page-editor.ts). Also the notes: his Bluesky posts tagged
+ * #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs).
  *
  * If a record is missing or malformed, or the PDS can't be reached, this throws rather than show a
  * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now is
@@ -25,7 +26,8 @@ import {
   servicesFromRecord,
   usesFromRecord,
 } from '~/lib/page-records.mjs';
-import { getRecord, listRecords } from '~/lib/pds';
+import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, type Note } from '~/lib/notes.mjs';
+import { getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import type { About } from '~/types/about';
 import type { Highlight } from '~/types/highlights';
 import type { Now } from '~/types/now';
@@ -43,7 +45,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION].map((c) => `record/${c}/self`),
+  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION].map((c) => `record/${c}/self`),
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -80,4 +82,31 @@ export async function getAbout(): Promise<{ about: About }> {
 export async function getNow(): Promise<Now | null> {
   const value = await getRecord<Record<string, unknown>>(NOW_COLLECTION, 'self');
   return value ? (nowFromRecord(value) as Now) : null;
+}
+
+/** At most this many pages of 100 posts are read for the notes, newest first */
+const POST_PAGES = 5;
+
+/** Jeff's newest posts, as many as POST_PAGES pages hold */
+async function newestPosts(): Promise<RepoRecord[]> {
+  const posts: RepoRecord[] = [];
+  let cursor = '';
+  for (let page = 0; page < POST_PAGES; page++) {
+    const { records, cursor: next } = await recordsPage<Record<string, unknown>>(POST_COLLECTION, 100, cursor);
+    posts.push(...records);
+    if (!next || records.length < 100) break;
+    cursor = next;
+  }
+  return posts;
+}
+
+/** The notes, newest first: posts tagged #note, and the posts the id.skiddle.notes record picks */
+export async function getNotes(): Promise<Note[]> {
+  try {
+    const [posts, picks] = await Promise.all([newestPosts(), getRecord(NOTES_COLLECTION, 'self')]);
+    return notesFromRecords(posts, pickedRkeys(picks));
+  } catch (err) {
+    console.error('notes: reading the posts failed:', err);
+    throw err;
+  }
 }
