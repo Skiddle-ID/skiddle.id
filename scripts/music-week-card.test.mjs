@@ -119,4 +119,19 @@ describe('renderMusicWeekCard', () => {
     assert.match(svg, /--acc:#007d79/);
     assert.doesNotMatch(svg, /prefers-color-scheme/);
   });
+it('keeps two versions of a song apart when their titles differ only at the end', () => {
+    const svg = renderMusicWeekCard({
+      plays: 20,
+      artists: [{ name: 'LBI', count: 16 }],
+      tracks: [
+        { name: 'Jumping Machine (跳楼机)', artist: 'LBI & WUKONG', count: 10 },
+        { name: 'Jumping Machine (跳楼机) (伴奏)', artist: 'LBI & WUKONG', count: 6 },
+      ],
+    });
+    parse(svg);
+    const versions = rows(svg).filter((r) => r.includes('Jumping Machine'));
+    assert.equal(versions.length, 2, rows(svg).join(' | '));
+    assert.notEqual(versions[0], versions[1]);
+    assert.ok(versions[1].includes('(伴奏)'), versions[1]);
+  });
 });

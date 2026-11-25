@@ -82,6 +82,25 @@ export function fit(text: string, max: number): string {
   return `${out.trimEnd()}…`;
 }
 
+/** Shortens text to roughly `max` monospace columns by cutting its middle, so its start and end both show */
+export function fitMiddle(text: string, max: number): string {
+  const parts = graphemes(text);
+  if (parts.reduce((n, g) => n + columns(g), 0) <= max) return text;
+  const take = (from: string[], room: number) => {
+    const out: string[] = [];
+    let used = 0;
+    for (const g of from) {
+      if (used + columns(g) > room) break;
+      out.push(g);
+      used += columns(g);
+    }
+    return out;
+  };
+  const head = take(parts, Math.ceil((max - 1) / 2)).join('');
+  const tail = take([...parts].reverse(), Math.floor((max - 1) / 2)).reverse().join('');
+  return `${head.trimEnd()}…${tail.trimStart()}`;
+}
+
 /**
  * Wraps text into at most `lines` lines of roughly `max` monospace columns, breaking at spaces
  * (inside a word only when it has none, as in CJK) and at each newline. Text that doesn't fit ends

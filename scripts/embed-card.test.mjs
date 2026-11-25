@@ -2,7 +2,7 @@
 // and how it's shortened and wrapped to fit.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { fit, textColumns, wrap } from '../src/lib/embed-card.ts';
+import { fit, fitMiddle, textColumns, wrap } from '../src/lib/embed-card.ts';
 
 const cp = (...points) => String.fromCodePoint(...points);
 
@@ -62,5 +62,20 @@ describe('wrap', () => {
     assert.deepEqual(wrap('one two three four five six', 9, 2), ['one two', 'three fo…']);
     assert.deepEqual(wrap('first\nsecond\nthird', 20, 2), ['first', 'second third']);
     assert.deepEqual(wrap('first\nsecond\nthird and more', 15, 2), ['first', 'second third a…']);
+  });
+});
+
+describe('fitMiddle', () => {
+  it('leaves text that fits alone', () => {
+    assert.equal(fitMiddle('Just Dream', 10), 'Just Dream');
+  });
+  it('cuts the middle, so the start and the end both show', () => {
+    assert.equal(fitMiddle('abcdefghijklmnop', 7), 'abc…nop');
+    assert.equal(fitMiddle('Jumping Machine (跳楼机) (伴奏)', 20), 'Jumping Ma…) (伴奏)');
+  });
+  it('never goes over the room it has', () => {
+    for (const text of ['Jumping Machine (跳楼机) (伴奏)', 'ภูมิ วิภูริศ ศิริทิพย์', 'a'.repeat(50)]) {
+      for (let max = 3; max < 30; max++) assert.ok(textColumns(fitMiddle(text, max)) <= max, `${text} @ ${max}`);
+    }
   });
 });

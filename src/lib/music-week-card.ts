@@ -5,7 +5,7 @@
  * side, each with its play count. Text only, no album art. Shares its look with the other cards
  * (./embed-card.ts).
  */
-import { CHAR_EM, FONT, cardStyle, clean, colourVars, esc, fit, textColumns, type CardAccent, type CardTheme } from './embed-card.ts';
+import { CHAR_EM, FONT, cardStyle, clean, colourVars, esc, fit, fitMiddle, textColumns, type CardAccent, type CardTheme } from './embed-card.ts';
 import type { weekSummary } from './teal.mjs';
 
 export type WeekTop = ReturnType<typeof weekSummary>;
@@ -30,11 +30,18 @@ const SEP = ' · ';
 const cols = (px: number) => Math.floor(px / (ROW_PX * CHAR_EM));
 const plays = (n: number) => `${n.toLocaleString('en-US')} ${n === 1 ? 'play' : 'plays'}`;
 
-/** A track's title and artist in `max` columns, the title keeping most of the room */
+/** Columns an artist keeps when a whole title takes the rest of the room */
+const MIN_ARTIST = 6;
+
+/**
+ * A track's title and artist in `max` columns. The title comes first: it stays whole when that
+ * leaves the artist a few columns, so two versions of a song that differ only at the end of their
+ * titles still look different. A longer title keeps most of the room.
+ */
 function fitTrack(title: string, artist: string, max: number): [string, string] {
   const room = max - SEP.length;
   if (textColumns(title) + textColumns(artist) <= room) return [title, artist];
-  const t = fit(title, room - Math.min(textColumns(artist), Math.floor(room * 0.4)));
+  const t = textColumns(title) <= room - MIN_ARTIST ? title : fit(title, room - Math.min(textColumns(artist), Math.floor(room * 0.4)));
   return [t, fit(artist, room - textColumns(t))];
 }
 
@@ -47,10 +54,14 @@ interface Row {
 
 function column(col: { x: number; w: number }, heading: string, rows: Row[], id: string): string {
   const right = col.x + col.w;
+  const room = (row: Row) => cols(col.w) - 2 - String(row.count).length - 1;
+  const fitted = rows.map((row) => (row.by === undefined ? [fit(row.name, room(row)), undefined] : fitTrack(row.name, row.by, room(row))));
+  // Two different names cut to the same text, like a song and its instrumental, keep their ends
+  // instead, in the artist's room too
+  const alike = (i: number) => fitted.some(([other], j) => j !== i && other === fitted[i][0] && rows[j].name !== rows[i].name);
   const lines = rows.map((row, i) => {
     const count = String(row.count);
-    const room = cols(col.w) - 2 - count.length - 1;
-    const [name, by] = row.by === undefined ? [fit(row.name, room), undefined] : fitTrack(row.name, row.by, room);
+    const [name, by] = alike(i) ? [fitMiddle(row.name, room(row)), undefined] : fitted[i];
     const y = ROWS_Y + i * ROW_H;
     return (
       `<text x="${col.x}" y="${y}" class="s"><tspan class="acc">${i + 1} </tspan><tspan class="fg">${esc(name)}</tspan>` +
