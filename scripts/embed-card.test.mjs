@@ -1,7 +1,8 @@
-// Text fitting for the SVG cards (src/lib/embed-card.ts): how many monospace columns text takes.
+// Text fitting for the SVG cards (src/lib/embed-card.ts): how many monospace columns text takes,
+// and how it's shortened and wrapped to fit.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { fit, textColumns } from '../src/lib/embed-card.ts';
+import { fit, textColumns, wrap } from '../src/lib/embed-card.ts';
 
 const cp = (...points) => String.fromCodePoint(...points);
 
@@ -44,5 +45,22 @@ describe('fit', () => {
   it('shortens text that doesn’t, ending with an ellipsis', () => {
     assert.equal(fit('Rebuilding skiddle.id', 10), 'Rebuildin…');
     assert.equal(fit('漢字漢字漢字', 6), '漢字…');
+  });
+});
+
+describe('wrap', () => {
+  it('breaks at spaces', () => {
+    assert.deepEqual(wrap('My agents work while I sleep', 12, 3), ['My agents', 'work while I', 'sleep']);
+  });
+  it('breaks at each newline', () => {
+    assert.deepEqual(wrap('Lab Notes #3\nskiddle.id/posts', 40, 2), ['Lab Notes #3', 'skiddle.id/posts']);
+  });
+  it('breaks inside a word that has no spaces, as in CJK', () => {
+    assert.deepEqual(wrap('漢字漢字漢字漢字', 8, 2), ['漢字漢字', '漢字漢字']);
+  });
+  it('ends with an ellipsis when the text needs more lines', () => {
+    assert.deepEqual(wrap('one two three four five six', 9, 2), ['one two', 'three fo…']);
+    assert.deepEqual(wrap('first\nsecond\nthird', 20, 2), ['first', 'second third']);
+    assert.deepEqual(wrap('first\nsecond\nthird and more', 15, 2), ['first', 'second third a…']);
   });
 });
