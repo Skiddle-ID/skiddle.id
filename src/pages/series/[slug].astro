@@ -15,6 +15,7 @@ import Icon from '~/components/icon.astro';
 import { groupSeries, postUrl, seriesFeedUrl, seriesSlug, seriesStatus, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import { scriptJson } from '~/lib/script-json.mjs';
+import { blueskyFeedUrl } from '~/lib/bluesky-feed.mjs';
 import { env } from 'cloudflare:workers';
 
 const slug = Astro.params.slug ?? '';
@@ -38,6 +39,7 @@ const latest = series.parts.at(-1);
 const first = series.parts[0];
 const canonical = new URL(seriesUrl(series.slug), Astro.site!).toString();
 const feed = series.feed ? { title: `${series.name} · Skiddle`, href: seriesFeedUrl(series.slug) } : undefined;
+const bluesky = series.blueskyFeed ? blueskyFeedUrl(series.slug) : undefined;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CreativeWorkSeries',
@@ -59,10 +61,14 @@ const jsonLd = {
     <h1 class="font-semibold text-xl before-hash-1">{series.name}</h1>
     <p class="text-sm text-[var(--color-muted)] mt-2">{status}</p>
     {series.description && <p class="mt-4 leading-relaxed">{series.description}</p>}
-    {feed && (
+    {(feed || bluesky) && (
       <p class="mt-4 text-sm flex items-center gap-1.5">
-        <Icon name="rss" size={13} class="text-[var(--color-primary)]" />
-        <span>Follow this series with its <a href={feed.href} class="link">RSS feed</a>.</span>
+        <Icon name={feed ? 'rss' : 'bluesky'} size={13} class="text-[var(--color-primary)]" />
+        {feed ? (
+          <span>Follow this series with its <a href={feed.href} class="link">RSS feed</a>{bluesky && <>, or <a href={bluesky} class="link">on Bluesky</a></>}.</span>
+        ) : (
+          <span>Follow this series <a href={bluesky} class="link">on Bluesky</a>.</span>
+        )}
       </p>
     )}
     <SeriesBar series={series} class="max-w-xs mt-5 mb-6" />
