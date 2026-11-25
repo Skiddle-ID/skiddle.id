@@ -16,7 +16,7 @@ import SeriesBar from '~/components/series-bar.astro';
 import SeriesParts from '~/components/series-parts.astro';
 import { categoryLabel } from '~/lib/categories.mjs';
 import { scriptJson } from '~/lib/script-json.mjs';
-import { categoryUrl, postUrl, readingMinutes, groupSeries, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
+import { categoryUrl, postUrl, readingMinutes, groupSeries, seriesFeedUrl, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
 import { getCategories } from '~/lib/site-categories';
 import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
 import { DID } from '~/lib/standard-site.mjs';
@@ -63,6 +63,8 @@ const entryIdx = series ? series.entries.findIndex((e) => e.post?.id === entry.i
 const partNumber = entryIdx + 1;
 const partCount = series?.entries.length ?? 0;
 const nextEntry = series && entryIdx >= 0 ? series.entries[entryIdx + 1] : undefined;
+// Catching the next part: the series' own feed if it has one, else the site's
+const seriesFeed = series?.feed ? seriesFeedUrl(series.slug) : undefined;
 // Published neighbours in the series, kept out of "Keep reading"
 const partIdx = series ? series.parts.findIndex((p) => p.id === entry.id) : -1;
 const prev: Post | null = series && partIdx > 0 ? series.parts[partIdx - 1] : null;
@@ -175,7 +177,7 @@ const jsonLd = {
         <p class="text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1}</p>
         <p class="mt-1 font-semibold">Coming soon</p>
         <p class="mt-1 font-reading text-[0.95rem] leading-relaxed text-[var(--color-muted)]">
-          {series!.cadence && `A new part comes out ${series!.cadence}. `}Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab the <a href="/rss.xml" class="link">RSS feed</a> to catch the next one.
+          {series!.cadence && `A new part comes out ${series!.cadence}. `}Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab {seriesFeed ? 'this series’' : 'the'} <a href={seriesFeed ?? '/rss.xml'} class="link">RSS feed</a> to catch the next one.
         </p>
       </div>
     )}
@@ -193,7 +195,7 @@ const jsonLd = {
           <p class="text-xs text-[var(--color-muted)]">Next in {series!.name} · part {partNumber + 1}{ofCount}</p>
           <p class="mt-1 font-semibold">{nextEntry.title}</p>
           <p class="mt-1 font-reading text-[0.95rem] leading-relaxed text-[var(--color-muted)]">
-            Not out yet. Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab the <a href="/rss.xml" class="link">RSS feed</a> to catch it.
+            Not out yet. Follow me on <a href="https://bsky.app/profile/skiddle.blue" class="link">Bluesky</a> or grab {seriesFeed ? 'this series’' : 'the'} <a href={seriesFeed ?? '/rss.xml'} class="link">RSS feed</a> to catch it.
           </p>
         </div>
       )

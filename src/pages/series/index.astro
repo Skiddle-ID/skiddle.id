@@ -4,8 +4,9 @@ export const prerender = false;
 import Shell from '~/layouts/shell.astro';
 import SeriesBar from '~/components/series-bar.astro';
 import SeriesEntries from '~/components/series-entries.astro';
+import Icon from '~/components/icon.astro';
 import { LIST_PAGES } from '~/data/list-pages';
-import { groupSeries, seriesStatus, seriesUrl } from '~/lib/posts';
+import { groupSeries, seriesFeedUrl, seriesStatus, seriesUrl } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
 // Posts in a series, grouped and in reading order (their part number), with the planned parts
@@ -26,6 +27,9 @@ Astro.cache.set(POSTS_CACHE);
         <h2 id={`${s.slug}-title`} class="font-semibold before-hash-2 mb-3">
           <a href={seriesUrl(s.slug)} class="hover:text-[var(--color-primary)]">{s.name}</a>
           <span class="text-sm font-normal text-[var(--color-muted)]"> · {seriesStatus(s).replace(/ · next: .*/, '')}</span>
+          {s.feed && (
+            <a href={seriesFeedUrl(s.slug)} class="inline-flex align-middle ml-1 text-[var(--color-muted)] hover:text-[var(--color-primary)]" aria-label={`RSS feed for ${s.name}`} title="RSS feed for this series"><Icon name="rss" size={14} /></a>
+          )}
         </h2>
         {s.description && <p class="text-sm text-[var(--color-muted)] mb-3">{s.description}</p>}
         <SeriesBar series={s} class="max-w-xs mb-4" />
