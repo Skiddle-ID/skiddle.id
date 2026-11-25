@@ -62,7 +62,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             </span>
           </div>
           <div id="postsScope" class="admin-notice" hidden>
-            <p>To write drafts, upload images, publish and edit categories, the app needs more permissions from your account.</p>
+            <p>To write drafts, upload images, publish, edit categories and publish Bluesky feeds, the app needs more permissions from your account.</p>
             <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
           <h3 class="admin-subhead">Drafts</h3>
@@ -351,6 +351,13 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <label class="admin-check"><input id="seFeed" type="checkbox" aria-describedby="seFeedHint" /> RSS feed for this series</label>
             <p id="seFeedHint" class="admin-small"></p>
           </div>
+          <fieldset id="seBluesky" class="admin-field" hidden>
+            <legend class="admin-legend">Bluesky feed</legend>
+            <p class="admin-small">A feed people can pin in Bluesky, of the posts that announce the series’ parts. It takes the series’ saved name and description.</p>
+            <button id="seBlueskyPublish" type="button" class="admin-btn admin-btn-ghost admin-self-start">Publish a Bluesky feed</button>
+            <a id="seBlueskyOpen" href="https://bsky.app/" target="_blank" rel="noopener" class="admin-link" hidden>Open in Bluesky</a>
+            <p id="seBlueskyMessage" class="admin-message" role="status"></p>
+          </fieldset>
           <fieldset class="admin-field">
             <legend class="admin-legend">Parts</legend>
             <ol id="seParts" class="admin-parts"></ol>

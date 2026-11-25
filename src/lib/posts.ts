@@ -48,6 +48,8 @@ export interface Series {
   cadence?: string;
   /** It has its own RSS feed, at seriesFeedUrl(slug) */
   feed: boolean;
+  /** It has a Bluesky feed, at blueskyFeedUrl(slug) (src/lib/bluesky-feed.mjs) */
+  blueskyFeed: boolean;
   /** What the series is about */
   description?: string;
   /** Its share card (from the record) */
@@ -98,6 +100,7 @@ export function groupSeries(posts: Post[], info: Record<string, SeriesInfo>): Se
         ongoing: extra.ongoing ?? false,
         cadence: extra.cadence,
         feed: extra.feed ?? true,
+        blueskyFeed: extra.blueskyFeed ?? false,
         description: extra.description,
         coverImage: extra.coverImage,
       };

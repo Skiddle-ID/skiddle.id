@@ -23,6 +23,8 @@
  *     edited or unpublished
  *   - id.skiddle.series: the series
  *   - id.skiddle.categories: the post categories, edited from the Posts section
+ *   - app.bsky.feed.generator: a series' Bluesky feed (src/lib/bluesky-feed.mjs), published from
+ *     the series editor
  * and, create only (CREATE_ONLY):
  *   - app.bsky.feed.post: the Bluesky post that announces a new post; the app never edits or
  *     deletes Bluesky posts
@@ -39,6 +41,7 @@ export const COLLECTIONS = [
   'site.standard.document',
   'id.skiddle.series',
   'id.skiddle.categories',
+  'app.bsky.feed.generator',
 ] as const;
 /** Collections the app may only add to */
 export const CREATE_ONLY = ['app.bsky.feed.post'] as const;

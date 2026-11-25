@@ -6,13 +6,16 @@
  *   - a post: a `site.standard.document` of the skiddle.id publication whose `content` is an
  *     `id.skiddle.post` (written by the AT Protocol sync from git until the switch, then by the
  *     admin app). Its id is the slug from its path, /posts/<slug>/.
- *   - a series: an `id.skiddle.series` record; its id is the record key (the series' slug).
+ *   - a series: an `id.skiddle.series` record; its id is the record key (the series' slug). An
+ *     `app.bsky.feed.generator` record with the same key gives it a Bluesky feed
+ *     (src/lib/bluesky-feed.mjs).
  *
  * Entries have the same `data` fields as the git collection (src/content.config.ts), so the
  * components in src/components work with both. A collection only lists posts; one entry also has
  * its Markdown rendered (src/lib/post-html.mjs), so a page renders just the post it shows.
  */
 import type { LiveLoader } from 'astro/loaders';
+import { FEED_DID, GENERATOR_COLLECTION } from '~/lib/bluesky-feed.mjs';
 import { FALLBACK_CATEGORY, isCategoryId } from '~/lib/categories.mjs';
 import { POST_TYPE, SERIES_COLLECTION } from '~/lib/post-record.mjs';
 import { renderPost, type Heading, type PostImage } from '~/lib/post-html.mjs';
@@ -74,6 +77,10 @@ interface SeriesRecord {
   coverImage?: { ref?: { $link?: string }; mimeType?: string };
 }
 
+interface GeneratorRecord {
+  did?: string;
+}
+
 interface Entry<T> {
   id: string;
   data: T;
@@ -87,7 +94,16 @@ const date = (s: unknown) => {
 
 /** Every series, and every post (newest first), from the repo */
 async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<PdsSeriesData>[] }> {
-  const [docs, seriesRecords] = await Promise.all([listRecords<DocumentRecord>(DOCUMENT), listRecords<SeriesRecord>(SERIES_COLLECTION)]);
+  const [docs, seriesRecords, generators] = await Promise.all([
+    listRecords<DocumentRecord>(DOCUMENT),
+    listRecords<SeriesRecord>(SERIES_COLLECTION),
+    // Optional: if they can't be read, the site still shows, just without its Bluesky feeds
+    listRecords<GeneratorRecord>(GENERATOR_COLLECTION).catch((err) => {
+      console.error(`listRecords ${GENERATOR_COLLECTION}:`, err);
+      return [];
+    }),
+  ]);
+  const feedKeys = new Set(generators.filter((r) => r.value.did === FEED_DID).map((r) => r.uri.split('/').pop()!));
   const series: Entry<PdsSeriesData>[] = seriesRecords
     .filter((r) => typeof r.value.name === 'string')
     .map((r) => ({
@@ -100,6 +116,7 @@ async function loadAll(): Promise<{ posts: Entry<PdsPostData>[]; series: Entry<P
         cadence: r.value.cadence,
         // On unless the record turns it off (records saved before the field existed have none)
         feed: r.value.feed !== false,
+        blueskyFeed: feedKeys.has(r.uri.split('/').pop()!),
         planned: (r.value.planned ?? []).map((p) => ({ order: p.part, title: p.title })),
         ...(r.value.coverImage?.ref?.$link ? { coverImage: { cid: r.value.coverImage.ref.$link, mimeType: r.value.coverImage.mimeType ?? 'image/png' } } : {}),
       },

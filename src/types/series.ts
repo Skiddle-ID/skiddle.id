@@ -27,4 +27,6 @@ export interface SeriesInfo {
   cadence?: string;
   /** Whether it has its own RSS feed, /series/<key>/rss.xml: on unless the record says false */
   feed?: boolean;
+  /** Whether it has a Bluesky feed: an app.bsky.feed.generator record with its key (src/lib/bluesky-feed.mjs) */
+  blueskyFeed?: boolean;
 }
