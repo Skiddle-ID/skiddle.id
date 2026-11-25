@@ -28,7 +28,7 @@ Astro.cache.set(POSTS_CACHE);
           <a href={seriesUrl(s.slug)} class="hover:text-[var(--color-primary)]">{s.name}</a>
           <span class="text-sm font-normal text-[var(--color-muted)]"> · {seriesStatus(s).replace(/ · next: .*/, '')}</span>
           {s.feed && (
-            <a href={seriesFeedUrl(s.slug)} class="inline-flex align-middle ml-1 text-[var(--color-muted)] hover:text-[var(--color-primary)]" aria-label={`RSS feed for ${s.name}`} title="RSS feed for this series"><Icon name="rss" size={14} /></a>
+            <a href={seriesFeedUrl(s.slug)} class="inline-flex items-center justify-center size-6 align-middle text-[var(--color-muted)] hover:text-[var(--color-primary)]" aria-label={`RSS feed for ${s.name}`} title="RSS feed for this series"><Icon name="rss" size={14} /></a>
           )}
         </h2>
         {s.description && <p class="text-sm text-[var(--color-muted)] mb-3">{s.description}</p>}
