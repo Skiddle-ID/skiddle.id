@@ -69,6 +69,9 @@ const LABELS: Record<string, string> = {
 export const labelOf = (key: string) =>
   LABELS[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase().replace(/^./, (c) => c.toUpperCase());
 
+/** One item of a list, for its buttons: "Categories" → "category", "Selected projects" → "selected project" */
+const singular = (label: string) => label.toLowerCase().replace(/ies$/, 'y').replace(/s$/, '');
+
 const empty = (v: unknown) =>
   v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0) || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v as object).length === 0);
 
@@ -304,6 +307,7 @@ function objectField(doc: LexiconDoc, label: string, schema: Schema, value: Valu
 
 function listField(doc: LexiconDoc, label: string, schema: Schema, values: unknown[], options: FormOptions, path: string): Field {
   const items = resolve(doc, schema.items);
+  const noun = singular(label);
   const set = document.createElement('fieldset');
   set.className = 'admin-field admin-lexform-group';
   const legend = document.createElement('legend');
@@ -322,13 +326,12 @@ function listField(doc: LexiconDoc, label: string, schema: Schema, values: unkno
     for (const d of list.querySelectorAll<HTMLDetailsElement>(':scope > li > details')) d.open = open;
   };
   if (items.type === 'object') {
-    folding.appendChild(button('Unfold all', `Unfold every ${label.toLowerCase().replace(/s$/, '')}`, () => foldAll(true)));
-    folding.appendChild(button('Fold all', `Fold every ${label.toLowerCase().replace(/s$/, '')}`, () => foldAll(false)));
+    folding.appendChild(button('Unfold all', `Unfold every ${noun}`, () => foldAll(true)));
+    folding.appendChild(button('Fold all', `Fold every ${noun}`, () => foldAll(false)));
     set.appendChild(folding);
   }
   set.appendChild(list);
   const rows: { li: HTMLLIElement; read: () => unknown }[] = [];
-  const noun = label.replace(/s$/, '').toLowerCase();
   // Dragging a handle reorders the items; the rows follow the page's order
   sortable(list, {
     items: ':scope > li',
