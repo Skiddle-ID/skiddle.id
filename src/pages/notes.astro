@@ -71,6 +71,8 @@ const pageUrl = (n: number) => (n === 1 ? '/notes/' : `/notes/?page=${n}`);
                     );
                   case 'video':
                     return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[video]</a></p>;
+                  case 'quote':
+                    return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[quote]</a></p>;
                   case 'record':
                     return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[{a.label}]</a></p>;
                 }

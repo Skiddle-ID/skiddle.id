@@ -24,6 +24,7 @@ const CDN = 'https://cdn.bsky.app/img';
  * @typedef {{ kind: 'images', images: NoteImage[] }
  *   | { kind: 'link', url: string, title: string, domain: string }
  *   | { kind: 'video', url: string }
+ *   | { kind: 'quote', uri: string, url: string }
  *   | { kind: 'record', label: string, url: string }} Attachment
  * @typedef {{ rkey: string, createdAt: string, url: string, html: string, attachments: Attachment[] }} Note
  */
@@ -194,8 +195,9 @@ function facetHtml(feature, text) {
 
 /**
  * What a post carries besides its text, from its embed (app.bsky.embed.*): images as thumbnails
- * on Bluesky's CDN, a link card, a video (shown as a link to the post), or another record (a quote,
- * a feed, a list, a starter pack), linked on Bluesky without reading it
+ * on Bluesky's CDN, a link card, a video (shown as a link to the post), a quoted post (its at://
+ * address, to read from the AppView, and its link), or another record (a feed, a list, a starter
+ * pack), linked on Bluesky without reading it. A quote with media has the media first.
  * @param {unknown} embed
  * @param {string} url The post on Bluesky
  * @returns {Attachment[]}
@@ -217,7 +219,7 @@ function attachmentsOf(embed, url) {
     case 'app.bsky.embed.record':
       return recordOf(embed.record);
     case 'app.bsky.embed.recordWithMedia':
-      return [...recordOf(isObject(embed.record) ? embed.record.record : undefined), ...attachmentsOf(embed.media, url)];
+      return [...attachmentsOf(embed.media, url), ...recordOf(isObject(embed.record) ? embed.record.record : undefined)];
     default:
       return [];
   }
@@ -241,7 +243,6 @@ function imageOf(image) {
 
 /** What another record's at:// address is, and where it is on Bluesky */
 const RECORD_KINDS = {
-  'app.bsky.feed.post': { label: 'quote', path: 'post' },
   'app.bsky.feed.generator': { label: 'feed', path: 'feed' },
   'app.bsky.graph.list': { label: 'list', path: 'lists' },
   'app.bsky.graph.starterpack': { label: 'starter pack', path: 'starter-pack' },
@@ -253,6 +254,7 @@ const RECORD_KINDS = {
  */
 function recordOf(ref) {
   const m = /^at:\/\/(did:[a-z]+:[A-Za-z0-9._:%-]+)\/([a-z0-9.]+)\/([A-Za-z0-9._:~-]+)$/i.exec(isObject(ref) ? str(ref.uri) : '');
+  if (m?.[2] === POST_COLLECTION) return [{ kind: 'quote', uri: m[0], url: `https://bsky.app/profile/${m[1]}/post/${m[3]}` }];
   const kind = m && RECORD_KINDS[/** @type {keyof typeof RECORD_KINDS} */ (m[2])];
   if (!m || !kind) return [];
   const url = kind.path === 'starter-pack' ? `https://bsky.app/starter-pack/${m[1]}/${m[3]}` : `https://bsky.app/profile/${m[1]}/${kind.path}/${m[3]}`;

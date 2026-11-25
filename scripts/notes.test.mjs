@@ -199,13 +199,21 @@ describe('attachments', () => {
     assert.deepEqual(attachments({ $type: 'app.bsky.embed.external', external: { uri: 'javascript:alert(1)', title: 'X' } }), []);
   });
 
-  it('a quote links the quoted post, and a quote with media has both', () => {
-    const quote = { uri: `at://${OTHER}/app.bsky.feed.post/3q`, cid: 'c' };
-    assert.deepEqual(attachments({ $type: 'app.bsky.embed.record', record: quote }), [{ kind: 'record', label: 'quote', url: `https://bsky.app/profile/${OTHER}/post/3q` }]);
-    assert.deepEqual(attachments({ $type: 'app.bsky.embed.recordWithMedia', record: { record: quote }, media: { $type: 'app.bsky.embed.video', video: blob('v') } }), [
-      { kind: 'record', label: 'quote', url: `https://bsky.app/profile/${OTHER}/post/3q` },
+  it('a quote keeps the quoted post’s address and link, after the note’s own media', () => {
+    const uri = `at://${OTHER}/app.bsky.feed.post/3q`;
+    const quote = { kind: 'quote', uri, url: `https://bsky.app/profile/${OTHER}/post/3q` };
+    assert.deepEqual(attachments({ $type: 'app.bsky.embed.record', record: { uri, cid: 'c' } }), [quote]);
+    assert.deepEqual(attachments({ $type: 'app.bsky.embed.recordWithMedia', record: { record: { uri, cid: 'c' } }, media: { $type: 'app.bsky.embed.video', video: blob('v') } }), [
       { kind: 'video', url: 'https://bsky.app/profile/skiddle.blue/post/p-01' },
+      quote,
     ]);
+  });
+
+  it('a feed, a list or a starter pack links to it on Bluesky', () => {
+    const record = (collection) => attachments({ $type: 'app.bsky.embed.record', record: { uri: `at://${OTHER}/${collection}/3r`, cid: 'c' } });
+    assert.deepEqual(record('app.bsky.feed.generator'), [{ kind: 'record', label: 'feed', url: `https://bsky.app/profile/${OTHER}/feed/3r` }]);
+    assert.deepEqual(record('app.bsky.graph.list'), [{ kind: 'record', label: 'list', url: `https://bsky.app/profile/${OTHER}/lists/3r` }]);
+    assert.deepEqual(record('app.bsky.graph.starterpack'), [{ kind: 'record', label: 'starter pack', url: `https://bsky.app/starter-pack/${OTHER}/3r` }]);
   });
 
   it('an unknown embed shows nothing', () => {
