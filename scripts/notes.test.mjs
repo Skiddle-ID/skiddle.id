@@ -2,7 +2,7 @@
 // links, the text with its facets, the attachments, and the pages.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { NOTES_PER_PAGE, notesFromRecords, notesPage, pageNumber, pickedRkeys, postRkey, richTextHtml } from '../src/lib/notes.mjs';
+import { NOTES_PER_PAGE, notesFromRecords, notesPage, pageNumber, pickedRkeys, postRkey, quotedPostsOf, quotedUris, richTextHtml } from '../src/lib/notes.mjs';
 
 const DID = 'did:plc:xaj6j6abvpgwps5v6k4t6clv';
 const OTHER = 'did:plc:e5nncb3dr5thdkjir5cfaqfe';
@@ -219,6 +219,109 @@ describe('attachments', () => {
   it('an unknown embed shows nothing', () => {
     assert.deepEqual(attachments({ $type: 'app.bsky.embed.future' }), []);
     assert.deepEqual(attachments({ $type: 'app.bsky.embed.record', record: { uri: `at://${OTHER}/com.example.thing/3x` } }), []);
+  });
+});
+
+describe('quoted posts', () => {
+  const AVATAR = `https://cdn.bsky.app/img/avatar/plain/${OTHER}/bafkreiavatar`;
+  const uri = `at://${OTHER}/app.bsky.feed.post/3q`;
+  /** A post as app.bsky.feed.getPosts returns it, trimmed to what matters here */
+  const view = ({ author = {}, record = {}, ...rest } = {}) => ({
+    uri,
+    cid: 'bafyrei',
+    author: { did: OTHER, handle: 'flavorflav.bsky.social', displayName: 'FLAVOR FLAV ⏰', avatar: AVATAR, labels: [], ...author },
+    record: { $type: 'app.bsky.feed.post', text: 'Nationwide ground stop', createdAt: '2026-11-13T20:51:19.056Z', langs: ['en'], ...record },
+    likeCount: 13638,
+    indexedAt: '2026-11-13T20:51:19.881Z',
+    labels: [],
+    ...rest,
+  });
+  const one = (v) => {
+    const posts = quotedPostsOf({ posts: [v] });
+    assert.ok(posts.length <= 1);
+    return posts[0];
+  };
+
+  it('a post has its author, its small avatar, its text and date, and its link on Bluesky', () => {
+    const facets = [link('Nationwide ground stop', 'ground stop', 'https://example.com/')];
+    assert.deepEqual(one(view({ record: { facets } })), {
+      uri,
+      url: `https://bsky.app/profile/${OTHER}/post/3q`,
+      author: { did: OTHER, handle: 'flavorflav.bsky.social', displayName: 'FLAVOR FLAV ⏰', avatar: `https://cdn.bsky.app/img/avatar_thumbnail/plain/${OTHER}/bafkreiavatar` },
+      text: 'Nationwide ground stop',
+      facets,
+      createdAt: '2026-11-13T20:51:19.056Z',
+      images: [],
+    });
+  });
+
+  it('with no display name, no avatar, no text or no date, the card still shows', () => {
+    const post = one(view({ author: { displayName: '  ', avatar: undefined }, record: { text: undefined, createdAt: undefined } }));
+    assert.deepEqual(post.author, { did: OTHER, handle: 'flavorflav.bsky.social' });
+    assert.equal(post.text, '');
+    assert.equal(post.createdAt, '2026-11-13T20:51:19.881Z');
+  });
+
+  it('images are the CDN’s thumbnails with their alt text and size; others are left out', () => {
+    const embed = {
+      $type: 'app.bsky.embed.images#view',
+      images: [
+        { thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${OTHER}/bafkreione`, fullsize: 'x', alt: 'A plane', aspectRatio: { width: 1200, height: 800 } },
+        { thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${OTHER}/bafkreitwo`, alt: '' },
+        { thumb: 'https://evil.example/img.jpg', alt: 'elsewhere' },
+        { thumb: 'javascript:alert(1)', alt: 'script' },
+      ],
+    };
+    assert.deepEqual(one(view({ embed })).images, [
+      { thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${OTHER}/bafkreione`, alt: 'A plane', width: 1200, height: 800 },
+      { thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${OTHER}/bafkreitwo`, alt: '' },
+    ]);
+    assert.equal(one(view({ author: { avatar: 'https://evil.example/a.jpg' } })).author.avatar, undefined);
+  });
+
+  it('a link card has its title and domain', () => {
+    const embed = (uri) => ({ $type: 'app.bsky.embed.external#view', external: { uri, title: 'Ground stop', description: 'd', thumb: 'x' } });
+    assert.deepEqual(one(view({ embed: embed('https://www.faa.gov/news') })).external, { url: 'https://www.faa.gov/news', title: 'Ground stop', domain: 'faa.gov' });
+    assert.equal(one(view({ embed: embed('javascript:alert(1)') })).external, undefined);
+  });
+
+  it('a post that quotes another says so, also with media; a video says so', () => {
+    const viewRecord = { $type: 'app.bsky.embed.record#viewRecord', uri: `at://${DID}/app.bsky.feed.post/3z`, value: {} };
+    assert.equal(one(view({ embed: { $type: 'app.bsky.embed.record#view', record: viewRecord } })).quotes, true);
+    assert.equal(one(view({ embed: { $type: 'app.bsky.embed.record#view', record: { $type: 'app.bsky.embed.record#viewNotFound', notFound: true } } })).quotes, true);
+    assert.equal(one(view({ embed: { $type: 'app.bsky.embed.record#view', record: { $type: 'app.bsky.feed.defs#generatorView' } } })).quotes, undefined);
+    const withMedia = one(view({
+      embed: {
+        $type: 'app.bsky.embed.recordWithMedia#view',
+        record: { record: viewRecord },
+        media: { $type: 'app.bsky.embed.images#view', images: [{ thumb: `https://cdn.bsky.app/img/feed_thumbnail/plain/${OTHER}/bafkreione`, alt: 'a' }] },
+      },
+    }));
+    assert.equal(withMedia.quotes, true);
+    assert.equal(withMedia.images.length, 1);
+    assert.equal(one(view({ embed: { $type: 'app.bsky.embed.video#view', playlist: 'x' } })).video, true);
+  });
+
+  it('a post that’s gone, blocked or malformed has no card', () => {
+    const body = {
+      posts: [
+        { $type: 'app.bsky.feed.defs#notFoundPost', uri, notFound: true },
+        { $type: 'app.bsky.feed.defs#blockedPost', uri, blocked: true, author: { did: OTHER } },
+        view({ author: { handle: undefined } }),
+        { ...view(), record: null },
+        view({ uri: `at://${OTHER}/app.bsky.feed.generator/3q` }),
+        null,
+        view({ $type: 'app.bsky.feed.defs#postView' }),
+      ],
+    };
+    assert.deepEqual(quotedPostsOf(body).map((p) => p.uri), [uri]);
+    for (const bad of [null, {}, { posts: 'x' }]) assert.deepEqual(quotedPostsOf(bad), []);
+  });
+
+  it('the posts a page of notes quotes, each once', () => {
+    const quote = (rkey, q) => post(rkey, 'x', { tags: ['note'], embed: { $type: 'app.bsky.embed.record', record: { uri: `at://${OTHER}/app.bsky.feed.post/${q}`, cid: 'c' } } });
+    const notes = notesFromRecords([quote('p-01', '3b'), quote('p-02', '3a'), quote('p-03', '3b'), tagged('p-04')], new Set());
+    assert.deepEqual(quotedUris(notes), [`at://${OTHER}/app.bsky.feed.post/3a`, `at://${OTHER}/app.bsky.feed.post/3b`]);
   });
 });
 
