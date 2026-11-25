@@ -10,8 +10,8 @@ export const LIST_PAGES = {
 } as const;
 
 /**
- * The other pages rendered on request from records: the pages' content (src/lib/page-content.ts)
- * and the listening history (src/lib/listening.ts). Their title, description, and the command their
+ * The other pages rendered on request from records: the pages' content and the notes
+ * (src/lib/page-content.ts), and the listening history (src/lib/listening.ts). Their title, description, and the command their
  * share card shows (the page's own prompt, or a cd into it).
  */
 export const CONTENT_PAGES = {
@@ -44,6 +44,11 @@ export const CONTENT_PAGES = {
     title: 'Now',
     description: 'What Jeff (Skiddle) is doing now: work, study and flying.',
     command: 'cat now.md',
+  },
+  notes: {
+    title: 'Notes',
+    description: 'Short notes by Jeff (Skiddle): his Bluesky posts tagged #note.',
+    command: 'tail notes.log',
   },
   listening: {
     title: 'Listening',

@@ -1,0 +1,95 @@
+---
+/*
+  /notes/: Jeff's Bluesky posts tagged #note, and the older ones he picks in the admin app
+  (src/lib/notes.mjs), read from his repo when the page is requested, newest first, 20 to a page.
+  /notes/?page=2 and on page back; a page that isn't there goes back to /notes/.
+*/
+import Shell from '../layouts/shell.astro';
+import FormattedDate from '../components/formatted-date.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, getNotes } from '~/lib/page-content';
+import { HANDLE, notesPage, pageNumber } from '~/lib/notes.mjs';
+
+export const prerender = false;
+
+const raw = Astro.url.searchParams.get('page');
+const requested = pageNumber(raw);
+if (requested === undefined || (requested === 1 && raw !== null)) return Astro.redirect('/notes/', 302);
+const shown = notesPage(await getNotes(), requested);
+if (!shown) return Astro.redirect('/notes/', 302);
+Astro.cache.set(PAGES_CACHE);
+
+const { notes, page, pages } = shown;
+const meta = CONTENT_PAGES.notes;
+const profile = `https://bsky.app/profile/${HANDLE}`;
+const pageUrl = (n: number) => (n === 1 ? '/notes/' : `/notes/?page=${n}`);
+---
+
+<Shell title={`${meta.title}${page > 1 ? `, page ${page}` : ''} — Skiddle`} description={meta.description}>
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">Notes</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        Short posts from <a href={profile} class="link" target="_blank" rel="noopener">my Bluesky</a>, the ones I tag #note.
+      </p>
+    </header>
+
+    {notes.length === 0 ? (
+      <p class="text-sm text-[var(--color-muted)] mt-8">
+        No notes yet. A note is a post on Bluesky with #note in it: post one there, and it shows up here within a minute.
+      </p>
+    ) : (
+      <ol class="mt-6 flex flex-col divide-y divide-dashed">
+        {notes.map((n) => (
+          <li class="py-5">
+            <article>
+              {n.html && <p class="text-sm leading-relaxed whitespace-pre-wrap break-words" set:html={n.html} />}
+              {n.attachments.map((a) => {
+                switch (a.kind) {
+                  case 'images':
+                    return (
+                      <div class:list={['mt-3 grid gap-2', a.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1 max-w-sm']}>
+                        {a.images.map((img) => (
+                          <img
+                            src={img.thumb}
+                            alt={img.alt}
+                            width={img.width}
+                            height={img.height}
+                            loading="lazy"
+                            decoding="async"
+                            class:list={['w-full rounded border bg-[var(--color-bg-alt)] object-cover', img.width ? 'h-auto max-h-96' : 'aspect-square']}
+                          />
+                        ))}
+                      </div>
+                    );
+                  case 'link':
+                    return (
+                      <a href={a.url} class="card mt-3 block p-3 hover:border-[var(--color-primary)]" rel="noopener">
+                        <span class="block text-sm font-semibold truncate">{a.title}</span>
+                        <span class="block text-xs text-[var(--color-muted)] mt-0.5">{a.domain}</span>
+                      </a>
+                    );
+                  case 'video':
+                    return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[video]</a></p>;
+                  case 'record':
+                    return <p class="mt-2 text-xs"><a href={a.url} class="link" target="_blank" rel="noopener">[{a.label}]</a></p>;
+                }
+              })}
+              <p class="mt-3 flex flex-wrap gap-x-3 text-xs text-[var(--color-muted)]">
+                {Date.parse(n.createdAt) ? <FormattedDate date={new Date(n.createdAt)} /> : null}
+                <a href={n.url} class="hover:text-[var(--color-primary)]" target="_blank" rel="noopener">view on Bluesky</a>
+              </p>
+            </article>
+          </li>
+        ))}
+      </ol>
+    )}
+
+    {pages > 1 && (
+      <nav aria-label="More notes" class="mt-8 flex flex-wrap justify-between gap-3 text-sm">
+        {page > 1 ? <a href={pageUrl(page - 1)} class="link">← newer</a> : <span></span>}
+        {page < pages && <a href={pageUrl(page + 1)} class="link">older →</a>}
+      </nav>
+    )}
+  </div>
+</Shell>

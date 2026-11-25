@@ -4,7 +4,7 @@
  *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
- *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about, .now), imported from the
+ *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about, .now, .notes), imported from the
  *     site's data in the Pages section (src/lib/admin/pages.ts) and edited in the page editors
  *     (src/lib/admin/page-editor.ts)
  *   - share cards, checked and redrawn from the Site section (src/lib/admin/redraw.ts)
