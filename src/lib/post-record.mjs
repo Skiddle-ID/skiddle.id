@@ -49,13 +49,15 @@ export const seriesUri = (/** @type {string} */ name) => `at://${DID}/${SERIES_C
 
 /**
  * An `id.skiddle.series` record as the admin app's series editor saves it: empty fields left out,
- * planned parts in order, a cadence only for an ongoing series. Fields the editor doesn't show are
+ * planned parts in order, a cadence only for an ongoing series, `feed: false` only when the
+ * series' own feed is off (no field means it's on). Fields the editor doesn't show are
  * kept from the record as it was (`previous`), and so is its creation date.
  * @param {object} input What the editor's form holds
  * @param {string} input.name
  * @param {string} [input.description]
  * @param {boolean} [input.ongoing]
  * @param {string} [input.cadence]
+ * @param {boolean} [input.feed] Whether the series has its own RSS feed; on unless false
  * @param {{ part: number, title: string }[]} [input.planned]
  * @param {unknown} [input.coverImage] The series' share card, as a blob reference
  * @param {Record<string, unknown>} [previous] The record as it was (an existing series)
@@ -65,7 +67,7 @@ export const seriesUri = (/** @type {string} */ name) => `at://${DID}/${SERIES_C
 export function seriesRecord(input, previous = {}, at = new Date().toISOString()) {
   /** @type {Record<string, unknown>} */
   const record = { ...previous, $type: SERIES_COLLECTION, name: input.name.trim() };
-  for (const key of ['description', 'ongoing', 'cadence', 'planned', 'coverImage']) delete record[key];
+  for (const key of ['description', 'ongoing', 'cadence', 'feed', 'planned', 'coverImage']) delete record[key];
   const description = input.description?.trim();
   if (description) record.description = description;
   if (input.ongoing) {
@@ -73,6 +75,7 @@ export function seriesRecord(input, previous = {}, at = new Date().toISOString()
     const cadence = input.cadence?.trim();
     if (cadence) record.cadence = cadence;
   }
+  if (input.feed === false) record.feed = false;
   const planned = (input.planned ?? []).map((p) => ({ part: p.part, title: p.title.trim() })).sort((a, b) => a.part - b.part);
   if (planned.length) record.planned = planned;
   if (input.coverImage) record.coverImage = input.coverImage;
