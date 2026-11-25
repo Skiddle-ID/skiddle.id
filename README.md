@@ -127,6 +127,16 @@ Cards and badges in the site's terminal style, for a GitHub profile README, othe
 </a>
 ```
 
+### Latest Bluesky post
+
+`/bluesky.svg` shows the newest post by [@skiddle.blue](https://bsky.app/profile/skiddle.blue), with "new" for a day: date, reply, repost and like counts, and the text in two lines. Reposts and replies are skipped. Images, videos, link cards and quotes aren't drawn, because an SVG inside `<img>` can't load them. The card names them instead, like `[2 images]` or `[link: skiddle.id]`. The post comes from Bluesky's public AppView (`app.bsky.feed.getAuthorFeed`, no key), cached for 60 seconds. If the AppView can't be read, the card points to the profile. The code is in `src/lib/bluesky-post.ts` (data) and `src/lib/bluesky-card.ts` (drawing).
+
+```html
+<a href="https://bsky.app/profile/skiddle.blue">
+  <img src="https://skiddle.id/bluesky.svg" alt="Latest post on Bluesky" width="540">
+</a>
+```
+
 ### Status badge
 
 `/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The dot's colour is the status: available (green), busy (amber), do not disturb (red) or away (grey). With an `emoji` set (one emoji, like ✈️), it takes the dot's place, there and on the home page. The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
