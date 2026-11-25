@@ -1,6 +1,7 @@
 /**
  * The page editors (docs/v4/pages-on-atproto.md, step 5), opened from the Pages section:
- *   - #page/cv, #page/services, #page/uses and #page/about: each page's record, key `self`
+ *   - #page/cv, #page/services, #page/uses, #page/about and #page/now: each page's record, key
+ *     `self`. Now starts with the built-in list (src/data/now.ts) if there's no record yet
  *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
@@ -19,10 +20,12 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import aboutLexicon from '../../../lexicons/id/skiddle/about.json';
 import categoriesLexicon from '../../../lexicons/id/skiddle/categories.json';
 import cvLexicon from '../../../lexicons/id/skiddle/cv.json';
+import nowLexicon from '../../../lexicons/id/skiddle/now.json';
 import projectLexicon from '../../../lexicons/id/skiddle/project.json';
 import servicesLexicon from '../../../lexicons/id/skiddle/services.json';
 import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
-import { ABOUT_COLLECTION, CV_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
+import { FALLBACK_NOW } from '~/data/now';
+import { ABOUT_COLLECTION, CV_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoryProblems } from '~/lib/categories.mjs';
 import { seriesSlug } from '~/lib/post-record.mjs';
 import { ranked, valuesAt } from '~/lib/suggest.mjs';
@@ -49,11 +52,18 @@ interface PageEditor {
 let categoryUsage: () => Map<string, number> = () => new Map();
 
 /** The records with key `self` that have an editor, by their editor's address */
-export const PAGE_EDITORS: Record<'cv' | 'services' | 'uses' | 'about' | 'categories', PageEditor> = {
+export const PAGE_EDITORS: Record<'cv' | 'services' | 'uses' | 'about' | 'now' | 'categories', PageEditor> = {
   cv: { title: 'The CV', collection: CV_COLLECTION, lexicon: cvLexicon as LexiconDoc, page: '/works/' },
   services: { title: 'Services', collection: SERVICES_COLLECTION, lexicon: servicesLexicon as LexiconDoc, page: '/services/' },
   uses: { title: 'Uses', collection: USES_COLLECTION, lexicon: usesLexicon as LexiconDoc, page: '/uses/' },
   about: { title: 'About', collection: ABOUT_COLLECTION, lexicon: aboutLexicon as LexiconDoc, page: '/about/' },
+  now: {
+    title: 'Now',
+    collection: NOW_COLLECTION,
+    lexicon: nowLexicon as LexiconDoc,
+    page: '/now/',
+    initial: () => ({ items: FALLBACK_NOW.map((text) => ({ text })) }),
+  },
   categories: {
     title: 'Categories',
     collection: CATEGORIES_COLLECTION,
@@ -73,7 +83,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 /** The page editor an address asks for, if any */
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
-  const page = /^#page\/(cv|services|uses|about|categories)$/.exec(hash)?.[1];
+  const page = /^#page\/(cv|services|uses|about|now|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };

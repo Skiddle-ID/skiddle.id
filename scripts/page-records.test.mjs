@@ -7,6 +7,7 @@ import { describe, it } from 'node:test';
 import {
   aboutFromRecord,
   cvFromRecord,
+  nowFromRecord,
   projectFromRecord,
   projectUri,
   projectsFromRecords,
@@ -47,6 +48,11 @@ describe('page records, read', () => {
   it('About keeps its Markdown as it is', () => {
     assert.equal(aboutFromRecord({ intro: '**Hi**', updatedAt: at }).intro, '**Hi**');
   });
+
+  it('Now keeps its items in order, with their Markdown, and when it was updated', () => {
+    const now = nowFromRecord({ intro: 'What I *do*.', items: [{ text: 'Flying, [how it started](/topics/tag/aviation/)' }, { text: '**Advising**' }], updatedAt: at });
+    assert.deepEqual(now, { intro: 'What I *do*.', items: ['Flying, [how it started](/topics/tag/aviation/)', '**Advising**'], updatedAt: at });
+  });
 });
 
 describe('malformed records', () => {
@@ -56,11 +62,19 @@ describe('malformed records', () => {
     assert.throws(() => aboutFromRecord({ updatedAt: at }), /about: no intro/);
     assert.throws(() => usesFromRecord({ sections: [] }), /uses: no updatedAt/);
     assert.throws(() => usesFromRecord({ sections: [], updatedAt: 'soon' }), /isn't a date/);
+    assert.throws(() => nowFromRecord({ updatedAt: at }), /now: no items/);
+    assert.throws(() => nowFromRecord({ items: [] }), /now: no updatedAt/);
+    assert.throws(() => nowFromRecord({ items: [], updatedAt: 'soon' }), /isn't a date/);
   });
 
   it('a field of the wrong type, or a value the page doesn’t know, is left out', () => {
     const p = projectFromRecord('x', { name: 'X', description: 'd', year: '2024', status: 'paused', tags: 'one', featured: 'yes', tech: { languages: ['go', 3] } });
     assert.deepEqual(p, { id: 'x', name: 'X', description: 'd', tech: { languages: ['go'] } });
+  });
+
+  it('a Now item that isn’t text is left out', () => {
+    const now = nowFromRecord({ items: [{ text: 'one' }, { text: 3 }, { text: '' }, 'two', null, { text: 'three' }], updatedAt: at });
+    assert.deepEqual(now.items, ['one', 'three']);
   });
 
   it('a testimonial without a rating from 1 to 5 is left out', () => {

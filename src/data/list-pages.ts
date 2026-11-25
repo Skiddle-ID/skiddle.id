@@ -40,6 +40,11 @@ export const CONTENT_PAGES = {
     description: 'About Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, homelabber, open-web fan and private pilot.',
     command: 'neofetch',
   },
+  now: {
+    title: 'Now',
+    description: 'What Jeff (Skiddle) is doing now: work, study and flying.',
+    command: 'cat now.md',
+  },
   listening: {
     title: 'Listening',
     description: 'What Jeff (Skiddle) has been listening to: now playing, this week’s top artists and tracks, and every play, from teal.fm.',

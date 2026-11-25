@@ -11,6 +11,7 @@ Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol))
 | /services/, plus the home page's testimonial | `src/data/services.ts` | `id.skiddle.services` | `self` |
 | /uses/ | `src/data/uses.ts` | `id.skiddle.uses` | `self` |
 | /about/ | `src/data/about.ts`, moved out of the page | `id.skiddle.about` | `self` |
+| /now/, plus the home page's Now list (v4.1) | New; the home page's list moved to `src/data/now.ts` | `id.skiddle.now` | `self` |
 
 **What stays in git:**
 - each page's own headings, one-line intros and calls to action (the redesign in v5 rewrites those)
@@ -20,7 +21,7 @@ Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol))
 
 ## The lexicons
 
-They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`, `cv.json`, `services.json`, `uses.json` and `about.json`. [`src/lib/page-records.mjs`](../../src/lib/page-records.mjs) turns today's data into records. `npm run check:lexicons` checks every one against its lexicon in CI, as it does posts. Any field the converter doesn't know fails the check, so nothing gets dropped quietly.
+They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`, `cv.json`, `services.json`, `uses.json`, `about.json` and `now.json`. [`src/lib/page-records.mjs`](../../src/lib/page-records.mjs) turns today's data into records. `npm run check:lexicons` checks every one against its lexicon in CI, as it does posts. Any field the converter doesn't know fails the check, so nothing gets dropped quietly.
 
 - **One record per project.** Other records can point at a project: the CV's `selectedProjects` are `at://` addresses. Adding a project doesn't rewrite the others. The page orders them (featured first, then by year), as it does today.
 - **One record for each of the other pages,** with the key `self`, like the status. Each page is edited as a whole, its lists keep the order they're written in, and one `swapRecord` guards the whole page.
@@ -30,8 +31,8 @@ They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`,
   - the CV's `yearOrStatus` becomes `when`
   - a testimonial's `serviceName` becomes `service`
   - a position that ends "Present" has no `end`
-- **Markdown** for About's `intro` and `outside`, rendered like a post's text. The CV's summary stays plain paragraphs, as today.
-- **Dates:** each singleton has `updatedAt`. Uses shows it as "last updated", which replaces `usesUpdated`. Projects have `createdAt` and `updatedAt`.
+- **Markdown** for About's `intro` and `outside`, rendered like a post's text. The CV's summary stays plain paragraphs, as today. Now's `intro` is Markdown too, and each of its `items` is one line of Markdown: links, bold and italics. Raw HTML in Now shows as text.
+- **Dates:** each singleton has `updatedAt`. Uses and Now show it as "last updated", which replaces `usesUpdated` on Uses. Projects have `createdAt` and `updatedAt`.
 
 To get there, two changes to today's data, with no change to the pages:
 - About's content moved out of `about.astro` into `src/data/about.ts`.
@@ -43,6 +44,7 @@ The pages work like the post pages ([`src/lib/page-content.ts`](../../src/lib/pa
 - **Reading:** each page reads its records through `src/lib/pds.ts`, which caches them for a minute.
 - **Same shapes, same templates:** `page-records.mjs` turns the records back into the data files' shapes, so the templates are unchanged. A unit test checks that going to records and back gives the data files exactly.
 - **Caching and refresh:** pages are cached for a minute, then served stale for up to a day while a new copy renders (tag `pages`). `/api/revalidate` purges them after a save, so edits never need a build. If the PDS can't be reached, a cached page still shows.
+- **Now's fallback:** until there's a Now record, /now/ and the home page show the list in `src/data/now.ts`, with no date. A malformed record or an unreachable PDS still throws, as for the other pages, so a cached page shows instead of the old list.
 - **Fallback, until the switch:** a page falls back to its data file when there's no record yet, the record is malformed (a required field is missing), or the PDS can't be reached. The error is logged.
 - **Where content came from:** each page says so in the `X-Content-Source` header: `pds` or `git`.
 - **Parity:** `tests/parity.test.mjs` compares each page with production, built from git, in every PR's preview checks. It covers the whole `<main>`, plus the title, description and structured data. On the home page, it covers the project cards and the testimonial.
@@ -60,13 +62,14 @@ Edit records freely once the pages read them in production.
   - **Import** writes the records that aren't there yet, with `createRecord`, so it never overwrites one.
   - **Replace** writes the site's data over a record that differs, with `swapRecord`, after you confirm. A project keeps the date it was first imported.
   - Nothing on the site changes yet: the pages read the records from step 4.
-- **Sign-in:** the admin app asks for the new collections (`id.skiddle.project`, `.cv`, `.services`, `.uses`, `.about`), so you approve it once more on Bluesky. Until then, Pages shows the records but can't write them, and offers to sign in again.
-- **The editors** ([`src/lib/admin/page-editor.ts`](../../src/lib/admin/page-editor.ts)): in Pages, each name opens its editor (`#page/cv`, `#page/services`, `#page/uses`, `#page/about`, `#project/<key>`), and New project starts one (`#new-project`). Each editor works like the series editor.
+- **Sign-in:** the admin app asks for the new collections (`id.skiddle.project`, `.cv`, `.services`, `.uses`, `.about`, and `.now` since v4.1), so you approve it once more on Bluesky. Until then, Pages shows the records but can't write them, and offers to sign in again.
+- **The editors** ([`src/lib/admin/page-editor.ts`](../../src/lib/admin/page-editor.ts)): in Pages, each name opens its editor (`#page/cv`, `#page/services`, `#page/uses`, `#page/about`, `#page/now`, `#project/<key>`), and New project starts one (`#new-project`). Each editor works like the series editor.
   - **The form is made from the lexicon** ([`lexicon-form.ts`](../../src/lib/admin/lexicon-form.ts)), so it always matches it.
     - Text boxes, with bigger ones for Markdown and a list to pick from where the lexicon knows the values. The CV's selected projects pick from the projects.
     - Lists you can add to, reorder and remove from. Groups fold, showing their first two fields.
     - The lexicon's limits are checked as you type: required fields, lengths, URLs, numbers.
   - **Saving** checks the whole record with `@atproto/lexicon`, keeps any field the form doesn't know, and sets `updatedAt` (a new project's `createdAt`). It saves with `swapRecord`, so two devices can't overwrite each other, then refreshes the page on the site.
+  - **Now, before its record exists,** starts from the list in `src/data/now.ts`. Saving creates the record.
   - **A new project** gets its key from its name. A project can be deleted after a confirm.
   - **Backup:** it keeps a copy on the device until the save works.
   - **Until the launch,** saving and deleting are off, as for posts and series (`PUBLISHING_LIVE`), because the parity check expects the records to match the data files. Changes are kept on the device.

@@ -11,13 +11,12 @@
 
 /**
  * What the app may do with the account, and nothing else: write these collections and upload
- * images. Bluesky's sign-in page lists them. A new collection (e.g. Now records in v4.1) is added
- * here, and signing in again grants it; the app asks for that when its session lacks one
- * (missingScopes).
+ * images. Bluesky's sign-in page lists them. A new collection is added here, and signing in again
+ * grants it; the app asks for that when its session lacks one (missingScopes).
  *   - id.skiddle.status: the status
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
- *   - id.skiddle.project, .cv, .services, .uses and .about: the pages' content
+ *   - id.skiddle.project, .cv, .services, .uses, .about and .now: the pages' content
  *     (docs/v4/pages-on-atproto.md), edited in the Pages section
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
  *     edited or unpublished
@@ -38,6 +37,7 @@ export const COLLECTIONS = [
   'id.skiddle.services',
   'id.skiddle.uses',
   'id.skiddle.about',
+  'id.skiddle.now',
   'site.standard.document',
   'id.skiddle.series',
   'id.skiddle.categories',

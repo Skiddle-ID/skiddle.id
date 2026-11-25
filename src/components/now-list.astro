@@ -1,0 +1,16 @@
+---
+/* The Now list, on the home page and /now/: the record's items, or the built-in ones (src/data/now.ts) */
+import { nowItemHtml } from '~/lib/now-html';
+
+interface Props {
+  items: string[];
+  class?: string;
+}
+const { items, class: className } = Astro.props;
+---
+
+<ul class:list={['text-sm flex flex-col gap-1.5', className]}>
+  {items.map((item) => (
+    <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span set:html={nowItemHtml(item)} /></li>
+  ))}
+</ul>

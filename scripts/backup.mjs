@@ -40,6 +40,7 @@ const SITE_COLLECTIONS = [
   'id.skiddle.services',
   'id.skiddle.uses',
   'id.skiddle.about',
+  'id.skiddle.now',
   'com.atproto.lexicon.schema',
 ];
 /** Blobs downloaded at a time */

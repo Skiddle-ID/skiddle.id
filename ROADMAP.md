@@ -68,7 +68,7 @@ Then the [launch checklist](#the-v4-branch).
 
 ### v4.1: Now, notes and music
 
-- [ ] `id.skiddle.now` and /now, with a "last updated" date; updated from the admin app
+- [x] `id.skiddle.now` and /now, with a "last updated" date; updated from the admin app
 - [ ] Notes: your Bluesky posts with a chosen hashtag, read from your repo when the page is requested
 - [x] Latest Bluesky post card, `/bluesky.svg`
 - [x] A Bluesky custom feed for Lab Notes, served by the site's Worker as `did:web:skiddle.id`; any series can publish one from its editor ([#164](https://github.com/Skiddle-ID/skiddle.id/pull/164))
