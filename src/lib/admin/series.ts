@@ -15,6 +15,7 @@
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { SERIES_COLLECTION, seriesRecord, seriesSlug } from '~/lib/post-record.mjs';
 import { DID } from '~/lib/standard-site.mjs';
+import { seriesFeedUrl } from '~/lib/posts';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardSeriesOf, type CardSeries } from './card-text';
 import { dragHandle, sortable } from './sortable';
@@ -28,6 +29,7 @@ export interface SeriesRecord {
   description?: string;
   ongoing?: boolean;
   cadence?: string;
+  feed?: boolean;
   planned?: PlannedPart[];
   coverImage?: BlobRef;
   createdAt?: string;
@@ -55,6 +57,8 @@ interface SeriesForm {
   description: string;
   ongoing: boolean;
   cadence: string;
+  /** The series has its own RSS feed */
+  feed: boolean;
   planned: PlannedPart[];
 }
 
@@ -224,6 +228,7 @@ function formOf(r?: SeriesRecord): SeriesForm {
     description: r?.description ?? '',
     ongoing: r?.ongoing ?? false,
     cadence: r?.cadence ?? '',
+    feed: r?.feed !== false,
     planned: [...(r?.planned ?? [])].sort((a, b) => a.part - b.part),
   };
 }
@@ -233,6 +238,7 @@ function fillForm(f: SeriesForm) {
   el<HTMLTextAreaElement>('seDescription').value = f.description;
   el<HTMLInputElement>('seOngoing').checked = f.ongoing;
   el<HTMLInputElement>('seCadence').value = f.cadence;
+  el<HTMLInputElement>('seFeed').checked = f.feed;
   showCadence();
   // Published parts (read-only, from the posts) and planned ones, in order
   const list = el('seParts');
@@ -322,6 +328,7 @@ function readForm(): SeriesForm {
     description: el<HTMLTextAreaElement>('seDescription').value,
     ongoing: el<HTMLInputElement>('seOngoing').checked,
     cadence: el<HTMLInputElement>('seCadence').value,
+    feed: el<HTMLInputElement>('seFeed').checked,
     planned,
   };
 }
@@ -374,6 +381,7 @@ function refresh(): string[] {
     : key
       ? `Its key will be ${key}, from the name. The name can change later; the key can’t.`
       : '';
+  el('seFeedHint').textContent = key ? `Its address is ${seriesFeedUrl(key)}.` : '';
   el<HTMLButtonElement>('seSave').disabled = !PUBLISHING_LIVE || conflict || issues.length > 0 || (!!current?.key && !dirty);
 
   const published = publishedParts(current?.key);
@@ -584,7 +592,8 @@ function restoreBackup() {
   const backup = current && readBackup(current.key);
   el('seBackup').hidden = true;
   if (!backup || !current) return;
-  fillForm(backup.form);
+  // A copy kept before a field existed takes the record's value for it
+  fillForm({ ...formOf(current.record), ...backup.form });
   onChange();
 }
 
