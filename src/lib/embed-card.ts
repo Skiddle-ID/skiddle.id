@@ -82,6 +82,33 @@ export function fit(text: string, max: number): string {
   return `${out.trimEnd()}…`;
 }
 
+/**
+ * Wraps text into at most `lines` lines of roughly `max` monospace columns, breaking at spaces
+ * (inside a word only when it has none, as in CJK) and at each newline. Text that doesn't fit ends
+ * with an ellipsis.
+ */
+export function wrap(text: string, max: number, lines: number): string[] {
+  const out: string[] = [];
+  let rest = graphemes(text);
+  while (rest.length && out.length < lines) {
+    let used = 0;
+    let end = 0;
+    let space = 0;
+    for (; end < rest.length && rest[end] !== '\n'; end++) {
+      if (rest[end] === ' ') space = end;
+      used += columns(rest[end]);
+      if (used > max) break;
+    }
+    const whole = end === rest.length || rest[end] === '\n';
+    const at = whole ? end : space || Math.max(end, 1);
+    out.push(rest.slice(0, at).join('').trimEnd());
+    rest = rest.slice(at);
+    while (rest[0] === ' ' || rest[0] === '\n') rest = rest.slice(1);
+  }
+  if (rest.length) out[out.length - 1] = fit(`${out[out.length - 1]} ${rest.join('')}`, max);
+  return out;
+}
+
 /** Collapses whitespace and drops characters that aren't allowed in XML */
 export function clean(value: string | undefined): string {
   let s = String(value ?? '');
