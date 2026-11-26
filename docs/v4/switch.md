@@ -79,7 +79,7 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
    - `repo.car`'s root matched the PDS's latest commit, with 24,132 blocks.
    - All 373 blobs came through, with none missing.
    - Its manifest didn't count the page records yet, though `repo.car` has them. `SITE_COLLECTIONS` in `scripts/backup.mjs` now lists them.
-10. *The v4.0 release: Jeff.*
+10. **v4.0 was released** from Release Drafter's draft, tagged on `5f08577` ([#155](https://github.com/Skiddle-ID/skiddle.id/pull/155)). The footer on skiddle.id links to it.
 11. *Locking `v3`: Jeff.*
 
 ## After
