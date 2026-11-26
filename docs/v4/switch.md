@@ -80,7 +80,7 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
    - All 373 blobs came through, with none missing.
    - Its manifest didn't count the page records yet, though `repo.car` has them. `SITE_COLLECTIONS` in `scripts/backup.mjs` now lists them.
 10. **v4.0 was released** from Release Drafter's draft, tagged on `5f08577` ([#155](https://github.com/Skiddle-ID/skiddle.id/pull/155)). The footer on skiddle.id links to it.
-11. *Locking `v3`: Jeff.*
+11. **`v3` was locked** with a branch protection rule, like `v1` and `v2`, on 2026-11-26.
 
 ## After
 
