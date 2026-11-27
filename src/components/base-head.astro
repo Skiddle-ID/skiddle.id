@@ -25,6 +25,8 @@ interface Props {
   author?: string;
   /** Jeff's profiles elsewhere, linked as his (rel="me") */
   profiles?: string[];
+  /** The site's icon from its metadata: blob CIDs, served at /media/<cid>. Without it, the icons in /public */
+  icon?: { png32: string; png180: string; png192: string; png512: string };
 }
 
 const {
@@ -39,6 +41,7 @@ const {
   siteName = 'Skiddle',
   author = 'Laurensius Jeffrey (Skiddle)',
   profiles = ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
+  icon,
 } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
@@ -93,6 +96,18 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <meta name="twitter:image" content={absOgImage} />
 
 <!-- Icons -->
-<link rel="icon" href="/favicon.ico" sizes="any" />
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+{
+  icon ? (
+    <>
+      <link rel="icon" href={`/media/${icon.png32}`} type="image/png" sizes="32x32" />
+      <link rel="icon" href={`/media/${icon.png192}`} type="image/png" sizes="192x192" />
+      <link rel="apple-touch-icon" href={`/media/${icon.png180}`} />
+    </>
+  ) : (
+    <>
+      <link rel="icon" href="/favicon.ico" sizes="any" />
+      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    </>
+  )
+}

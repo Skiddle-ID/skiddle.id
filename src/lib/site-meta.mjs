@@ -10,7 +10,8 @@ export const SITE_COLLECTION = 'id.skiddle.site';
 /**
  * @typedef {{ name: string, alternateName?: string, jobTitles: string[], worksFor?: string, location?: string, knowsAbout: string[] }} SiteAuthor
  * @typedef {{ path: string, title?: string, description?: string, keywords?: string[], noindex?: boolean }} PageMeta
- * @typedef {{ name: string, description: string, keywords: string[], author: SiteAuthor, profiles: string[], pages: PageMeta[] }} SiteMeta
+ * @typedef {{ png32: string, png180: string, png192: string, png512: string }} SiteIcon The icon's sizes, as blob CIDs (served at /media/<cid>)
+ * @typedef {{ name: string, description: string, keywords: string[], author: SiteAuthor, profiles: string[], pages: PageMeta[], icon?: SiteIcon }} SiteMeta
  */
 
 const str = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
@@ -53,6 +54,7 @@ export function siteMetaFromRecord(v) {
     if (Object.keys(author).length) out.author = author;
   }
   set('profiles', strs(v?.profiles)?.filter(isHttp));
+  set('icon', iconOf(v?.icon));
   const pages = (Array.isArray(v?.pages) ? v.pages : [])
     .filter((p) => p && typeof p === 'object' && str(p.path))
     .map((p) => {
@@ -67,6 +69,20 @@ export function siteMetaFromRecord(v) {
   if (pages.length) out.pages = pages;
   if (Array.isArray(out.profiles) && !out.profiles.length) delete out.profiles;
   return /** @type {any} */ (out);
+}
+
+/** A blob reference's CID: { $type: 'blob', ref: { $link } } */
+const cidOf = (/** @type {any} */ b) => (b && b.$type === 'blob' && typeof b.ref?.$link === 'string' ? b.ref.$link : undefined);
+
+/**
+ * The icon's sizes, or undefined unless it has all four PNGs
+ * @param {any} icon
+ * @returns {SiteIcon | undefined}
+ */
+function iconOf(icon) {
+  if (!icon || typeof icon !== 'object') return undefined;
+  const sizes = { png32: cidOf(icon.png32), png180: cidOf(icon.png180), png192: cidOf(icon.png192), png512: cidOf(icon.png512) };
+  return Object.values(sizes).every(Boolean) ? /** @type {SiteIcon} */ (sizes) : undefined;
 }
 
 /**

@@ -1578,6 +1578,20 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* The site's icon in its editor (src/lib/admin/icon-field.ts) */
+  .admin-icon-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .admin-icon-preview {
+    width: 4rem;
+    height: 4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-bg);
+  }
   .admin-media-empty {
     grid-column: 1 / -1;
   }

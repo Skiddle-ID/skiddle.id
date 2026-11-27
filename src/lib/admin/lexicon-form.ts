@@ -14,7 +14,8 @@
  *     shortcuts (src/lib/admin/markdown-tools.ts), and a preview rendered as the site renders it
  *   - a short text, or a short item in a list: suggestions of the values already used in the same
  *     place (FormOptions.suggest), e.g. the employment types in the CV or a project's languages
- * Dates the app sets (format "datetime", e.g. createdAt and updatedAt) aren't shown.
+ * Dates the app sets (format "datetime", e.g. createdAt and updatedAt) aren't shown. A property the
+ * lexicon can't describe as a form (files) takes a custom field (FormOptions.custom).
  *
  * `read()` gives the record's fields from the form, leaving out empty ones (as the import does,
  * src/lib/page-records.mjs). `problems()` checks a value against the lexicon as the form is
@@ -47,9 +48,14 @@ export interface FormOptions {
    * form is src/lib/suggest.mjs's valuesAt)
    */
   suggest?: (path: string) => string[];
+  /**
+   * Fields the form can't make from the lexicon, by property: e.g. the site's icon, which uploads
+   * files (src/lib/admin/icon-field.ts)
+   */
+  custom?: Record<string, (value: unknown) => Field>;
 }
 
-interface Field {
+export interface Field {
   el: HTMLElement;
   read: () => unknown;
 }
@@ -133,7 +139,7 @@ export function buildForm(doc: LexiconDoc, value: Value, options: FormOptions): 
   root.className = 'admin-lexform';
   const schema = recordSchema(doc);
   const fields = shown(schema).map(([key, s]) => {
-    const f = field(doc, key, s, value[key], (schema.required ?? []).includes(key), options, key);
+    const f = options.custom?.[key]?.(value[key]) ?? field(doc, key, s, value[key], (schema.required ?? []).includes(key), options, key);
     root.appendChild(f.el);
     return [key, f] as const;
   });

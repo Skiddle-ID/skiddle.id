@@ -47,6 +47,7 @@ import { ranked, valuesAt } from '~/lib/suggest.mjs';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-form';
+import { iconField } from './icon-field';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
 
 type Value = Record<string, unknown>;
@@ -285,6 +286,8 @@ function fill(value: Value) {
   }
   const form = buildForm(current.lexicon, value, {
     onChange,
+    // The site's icon uploads files, which the lexicon can't make a form for
+    ...(current.collection === SITE_COLLECTION ? { custom: { icon: iconField(session, onChange) } } : {}),
     // The selected projects, on the CV and the home page
     choices: () =>
       projects
@@ -385,9 +388,10 @@ async function save(force = false) {
   try {
     step('Checking…');
     const record = recordOf(target, value, now());
-    const { Lexicons } = await import('@atproto/lexicon');
-    // A copy: loading a lexicon rewrites its refs in place, which the form reads
-    new Lexicons([structuredClone(target.full ?? target.lexicon) as never]).assertValidRecord(target.collection, record);
+    const { Lexicons, jsonToLex } = await import('@atproto/lexicon');
+    // A copy: loading a lexicon rewrites its refs in place, which the form reads. The record is
+    // checked in the lexicon's own terms (jsonToLex), so a file's { $link } counts as a blob
+    new Lexicons([structuredClone(target.full ?? target.lexicon) as never]).assertValidRecord(target.collection, jsonToLex(record));
     step('Saving…');
     const res = target.record
       ? await putRecord(session, target.collection, key, record, target.cid)
