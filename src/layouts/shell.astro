@@ -59,7 +59,7 @@ const jsonLd = {
       ...(author.knowsAbout.length ? { knowsAbout: author.knowsAbout } : {}),
       ...(author.location ? { homeLocation: { '@type': 'Place', name: author.location } } : {}),
       url: site.toString(),
-      image: new URL('/android-chrome-512x512.png', site).toString(),
+      image: new URL(siteMeta.icon ? `/media/${siteMeta.icon.png512}` : '/android-chrome-512x512.png', site).toString(),
       sameAs: siteMeta.profiles,
     },
     { '@type': 'WebPage', url: canonical, name: title, description },
@@ -102,6 +102,7 @@ const jsonLd = {
       siteName={siteMeta.name}
       author={[author.name, author.alternateName && `(${author.alternateName})`].filter(Boolean).join(' ')}
       profiles={siteMeta.profiles}
+      icon={siteMeta.icon}
     />
     <script is:inline>
       (function () {

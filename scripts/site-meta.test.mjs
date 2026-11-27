@@ -57,6 +57,14 @@ describe('site meta', () => {
     });
   });
 
+  it('takes the icon only with all four sizes', () => {
+    const blob = (cid) => ({ $type: 'blob', ref: { $link: cid }, mimeType: 'image/png', size: 100 });
+    const icon = { source: blob('s'), png32: blob('a'), png180: blob('b'), png192: blob('c'), png512: blob('d') };
+    assert.deepEqual(siteMetaFromRecord({ icon }).icon, { png32: 'a', png180: 'b', png192: 'c', png512: 'd' });
+    assert.equal(siteMetaFromRecord({ icon: { ...icon, png512: undefined } }).icon, undefined);
+    assert.equal(siteMetaOf(fallback, {}).icon, undefined);
+  });
+
   it('writes paths the way the site does', () => {
     assert.equal(normalPath('uses'), '/uses/');
     assert.equal(normalPath('/'), '/');

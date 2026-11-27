@@ -8,7 +8,9 @@
       "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
       "record": {
         "type": "object",
-        "required": ["updatedAt"],
+        "required": [
+          "updatedAt"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -35,6 +37,10 @@
           "author": {
             "type": "ref",
             "ref": "#author"
+          },
+          "icon": {
+            "type": "ref",
+            "ref": "#icon"
           },
           "profiles": {
             "type": "array",
@@ -112,7 +118,9 @@
     },
     "page": {
       "type": "object",
-      "required": ["path"],
+      "required": [
+        "path"
+      ],
       "properties": {
         "path": {
           "type": "string",
@@ -142,6 +150,60 @@
         "noindex": {
           "type": "boolean",
           "description": "Ask search engines not to list it."
+        }
+      }
+    },
+    "icon": {
+      "type": "object",
+      "description": "The site's icon, in the sizes pages use: the browser tab (32 px), iPhone home screens (180 px), Android (192 px) and search engines' picture of Jeff (512 px). The admin app makes them from one square image. Without it, the built-in icons in /public are used.",
+      "required": [
+        "png32",
+        "png180",
+        "png192",
+        "png512"
+      ],
+      "properties": {
+        "source": {
+          "type": "blob",
+          "accept": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ],
+          "maxSize": 5000000,
+          "description": "The image they were made from."
+        },
+        "png32": {
+          "type": "blob",
+          "accept": [
+            "image/png"
+          ],
+          "maxSize": 1000000,
+          "description": "32 px square PNG."
+        },
+        "png180": {
+          "type": "blob",
+          "accept": [
+            "image/png"
+          ],
+          "maxSize": 1000000,
+          "description": "180 px square PNG."
+        },
+        "png192": {
+          "type": "blob",
+          "accept": [
+            "image/png"
+          ],
+          "maxSize": 1000000,
+          "description": "192 px square PNG."
+        },
+        "png512": {
+          "type": "blob",
+          "accept": [
+            "image/png"
+          ],
+          "maxSize": 1000000,
+          "description": "512 px square PNG."
         }
       }
     }
