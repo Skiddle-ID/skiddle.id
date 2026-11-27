@@ -2,7 +2,7 @@
 
 Static mockups of the redesign's home page in four directions, plus the post page for direction A. They use the site's real content, colours and fonts. The redesign was planned for v4 and is now v5, so v4 is only the move to AT Protocol. The plan and the open decisions are in [ROADMAP.md](../../ROADMAP.md#v5-the-redesign). The mockups' "v4" labels are from before the move.
 
-How posts and series move onto AT Protocol, with the draft lexicons, is in [posts-on-atproto.md](posts-on-atproto.md). The pages' content (projects, the CV, services, uses and About) follows in [pages-on-atproto.md](pages-on-atproto.md). The timeline (v4.3) is planned in [timeline.md](timeline.md).
+How posts and series move onto AT Protocol, with the draft lexicons, is in [posts-on-atproto.md](posts-on-atproto.md). The pages' content (projects, the CV, services, uses and About) follows in [pages-on-atproto.md](pages-on-atproto.md). The timeline (v4.3) is planned in [timeline.md](timeline.md), and themes and layout (v4.4), the site as a complete CMS, in [themes.md](themes.md).
 
 | File | What it shows |
 |---|---|
