@@ -47,6 +47,7 @@ export const COLLECTIONS = [
   'id.skiddle.notes',
   'id.skiddle.home',
   'id.skiddle.site',
+  'id.skiddle.theme',
   'site.standard.document',
   'site.standard.publication',
   'id.skiddle.series',

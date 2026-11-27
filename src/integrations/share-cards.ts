@@ -11,6 +11,11 @@
  *   - the 88×31 button other sites can link here with: /88x31.png and /88x31-2x.png
  * A post's and a series' card is drawn in the admin app and stored in its record (served from
  * /media/<cid>), so none are drawn here.
+ *
+ * The cards are in the theme's design (id.skiddle.theme) with the publication's logo
+ * (site.standard.publication), read from Jeff's repo when the build runs (src/lib/card-theme.mjs).
+ * If the repo can't be read, they're in the terminal design with the built-in icon, so a build never
+ * fails on it. A change to either shows on these cards from the next deploy.
  */
 import type { AstroIntegration } from 'astro';
 import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -18,6 +23,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderButton, renderShareCard, type CardFont } from '../lib/share-card';
 import { CONTENT_PAGES, LIST_PAGES } from '../data/list-pages';
+import { THEME_COLLECTION, cardDesignOf, cardLogoCid, type CardDesign } from '../lib/card-theme.mjs';
+import { DID, PUBLICATION_RKEY } from '../lib/standard-site.mjs';
 
 export default function shareCards(): AstroIntegration {
   let root: URL;
@@ -40,7 +47,12 @@ export default function shareCards(): AstroIntegration {
           { name: 'Noto Sans Thai', weight: 400, data: await fontFile('noto-sans-thai', 'noto-sans-thai-thai-400-normal.woff') },
           { name: 'Noto Sans Thai', weight: 700, data: await fontFile('noto-sans-thai', 'noto-sans-thai-thai-700-normal.woff') },
         ];
-        const logo = `data:image/png;base64,${(await readFile(file('public/android-chrome-192x192.png'))).toString('base64')}`;
+        const builtIn = `data:image/png;base64,${(await readFile(file('public/android-chrome-192x192.png'))).toString('base64')}`;
+        const { design, logo } = await themeOf(builtIn).catch((err: unknown) => {
+          logger.warn(`Couldn’t read the theme or the logo, so the cards use the built-in ones: ${err instanceof Error ? err.message : err}`);
+          return { design: 'terminal' as CardDesign, logo: builtIn };
+        });
+        logger.info(`Share cards: the ${design} design, ${logo === builtIn ? 'the built-in logo' : 'the publication’s logo'}`);
 
         const out = new URL('og/', dir);
         await mkdir(out, { recursive: true });
@@ -53,6 +65,7 @@ export default function shareCards(): AstroIntegration {
               title: 'Jeff (Skiddle)',
               description: 'Protocol engineer and founder of Skiddle Labs, in Bangkok. Writing about infra, open protocols, homelab and life.',
               logo,
+              design,
             },
             fonts,
           ),
@@ -84,6 +97,7 @@ export default function shareCards(): AstroIntegration {
               description: meta(html, 'og:description'),
               meta: [posts ? `${posts} post${posts === 1 ? '' : 's'}` : ''],
               logo,
+              design,
             },
             fonts,
           );
@@ -101,7 +115,7 @@ export default function shareCards(): AstroIntegration {
         for (const { path, title, description, command } of onRequest) {
           const target = new URL(`pages/${path}.png`, out);
           await mkdir(new URL('.', target), { recursive: true });
-          await writeFile(target, await renderShareCard({ command, title, description, meta: [''], logo }, fonts));
+          await writeFile(target, await renderShareCard({ command, title, description, meta: [''], logo, design }, fonts));
           pageCount++;
         }
         for (const [image, page] of used) {
@@ -113,6 +127,39 @@ export default function shareCards(): AstroIntegration {
       },
     },
   };
+}
+
+/** How long the build waits for Jeff's repo */
+const TIMEOUT_MS = 8000;
+
+/** The theme's design and the publication's logo (a data: URI), or the built-in logo if it has none */
+async function themeOf(builtIn: string): Promise<{ design: CardDesign; logo: string }> {
+  const get = async (url: string) => {
+    const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    if (!res.ok && res.status !== 400) throw new Error(`${url}: ${res.status}`);
+    return res;
+  };
+  const doc = (await (await get(`https://plc.directory/${DID}`)).json()) as { service?: { id: string; serviceEndpoint?: string }[] };
+  const pds = doc.service?.find((s) => s.id === '#atproto_pds')?.serviceEndpoint?.replace(/\/+$/, '');
+  if (!pds) throw new Error('no PDS in the DID document');
+  // A record that isn't there is a 400 RecordNotFound: no theme yet, or no publication
+  const record = async (collection: string, rkey: string) => {
+    const res = await get(`${pds}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${collection}&rkey=${rkey}`);
+    return res.ok ? ((await res.json()) as { value?: unknown }).value : undefined;
+  };
+  const [theme, publication] = await Promise.all([record(THEME_COLLECTION, 'self'), record('site.standard.publication', PUBLICATION_RKEY)]);
+  const cid = cardLogoCid(publication);
+  let logo = builtIn;
+  if (cid) {
+    const res = await get(`${pds}/xrpc/com.atproto.sync.getBlob?did=${DID}&cid=${cid}`);
+    if (!res.ok) throw new Error(`the logo: ${res.status}`);
+    const type = (publication as { icon: { mimeType: string } }).icon.mimeType;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    logo = `data:${type};base64,${btoa(bin)}`;
+  }
+  return { design: cardDesignOf(theme), logo };
 }
 
 /** A <meta property="…"> value from the built HTML, with entities decoded */

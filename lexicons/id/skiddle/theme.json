@@ -1,0 +1,24 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.theme",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "The site's theme: for now, the design of its share cards (the pictures link previews show). One record, key 'self'. Without it, cards use the terminal design. A card's logo is the publication's (site.standard.publication's icon).",
+      "record": {
+        "type": "object",
+        "required": ["updatedAt"],
+        "properties": {
+          "cardDesign": {
+            "type": "string",
+            "maxLength": 64,
+            "knownValues": ["terminal", "terminal-light", "logo"],
+            "description": "The share cards' design: 'terminal' (a prompt and the title, in the site's dark colours), 'terminal-light' (the same in its light colours) or 'logo' (the logo large beside the title). One the site doesn't know draws as 'terminal'."
+          },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
