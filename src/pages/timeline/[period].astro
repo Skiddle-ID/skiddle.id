@@ -8,6 +8,7 @@ import TimelineIntro from '~/components/timeline-intro.astro';
 import TimelineView from '~/components/timeline-view.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { PAGES_CACHE, getEvents } from '~/lib/page-content';
+import { getActivity } from '~/lib/timeline-feed';
 import { parsePeriod, todayIn } from '~/lib/timeline.mjs';
 import { env } from 'cloudflare:workers';
 
@@ -18,7 +19,8 @@ if (!period) {
   const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
   return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
-const events = await getEvents();
+// Events, and the posts, status changes and notes (src/lib/timeline-feed.ts)
+const [events, activity] = await Promise.all([getEvents(), getActivity()]);
 Astro.cache.set(PAGES_CACHE);
 const meta = CONTENT_PAGES.timeline;
 ---
@@ -26,6 +28,6 @@ const meta = CONTENT_PAGES.timeline;
 <Shell title={`${period.label} · ${meta.title} — Skiddle`} description={meta.description}>
   <div class="max-w-[70ch] w-full">
     <TimelineIntro />
-    <TimelineView period={period} events={events} today={todayIn()} />
+    <TimelineView period={period} events={events} activity={activity} today={todayIn()} />
   </div>
 </Shell>

@@ -316,3 +316,82 @@ export function eventProblems(v) {
 export function roughOnly(/** @type {Record<string, any>} */ v) {
   return Object.fromEntries(Object.entries(v).filter(([k]) => !DETAIL_FIELDS.includes(k)));
 }
+
+// ---- What the site already has: posts, status changes and notes (phase 2) ----
+
+/**
+ * A post, a status change or a note, on the day and at the time it happened
+ * @typedef {{
+ *   type: 'post' | 'status' | 'note',
+ *   at: number,
+ *   day: string,
+ *   time: string,
+ *   timeZone: string,
+ *   text: string,
+ *   href?: string,
+ *   external?: boolean,
+ *   meta?: string,
+ *   emoji?: string,
+ *   state?: string,
+ * }} Activity
+ */
+
+/** The time of day an instant is in a zone, HH:MM */
+export function timeIn(/** @type {number} */ at, zone = SITE_ZONE) {
+  return new Intl.DateTimeFormat('en-GB', { timeZone: isZone(zone) ? zone : SITE_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(at);
+}
+
+/** A zone's short name on a day ("CET", "GMT+8"), or '' for Bangkok's, which the page doesn't name */
+export function zoneLabel(/** @type {string} */ zone, /** @type {string} */ day) {
+  if (zone === SITE_ZONE || !isZone(zone)) return '';
+  return new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'short' }).formatToParts(Date.parse(`${day}T12:00:00Z`)).find((p) => p.type === 'timeZoneName')?.value ?? '';
+}
+
+/** A note's text as one short line: the #note tag and links' line breaks gone, cut at 140 characters */
+export function noteLine(/** @type {string} */ text) {
+  const line = text.replace(/(^|\s)#note\b/gi, ' ').replace(/\s+/g, ' ').trim();
+  const chars = [...line];
+  return chars.length > 140 ? `${chars.slice(0, 139).join('').trimEnd()}…` : line;
+}
+
+/**
+ * The posts, status changes and notes as timeline entries, oldest first. Each sits on its Bangkok
+ * day (SITE_ZONE); a status shows its time in the zone it was set in, the rest in Bangkok's.
+ * @param {{
+ *   posts?: { title: string, href: string, publishedAt: Date | string, series?: string }[],
+ *   statuses?: { text: string, at: string, timeZone?: string, location?: string, emoji?: string, state: string }[],
+ *   notes?: { text: string, url: string, createdAt: string }[],
+ * }} sources
+ * @returns {Activity[]}
+ */
+export function activitiesOf({ posts = [], statuses = [], notes = [] }) {
+  /** @type {Activity[]} */
+  const out = [];
+  const add = (/** @type {number} */ at, /** @type {string} */ zone, /** @type {Omit<Activity, 'at' | 'day' | 'time' | 'timeZone'>} */ rest) => {
+    if (!Number.isFinite(at)) return;
+    const timeZone = isZone(zone) ? zone : SITE_ZONE;
+    out.push({ at, day: todayIn(SITE_ZONE, at), time: timeIn(at, timeZone), timeZone, ...rest });
+  };
+  for (const p of posts) {
+    add(new Date(p.publishedAt).valueOf(), SITE_ZONE, { type: 'post', text: p.title, href: p.href, ...(p.series ? { meta: p.series } : {}) });
+  }
+  for (const s of statuses) {
+    add(Date.parse(s.at), s.timeZone ?? SITE_ZONE, { type: 'status', text: s.text, state: s.state, ...(s.emoji ? { emoji: s.emoji } : {}), ...(s.location ? { meta: s.location } : {}) });
+  }
+  for (const n of notes) {
+    const text = noteLine(n.text);
+    if (text) add(Date.parse(n.createdAt), SITE_ZONE, { type: 'note', text, href: n.url, external: true });
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+
+/** The moment an event's start time is, for ordering it among the day's other entries */
+export function eventInstant(/** @type {TimelineEvent} */ e) {
+  if (!e.startTime) return undefined;
+  const local = Date.parse(`${e.startsOn}T${e.startTime}:00Z`);
+  // The zone's offset that day, e.g. "GMT+01:00"
+  const offset = new Intl.DateTimeFormat('en-US', { timeZone: e.timeZone, timeZoneName: 'longOffset' }).formatToParts(local).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT';
+  const m = /GMT([+-])(\d{2}):(\d{2})/.exec(offset);
+  const minutes = m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+  return local - minutes * 60000;
+}

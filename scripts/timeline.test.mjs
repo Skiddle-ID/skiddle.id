@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   EVENT_COLLECTION,
+  activitiesOf,
+  eventInstant,
+  noteLine,
+  zoneLabel,
   eventFromRecord,
   eventProblems,
   eventsFromRecords,
@@ -111,5 +115,43 @@ describe('timeline events', () => {
     ]);
     assert.deepEqual(eventProblems({ startsOn: '2026-11-27', startTime: '10:00', endTime: '09:00' }), ['End time is before Start time.']);
     assert.deepEqual(roughOnly({ kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false, ...details }), { kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false, note: 'Window seat.' });
+  });
+});
+
+describe('timeline activity', () => {
+  it('puts posts, status changes and notes on their Bangkok day, in order', () => {
+    const list = activitiesOf({
+      posts: [{ title: 'Lab Notes #3', href: '/posts/lab-notes-3/', publishedAt: new Date('2026-11-25T06:40:44Z'), series: 'Lab Notes' }],
+      statuses: [{ text: 'Having some coffee', at: '2026-11-27T07:44:00Z', timeZone: 'Europe/Paris', location: 'Paris', emoji: '☕', state: 'away' }],
+      notes: [{ text: 'Late one #note', url: 'https://bsky.app/profile/skiddle.blue/post/x', createdAt: '2026-11-26T18:00:00Z' }],
+    });
+    assert.deepEqual(
+      list.map((a) => [a.type, a.day, a.time, a.timeZone, a.text]),
+      [
+        ['post', '2026-11-25', '13:40', 'Asia/Bangkok', 'Lab Notes #3'],
+        // 01:00 the next day in Bangkok
+        ['note', '2026-11-27', '01:00', 'Asia/Bangkok', 'Late one'],
+        // shown in the zone it was set in
+        ['status', '2026-11-27', '08:44', 'Europe/Paris', 'Having some coffee'],
+      ],
+    );
+    assert.equal(list[0].meta, 'Lab Notes');
+    assert.equal(list[2].emoji, '☕');
+  });
+
+  it('leaves out what has no date, and notes with nothing but the tag', () => {
+    assert.deepEqual(activitiesOf({ statuses: [{ text: 'x', at: 'soon', state: 'busy' }], notes: [{ text: '#note', url: 'u', createdAt: '2026-11-26T18:00:00Z' }] }), []);
+  });
+
+  it('cuts a long note to one line', () => {
+    assert.equal(noteLine('one\ntwo  #Note three'), 'one two three');
+    assert.equal([...noteLine('x'.repeat(200))].length, 140);
+  });
+
+  it('orders an event by when it starts where it happens', () => {
+    assert.equal(new Date(eventInstant({ startsOn: '2026-11-26', startTime: '15:00', timeZone: 'Europe/Paris' })).toISOString(), '2026-11-26T14:00:00.000Z');
+    assert.equal(eventInstant({ startsOn: '2026-11-26', timeZone: 'Asia/Bangkok' }), undefined);
+    assert.equal(zoneLabel('Asia/Bangkok', '2026-11-26'), '');
+    assert.equal(zoneLabel('Europe/Paris', '2026-11-26'), 'CET');
   });
 });

@@ -1,6 +1,6 @@
 # The timeline
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). Phase 1 (events) is built; phases 2 and 3 aren't yet.
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). Phases 1 (events) and 2 (posts, status changes and notes) are built; phase 3 isn't yet.
 
 A new page, `/timeline/`, shows what Jeff did and has coming up, by day, week and month. It mixes two kinds of entries:
 - **events** Jeff adds in the admin app, such as trips, flights, talks, classes, meetings and deadlines
@@ -61,6 +61,8 @@ The page reads these and puts them on the timeline:
 | A note | `getNotes()` (Bluesky posts tagged #note) | "Note:", the first line of its text, linked to it on Bluesky |
 
 Each shows at its own time, in the time zone it was made in where it has one (a status does), and otherwise in Bangkok time. The music plays stay on `/listening/`: there are too many for a timeline.
+
+How it's built: [`src/lib/timeline-feed.ts`](../../src/lib/timeline-feed.ts) reads them with the readers their own pages use, all cached, and `activitiesOf` in `src/lib/timeline.mjs` turns them into entries. A source that can't be read is left out and logged (`timeline:`), so the rest still shows. On a day, all-day events come first, then everything else by the moment it happened, with an event's start time read in its own zone. A note shows as one line, without its `#note` tag. In the month grid, blue dots are events and grey dots the rest.
 
 ## The page
 

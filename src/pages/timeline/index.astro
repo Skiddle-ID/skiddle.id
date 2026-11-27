@@ -2,18 +2,21 @@
 /*
   /timeline/: this week on Jeff's timeline, with what's coming up (docs/v4/timeline.md). Other
   weeks, months and days are /timeline/<period>/ (./[period].astro). Rendered on request from the
-  id.skiddle.event records (src/lib/page-content.ts), cached like the pages.
+  id.skiddle.event records (src/lib/page-content.ts) and the posts, status changes and notes
+  (src/lib/timeline-feed.ts), cached like the pages.
 */
 import Shell from '~/layouts/shell.astro';
 import TimelineIntro from '~/components/timeline-intro.astro';
 import TimelineView from '~/components/timeline-view.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { PAGES_CACHE, getEvents } from '~/lib/page-content';
+import { getActivity } from '~/lib/timeline-feed';
 import { spanLabel, todayIn, upcoming, weekOf } from '~/lib/timeline.mjs';
 
 export const prerender = false;
 
-const events = await getEvents();
+// Events, and the posts, status changes and notes (src/lib/timeline-feed.ts)
+const [events, activity] = await Promise.all([getEvents(), getActivity()]);
 Astro.cache.set(PAGES_CACHE);
 const today = todayIn();
 const soon = upcoming(events, today);
@@ -40,6 +43,6 @@ const meta = CONTENT_PAGES.timeline;
       )}
     </section>
 
-    <TimelineView period={weekOf(today)} events={events} today={today} />
+    <TimelineView period={weekOf(today)} events={events} activity={activity} today={today} />
   </div>
 </Shell>
