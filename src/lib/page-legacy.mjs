@@ -160,3 +160,66 @@ export function usesPageFromLegacy({ uses, updatedAt }, meta) {
     'wide',
   );
 }
+
+/**
+ * The CV's record, from its id.skiddle.cv record: its head with the highlights under it, the jobs,
+ * the skills, the projects, education and certifications, and the box at the end, with the headings
+ * and the text that were in the page's code. A role that is still the role leaves out its end, and
+ * the head counts the years from the first role's start (since).
+ * @param {import('../types/works').WorksData} works
+ * @param {import('../types/highlights').Highlight[]} highlights
+ * @param {PageMeta} meta
+ * @param {string} updatedAt
+ */
+export function cvPageFromLegacy(works, highlights, meta, updatedAt) {
+  const { header } = works;
+  const starts = works.experience.flatMap((e) => e.positions.map((p) => Number(p.start))).filter(Number.isFinite);
+  return pageRecord(
+    meta,
+    [
+      blockRecord(
+        'cvHeader',
+        defined({
+          name: header.name,
+          title: header.title,
+          location: header.location || undefined,
+          email: header.email || undefined,
+          github: header.links.github,
+          bluesky: header.links.bluesky,
+          summary: works.summary,
+          since: starts.length ? Math.min(...starts) : undefined,
+          status: 'open to consulting · [services](/services/)',
+          highlights: highlights.map(({ value, label }) => ({ value, label })),
+        }),
+      ),
+      blockRecord('jobs', {
+        title: 'Experience',
+        jobs: works.experience.map((c) =>
+          defined({ company: c.company, description: c.description, positions: c.positions.map((p) => defined({ ...p, end: p.end === 'Present' ? undefined : p.end })) }),
+        ),
+      }),
+      blockRecord('skills', { title: 'Skills', groups: works.skills }),
+      blockRecord('projectGrid', {
+        title: 'Selected projects',
+        projects: works.selectedProjects.map(projectUri),
+        others: works.projects.map((p) => defined({ title: p.title, description: p.description, status: p.status, live: p.live, source: p.github })),
+      }),
+      blockRecord('education', {
+        title: 'Education',
+        schools: works.education.map((e) => defined({ ...e })),
+        certificationsTitle: 'Certifications',
+        certifications: works.certifications.map((c) => ({ title: c.title, when: c.yearOrStatus })),
+      }),
+      blockRecord('cvContact', {
+        title: 'Want to work together?',
+        text: 'Roles, consulting or a quick question: email is the fastest way to reach me.',
+        links: [
+          { label: 'work@skiddle.id', href: 'mailto:work@skiddle.id?subject=Hello%20from%20your%20CV', primary: true },
+          { label: 'See services', href: '/services/' },
+        ].map(linkRecord),
+      }),
+    ],
+    updatedAt,
+    'wide',
+  );
+}

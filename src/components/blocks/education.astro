@@ -1,0 +1,46 @@
+---
+/*
+  The education block (src/lib/page-blocks.mjs): schools on a timeline beside the certifications,
+  side by side on a wide screen. A certification still in progress is in the warning colour. The
+  certifications' heading id follows the block's: certs, then certs-2.
+*/
+import type { EducationBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: EducationBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+const h2 = 'font-semibold before-hash-2 print:before:content-none';
+const certs = anchor?.replace(/^education/, 'certs');
+---
+
+<div class="mt-12 grid gap-10 md:grid-cols-2">
+  <section aria-labelledby={anchor}>
+    <h2 id={anchor} class={h2}>{block.title}</h2>
+    <ol class="mt-4 relative border-l ml-1 flex flex-col gap-5">
+      {block.schools.map((ed, i) => (
+        <li class="relative pl-5">
+          <span class:list={['absolute -left-[5px] top-[0.45em] size-2.5 rounded-full border-2 border-[var(--color-primary)]', i === 0 && ed.end === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+          <h3 class="text-sm font-semibold">{ed.degree}</h3>
+          <p class="text-xs text-[var(--color-muted)] mt-0.5">{ed.school} · <span class="tabular-nums">{ed.start}{ed.end ? ` – ${ed.end}` : ''}</span></p>
+          {ed.description && (<p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{ed.description}</p>)}
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  {block.certifications.length > 0 && (
+    <section aria-labelledby={certs}>
+      <h2 id={certs} class={h2}>{block.certificationsTitle}</h2>
+      <ul class="mt-4 flex flex-col text-sm">
+        {block.certifications.map((c) => (
+          <li class="flex justify-between gap-3 py-1.5 border-b border-dashed last:border-b-0">
+            <span>{c.title}</span>
+            <span class:list={['text-xs shrink-0 tabular-nums', /progress/i.test(c.when) ? 'text-[var(--color-warn)]' : 'text-[var(--color-muted)]']}>{c.when}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</div>

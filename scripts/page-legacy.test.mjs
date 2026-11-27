@@ -8,8 +8,8 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { PAGE_COLLECTION, pageFromRecord } from '../src/lib/page-blocks.mjs';
-import { aboutPageFromLegacy, nowPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
-import { aboutFromRecord, usesFromRecord } from '../src/lib/page-records.mjs';
+import { aboutPageFromLegacy, cvPageFromLegacy, nowPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutFromRecord, cvFromRecord, usesFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const fixture = (name) => JSON.parse(readFileSync(join(ROOT, `scripts/fixtures/${name}-record.json`), 'utf8'));
@@ -79,6 +79,42 @@ describe('the Uses page from its old record', () => {
     assert.equal(heading, 'Uses');
     assert.deepEqual(sections, usesFromRecord(record).uses);
     assert.match(outro, /\[my homelab posts\]\(\/topics\/tag\/homelab\/\)/);
+  });
+
+  it('is a valid id.skiddle.page record', () => assertValid(converted));
+});
+
+describe('the CV from its old record', () => {
+  const record = fixture('cv');
+  const { works, highlights } = cvFromRecord(record);
+  const converted = cvPageFromLegacy(works, highlights, meta, at);
+  const page = pageFromRecord(converted);
+  const [header, jobs, skills, grid, education, contact] = page.blocks.map((b) => b.block);
+
+  it('lays out what the page showed, wide, under its own heading', () => {
+    assert.deepEqual(kinds(page), ['cvHeader', 'jobs', 'skills', 'projectGrid', 'education', 'cvContact']);
+    assert.deepEqual([page.width, page.hideHeading], ['wide', true]);
+    assert.deepEqual(page.blocks.map((b) => b.anchor), [undefined, 'experience', 'skills', 'cv-projects', 'education', 'cv-contact']);
+  });
+
+  it('the header counts the years from the first role, and shows the highlights without their links', () => {
+    const first = Math.min(...record.experience.flatMap((c) => c.positions.map((p) => Number(p.start))).filter(Number.isFinite));
+    assert.deepEqual([header.name, header.email, header.github, header.since], [record.name, record.email, record.links.github, first]);
+    assert.deepEqual(header.summary, record.summary);
+    assert.deepEqual(header.highlights, record.highlights.map(({ value, label }) => ({ value, label })));
+  });
+
+  it('keeps every role, and a role still held has no end', () => {
+    assert.deepEqual(jobs.jobs.map((c) => c.positions.map((p) => [p.role, p.start, p.end])), record.experience.map((c) => c.positions.map((p) => [p.role, p.start, p.end])));
+  });
+
+  it('keeps the skills, the projects, education and certifications', () => {
+    assert.deepEqual(skills.groups, record.skills.map(({ title, items }) => ({ title, items })));
+    assert.deepEqual(grid.projects, works.selectedProjects);
+    assert.deepEqual(grid.others.map((p) => [p.title, p.source]), record.projects.map((p) => [p.title, p.source]));
+    assert.deepEqual(education.schools.map((e) => e.degree), record.education.map((e) => e.degree));
+    assert.deepEqual(education.certifications, record.certifications.map(({ title, when }) => ({ title, when })));
+    assert.deepEqual(contact.links.map((l) => [l.href, l.primary]), [['mailto:work@skiddle.id?subject=Hello%20from%20your%20CV', true], ['/services/', false]]);
   });
 
   it('is a valid id.skiddle.page record', () => assertValid(converted));

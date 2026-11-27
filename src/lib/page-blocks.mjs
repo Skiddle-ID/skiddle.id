@@ -14,7 +14,7 @@
  * tests run it in Node (scripts/page-blocks.test.mjs).
  */
 import { projectUri } from './page-records.mjs';
-import { isPageHref } from './site-meta.mjs';
+import { isExternal, isPageHref } from './site-meta.mjs';
 
 export const PAGE_COLLECTION = 'id.skiddle.page';
 
@@ -22,7 +22,7 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
 
 /** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
-export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses']);
+export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses', 'works']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -57,8 +57,19 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ name: string, note?: string, href?: string }} UsesItem
  * @typedef {{ id: string, title: string, blurb?: string, groups: { title: string, items: UsesItem[] }[] }} UsesSection
  * @typedef {{ kind: 'uses', heading: string, text: string, sections: UsesSection[], outro: string }} UsesBlock
+ * @typedef {{ value: string, label: string, href?: string }} Highlight
+ * @typedef {{ kind: 'cvHeader', name: string, title: string, location: string, email: string, github: string, bluesky: string, summary: string[], since?: number, status: string, highlights: Highlight[] }} CvHeaderBlock
+ * @typedef {{ role: string, start: string, end?: string, employment?: string, client?: string, highlights: string[] }} Position
+ * @typedef {{ kind: 'jobs', title: string, jobs: { company: string, description?: string, positions: Position[] }[] }} JobsBlock
+ * @typedef {{ kind: 'skills', title: string, groups: { title: string, items: string[] }[] }} SkillsBlock
+ * @typedef {{ title: string, description: string, status?: string, live?: string, source?: string }} OtherProject
+ * @typedef {{ kind: 'projectGrid', title: string, projects: string[], others: OtherProject[] }} ProjectGridBlock The projects' record keys, in order
+ * @typedef {{ degree: string, school: string, start?: string, end?: string, description?: string }} School
+ * @typedef {{ kind: 'education', title: string, schools: School[], certificationsTitle: string, certifications: { title: string, when: string }[] }} EducationBlock
+ * @typedef {{ kind: 'cvContact', title: string, text: string, links: Link[] }} CvContactBlock
  * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
- *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock | UsesBlock} KnownBlock
+ *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock | UsesBlock
+ *   | CvHeaderBlock | JobsBlock | SkillsBlock | ProjectGridBlock | EducationBlock | CvContactBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -83,6 +94,20 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
 const str = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() ? v : undefined);
 const objects = (/** @type {unknown} */ v) => /** @type {Raw[]} */ (Array.isArray(v) ? v.filter((o) => o && typeof o === 'object' && !Array.isArray(o)) : []);
 
+/** The strings in a list that have text */
+const strings = (/** @type {unknown} */ v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string' && s.trim()) : []);
+/** The fields of an object that are strings with text, by name, leaving out the rest */
+const texts = (/** @type {Raw} */ o, /** @type {string[]} */ keys) => Object.fromEntries(keys.flatMap((k) => (str(o[k]) ? [[k, o[k]]] : [])));
+/** A full https:// URL, the only links off the site a record may give */
+const webOf = (/** @type {unknown} */ v) => (typeof v === 'string' && isExternal(v) && isPageHref(v) ? v : undefined);
+/** An email address */
+const emailOf = (/** @type {unknown} */ v) => (typeof v === 'string' && /^[^\s@]+@[^\s@]+$/.test(v) ? v : undefined);
+/** @returns {Highlight[]} */
+const highlightsOf = (/** @type {unknown} */ v) =>
+  objects(v).flatMap((h) => {
+    const [value, label, href] = [str(h.value), str(h.label), hrefOf(h.href)];
+    return value && label ? [{ value, label, ...(href ? { href } : {}) }] : [];
+  });
 /** A link's address, if it's one the site would follow (isPageHref) */
 const hrefOf = (/** @type {unknown} */ v) => (typeof v === 'string' && isPageHref(v) ? v : undefined);
 /** An id for an element: a letter, then letters, digits, - or _ */
@@ -125,6 +150,10 @@ export function linkIcon(href) {
 
 const PROJECT_PREFIX = projectUri('');
 
+/** The record keys of a list of this repo's projects' at:// addresses, in order */
+const projectKeysOf = (/** @type {unknown} */ v) =>
+  (Array.isArray(v) ? v : []).filter((uri) => typeof uri === 'string' && uri.startsWith(PROJECT_PREFIX) && uri.length > PROJECT_PREFIX.length).map((uri) => uri.slice(PROJECT_PREFIX.length));
+
 /**
  * @template {BlockKind} K
  * @typedef {object} BlockSpec
@@ -163,12 +192,7 @@ export const BLOCKS = {
   projects: {
     reads: ['projects'],
     anchor: 'work',
-    parse: (v) => ({
-      kind: 'projects',
-      projects: (Array.isArray(v.projects) ? v.projects : [])
-        .filter((uri) => typeof uri === 'string' && uri.startsWith(PROJECT_PREFIX) && uri.length > PROJECT_PREFIX.length)
-        .map((uri) => uri.slice(PROJECT_PREFIX.length)),
-    }),
+    parse: (v) => ({ kind: 'projects', projects: projectKeysOf(v.projects) }),
   },
   recentPosts: {
     reads: ['posts'],
@@ -260,6 +284,91 @@ export const BLOCKS = {
         return id && title && groups.length ? [{ id, title, ...(blurb ? { blurb } : {}), groups }] : [];
       });
       return heading && sections.length ? { kind: 'uses', heading, text: str(v.text) ?? '', sections, outro: str(v.outro) ?? '' } : null;
+    },
+  },
+  cvHeader: {
+    reads: [],
+    parse: (v) => {
+      const [name, title] = [str(v.name), str(v.title)];
+      if (!name || !title) return null;
+      const since = Number.isInteger(v.since) && v.since >= 1900 && v.since <= 2100 ? v.since : undefined;
+      return {
+        kind: 'cvHeader',
+        name,
+        title,
+        location: str(v.location) ?? '',
+        email: emailOf(v.email) ?? '',
+        github: webOf(v.github) ?? '',
+        bluesky: webOf(v.bluesky) ?? '',
+        summary: strings(v.summary),
+        ...(since ? { since } : {}),
+        status: str(v.status) ?? '',
+        highlights: highlightsOf(v.highlights),
+      };
+    },
+  },
+  jobs: {
+    reads: [],
+    anchor: 'experience',
+    parse: (v) => {
+      const title = str(v.title);
+      const jobs = objects(v.jobs).flatMap((c) => {
+        const company = str(c.company);
+        const positions = objects(c.positions).flatMap((p) => {
+          const [role, start] = [str(p.role), str(p.start)];
+          return role && start ? [{ role, start, ...texts(p, ['end', 'employment', 'client']), highlights: strings(p.highlights) }] : [];
+        });
+        return company && positions.length ? [{ company, ...texts(c, ['description']), positions }] : [];
+      });
+      return title && jobs.length ? { kind: 'jobs', title, jobs } : null;
+    },
+  },
+  skills: {
+    reads: [],
+    anchor: 'skills',
+    parse: (v) => {
+      const title = str(v.title);
+      const groups = objects(v.groups).flatMap((g) => {
+        const [groupTitle, items] = [str(g.title), strings(g.items)];
+        return groupTitle && items.length ? [{ title: groupTitle, items }] : [];
+      });
+      return title && groups.length ? { kind: 'skills', title, groups } : null;
+    },
+  },
+  projectGrid: {
+    reads: ['projects'],
+    anchor: 'cv-projects',
+    parse: (v) => {
+      const title = str(v.title);
+      const others = objects(v.others).flatMap((p) => {
+        const [otherTitle, description, live, source] = [str(p.title), str(p.description), webOf(p.live), webOf(p.source)];
+        return otherTitle && description ? [{ title: otherTitle, description, ...texts(p, ['status']), ...(live ? { live } : {}), ...(source ? { source } : {}) }] : [];
+      });
+      return title ? { kind: 'projectGrid', title, projects: projectKeysOf(v.projects), others } : null;
+    },
+  },
+  education: {
+    reads: [],
+    anchor: 'education',
+    parse: (v) => {
+      const title = str(v.title);
+      const schools = objects(v.schools).flatMap((e) => {
+        const [degree, school] = [str(e.degree), str(e.school)];
+        return degree && school ? [{ degree, school, ...texts(e, ['start', 'end', 'description']) }] : [];
+      });
+      const certifications = objects(v.certifications).flatMap((c) => {
+        const [certTitle, when] = [str(c.title), str(c.when)];
+        return certTitle && when ? [{ title: certTitle, when }] : [];
+      });
+      return title && schools.length ? { kind: 'education', title, schools, certificationsTitle: str(v.certificationsTitle) ?? '', certifications } : null;
+    },
+  },
+  cvContact: {
+    reads: [],
+    anchor: 'cv-contact',
+    parse: (v) => {
+      const title = str(v.title);
+      return title ? { kind: 'cvContact', title, text: str(v.text) ?? '', links: linksOf(v.links) } : null;
     },
   },
 };

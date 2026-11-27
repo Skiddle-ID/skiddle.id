@@ -1,0 +1,27 @@
+---
+/*
+  The CV contact block (src/lib/page-blocks.mjs): a box asking people to work with Jeff, with its
+  buttons, each with its icon (linkIcon), and one to print the page (the CV's script runs it,
+  src/pages/works.astro). It isn't printed.
+*/
+import Icon from '../icon.astro';
+import { linkAttributes, linkIcon, type CvContactBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: CvContactBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+const links = block.links.map((l) => ({ ...l, ...linkAttributes(l), icon: linkIcon(l.href) }));
+---
+
+<section aria-labelledby={anchor} class="mt-12 card p-5 print:hidden">
+  <h2 id={anchor} class="font-semibold">{block.title}</h2>
+  {block.text && <p class="text-sm text-[var(--color-muted)] mt-1.5">{block.text}</p>}
+  <div class="flex flex-wrap gap-2 mt-4">
+    {links.map((l) => (
+      <a class={l.primary ? 'btn border-[var(--color-primary)] text-[var(--color-primary)]' : 'btn'} href={l.href} target={l.target} rel={l.rel}>{l.icon ? <><Icon name={l.icon} size={14} /> {l.label}</> : l.label}</a>
+    ))}
+    <button type="button" class="btn" data-print><Icon name="print" size={14} /> Print / save as PDF</button>
+  </div>
+</section>

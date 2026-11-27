@@ -206,6 +206,48 @@ describe('the Uses page’s block, read', () => {
   });
 });
 
+describe('the CV’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('the header: an email and profiles only if they’re ones, and a start year from 1900 to 2100', () => {
+    const header = (o) => read('cvHeader', { name: 'Jeff', title: 'Engineer', ...o });
+    const b = header({ email: 'a@b.c', github: 'https://github.com/x', bluesky: 'javascript:x', since: 2016, highlights: [{ value: '10', label: 'years', href: '/posts/x/' }, { value: 'x' }] });
+    assert.deepEqual([b.email, b.github, b.bluesky, b.since], ['a@b.c', 'https://github.com/x', '', 2016]);
+    assert.deepEqual(b.highlights, [{ value: '10', label: 'years', href: '/posts/x/' }]);
+    assert.deepEqual([header({ email: 'not an email' }).email, header({ github: 'http://github.com/x' }).github], ['', '']);
+    assert.deepEqual([1899, 2016.5, '2016'].map((since) => header({ since }).since), [undefined, undefined, undefined]);
+    assert.equal(read('cvHeader', { name: 'Jeff' }), undefined);
+  });
+
+  it('jobs: a role needs a title and a start; a company needs a role', () => {
+    const jobs = [
+      { company: 'A', description: 'd', positions: [{ role: 'R', start: '2020', employment: 'Contract', highlights: ['h', ''] }, { role: 'no start' }] },
+      { company: 'B', positions: [{ start: '2019' }] },
+    ];
+    assert.deepEqual(read('jobs', { title: 'Experience', jobs }).jobs, [{ company: 'A', description: 'd', positions: [{ role: 'R', start: '2020', employment: 'Contract', highlights: ['h'] }] }]);
+  });
+
+  it('skills: groups with a title and skills', () => {
+    assert.deepEqual(read('skills', { title: 'Skills', groups: [{ title: 'Langs', items: ['Go', 3] }, { title: 'None', items: [] }] }).groups, [{ title: 'Langs', items: ['Go'] }]);
+  });
+
+  it('the project grid: this repo’s projects by key, and other projects with links only to https:// addresses', () => {
+    const b = read('projectGrid', {
+      title: 'Selected projects',
+      projects: [projectUri('a'), 'at://did:plc:other/id.skiddle.project/b'],
+      others: [{ title: 'O', description: 'd', status: 'Ongoing', live: 'https://o.example', source: 'ftp://x' }, { title: 'no description' }],
+    });
+    assert.deepEqual([b.projects, b.others], [['a'], [{ title: 'O', description: 'd', status: 'Ongoing', live: 'https://o.example' }]]);
+    assert.deepEqual(readsOf(pageFromRecord(page(block('projectGrid', { title: 'P', projects: [] })))), ['projects']);
+  });
+
+  it('education: schools with a degree and a school; certifications with when', () => {
+    const b = read('education', { title: 'Education', schools: [{ degree: 'MSc', school: 'C', end: 'Present' }, { degree: 'x' }], certificationsTitle: 'Certs', certifications: [{ title: 'PPL', when: '2026' }, { title: 'no when' }] });
+    assert.deepEqual([b.schools, b.certifications], [[{ degree: 'MSc', school: 'C', end: 'Present' }], [{ title: 'PPL', when: '2026' }]]);
+    assert.equal(read('education', { title: 'Education', schools: [] }), undefined);
+  });
+});
+
 describe('rows', () => {
   const rows = (...widths) => rowsOf(pageFromRecord(page(...widths.map((w) => block('now', {}, w)))).blocks).map((r) => r.map((b) => b.width));
 

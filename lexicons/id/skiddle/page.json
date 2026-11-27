@@ -85,7 +85,13 @@
             "#soFar",
             "#contact",
             "#nowFull",
-            "#uses"
+            "#uses",
+            "#cvHeader",
+            "#jobs",
+            "#skills",
+            "#projectGrid",
+            "#education",
+            "#cvContact"
           ],
           "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
         }
@@ -549,6 +555,396 @@
           "type": "string",
           "maxLength": 2000,
           "description": "Its website: a full https:// URL."
+        }
+      }
+    },
+    "cvHeader": {
+      "type": "object",
+      "description": "The CV's head: Jeff's name, the page's main heading, his title and where he is, how to reach him, a summary, how long he's been in infrastructure, and his highlights as cards under it.",
+      "required": ["name", "title"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "github": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "His GitHub profile: a full https:// URL."
+        },
+        "bluesky": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "His Bluesky profile: a full https:// URL."
+        },
+        "summary": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 20000,
+            "maxGraphemes": 2000
+          },
+          "description": "Paragraphs."
+        },
+        "since": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "The year he started in infrastructure: the CV says how many years ago that was."
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "A line after the years, in Markdown, e.g. 'open to consulting · [services](/services/)'. Left off the printed page."
+        },
+        "highlights": {
+          "type": "array",
+          "maxLength": 12,
+          "items": {
+            "type": "ref",
+            "ref": "#highlight"
+          }
+        }
+      }
+    },
+    "highlight": {
+      "type": "object",
+      "required": ["value", "label"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "maxLength": 300,
+          "maxGraphemes": 30,
+          "description": "e.g. '10+'."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "The story behind it: a path on skiddle.id or a full https:// URL. The CV leaves it out."
+        }
+      }
+    },
+    "jobs": {
+      "type": "object",
+      "description": "Where Jeff has worked: each company, with its roles on a timeline.",
+      "required": ["title", "jobs"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "jobs": {
+          "type": "array",
+          "maxLength": 30,
+          "items": {
+            "type": "ref",
+            "ref": "#job"
+          }
+        }
+      }
+    },
+    "job": {
+      "type": "object",
+      "required": ["company", "positions"],
+      "properties": {
+        "company": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500,
+          "description": "One line under the company's name, e.g. what it is."
+        },
+        "positions": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#position"
+          }
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "required": ["role", "start"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "employment": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "e.g. 'Contract', shown beside the role."
+        },
+        "client": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "Who the role was for, when it was a client engagement through the company."
+        },
+        "start": {
+          "type": "string",
+          "maxLength": 200,
+          "maxGraphemes": 20,
+          "description": "e.g. '2022'."
+        },
+        "end": {
+          "type": "string",
+          "maxLength": 200,
+          "maxGraphemes": 20,
+          "description": "Left out while it's still the role."
+        },
+        "highlights": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 5000,
+            "maxGraphemes": 500
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "description": "Jeff's skills, in groups, as cards of tags.",
+      "required": ["title", "groups"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "groups": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#skillGroup"
+          }
+        }
+      }
+    },
+    "skillGroup": {
+      "type": "object",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "items": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100
+          }
+        }
+      }
+    },
+    "projectGrid": {
+      "type": "object",
+      "description": "Picked projects (id.skiddle.project) as a grid of cards, in order, and other projects as a list under them.",
+      "required": ["title", "projects"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "projects": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "string",
+            "format": "at-uri"
+          },
+          "description": "The id.skiddle.project records to show, in order."
+        },
+        "others": {
+          "type": "array",
+          "maxLength": 30,
+          "items": {
+            "type": "ref",
+            "ref": "#otherProject"
+          }
+        }
+      }
+    },
+    "otherProject": {
+      "type": "object",
+      "required": ["title", "description"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "e.g. 'Ongoing'."
+        },
+        "live": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Where it runs: a full https:// URL."
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Its source: a full https:// URL."
+        }
+      }
+    },
+    "education": {
+      "type": "object",
+      "description": "Jeff's education and certifications, side by side.",
+      "required": ["title", "schools"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "schools": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#school"
+          }
+        },
+        "certificationsTitle": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "certifications": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "ref",
+            "ref": "#certification"
+          }
+        }
+      }
+    },
+    "school": {
+      "type": "object",
+      "required": ["degree", "school"],
+      "properties": {
+        "degree": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "school": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "start": {
+          "type": "string",
+          "maxLength": 200,
+          "maxGraphemes": 20
+        },
+        "end": {
+          "type": "string",
+          "maxLength": 200,
+          "maxGraphemes": 20
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        }
+      }
+    },
+    "certification": {
+      "type": "object",
+      "required": ["title", "when"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "when": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "A year, or how it's going, e.g. 'In progress'."
+        }
+      }
+    },
+    "cvContact": {
+      "type": "object",
+      "description": "A box asking people to work with Jeff: a heading, a line, buttons, and one to print the page. Left off the printed page.",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          },
+          "description": "The buttons; one marked primary stands out."
         }
       }
     }
