@@ -184,7 +184,7 @@ export function editorHref(/** @type {BlobUse} */ use) {
   if (page) return `#page/${page}`;
   if (use.collection === 'id.skiddle.event') return `#event/${use.rkey}`;
   return (
-    { 'id.skiddle.draft': `#draft/${use.rkey}`, 'site.standard.document': `#post/${use.rkey}`, 'id.skiddle.series': `#series/${use.rkey}`, 'id.skiddle.project': `#project/${use.rkey}` }[use.collection] ?? undefined
+    { 'site.standard.publication': '#page/publication', 'id.skiddle.draft': `#draft/${use.rkey}`, 'site.standard.document': `#post/${use.rkey}`, 'id.skiddle.series': `#series/${use.rkey}`, 'id.skiddle.project': `#project/${use.rkey}` }[use.collection] ?? undefined
   );
 }
 
