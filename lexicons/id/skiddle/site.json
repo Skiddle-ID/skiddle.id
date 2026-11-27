@@ -5,12 +5,10 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
+      "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions; and the site's frame: the menu, the footer's links and what the sidebar shows. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
       "record": {
         "type": "object",
-        "required": [
-          "updatedAt"
-        ],
+        "required": ["updatedAt"],
         "properties": {
           "name": {
             "type": "string",
@@ -50,6 +48,32 @@
               "format": "uri"
             },
             "description": "Jeff's profiles elsewhere, e.g. https://bsky.app/profile/skiddle.blue: each page links to them as his (rel=\"me\")."
+          },
+          "menu": {
+            "type": "array",
+            "maxLength": 50,
+            "items": {
+              "type": "ref",
+              "ref": "#menuItem"
+            },
+            "description": "The sidebar's links, in order. The search (Ctrl+K) lists them too. Left out, the sidebar has the built-in menu (src/data/frame.ts)."
+          },
+          "footerLinks": {
+            "type": "array",
+            "maxLength": 30,
+            "items": {
+              "type": "ref",
+              "ref": "#link"
+            },
+            "description": "The footer's links, in order, after the version. Left out, the footer has the built-in links (src/data/frame.ts)."
+          },
+          "hideMusic": {
+            "type": "boolean",
+            "description": "Hide the sidebar's music card (what Jeff is playing, or played last). Left out, or false, shows it, as today."
+          },
+          "hideThemeButtons": {
+            "type": "boolean",
+            "description": "Hide the sidebar's light/dark and accent buttons, and their commands in the search. Left out, or false, shows them, as today."
           },
           "pages": {
             "type": "array",
@@ -118,9 +142,7 @@
     },
     "page": {
       "type": "object",
-      "required": [
-        "path"
-      ],
+      "required": ["path"],
       "properties": {
         "path": {
           "type": "string",
@@ -156,54 +178,94 @@
     "icon": {
       "type": "object",
       "description": "The site's icon, in the sizes pages use: the browser tab (32 px), iPhone home screens (180 px), Android (192 px) and search engines' picture of Jeff (512 px). The admin app makes them from one square image. Without it, the built-in icons in /public are used.",
-      "required": [
-        "png32",
-        "png180",
-        "png192",
-        "png512"
-      ],
+      "required": ["png32", "png180", "png192", "png512"],
       "properties": {
         "source": {
           "type": "blob",
-          "accept": [
-            "image/png",
-            "image/jpeg",
-            "image/webp"
-          ],
+          "accept": ["image/png", "image/jpeg", "image/webp"],
           "maxSize": 5000000,
           "description": "The image they were made from."
         },
         "png32": {
           "type": "blob",
-          "accept": [
-            "image/png"
-          ],
+          "accept": ["image/png"],
           "maxSize": 1000000,
           "description": "32 px square PNG."
         },
         "png180": {
           "type": "blob",
-          "accept": [
-            "image/png"
-          ],
+          "accept": ["image/png"],
           "maxSize": 1000000,
           "description": "180 px square PNG."
         },
         "png192": {
           "type": "blob",
-          "accept": [
-            "image/png"
-          ],
+          "accept": ["image/png"],
           "maxSize": 1000000,
           "description": "192 px square PNG."
         },
         "png512": {
           "type": "blob",
-          "accept": [
-            "image/png"
-          ],
+          "accept": ["image/png"],
           "maxSize": 1000000,
           "description": "512 px square PNG."
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "description": "A link in the site's frame.",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 640,
+          "maxGraphemes": 64,
+          "description": "What it says, e.g. 'posts'."
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "A page on the site, starting with / (e.g. /posts/), or an https:// or mailto: address. The site leaves out a link that is none of these."
+        }
+      }
+    },
+    "menuItem": {
+      "type": "object",
+      "description": "A link in the sidebar's menu.",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 640,
+          "maxGraphemes": 64,
+          "description": "What it says, e.g. 'posts'."
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "A page on the site, starting with / (e.g. /posts/), or an https:// or mailto: address. The site leaves out a link that is none of these."
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": [
+            "github",
+            "bluesky",
+            "at",
+            "rss",
+            "sun",
+            "moon",
+            "search",
+            "music",
+            "menu",
+            "mail",
+            "instagram",
+            "copy",
+            "palette",
+            "print"
+          ],
+          "description": "An icon from the site's set, before the label. Left out, none, as today."
         }
       }
     }

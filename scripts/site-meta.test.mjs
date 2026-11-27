@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { normalPath, pageMetaOf, siteMetaFromRecord, siteMetaOf } from '../src/lib/site-meta.mjs';
+import { readFileSync } from 'node:fs';
+import { COMMAND_PAGES, FALLBACK_FOOTER_LINKS, FALLBACK_MENU } from '../src/data/frame.ts';
+import { ICON_NAMES } from '../src/lib/icons.mjs';
+import { commandPagesOf, frameProblems, normalPath, pageMetaOf, siteMetaFromRecord, siteMetaOf } from '../src/lib/site-meta.mjs';
 
 const fallback = {
   name: 'Skiddle',
@@ -9,6 +12,10 @@ const fallback = {
   author: { name: 'Laurensius Jeffrey', jobTitles: ['Founder'], knowsAbout: [] },
   profiles: ['https://bsky.app/profile/skiddle.blue'],
   pages: [],
+  menu: FALLBACK_MENU,
+  footerLinks: FALLBACK_FOOTER_LINKS,
+  hideMusic: false,
+  hideThemeButtons: false,
 };
 
 describe('site meta', () => {
@@ -70,5 +77,61 @@ describe('site meta', () => {
     assert.equal(normalPath('/'), '/');
     assert.equal(normalPath('/rss.xml'), '/rss.xml');
     assert.equal(normalPath('/posts/x?ref=1'), '/posts/x/');
+  });
+
+  describe('the frame', () => {
+    it('is today’s menu, footer and sidebar without the fields', () => {
+      const site = siteMetaOf(fallback, { updatedAt: '2026-11-28T00:00:00Z' });
+      assert.deepEqual(site.menu.map((m) => m.href), ['/posts/', '/notes/', '/timeline/', '/about/', '/works/', '/projects/', '/uses/', '/services/']);
+      assert.deepEqual(site.footerLinks.map((l) => l.label), ['now', 'rss', 'work@skiddle.id', 'source']);
+      assert.equal(site.hideMusic, false);
+      assert.equal(site.hideThemeButtons, false);
+    });
+
+    it('takes the record’s menu and footer, in its order, with icons the site has', () => {
+      const site = siteMetaOf(fallback, {
+        menu: [{ label: 'about', href: '/about/' }, { label: ' talks ', href: '/speaking/', icon: 'mail' }, { label: 'code', href: 'https://github.com/arcestia', icon: 'rocket' }],
+        footerLinks: [{ label: 'email', href: 'mailto:hi@skiddle.id' }],
+      });
+      assert.deepEqual(site.menu, [
+        { label: 'about', href: '/about/' },
+        { label: 'talks', href: '/speaking/', icon: 'mail' },
+        { label: 'code', href: 'https://github.com/arcestia' },
+      ]);
+      assert.deepEqual(site.footerLinks, [{ label: 'email', href: 'mailto:hi@skiddle.id' }]);
+    });
+
+    it('drops links the site can’t hold, and falls back when none is left', () => {
+      const bad = ['javascript:alert(1)', 'http://example.com', '//evil.example', 'posts', 'https://', 'mailto:nobody', '/a b'];
+      const menu = [...bad.map((href) => ({ label: 'x', href })), { label: '', href: '/now/' }, { label: 'now', href: '/now/' }];
+      assert.deepEqual(siteMetaFromRecord({ menu }).menu, [{ label: 'now', href: '/now/' }]);
+      assert.equal(siteMetaFromRecord({ menu: bad.map((href) => ({ label: 'x', href })) }).menu, undefined);
+      assert.deepEqual(siteMetaOf(fallback, { footerLinks: [{ label: 'x', href: 'javascript:x' }] }).footerLinks, FALLBACK_FOOTER_LINKS);
+      assert.deepEqual(frameProblems({ menu: [{ label: 'ok', href: '/ok/' }, { label: 'x', href: 'javascript:x' }], footerLinks: [{ label: 'y', href: 'ftp://y' }] }), [
+        'Menu item 2’s link needs to start with /, https:// or mailto:.',
+        'Footer link 1’s link needs to start with /, https:// or mailto:.',
+      ]);
+    });
+
+    it('reads the switches only when they’re true', () => {
+      assert.deepEqual(siteMetaFromRecord({ hideMusic: true, hideThemeButtons: true }), { hideMusic: true, hideThemeButtons: true });
+      assert.deepEqual(siteMetaFromRecord({ hideMusic: 'yes', hideThemeButtons: 1 }), {});
+      const site = siteMetaOf(fallback, { hideThemeButtons: true });
+      assert.equal(site.hideMusic, false);
+      assert.equal(site.hideThemeButtons, true);
+    });
+
+    it('lists the site’s pages in the command bar, named as the menu names them, then the menu’s others', () => {
+      assert.deepEqual(commandPagesOf(COMMAND_PAGES, []), COMMAND_PAGES);
+      const pages = commandPagesOf(COMMAND_PAGES, [{ label: 'writing', href: '/posts/' }, { label: 'talks', href: '/speaking/' }]);
+      assert.equal(pages.length, COMMAND_PAGES.length + 1);
+      assert.deepEqual(pages.find((p) => p.href === '/posts/'), { ...COMMAND_PAGES[1], label: 'writing', keywords: `posts ${COMMAND_PAGES[1].keywords}` });
+      assert.deepEqual(pages.at(-1), { label: 'talks', href: '/speaking/', hint: '', keywords: '' });
+    });
+
+    it('offers the icons the site has, as the lexicon lists them', () => {
+      const lexicon = JSON.parse(readFileSync(new URL('../lexicons/id/skiddle/site.json', import.meta.url), 'utf8'));
+      assert.deepEqual(lexicon.defs.menuItem.properties.icon.knownValues, [...ICON_NAMES]);
+    });
   });
 });

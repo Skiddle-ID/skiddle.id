@@ -4,6 +4,7 @@
  * the admin app's Site editor starts from.
  */
 import type { SiteMeta } from '~/lib/site-meta.mjs';
+import { FALLBACK_FOOTER_LINKS, FALLBACK_MENU } from './frame';
 
 export const FALLBACK_SITE: SiteMeta = {
   name: 'Skiddle',
@@ -19,4 +20,8 @@ export const FALLBACK_SITE: SiteMeta = {
   },
   profiles: ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
   pages: [],
+  menu: FALLBACK_MENU,
+  footerLinks: FALLBACK_FOOTER_LINKS,
+  hideMusic: false,
+  hideThemeButtons: false,
 };
