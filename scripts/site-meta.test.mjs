@@ -102,7 +102,7 @@ describe('site meta', () => {
     });
 
     it('drops links the site can’t hold, and falls back when none is left', () => {
-      const bad = ['javascript:alert(1)', 'http://example.com', '//evil.example', 'posts', 'https://', 'mailto:nobody', '/a b'];
+      const bad = ['javascript:alert(1)', 'http://example.com', '//evil.example', '/\\evil.example', 'posts', 'https://', 'mailto:nobody', '/a b'];
       const menu = [...bad.map((href) => ({ label: 'x', href })), { label: '', href: '/now/' }, { label: 'now', href: '/now/' }];
       assert.deepEqual(siteMetaFromRecord({ menu }).menu, [{ label: 'now', href: '/now/' }]);
       assert.equal(siteMetaFromRecord({ menu: bad.map((href) => ({ label: 'x', href })) }).menu, undefined);

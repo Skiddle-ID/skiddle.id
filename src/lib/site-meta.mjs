@@ -33,7 +33,7 @@ const isHttp = (/** @type {string} */ s) => /^https?:\/\/\S+$/i.test(s);
  * A link the frame can hold: a path on the site (one slash, so not //host), or an https: or
  * mailto: address. Anything else (javascript:, http:, a bare word) is dropped.
  */
-export const isFrameHref = (/** @type {string} */ s) => /^(\/(?!\/)\S*|https:\/\/\S+|mailto:\S+@\S+)$/i.test(s);
+export const isFrameHref = (/** @type {string} */ s) => /^(\/(?![/\\])\S*|https:\/\/\S+|mailto:\S+@\S+)$/i.test(s);
 /** A link that leaves the site, which opens in a new tab */
 export const isExternal = (/** @type {string} */ href) => /^https:/i.test(href);
 const isIcon = (/** @type {unknown} */ s) => ICON_NAMES.some((n) => n === s);
