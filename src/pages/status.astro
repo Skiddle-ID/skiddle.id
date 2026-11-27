@@ -16,15 +16,22 @@ const history = await getStatusHistory();
 // A save purges it (/api/revalidate), like the pages
 Astro.cache.set(PAGES_CACHE);
 
-// In the time zone the status was set in, else Bangkok's
-const when = (iso: string, timeZone = 'Asia/Bangkok') => {
-  let tz = timeZone;
+// In the time zone the status was set in, else Bangkok's, named after the time: its short name
+// or offset (CET, GMT+7), then the zone itself (Europe/Paris)
+const zoneOf = (timeZone?: string) => {
   try {
-    new Intl.DateTimeFormat('en', { timeZone: tz });
+    if (timeZone) return new Intl.DateTimeFormat('en', { timeZone }).resolvedOptions().timeZone;
   } catch {
-    tz = 'Asia/Bangkok';
+    // not a zone this runtime knows
   }
-  return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+  return 'Asia/Bangkok';
+};
+const when = (iso: string, timeZone?: string) => {
+  const zone = zoneOf(timeZone);
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: zone, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).formatToParts(new Date(iso));
+  const short = parts.find((p) => p.type === 'timeZoneName')?.value ?? '';
+  const time = parts.filter((p) => p.type !== 'timeZoneName').map((p) => p.value).join('').trim();
+  return { time, short, zone };
 };
 const meta = CONTENT_PAGES.status;
 ---
@@ -56,7 +63,10 @@ const meta = CONTENT_PAGES.status;
                 {h.current && <span class="ml-2 text-xs text-[var(--color-primary)] border border-[var(--color-primary)] rounded px-1.5 align-middle">now</span>}
               </p>
               <p class="text-xs text-[var(--color-muted)]">
-                {h.current ? 'since ' : ''}<time datetime={h.at}>{when(h.at, h.timeZone)}</time>{h.location && <> · {h.location}</>}
+                {(() => {
+                  const w = when(h.at, h.timeZone);
+                  return <>{h.current ? 'since ' : ''}<time datetime={h.at}>{w.time} {w.short}</time> ({w.zone}){h.location && <> · {h.location}</>}</>;
+                })()}
               </p>
             </div>
           </li>
