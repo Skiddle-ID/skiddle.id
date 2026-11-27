@@ -196,7 +196,7 @@ It gets a post editor, built on the first version (`/admin/`).
 - **Publish now:**
   1. Draw the share card in the browser (satori and resvg's WebAssembly build, the same design as today) and upload it.
   2. Write the `site.standard.document`: the content, plain text, tags, path `/posts/<slug>/`, and a TID made from the publish time.
-  3. Post on Bluesky with a link card, reusing the share card's blob. Add `bskyPostRef` to the document, which turns comments on.
+  3. Post on Bluesky with a link card, reusing the share card's blob. Its `associatedRefs` name the document and the publication (strong refs), so Bluesky shows a Standard.site card with the publication's name, colours and author (since 2026-11-27). Add `bskyPostRef` to the document, which turns comments on.
   4. Delete the draft and call `/api/revalidate`.
 - **Schedule:** set a time. The share card is made then and stored on the draft; the cron does the rest.
 - **Edit a published post:** saves straight to its record, with `swapRecord`, so two devices can't overwrite each other. It sets `updatedAt` and redraws the share card if the title or description changed.

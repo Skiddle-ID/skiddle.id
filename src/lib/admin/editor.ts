@@ -865,7 +865,10 @@ async function publishDraft() {
     if (!p.post) {
       step('Announcing it on Bluesky…');
       // Under the post's own key (as the scheduler does), so a second try finds it instead of posting again
-      const announcement = announcementRecord({ title: d.title, description: d.description, lang: d.content.lang ?? 'en', url, thumb: p.cover });
+      // Its link card names the post's record and the publication's, for Bluesky's Standard.site card
+      const publication = await getRecord(session, 'site.standard.publication', PUBLICATION_URI.split('/').pop()!).catch(() => null);
+      const refs = [{ uri: `at://${DID}/${DOCUMENT}/${p.rkey}`, cid: p.docCid! }, ...(publication ? [{ uri: PUBLICATION_URI, cid: publication.cid }] : [])];
+      const announcement = announcementRecord({ title: d.title, description: d.description, lang: d.content.lang ?? 'en', url, thumb: p.cover, refs });
       const res = await createRecord(session, 'app.bsky.feed.post', announcement, p.rkey).catch(async (err) => {
         const posted = await getRecord(session, 'app.bsky.feed.post', p.rkey!);
         if (!posted) throw err;

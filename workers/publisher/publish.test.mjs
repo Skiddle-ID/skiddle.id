@@ -103,7 +103,7 @@ test('nothing due: no sign-in, no writes', async () => {
 });
 
 test('a due draft becomes a post, is announced, and the draft is deleted', async () => {
-  const s = standIn({ [`${DRAFT_COLLECTION}/d1`]: draft('hello') });
+  const s = standIn({ [`${DRAFT_COLLECTION}/d1`]: draft('hello'), [`site.standard.publication/${PUBLICATION_URI.split('/').pop()}`]: { name: 'Skiddle' } });
   const results = await run(s);
   assert.deepEqual(results.map((r) => r.status), ['published']);
   const rkey = rkeyFor('hello');
@@ -124,6 +124,13 @@ test('a due draft becomes a post, is announced, and the draft is deleted', async
   assert.equal(post.text, 'Title of hello\n\nskiddle.id/posts/hello');
   assert.equal(post.embed.external.uri, 'https://skiddle.id/posts/hello/');
   assert.deepEqual(post.embed.external.thumb, CARD);
+  // Names the post's record (as it was when announced) and the publication's, for Bluesky's Standard.site card
+  assert.deepEqual(post.embed.external.associatedRefs, [
+    { $type: 'com.atproto.repo.strongRef', uri: `at://${DID}/${DOCUMENT_COLLECTION}/${rkey}`, cid: post.embed.external.associatedRefs[0].cid },
+    { $type: 'com.atproto.repo.strongRef', uri: PUBLICATION_URI, cid: s.repo.get(`site.standard.publication/${PUBLICATION_URI.split('/').pop()}`).cid },
+  ]);
+  // The post's record changed after (its comments were turned on), so the ref is to the version announced
+  assert.notEqual(post.embed.external.associatedRefs[0].cid, s.repo.get(`${DOCUMENT_COLLECTION}/${rkey}`).cid);
   assert.equal(post.createdAt, NOW.toISOString());
   assert.deepEqual(doc.bskyPostRef, { uri: `at://${DID}/app.bsky.feed.post/${rkey}`, cid: s.repo.get(`app.bsky.feed.post/${rkey}`).cid });
   assert.equal(s.repo.has(`${DRAFT_COLLECTION}/d1`), false);

@@ -137,12 +137,15 @@ export async function publishDue({ pds, site, now = new Date(), dryRun = false, 
         await site.waitLive(draft.path);
         let post = await pds.get(BSKY_POST, rkey);
         if (!post) {
+          const publication = await pds.get('site.standard.publication', PUBLICATION_URI.split('/').pop() ?? '').catch(() => null);
           const record = announcementRecord({
             title: draft.title,
             description: draft.description,
             lang: draft.content.lang ?? 'en',
             url: `${SITE_URL}${draft.path}`,
             thumb: draft.coverImage,
+            // Bluesky's Standard.site card: the post's record and the publication's
+            refs: [{ uri: doc.uri, cid: doc.cid }, ...(publication ? [{ uri: publication.uri, cid: publication.cid }] : [])],
             createdAt: now.toISOString(),
           });
           const res = await w.create(BSKY_POST, rkey, record);
