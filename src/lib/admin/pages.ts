@@ -12,6 +12,7 @@ import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, formatTime, item, message, viewLink } from './dom';
+import { report } from './overview';
 import { missingScopes } from './oauth';
 import { getRecord, listRecords, type RepoRecord } from './xrpc';
 
@@ -76,6 +77,7 @@ export async function loadPages() {
     const rkey = rkeyOf(r.uri);
     return { title: String(r.value.name || rkey), collection: PROJECT_COLLECTION, rkey, page: '/projects/', editor: `#project/${rkey}`, have: r };
   });
+  report('pages', { count: pages.filter((p) => p.have).length + rows.length });
   el('pagesList').replaceChildren(...pages.map(rowItem));
   el('projectsList').replaceChildren(...(rows.length ? rows.map(rowItem) : [item('No projects yet.', 'admin-muted')]));
   const absent = pages.filter((p) => !p.have && !p.fallback).length;

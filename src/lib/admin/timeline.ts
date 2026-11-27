@@ -8,6 +8,7 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { DETAIL_FIELDS, EVENT_COLLECTION, KINDS, isOver, spanLabel } from '~/lib/timeline.mjs';
 import { el, item, message } from './dom';
 import { missingScopes } from './oauth';
+import { report } from './overview';
 import { listRecords, type RepoRecord } from './xrpc';
 
 type EventRecord = Record<string, unknown> & { kind?: string; startsOn?: string; endsOn?: string; title?: string; city?: string; announced?: boolean };
@@ -41,6 +42,16 @@ export async function loadTimeline() {
   fillList('timelineRough', rough, 'Nothing to fill in.');
   fillList('timelinePast', rest, 'Nothing yet.');
   el('timelineRoughSection').hidden = rough.length === 0;
+  report('timeline', {
+    count: upcoming.length,
+    stats: { 'Upcoming events': upcoming.length },
+    recent: records.map((r) => ({
+      kind: 'event',
+      text: String(r.value.title || KINDS[r.value.kind as keyof typeof KINDS] || KINDS.other),
+      at: String(r.value.updatedAt ?? r.value.createdAt ?? ''),
+      href: `#event/${rkeyOf(r.uri)}`,
+    })),
+  });
   message('timelineMessage', '');
 }
 

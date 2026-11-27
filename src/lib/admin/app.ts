@@ -25,6 +25,8 @@ import { clientMetadata, isLoopback, loopbackClientId, missingScopes } from './o
 import { setupPageEditor } from './page-editor';
 import { loadPages, setupPages } from './pages';
 import { loadTimeline, setupTimeline } from './timeline';
+import { report, setupOverview } from './overview';
+import { setupSections } from './sections';
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, xrpc, type RepoRecord } from './xrpc';
 
 const STATUS = 'id.skiddle.status';
@@ -175,6 +177,7 @@ async function loadStatus(session: OAuthSession) {
   el('statusScope').hidden = !missingScopes((await session.getTokenInfo()).scope).includes(`repo:${STATUS_LOG_COLLECTION}`);
   const record = await getRecord<Partial<StatusRecord>>(session, STATUS, 'self');
   fillStatus(record);
+  if (record?.value.text && record.value.updatedAt) report('status', { recent: [{ kind: 'status', text: record.value.text, at: record.value.updatedAt, href: '#status' }] });
   await loadHistory(session, record?.value);
 }
 
@@ -275,6 +278,7 @@ function setupStatus(session: OAuthSession, signInAgain: () => void) {
     try {
       const res = await putRecord(session, STATUS, 'self', record, statusCid);
       fillStatus({ uri: res.uri, cid: res.cid, value: record });
+      report('status', { recent: [{ kind: 'status', text: record.text, at: record.updatedAt, href: '#status' }] });
       // Then its copy in the history; the status is set either way, and /status/ shows it
       const logged = await createRecord(session, STATUS_LOG_COLLECTION, logEntryOf(record)).then(
         () => true,
@@ -459,6 +463,8 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupPosts(session, signInAgain);
   setupPages(session, signInAgain);
   setupTimeline(session, signInAgain);
+  setupOverview();
+  setupSections();
   // After a save: the Pages list, and the posts (whose Category menu follows the categories)
   setupPageEditor(session, async () => void (await Promise.allSettled([loadPages(), loadPosts(), loadTimeline()])), categoryUsage);
   setupRedraw(session);

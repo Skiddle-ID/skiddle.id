@@ -44,15 +44,33 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
       </section>
 
       <div id="signedIn" hidden>
-      <div id="dashboard" class="admin-stack" data-section="posts">
-        <nav id="sectionNav" class="admin-sections" aria-label="Sections">
-          <a href="#posts" data-section="posts" aria-current="page">Posts</a>
-          <a href="#series" data-section="series">Series</a>
-          <a href="#pages" data-section="pages">Pages</a>
-          <a href="#status" data-section="status">Status</a>
-          <a href="#timeline" data-section="timeline">Timeline</a>
-          <a href="#site" data-section="site">Site</a>
-        </nav>
+      <!-- The sidebar (a bar along the bottom on a phone, with More for the rest): src/lib/admin/sections.ts -->
+      <nav id="sectionNav" class="admin-side" aria-label="Sections">
+        <a href="#overview" data-section="overview" data-primary aria-current="page"><span>Overview</span></a>
+        <p class="admin-side-group">Content</p>
+        <a href="#posts" data-section="posts" data-primary><span>Posts</span><span class="admin-count" data-count="posts"></span></a>
+        <a href="#series" data-section="series"><span>Series</span><span class="admin-count" data-count="series"></span></a>
+        <a href="#pages" data-section="pages"><span>Pages</span><span class="admin-count" data-count="pages"></span></a>
+        <a href="#timeline" data-section="timeline" data-primary><span>Timeline</span><span class="admin-count" data-count="timeline"></span></a>
+        <p class="admin-side-group">Site</p>
+        <a href="#status" data-section="status" data-primary><span>Status</span></a>
+        <a href="#page/site" data-section="seo"><span>Site and SEO</span></a>
+        <a href="#site" data-section="site"><span>Lexicons and cards</span></a>
+        <button id="sideMore" type="button" class="admin-side-more" aria-expanded="false" aria-controls="sectionNav">More</button>
+      </nav>
+      <div id="dashboard" class="admin-stack" data-section="overview">
+        <section class="admin-card" data-section="overview" aria-labelledby="overviewTitle">
+          <h2 id="overviewTitle">Overview</h2>
+          <div id="overviewStats" class="admin-stats"></div>
+          <div class="admin-toolbar admin-quick">
+            <button id="overviewNewDraft" type="button" class="admin-btn admin-btn-primary">New draft</button>
+            <a href="#status" class="admin-btn">Set status</a>
+            <a href="#new-event" class="admin-btn">New event</a>
+            <a href="#page/home" class="admin-btn">Edit home page</a>
+          </div>
+          <h3 class="admin-subhead">Recent</h3>
+          <ul id="overviewRecent" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
+        </section>
 
         <section class="admin-card" data-section="posts" aria-labelledby="postsTitle">
           <div class="admin-label-row">
@@ -872,9 +890,6 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     color: var(--color-primary);
     font-weight: 600;
   }
-  body[data-view='editor'] .admin {
-    max-width: 76rem;
-  }
   .admin-subhead {
     font-size: 0.875rem;
     color: var(--color-muted);
@@ -1244,6 +1259,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   #dashboard > .admin-card {
     display: none;
   }
+  #dashboard[data-section='overview'] > [data-section='overview'],
   #dashboard[data-section='posts'] > [data-section='posts'],
   #dashboard[data-section='series'] > [data-section='series'],
   #dashboard[data-section='pages'] > [data-section='pages'],
@@ -1252,33 +1268,165 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   #dashboard[data-section='site'] > [data-section='site'] {
     display: flex;
   }
-  .admin-sections {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    display: flex;
-    gap: 0.25rem;
-    margin: -0.25rem 0 0;
-    padding-top: env(safe-area-inset-top);
-    background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border);
+  /* The CMS layout: the sidebar beside the sections and editors, on wide screens; on a phone, a bar
+     along the bottom with the main sections, and More for the rest (src/lib/admin/sections.ts) */
+  .admin:has(#signedIn:not([hidden])) {
+    max-width: 84rem;
   }
-  .admin-sections a {
-    flex: 1 1 0;
-    min-height: 2.75rem;
+  body[data-view='editor'] .admin {
+    max-width: 92rem;
+  }
+  #signedIn:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  #signedIn > :not(.admin-side) {
+    min-width: 0;
+  }
+  #dashboard {
+    width: 100%;
+    max-width: 44rem;
+  }
+  .admin-side {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .admin-side a {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    border-radius: 0.375rem;
     color: var(--color-muted);
-    border-bottom: 2px solid transparent;
   }
-  .admin-sections a[aria-current='page'] {
+  .admin-side a:hover {
     color: var(--color-text);
-    border-bottom-color: var(--color-primary);
   }
-  .admin-sections a:focus-visible {
+  .admin-side a[aria-current='page'] {
+    color: var(--color-primary);
+    background: var(--color-bg-alt);
+  }
+  .admin-side a:focus-visible,
+  .admin-side-more:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: -2px;
+  }
+  .admin-side-group {
+    margin: 0.75rem 0.75rem 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+  .admin-count {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+  .admin-side-more {
+    display: none;
+  }
+  @media (min-width: 56rem) {
+    #signedIn:not([hidden]) {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      gap: 2rem;
+      align-items: start;
+    }
+    .admin-side {
+      grid-column: 1;
+      grid-row: 1 / span 4;
+      position: sticky;
+      top: 1rem;
+    }
+    #signedIn > :not(.admin-side) {
+      grid-column: 2;
+    }
+  }
+  @media (max-width: 55.99rem) {
+    .admin {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+    .admin-side {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 20;
+      flex-direction: row;
+      padding: 0.25rem 0.5rem env(safe-area-inset-bottom);
+      background: var(--color-bg);
+      border-top: 1px solid var(--color-border);
+    }
+    .admin-side > a:not([data-primary]),
+    .admin-side-group,
+    .admin-side .admin-count {
+      display: none;
+    }
+    .admin-side a,
+    .admin-side-more {
+      flex: 1 1 0;
+      justify-content: center;
+      min-height: 3rem;
+      font-size: 0.8125rem;
+    }
+    .admin-side-more {
+      display: flex;
+      align-items: center;
+      background: none;
+      border: 0;
+      color: var(--color-muted);
+      font: inherit;
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+    /* An editor has its own back button and bars; the bottom bar would cover them */
+    body:is([data-view='editor'], [data-view='series'], [data-view='page']) .admin-side {
+      display: none;
+    }
+    body:is([data-view='editor'], [data-view='series'], [data-view='page']) .admin {
+      padding-bottom: max(3rem, env(safe-area-inset-bottom));
+    }
+    /* More: every section, as a sheet above the bar */
+    .admin-side[data-open] {
+      flex-direction: column;
+      padding-top: 0.75rem;
+      max-height: 85dvh;
+      overflow-y: auto;
+      border-radius: 0.75rem 0.75rem 0 0;
+      box-shadow: 0 -8px 24px rgb(0 0 0 / 0.3);
+    }
+    .admin-side[data-open] > a:not([data-primary]),
+    .admin-side[data-open] .admin-side-group {
+      display: flex;
+    }
+    .admin-side[data-open] a {
+      justify-content: space-between;
+      flex: none;
+    }
+    .admin-side[data-open] .admin-count {
+      display: inline;
+    }
+  }
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 0.5rem;
+  }
+  .admin-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    font-size: 0.8125rem;
+  }
+  .admin-stat strong {
+    font-size: 1.25rem;
+    color: var(--color-text);
+  }
+  .admin-quick {
+    flex-wrap: wrap;
   }
   .admin-card-preview {
     display: flex;
