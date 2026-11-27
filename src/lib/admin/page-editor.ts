@@ -55,7 +55,8 @@ import { el, errorText, formatTime, message, revalidate, saveState } from './dom
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-form';
 import { iconField, logoField } from './icon-field';
-import { designField } from './design-field';
+import { ACCENT_COLOURS, choiceField, designField } from './design-field';
+import { ACCENTS, DEFAULT_SITE_THEME } from '~/lib/site-theme.mjs';
 import { resetCardStyle } from './card-style';
 import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
@@ -114,7 +115,7 @@ export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'c
     collection: THEME_COLLECTION,
     lexicon: themeLexicon as LexiconDoc,
     page: '/',
-    initial: () => ({ cardDesign: DEFAULT_CARD_DESIGN }),
+    initial: () => ({ ...DEFAULT_SITE_THEME, cardDesign: DEFAULT_CARD_DESIGN }),
   },
   home: {
     title: 'Home',
@@ -173,6 +174,34 @@ export function pageRoute(hash: string): PageRoute | undefined {
 
 const routeKey = (r: PageRoute) =>
   'page' in r ? `page/${r.page}` : 'project' in r ? `project/${r.project}` : 'event' in r ? `event/${r.event}` : 'newEvent' in r ? 'new-event' : 'new-project';
+
+/** The Theme editor's fields: light or dark, the accent, and the cards' design */
+function themeFields() {
+  const ownPick = 'A visitor’s own pick (the sidebar’s buttons) still wins. Saving changes the site at once.';
+  return {
+    mode: choiceField(
+      'mode',
+      'Light or dark',
+      `For visitors who haven’t picked. ${ownPick}`,
+      [
+        { value: 'device', label: 'Follow the device' },
+        { value: 'dark', label: 'Dark' },
+        { value: 'light', label: 'Light' },
+      ],
+      DEFAULT_SITE_THEME.mode,
+      onChange,
+    ),
+    accent: choiceField(
+      'accent',
+      'Accent colour',
+      `Links, the cursor and highlights, for visitors who haven’t picked one. ${ownPick}`,
+      ACCENTS.map((a) => ({ value: a, label: a[0].toUpperCase() + a.slice(1), swatch: ACCENT_COLOURS[a] })),
+      DEFAULT_SITE_THEME.accent,
+      onChange,
+    ),
+    cardDesign: designField(onChange),
+  };
+}
 
 /** The event lexicon with only the rough fields, for an event that isn't over or announced */
 const roughEventLexicon: LexiconDoc = (() => {
@@ -327,7 +356,7 @@ function fill(value: Value) {
     // The site's icon uploads files, which the lexicon can't make a form for
     ...(current.collection === SITE_COLLECTION ? { custom: { icon: iconField(session, onChange) } } : {}),
     ...(current.route === 'page/publication' ? { custom: { icon: logoField(session, onChange) } } : {}),
-    ...(current.collection === THEME_COLLECTION ? { custom: { cardDesign: designField(onChange) } } : {}),
+    ...(current.collection === THEME_COLLECTION ? { custom: themeFields() } : {}),
     // The selected projects, on the CV and the home page
     choices: () =>
       projects

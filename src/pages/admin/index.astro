@@ -1618,6 +1618,34 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     border-color: var(--color-primary);
     box-shadow: 0 0 0 1px var(--color-primary);
   }
+  .admin-choice-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .admin-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .admin-choice:has(input:checked) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+  .admin-swatch {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 999px;
+    background: var(--swatch-dark);
+  }
+  [data-theme='light'] .admin-swatch {
+    background: var(--swatch-light);
+  }
   .admin-design canvas {
     width: 100%;
     height: auto;

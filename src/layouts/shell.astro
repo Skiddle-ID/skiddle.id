@@ -5,7 +5,7 @@ import Footer from '../components/footer.astro';
 import Icon from '../components/icon.astro';
 import CommandBar from '../components/command-bar.astro';
 import { scriptJson } from '../lib/script-json.mjs';
-import { getSiteMeta } from '~/lib/page-content';
+import { getSiteMeta, getSiteTheme } from '~/lib/page-content';
 import { pageMetaOf } from '~/lib/site-meta.mjs';
 
 import '../style.css';
@@ -26,7 +26,9 @@ interface Props {
 const { image, type = 'website', atDocument, feed } = Astro.props;
 // The site's metadata (id.skiddle.site, src/lib/site-meta.mjs): its name, description, keywords and
 // author, and this page's own entry, which wins over what the page says
-const siteMeta = await getSiteMeta();
+const [siteMeta, theme] = await Promise.all([getSiteMeta(), getSiteTheme()]);
+// Without JavaScript, or until the script below runs: the theme's mode, dark when it follows the device
+const firstMode = theme.mode === 'light' ? 'light' : 'dark';
 const { title, description, keywords, noindex } = pageMetaOf(siteMeta, Astro.url.pathname, Astro.props);
 const author = siteMeta.author;
 const site = Astro.site!;
@@ -68,14 +70,16 @@ const jsonLd = {
 };
 ---
 
-<html lang="en" data-theme="dark" data-accent="blue">
+<html lang="en" data-theme={firstMode} data-accent={theme.accent} data-site-mode={theme.mode} data-site-accent={theme.accent}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <!-- Apply the theme and accent before first paint (no flash). A theme picked on the site wins;
-         otherwise follow the device's light/dark setting. Without JavaScript it stays dark. -->
+    <!-- Apply the theme and accent before first paint (no flash). A visitor's own pick wins; otherwise
+         the site's theme (id.skiddle.theme, data-site-mode and data-site-accent): its mode, or the
+         device's light/dark setting when it follows the device. Without JavaScript, the theme's
+         mode, dark when it follows the device. -->
     <script is:inline>
       (function () {
         const d = document.documentElement;
@@ -85,7 +89,8 @@ const jsonLd = {
           t = localStorage.getItem('theme');
           a = localStorage.getItem('accent');
         } catch (e) {}
-        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        const mode = d.dataset.siteMode;
+        if (t !== 'light' && t !== 'dark') t = mode === 'light' || mode === 'dark' ? mode : matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         d.dataset.theme = t;
         if (a) d.dataset.accent = a;
       })();
