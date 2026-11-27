@@ -4,11 +4,18 @@
   Opens with Ctrl+K (⌘K on a Mac) or / on desktop, or anything with [data-cmdk-open] (the sidebar's
   "search" row, the search icon in the mobile top bar). Those are links to /posts/, so search
   still works without JavaScript. Desktop: a box near the top. Mobile: a full-screen sheet.
-  Posts, series and categories come from /search.json, fetched the first time the bar opens.
+  Posts, series and categories come from /search.json, fetched the first time the bar opens. The
+  pages are the site's own and the menu's (src/lib/site-meta.mjs's commandPagesOf), in data-pages.
 */
+import type { CommandPage } from '~/lib/site-meta.mjs';
+
+interface Props {
+  pages: CommandPage[];
+}
+const { pages } = Astro.props;
 ---
 
-<dialog id="commandBar" class="cmdk print:hidden" aria-label="Search posts, pages and commands">
+<dialog id="commandBar" class="cmdk print:hidden" aria-label="Search posts, pages and commands" data-pages={JSON.stringify(pages)}>
   <div class="cmdk-panel">
     <div class="cmdk-head">
       <span class="cmdk-prompt prompt" aria-hidden="true"><span class="text-[var(--color-primary)]">skiddle@web</span>:~$</span>
@@ -150,6 +157,7 @@
 
 <script>
   import { isMacPlatform, platformName, shortcutKey, shortcutLabel } from '~/lib/shortcuts.mjs';
+  import type { CommandPage } from '~/lib/site-meta.mjs';
 
   interface IndexedPost {
     title: string;
@@ -198,21 +206,8 @@
   if (dialogEl && inputEl && listEl && statusEl) setup(dialogEl, inputEl, listEl, statusEl);
 
   function setup(dialog: HTMLDialogElement, input: HTMLInputElement, list: HTMLElement, status: HTMLElement) {
-    // `keywords` are only for matching (taken from each page's description), not shown
-    const PAGES: { path: string; label: string; hint: string; keywords: string }[] = [
-      { path: '/', label: 'home', hint: 'start here', keywords: 'index start' },
-      { path: '/posts/', label: 'posts', hint: 'everything I have written', keywords: 'blog articles writing archive' },
-      { path: '/series/', label: 'series', hint: 'multi-part posts, in reading order', keywords: 'parts' },
-      { path: '/topics/', label: 'topics', hint: 'posts by topic and tag', keywords: 'tags categories' },
-      { path: '/about/', label: 'about', hint: 'who I am', keywords: 'me protocol engineer founder skiddle labs bangkok homelab open web private pilot flying' },
-      { path: '/now/', label: 'now', hint: 'what I’m doing now', keywords: 'work study flying current focus' },
-      { path: '/notes/', label: 'notes', hint: 'short posts from Bluesky', keywords: 'bluesky posts microblog thoughts #note' },
-      { path: '/works/', label: 'works', hint: 'CV: experience, skills, certifications', keywords: 'resume cv experience skills projects education certifications jobs' },
-      { path: '/projects/', label: 'projects', hint: 'open-source projects', keywords: 'open source apis automation tools code demos' },
-      { path: '/uses/', label: 'uses', hint: 'hardware, software and tools', keywords: 'setup machines homelab dev creative tools flight bag gear' },
-      { path: '/listening/', label: 'listening', hint: 'what I’ve been listening to', keywords: 'music now playing songs artists plays teal.fm spotify apple music last.fm' },
-      { path: '/services/', label: 'services', hint: 'infrastructure help', keywords: 'hire server hardening ci/cd ansible automation monitoring self-hosting website setup' },
-    ];
+    // The site's pages and the menu's, from the layout; `keywords` are only for matching, not shown
+    const PAGES: CommandPage[] = JSON.parse(dialog.dataset.pages ?? '[]');
 
     let posts: IndexedPost[] | null = null;
     let seriesList: IndexedSeries[] = [];
@@ -244,17 +239,16 @@
 
     const actions = (): (Item & { keywords: string })[] => {
       const light = document.documentElement.dataset.theme === 'light';
+      // The sidebar's theme and accent buttons, unless the site hides them (id.skiddle.site)
+      const themeButton = document.getElementById('themeToggle');
+      const accentButton = document.getElementById('accentToggle');
       return [
-        {
-          label: `Switch to ${light ? 'dark' : 'light'} theme`,
-          keywords: 'theme dark light mode toggle',
-          run: () => { document.getElementById('themeToggle')?.click(); return true; },
-        },
-        {
-          label: 'Next accent colour',
-          keywords: 'accent colour color palette',
-          run: () => { document.getElementById('accentToggle')?.click(); return true; },
-        },
+        ...(themeButton
+          ? [{ label: `Switch to ${light ? 'dark' : 'light'} theme`, keywords: 'theme dark light mode toggle', run: () => { themeButton.click(); return true; } }]
+          : []),
+        ...(accentButton
+          ? [{ label: 'Next accent colour', keywords: 'accent colour color palette', run: () => { accentButton.click(); return true; } }]
+          : []),
         {
           label: copied ? 'Link copied ✓' : 'Copy link to this page',
           keywords: 'copy link url share',
@@ -317,7 +311,7 @@
 
       if (!terms.length) {
         out.push({ label: 'latest posts', items: posts ? posts.slice(0, 5).map(postItem) : [], note: posts ? undefined : note });
-        out.push({ label: 'pages', items: PAGES.map((pg) => ({ label: pg.label, href: pg.path, meta: pg.path, detail: pg.hint })) });
+        out.push({ label: 'pages', items: PAGES.map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
         out.push({ label: 'actions', items: actions() });
         return out;
       }
@@ -340,7 +334,7 @@
           .filter((c) => has(`${c.label} ${c.id} ${c.description} category topic`))
           .map((c) => ({ label: c.label, href: c.url, meta: `${c.posts} ${c.posts === 1 ? 'post' : 'posts'}`, detail: c.description })),
       });
-      out.push({ label: 'pages', items: PAGES.filter((pg) => has(`${pg.label} ${pg.path} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.path, meta: pg.path, detail: pg.hint })) });
+      out.push({ label: 'pages', items: PAGES.filter((pg) => has(`${pg.label} ${pg.href} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
       out.push({ label: 'actions', items: actions().filter((a) => has(`${a.label} ${a.keywords}`)) });
       return out.filter((g) => g.items.length || g.note);
     }
@@ -458,7 +452,7 @@
       if (!it.href) return;
       const url = new URL(it.href, location.href);
       if (newTab) { window.open(url, '_blank', 'noopener'); return; }
-      if (url.pathname === location.pathname && url.search === location.search) { close(); return; }
+      if (url.origin === location.origin && url.pathname === location.pathname && url.search === location.search) { close(); return; }
       // Replace the history entry the bar added, so Back from the new page returns here, not to the open bar
       navigating = true;
       const replace = history.state?.cmdk === true;

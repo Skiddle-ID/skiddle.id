@@ -1,20 +1,18 @@
 ---
 import Icon from './icon.astro';
+import { isExternal, type SiteFrame } from '~/lib/site-meta.mjs';
+
+/** The frame from the id.skiddle.site record, or the built-in one (src/data/frame.ts), via src/layouts/shell.astro */
+type Props = Pick<SiteFrame, 'menu' | 'hideMusic' | 'hideThemeButtons'>;
+const { menu, hideMusic, hideThemeButtons } = Astro.props;
 
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const links = [
-  { href: '/posts/', label: 'posts' },
-  { href: '/notes/', label: 'notes' },
-  { href: '/timeline/', label: 'timeline' },
-  { href: '/about/', label: 'about' },
-  { href: '/works/', label: 'works' },
-  { href: '/projects/', label: 'projects' },
-  { href: '/uses/', label: 'uses' },
-  { href: '/services/', label: 'services' },
-];
+// A link's page, without a trailing slash; the home page is '/'
+const pageOf = (href: string) => href.split(/[?#]/)[0].replace(/\/$/, '') || '/';
 const isActive = (href: string) => {
-  const h = href.replace(/\/$/, '');
-  return path === h || path.startsWith(h + '/') || (h === '/posts' && path.startsWith('/topics'));
+  if (!href.startsWith('/')) return false;
+  const h = pageOf(href);
+  return path === h || (h !== '/' && path.startsWith(h + '/')) || (h === '/posts' && path.startsWith('/topics'));
 };
 ---
 
@@ -24,17 +22,19 @@ const isActive = (href: string) => {
   </a>
 
   <ul class="flex flex-col">
-    {links.map((l) => (
+    {menu.map((l) => (
       <li>
         <a
           href={l.href}
+          target={isExternal(l.href) ? '_blank' : undefined}
+          rel={isExternal(l.href) ? 'noopener' : undefined}
           aria-current={isActive(l.href) ? 'page' : undefined}
           class:list={[
             'block py-1 px-2 -mx-2 rounded-sm transition-colors hover:text-[var(--color-primary)]',
             isActive(l.href) && 'text-[var(--color-primary)]',
           ]}
         >
-          {isActive(l.href) ? <span aria-hidden="true">&gt; </span> : <span aria-hidden="true" class="opacity-0">&gt; </span>}{l.label}
+          {isActive(l.href) ? <span aria-hidden="true">&gt; </span> : <span aria-hidden="true" class="opacity-0">&gt; </span>}{l.icon && <Icon name={l.icon} size={14} class="inline-block align-[-2px] mr-1.5" />}{l.label}
         </a>
       </li>
     ))}
@@ -55,23 +55,27 @@ const isActive = (href: string) => {
 
   <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Opens the
        listening history, which links each track -->
-  <a id="nowPlaying" href="/listening/" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
-    <span class="flex items-center gap-1.5 mb-1">
-      <Icon name="music" size={12} class="text-[var(--color-primary)]" />
-      <span id="nowPlayingLabel">last played</span>
-    </span>
-    <span id="nowPlayingTrack" class="block text-[var(--color-text)] group-hover:text-[var(--color-primary)] line-clamp-2"></span>
-    <span id="nowPlayingArtist" class="block line-clamp-1"></span>
-  </a>
+  {!hideMusic && (
+    <a id="nowPlaying" href="/listening/" class="hidden mt-5 text-xs leading-snug text-[var(--color-muted)] hover:text-[var(--color-text)] group">
+      <span class="flex items-center gap-1.5 mb-1">
+        <Icon name="music" size={12} class="text-[var(--color-primary)]" />
+        <span id="nowPlayingLabel">last played</span>
+      </span>
+      <span id="nowPlayingTrack" class="block text-[var(--color-text)] group-hover:text-[var(--color-primary)] line-clamp-2"></span>
+      <span id="nowPlayingArtist" class="block line-clamp-1"></span>
+    </a>
+  )}
 
   <div class="mt-auto pt-4 flex items-center gap-1 text-[var(--color-muted)]">
-    <button id="themeToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" aria-label="Switch to light theme" title="Toggle theme">
-      <span class="theme-icon-dark"><Icon name="sun" /></span>
-      <span class="theme-icon-light hidden"><Icon name="moon" /></span>
-    </button>
-    <button id="accentToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full text-[var(--color-primary)] hover:scale-110 transition-transform" aria-label="Change accent colour" title="Change accent colour">
-      <Icon name="palette" size={16} />
-    </button>
+    {!hideThemeButtons && (
+      <button id="themeToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" aria-label="Switch to light theme" title="Toggle theme">
+        <span class="theme-icon-dark"><Icon name="sun" /></span>
+        <span class="theme-icon-light hidden"><Icon name="moon" /></span>
+      </button>
+      <button id="accentToggle" type="button" class="inline-flex items-center justify-center size-8 rounded-full text-[var(--color-primary)] hover:scale-110 transition-transform" aria-label="Change accent colour" title="Change accent colour">
+        <Icon name="palette" size={16} />
+      </button>
+    )}
     <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="https://github.com/arcestia" target="_blank" rel="me noopener noreferrer" aria-label="GitHub"><Icon name="github" /></a>
     <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="https://bsky.app/profile/skiddle.blue" target="_blank" rel="me noopener noreferrer" aria-label="Bluesky"><Icon name="bluesky" /></a>
     <a class="inline-flex items-center justify-center size-8 rounded-full hover:text-[var(--color-primary)]" href="/rss.xml" aria-label="RSS feed"><Icon name="rss" /></a>
