@@ -4,11 +4,14 @@
  * src/lib/site-meta.mjs), in the browser, since the site has no image resizing, and each is
  * uploaded. The record keeps them once it's saved; until then the PDS drops them. A non-square image
  * is cropped to its middle square. Remove goes back to the built-in icons in /public.
+ *
+ * Also the publication's logo (logoField), in the Publication editor.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import type { Field } from './lexicon-form';
 import { errorText } from './dom';
-import { uploadBlob, type BlobRef } from './xrpc';
+import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
+import { getRecord, uploadBlob, type BlobRef } from './xrpc';
 
 interface Icon {
   source?: BlobRef;
@@ -131,5 +134,123 @@ export function iconField(session: OAuthSession, onChange: () => void) {
     paintUrl(icon ? `/media/${icon.png192.ref.$link}` : '/apple-touch-icon.png');
     show();
     return { el: wrap, read: () => icon };
+  };
+}
+
+/** The most a publication's logo may be, as Standard.site's lexicon allows */
+const MAX_LOGO = 1_000_000;
+
+/**
+ * The publication's logo (site.standard.publication's icon, in the Publication editor): one square
+ * image that readers like Standard.site's apps show beside its name. Pick an image and it's cropped
+ * to its middle square and drawn at 512 px as a PNG, or use the site's own icon (id.skiddle.site's
+ * 512 px size, already in the repo, so nothing is uploaded).
+ */
+export function logoField(session: OAuthSession, onChange: () => void) {
+  return (initial: unknown): Field => {
+    let logo: BlobRef | undefined = (initial as BlobRef | undefined)?.ref?.$link ? (initial as BlobRef) : undefined;
+    const wrap = document.createElement('div');
+    wrap.className = 'admin-field';
+    const label = document.createElement('div');
+    label.className = 'admin-label-row';
+    label.textContent = 'Logo';
+    const row = document.createElement('div');
+    row.className = 'admin-icon-row';
+    const preview = document.createElement('canvas');
+    preview.className = 'admin-icon-preview';
+    preview.width = 128;
+    preview.height = 128;
+    preview.setAttribute('aria-hidden', 'true');
+    const paint = (image?: CanvasImageSource, w = 0, h = 0) => {
+      const ctx = preview.getContext('2d')!;
+      ctx.clearRect(0, 0, preview.width, preview.height);
+      if (!image) return;
+      const side = Math.min(w, h);
+      ctx.drawImage(image, (w - side) / 2, (h - side) / 2, side, side, 0, 0, preview.width, preview.height);
+    };
+    const paintUrl = (src: string) => {
+      const img = new Image();
+      img.onload = () => paint(img, img.naturalWidth, img.naturalHeight);
+      img.src = src;
+    };
+    const note = document.createElement('p');
+    note.className = 'admin-small';
+    const pick = document.createElement('label');
+    pick.className = 'admin-btn';
+    pick.textContent = 'Choose an image';
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = TYPES.join(',');
+    input.className = 'sr-only';
+    pick.appendChild(input);
+    const fromSite = document.createElement('button');
+    fromSite.type = 'button';
+    fromSite.className = 'admin-btn';
+    fromSite.textContent = 'Use the site’s icon';
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'admin-btn';
+    remove.textContent = 'No logo';
+    const help = document.createElement('p');
+    help.className = 'admin-small';
+    help.textContent = 'One square image, 512 px or bigger (PNG, JPEG or WebP), made into a 512 px PNG. Readers that show your publication (Standard.site’s apps) show it beside its name.';
+
+    const show = (text = '') => {
+      remove.hidden = !logo;
+      note.textContent = text || (logo ? 'The logo, from the record.' : 'No logo.');
+    };
+    const set = (next: BlobRef | undefined, text: string) => {
+      logo = next;
+      show(text);
+      onChange();
+    };
+
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      if (!TYPES.includes(file.type)) return show('Pick a PNG, JPEG or WebP image.');
+      if (file.size > MAX_SOURCE) return show('That image is over 5 MB.');
+      try {
+        show('Making the logo…');
+        const bitmap = await createImageBitmap(file);
+        const small = Math.min(bitmap.width, bitmap.height) < 512;
+        const png = await drawPng(bitmap, 512);
+        paint(bitmap, bitmap.width, bitmap.height);
+        bitmap.close();
+        if (png.size > MAX_LOGO) return show('Made at 512 px, it’s over 1 MB: try a simpler image.');
+        show('Uploading…');
+        set(await uploadBlob(session, png), `Ready: save to use it.${small ? ' It’s under 512 px, so it will look soft.' : ''}`);
+      } catch (err) {
+        show(`Couldn’t make the logo: ${errorText(err)}`);
+      }
+    });
+    fromSite.addEventListener('click', async () => {
+      try {
+        const site = await getRecord<{ icon?: { png512?: BlobRef } }>(session, SITE_COLLECTION, 'self');
+        const png = site?.value.icon?.png512;
+        if (!png?.ref?.$link) return show('The site has no icon yet: add one in Site and SEO first.');
+        paintUrl(`/media/${png.ref.$link}`);
+        set(png, 'The site’s icon: save to use it.');
+      } catch (err) {
+        show(`Couldn’t read the site’s icon: ${errorText(err)}`);
+      }
+    });
+    remove.addEventListener('click', () => {
+      paint();
+      set(undefined, 'No logo: save to remove it.');
+    });
+
+    row.appendChild(preview);
+    row.appendChild(pick);
+    row.appendChild(fromSite);
+    row.appendChild(remove);
+    wrap.appendChild(label);
+    wrap.appendChild(row);
+    wrap.appendChild(note);
+    wrap.appendChild(help);
+    if (logo) paintUrl(`/media/${logo.ref.$link}`);
+    show();
+    return { el: wrap, read: () => logo };
   };
 }

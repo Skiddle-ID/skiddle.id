@@ -5,6 +5,10 @@
  *   - #page/home, #page/cv, #page/services, #page/uses, #page/about, #page/now and #page/notes: each
  *     page's record, key `self`. Home and Now start with the built-in text (src/data/home.ts,
  *     src/data/now.ts) if there's no record yet
+ *   - #page/publication: the Standard.site publication (site.standard.publication, its fixed key
+ *     PUBLICATION_RKEY): its name, description, logo and whether readers may list it. The form uses
+ *     the part of Standard.site's lexicon it edits (src/lib/admin/publication-lexicon.ts); the rest
+ *     (its url, which /.well-known/site.standard.publication proves, and its theme) is kept as it is
  *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
@@ -47,7 +51,9 @@ import { ranked, valuesAt } from '~/lib/suggest.mjs';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-form';
-import { iconField } from './icon-field';
+import { iconField, logoField } from './icon-field';
+import { publicationLexicon } from './publication-lexicon';
+import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
 
 type Value = Record<string, unknown>;
@@ -62,13 +68,19 @@ interface PageEditor {
   initial?: () => Value;
   /** Problems the lexicon can't express */
   check?: (value: Value) => string[];
+  /** Its record key, when it isn't `self` */
+  rkey?: string;
+  /** Fields always written, whatever the form says */
+  fixed?: Value;
+  /** Not our lexicon, which has no updatedAt: saving adds no dates */
+  noDates?: boolean;
 }
 
 /** How many posts and drafts use each category (src/lib/admin/editor.ts, via setupPageEditor) */
 let categoryUsage: () => Map<string, number> = () => new Map();
 
 /** The records with key `self` that have an editor, by their editor's address */
-export const PAGE_EDITORS: Record<'site' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
+export const PAGE_EDITORS: Record<'site' | 'publication' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
   site: {
     title: 'Site and search engines',
     collection: SITE_COLLECTION,
@@ -79,6 +91,17 @@ export const PAGE_EDITORS: Record<'site' | 'home' | 'cv' | 'services' | 'uses' |
       const { pages: _pages, keywords, ...rest } = FALLBACK_SITE;
       return { ...rest, ...(keywords.length ? { keywords: [...keywords] } : {}), author: structuredClone(FALLBACK_SITE.author), profiles: [...FALLBACK_SITE.profiles] };
     },
+  },
+  publication: {
+    title: 'Publication',
+    collection: 'site.standard.publication',
+    lexicon: publicationLexicon,
+    page: '/',
+    rkey: PUBLICATION_RKEY,
+    // The address /.well-known/site.standard.publication proves the record is this site's
+    fixed: { url: SITE_URL },
+    noDates: true,
+    initial: () => ({ name: PUBLICATION_NAME, description: PUBLICATION_DESCRIPTION, preferences: { showInDiscover: true } }),
   },
   home: {
     title: 'Home',
@@ -126,7 +149,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
   if (hash === NEW_EVENT) return { newEvent: true };
-  const page = /^#page\/(site|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
+  const page = /^#page\/(site|publication|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
@@ -162,6 +185,8 @@ interface Open {
   full?: LexiconDoc;
   /** An event's form shows only its rough fields */
   rough?: boolean;
+  fixed?: Value;
+  noDates?: boolean;
   cid?: string;
   record?: Value;
   read: () => Value;
@@ -215,7 +240,7 @@ export async function openPage(route: PageRoute) {
   document.body.dataset.view = 'page';
   const target: PageEditor & { rkey?: string } =
     'page' in route
-      ? { ...PAGE_EDITORS[route.page], rkey: 'self' }
+      ? { ...PAGE_EDITORS[route.page], rkey: PAGE_EDITORS[route.page].rkey ?? 'self' }
       : 'event' in route || 'newEvent' in route
         ? { title: 'event' in route ? 'An event' : 'A new event', collection: EVENT_COLLECTION, lexicon: eventLexicon as LexiconDoc, page: '/timeline/', rkey: 'event' in route ? route.event : undefined, check: eventProblems }
         : { title: 'project' in route ? route.project : 'A new project', collection: PROJECT_COLLECTION, lexicon: projectLexicon as LexiconDoc, page: '/projects/', rkey: 'project' in route ? route.project : undefined };
@@ -288,6 +313,7 @@ function fill(value: Value) {
     onChange,
     // The site's icon uploads files, which the lexicon can't make a form for
     ...(current.collection === SITE_COLLECTION ? { custom: { icon: iconField(session, onChange) } } : {}),
+    ...(current.route === 'page/publication' ? { custom: { icon: logoField(session, onChange) } } : {}),
     // The selected projects, on the CV and the home page
     choices: () =>
       projects
@@ -370,8 +396,8 @@ function recordOf(o: Open, value: Value, at: string): Value {
   // An event's detail fields count as known while its form leaves them out, so they aren't kept
   const known = new Set(Object.keys(recordSchema(o.full ?? o.lexicon).properties ?? {}));
   const kept = Object.fromEntries(Object.entries(o.record ?? {}).filter(([k]) => !known.has(k) && k !== '$type'));
-  const dates = isItem(o) ? { createdAt: (o.record?.createdAt as string | undefined) ?? at, ...(o.record ? { updatedAt: at } : {}) } : { updatedAt: at };
-  return { $type: o.collection, ...kept, ...value, ...dates };
+  const dates = o.noDates ? {} : isItem(o) ? { createdAt: (o.record?.createdAt as string | undefined) ?? at, ...(o.record ? { updatedAt: at } : {}) } : { updatedAt: at };
+  return { $type: o.collection, ...kept, ...value, ...o.fixed, ...dates };
 }
 
 async function save(force = false) {
@@ -413,7 +439,8 @@ async function save(force = false) {
         el('peTitle').textContent = isEvent(target) ? eventTitle(record) : String(record.name ?? rkey);
       }
       el('peNote').hidden = true;
-      step(`Saved ${formatTime(String(record.updatedAt ?? record.createdAt))}`);
+      const at = record.updatedAt ?? record.createdAt;
+      step(typeof at === 'string' ? `Saved ${formatTime(at)}` : 'Saved');
       refresh();
     }
   } catch (err) {

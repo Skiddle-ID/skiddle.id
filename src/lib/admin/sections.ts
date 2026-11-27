@@ -2,7 +2,7 @@
  * The admin app's sections, one at a time beside the sidebar: Overview (src/lib/admin/overview.ts),
  * then Content (Posts, Series, Pages, Timeline, Media) and Site (Status, Site and SEO, Lexicons and cards).
  * Each has an address (#overview, #posts, #series, #pages, #timeline, #media, #status, #site), so a reload
- * or a home-screen shortcut opens the same one; Site and SEO is the #page/site editor. The editors
+ * or a home-screen shortcut opens the same one; Site and SEO is the #page/site editor, Publication the #page/publication one. The editors
  * (#draft/…, #post/…, #series/…, #page/…, #project/…, #event/…) take the sections' place while
  * they're open, and the sidebar marks the section they belong to.
  *
@@ -26,6 +26,7 @@ function navItemOf(hash: string): string {
   if (/^#(draft|post)\//.test(hash) || hash === '#page/categories') return 'posts';
   if (/^#(series\/|new-series$)/.test(hash)) return 'series';
   if (hash === '#page/site') return 'seo';
+  if (hash === '#page/publication') return 'publication';
   if (/^#(page\/|project\/|new-project$)/.test(hash)) return 'pages';
   if (/^#(event\/|new-event$)/.test(hash)) return 'timeline';
   return sectionFromHash(hash);

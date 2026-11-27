@@ -48,6 +48,7 @@ export const COLLECTIONS = [
   'id.skiddle.home',
   'id.skiddle.site',
   'site.standard.document',
+  'site.standard.publication',
   'id.skiddle.series',
   'id.skiddle.categories',
   'app.bsky.feed.generator',
