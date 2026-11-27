@@ -1,0 +1,142 @@
+/*
+  The blocks' own styles (src/components/blocks/), loaded on every page by src/style.css. They live
+  here, not in each component's <style>: Astro 7.4 drops the scoped styles of components that only
+  pages rendered on request share (a component on one such page keeps them), and blocks are shared
+  by every page made of them. Unlayered, like scoped styles, so they win over Tailwind's utilities.
+*/
+
+/* The facts block's colour blocks, which double as the accent picker */
+.accent-swatch { background: var(--swatch-dark); }
+[data-theme='light'] .accent-swatch { background: var(--swatch-light); }
+.accent-swatch[aria-pressed='true'] { border-color: var(--color-text); }
+
+/* The testimonials block's slider (src/components/testimonial-slider.astro) */
+.slider-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  border-radius: var(--radius-xs, 2px);
+}
+.slider-track::-webkit-scrollbar {
+  display: none;
+}
+.slider-track:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+/* Each slide is the track's whole width; the tallest sets the height, so nothing jumps */
+.slider-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.slider-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.slider-btn:hover {
+  color: var(--color-primary);
+}
+/* A dot inside a bigger button, so it's easy to hit */
+.slider-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.75rem;
+  cursor: pointer;
+}
+.slider-dot > span {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  transition: background-color 0.2s, width 0.2s;
+}
+.slider-dot[aria-current='true'] > span {
+  width: 0.875rem;
+  background: var(--color-primary);
+}
+.slider-dot:hover > span {
+  background: var(--color-primary);
+}
+.slider-btn:focus-visible,
+.slider-dot:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .slider-dot > span {
+    transition: none;
+  }
+}
+
+/* The reviews block: a row of equal cards, 1 in view on a phone (with the next peeking), 2 on a tablet, 3 wide */
+/* The testimonials' row: equal cards, 1 in view on a phone (with the next peeking), 2 on a tablet, 3 wide */
+.ts-track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.ts-track::-webkit-scrollbar {
+  display: none;
+}
+.ts-track:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-md, 6px);
+}
+.ts-card {
+  flex: 0 0 85%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .ts-card {
+    flex-basis: calc((100% - 0.75rem) / 2);
+  }
+}
+@media (min-width: 1024px) {
+  .ts-card {
+    flex-basis: calc((100% - 1.5rem) / 3);
+  }
+}
+/* A long quote, cut at 7 lines until "Read more" (only with JavaScript, which adds the class) */
+.ts-quote.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+  line-clamp: 7;
+  overflow: hidden;
+}
+.ts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ts-btn:hover {
+  color: var(--color-primary);
+}
+.ts-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
