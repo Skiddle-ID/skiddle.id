@@ -1,6 +1,7 @@
 /**
  * Share cards drawn in the browser: a post's when the admin app publishes it, a series' when it's
- * saved, and either when the editor shows it. The same layout as the build's cards
+ * saved, a page's when the block editor publishes it, and a post's or a series' when its editor
+ * shows it. The same layout as the build's cards
  * (src/lib/share-card-layout.ts), turned into a PNG by resvg's WebAssembly build. It draws exactly
  * what the build draws (the same resvg version).
  *
@@ -32,9 +33,9 @@ import type { CardDesign } from '~/lib/card-theme.mjs';
 import { fontOf, type FontId } from '~/lib/site-theme.mjs';
 import { CARD_WIDTH, shareCardSvg, type CardFont } from '~/lib/share-card-layout';
 import { cardStyle } from './card-style';
-import { postCard, seriesCard, type CardPost, type CardSeries, type CardText } from './card-text';
+import { pageCard, postCard, seriesCard, type CardPage, type CardPost, type CardSeries, type CardText } from './card-text';
 
-export type { CardPost, CardSeries };
+export type { CardPage, CardPost, CardSeries };
 
 // The same fonts as the build (src/integrations/share-cards.ts); satori reads WOFF, not WOFF2
 const FONTS: { name: string; weight: 400 | 700; url: string }[] = [
@@ -107,6 +108,9 @@ export const drawPostCard = (post: CardPost) => draw(postCard(post));
 
 /** The series' share card */
 export const drawSeriesCard = (series: CardSeries) => draw(seriesCard(series));
+
+/** A page's share card, drawn when the block editor publishes it (src/lib/admin/block-editor.ts) */
+export const drawPageCard = (page: CardPage) => draw(pageCard(page));
 
 /** A sample post's card in a design, for the Theme editor's previews */
 export const drawSampleCard = (design: CardDesign) =>

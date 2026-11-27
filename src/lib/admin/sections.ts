@@ -3,7 +3,7 @@
  * then Content (Posts, Series, Pages, Timeline, Media) and Site (Status, Site and SEO, Lexicons and cards).
  * Each has an address (#overview, #posts, #series, #pages, #timeline, #media, #status, #site), so a reload
  * or a home-screen shortcut opens the same one; Site and SEO is the #page/site editor, Publication the #page/publication one, Theme the #page/theme one. The editors
- * (#draft/…, #post/…, #series/…, #page/…, #project/…, #event/…) take the sections' place while
+ * (#draft/…, #post/…, #series/…, #page/…, #blocks/…, #project/…, #event/…) take the sections' place while
  * they're open, and the sidebar marks the section they belong to.
  *
  * On a phone the sidebar is a bar along the bottom with Overview, Posts, Timeline and Status, and
@@ -28,7 +28,7 @@ function navItemOf(hash: string): string {
   if (hash === '#page/site') return 'seo';
   if (hash === '#page/publication') return 'publication';
   if (hash === '#page/theme') return 'theme';
-  if (/^#(page\/|project\/|new-project$)/.test(hash)) return 'pages';
+  if (/^#(page\/|project\/|new-project$|blocks\/)/.test(hash)) return 'pages';
   if (/^#(event\/|new-event$)/.test(hash)) return 'timeline';
   return sectionFromHash(hash);
 }

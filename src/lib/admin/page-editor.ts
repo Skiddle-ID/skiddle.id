@@ -31,6 +31,10 @@
  *   - writes it with swapRecord, so a change made on another device isn't overwritten unseen (a
  *     new record with createRecord, which never overwrites one)
  *   - refreshes the site's pages
+ * The Home editor has Move to blocks: it saves the home page, as its saved record shows it, as a draft
+ * of its id.skiddle.page record (home~draft, src/lib/page-blocks.mjs), after a confirm if there's a
+ * draft already, and opens it in the block editor (src/lib/admin/block-editor.ts) to check and publish.
+ *
  * A project can be deleted, after a confirm. Changes are kept on this device until they're saved,
  * as with series. Saving and deleting follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  */
@@ -69,6 +73,8 @@ import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
 import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
+import { PAGE_COLLECTION, draftKey } from '~/lib/page-blocks.mjs';
+import { assertValidPage, legacyHomePage } from './block-editor';
 
 type Value = Record<string, unknown>;
 
@@ -284,6 +290,7 @@ export function setupPageEditor(s: OAuthSession, onSaved: () => Promise<void>, u
   el('peForm').addEventListener('submit', (event) => event.preventDefault());
   el('peSave').addEventListener('click', () => void save());
   el('peDelete').addEventListener('click', () => void remove());
+  el('peToBlocks').addEventListener('click', () => void moveToBlocks());
   el('peLoadTheirs').addEventListener('click', () => void resolveConflict('theirs'));
   el('peKeepMine').addEventListener('click', () => void resolveConflict('mine'));
   el('peRestore').addEventListener('click', restoreBackup);
@@ -449,6 +456,10 @@ function refresh() {
   del.hidden = !isItem(current) || !current.record;
   del.textContent = isEvent(current) ? 'Delete event' : 'Delete project';
   del.disabled = !PUBLISHING_LIVE;
+  const toBlocks = el<HTMLButtonElement>('peToBlocks');
+  toBlocks.hidden = current.route !== 'page/home';
+  toBlocks.disabled = !PUBLISHING_LIVE;
+  el('peToBlocksNote').hidden = toBlocks.hidden;
 }
 
 function onChange() {
@@ -561,6 +572,32 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
     }
   } catch (err) {
     message('peMessage', `Couldn’t load it: ${errorText(err)}`, 'error');
+  }
+}
+
+/**
+ * The Home editor's Move to blocks: the home page as its saved record shows it, saved as the draft of
+ * its page record (after a confirm if there's one already), opened in the block editor
+ */
+async function moveToBlocks() {
+  if (!PUBLISHING_LIVE || current?.route !== 'page/home') return;
+  const target = current;
+  const button = el<HTMLButtonElement>('peToBlocks');
+  button.disabled = true;
+  message('peMessage', '');
+  try {
+    const draft = await getRecord<Value>(session, PAGE_COLLECTION, draftKey('home'));
+    const when = typeof draft?.value.updatedAt === 'string' ? `, saved ${formatTime(draft.value.updatedAt)}` : '';
+    if (draft && !confirm(`Home already has a draft in blocks${when}. Replace it with one made from the Home record as it’s saved?`)) return;
+    const record = legacyHomePage(target.record);
+    await assertValidPage(record);
+    await putRecord(session, PAGE_COLLECTION, draftKey('home'), record, draft?.cid);
+    await revalidate();
+    location.hash = '#blocks/home';
+  } catch (err) {
+    if (current === target) message('peMessage', `Couldn’t move it to blocks: ${errorText(err)}`, 'error');
+  } finally {
+    button.disabled = !PUBLISHING_LIVE;
   }
 }
 

@@ -53,6 +53,7 @@ import { missingScopes } from './oauth';
 import { report } from './overview';
 import { badge, cellLink, cellRow, renderTable } from './table';
 import { leavePage, openPage, pageRoute, savePageNow } from './page-editor';
+import { blocksRoute, leaveBlocks, openBlocks, saveBlocksNow } from './block-editor';
 import { markNav, sectionFromHash, showSection } from './sections';
 import { tagSuggest } from './tag-suggest';
 import { leaveSeries, openSeries, renderSeries, saveSeriesNow, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
@@ -166,12 +167,15 @@ export function setupPosts(s: OAuthSession, again: () => void) {
 /**
  * Shows the editor for #draft/<rkey> or #post/<rkey>, the series editor for #series/<key> or
  * #new-series (src/lib/admin/series.ts), a page editor for #page/<name>, #project/<key> or
- * #new-project (src/lib/admin/page-editor.ts), otherwise the section the address names
+ * #new-project (src/lib/admin/page-editor.ts), the block editor for #blocks/<key>
+ * (src/lib/admin/block-editor.ts), otherwise the section the address names
  */
 export async function route() {
   const m = /^#(draft|post)\/([a-z0-9]+)$/.exec(location.hash);
   const s = seriesRoute(location.hash);
   const p = pageRoute(location.hash);
+  const b = blocksRoute(location.hash);
+  if (!b && !leaveBlocks()) return;
   if (!s) leaveSeries();
   if (!p) leavePage();
   markNav(location.hash);
@@ -179,6 +183,7 @@ export async function route() {
   await leaveEditor();
   if (s) return openSeries(s);
   if (p) return openPage(p);
+  if (b) return openBlocks(b);
   document.body.dataset.view = 'dashboard';
   showSection(sectionFromHash(location.hash));
 }
@@ -320,17 +325,18 @@ function setupEditor() {
     if (event.key === 'Escape' && el('editor').dataset.focus !== undefined) setFocus(false);
   });
   // The save shortcut, on every Save button and save state
-  for (const id of ['edSavePost', 'seSave', 'peSave']) {
+  for (const id of ['edSavePost', 'seSave', 'peSave', 'bkSave']) {
     el(id).title = `Save (${shortcut('S')})`;
     el(id).setAttribute('aria-keyshortcuts', ariaShortcut('S'));
   }
-  for (const id of ['editorState', 'seState', 'peState']) el(id).title = `${shortcut('S')} saves now`;
+  for (const id of ['editorState', 'seState', 'peState', 'bkState']) el(id).title = `${shortcut('S')} saves now`;
   window.addEventListener('keydown', (event) => {
     if (pressedShortcut(event) !== 's') return;
     const view = document.body.dataset.view;
     if (view === 'editor') saveNow();
     else if (view === 'series') saveSeriesNow();
     else if (view === 'page') savePageNow();
+    else if (view === 'blocks') saveBlocksNow();
     else return;
     // Not the browser's "Save page as"
     event.preventDefault();

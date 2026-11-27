@@ -8,6 +8,8 @@
  *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about, .now, .notes), imported from the
  *     site's data in the Pages section (src/lib/admin/pages.ts) and edited in the page editors
  *     (src/lib/admin/page-editor.ts)
+ *   - pages made of blocks (id.skiddle.page) and their drafts, edited in the block editor
+ *     (src/lib/admin/block-editor.ts)
  *   - the timeline's events (id.skiddle.event), listed in the Timeline section
  *     (src/lib/admin/timeline.ts) and edited in the page editor
  *   - the media library (id.skiddle.media), and every file in the repo by what uses it, in the
@@ -25,6 +27,7 @@ import { categoryUsage, loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId, missingScopes } from './oauth';
 import { setupPageEditor } from './page-editor';
+import { setupBlockEditor } from './block-editor';
 import { configureCardStyle } from './card-style';
 import { loadPages, setupPages } from './pages';
 import { loadTimeline, setupTimeline } from './timeline';
@@ -473,6 +476,7 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   // After a save: the Pages list, and the posts (whose Category menu follows the categories)
   configureCardStyle(session);
   setupPageEditor(session, async () => void (await Promise.allSettled([loadPages(), loadPosts(), loadTimeline()])), categoryUsage);
+  setupBlockEditor(session, loadPages);
   setupRedraw(session);
   const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages(), loadTimeline(), loadMedia()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
