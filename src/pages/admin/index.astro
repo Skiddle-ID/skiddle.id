@@ -477,6 +477,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <a id="peView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
             <button id="peDelete" type="button" class="admin-btn" hidden>Delete project</button>
             <button id="peToBlocks" type="button" class="admin-btn" hidden>Move to blocks</button>
+            <p id="peToBlocksMessage" class="admin-message" role="status"></p>
             <p id="peToBlocksNote" class="admin-small" hidden>Move to blocks makes a draft of the home page in blocks from its saved record, to check, preview and publish in the block editor. Until it’s published, the home page shows this record.</p>
           </div>
         </form>
@@ -494,7 +495,6 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           <button id="bkLoadTheirs" type="button" class="admin-btn">Load that version</button>
           <button id="bkKeepMine" type="button" class="admin-btn">Keep mine</button>
         </div>
-        <p id="bkMessage" class="admin-message" role="status"></p>
 
         <form id="bkForm" class="admin-form" novalidate hidden>
           <fieldset class="admin-field admin-lexform-group">
@@ -526,6 +526,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <a id="bkView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
           </div>
         </form>
+        <p id="bkMessage" class="admin-message" role="status"></p>
       </div>
       </div>
     </main>
@@ -942,6 +943,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     flex: 1 1 8rem;
     overflow-wrap: anywhere;
   }
+  .admin-block-head > select {
+    flex: none;
+    width: auto;
+  }
   /* Its number, which follows the order */
   .admin-block-title::before {
     content: counter(block) '. ';
@@ -958,6 +963,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+  }
+  .admin-block-add > select {
+    flex: 0 1 16rem;
+    width: auto;
   }
   /* A Markdown field's preview (src/lib/admin/lexicon-form.ts) */
   .admin-field-preview {

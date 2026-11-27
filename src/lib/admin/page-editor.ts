@@ -320,6 +320,7 @@ export async function openPage(route: PageRoute) {
   back.textContent = `← ${from}`;
   el('peRough').hidden = true;
   message('peMessage', '');
+  message('peToBlocksMessage', '');
   el('peConflict').hidden = true;
   el('peBackup').hidden = true;
   el('peForm').hidden = true;
@@ -460,6 +461,7 @@ function refresh() {
   toBlocks.hidden = current.route !== 'page/home';
   toBlocks.disabled = !PUBLISHING_LIVE;
   el('peToBlocksNote').hidden = toBlocks.hidden;
+  el('peToBlocksMessage').hidden = toBlocks.hidden;
 }
 
 function onChange() {
@@ -584,18 +586,19 @@ async function moveToBlocks() {
   const target = current;
   const button = el<HTMLButtonElement>('peToBlocks');
   button.disabled = true;
-  message('peMessage', '');
+  message('peToBlocksMessage', 'Moving to blocks…');
   try {
     const draft = await getRecord<Value>(session, PAGE_COLLECTION, draftKey('home'));
     const when = typeof draft?.value.updatedAt === 'string' ? `, saved ${formatTime(draft.value.updatedAt)}` : '';
-    if (draft && !confirm(`Home already has a draft in blocks${when}. Replace it with one made from the Home record as it’s saved?`)) return;
+    if (draft && !confirm(`Home already has a draft in blocks${when}. Replace it with one made from the Home record as it’s saved?`)) return message('peToBlocksMessage', '');
     const record = legacyHomePage(target.record);
     await assertValidPage(record);
     await putRecord(session, PAGE_COLLECTION, draftKey('home'), record, draft?.cid);
     await revalidate();
+    message('peToBlocksMessage', '');
     location.hash = '#blocks/home';
   } catch (err) {
-    if (current === target) message('peMessage', `Couldn’t move it to blocks: ${errorText(err)}`, 'error');
+    if (current === target) message('peToBlocksMessage', `Couldn’t move it to blocks: ${errorText(err)}`, 'error');
   } finally {
     button.disabled = !PUBLISHING_LIVE;
   }

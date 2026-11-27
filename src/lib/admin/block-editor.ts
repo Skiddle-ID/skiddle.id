@@ -334,7 +334,7 @@ function addRow(open: Open, item: Value, fresh: boolean) {
   head.appendChild(controls);
   open.rows.push(row);
   el('bkBlocks').appendChild(li);
-  if (fresh) li.querySelector<HTMLElement>('details input, details textarea, details select, select')?.focus();
+  if (fresh) (li.querySelector<HTMLElement>('details :is(input, textarea, select)') ?? li.querySelector('select'))?.focus();
 }
 
 /** A block as the record holds it */
