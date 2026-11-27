@@ -22,16 +22,18 @@ export const prerender = false;
 const key = Astro.params.key ?? '';
 const raw = Astro.url.searchParams.get('page');
 const requested = pageNumber(raw);
-const found = await ownBlockPage(Astro, key, { notesPage: requested ?? 1 });
+// /speaking.html would be a second copy of /speaking/, so it's not one of these pages
+const found = /\.html$/i.test(Astro.url.pathname) ? null : await ownBlockPage(Astro, key, { notesPage: requested ?? 1 });
 if (!found) {
   const notFound = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
   return new Response(notFound.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
 const { page, data, preview } = found;
-const path = ownPagePath(key);
-if (requested === undefined || (requested === 1 && raw !== null)) return Astro.redirect(path, 302);
+// A page number that isn't one goes back to the first page, the draft's in a preview
+const first = preview ? `${ownPagePath(key)}?preview=draft` : ownPagePath(key);
+if (requested === undefined || (requested === 1 && raw !== null)) return Astro.redirect(first, 302);
 const shown = readsOf(page).includes('notes') ? await data.notes() : null;
-if (requested > 1 && !shown) return Astro.redirect(path, 302);
+if (requested > 1 && !shown) return Astro.redirect(first, 302);
 if (!preview) Astro.cache.set(PAGES_CACHE);
 ---
 

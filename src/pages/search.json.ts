@@ -13,7 +13,15 @@ import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cache }) => {
-  const [{ posts, seriesInfo }, list, pageRecords] = await Promise.all([sitePosts(), getCategories(), getPageRecords()]);
+  const [{ posts, seriesInfo }, list, pageRecords] = await Promise.all([
+    sitePosts(),
+    getCategories(),
+    getPageRecords().catch((err) => {
+      // Without the pages, the posts are still worth searching
+      console.error('search.json: reading the pages failed:', err);
+      return [];
+    }),
+  ]);
   cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
   const categories = withUsed(list, posts);
   const index = {
