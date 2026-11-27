@@ -172,7 +172,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
               <a id="newEvent" href="#new-event" class="admin-btn admin-btn-ghost">New event</a>
             </span>
           </div>
-          <p>The events on <a href="/timeline/" target="_blank" rel="noopener">/timeline/</a>. Records are public, so until an event is over it holds only its kind, its days and its city, unless you tick Announced. Its title, times, place, note and link open once it’s over. Keep anything private off it.</p>
+          <p>The events on <a href="/timeline/" target="_blank" rel="noopener">/timeline/</a>. Records are public, so until an event is over it holds only its kind, its days, its city and a general note, unless you tick Announced. Its title, times, place and link open once it’s over. Keep anything private off it.</p>
           <div id="timelineScope" class="admin-notice" hidden>
             <p>To write events, the app needs one more permission from your account.</p>
             <button id="timelineSignIn" type="button" class="admin-btn">Sign in again</button>
@@ -431,7 +431,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           <button id="peRestore" type="button" class="admin-btn">Restore them</button>
           <button id="peDiscard" type="button" class="admin-btn">Discard</button>
         </div>
-        <p id="peRough" class="admin-notice" hidden>Upcoming, so only its kind, its days and its city are saved: records are public. Its title, times, place, note and link open once it’s over. Tick Announced to make them public now.</p>
+        <p id="peRough" class="admin-notice" hidden>Upcoming, so only its kind, its days, its city and its note are saved: records are public, so keep the note general. Its title, times, place and link open once it’s over. Tick Announced to make them public now.</p>
         <p id="peNote" class="admin-small" hidden>Not in your repo yet. Fill it in and save to create it.</p>
         <p id="peMessage" class="admin-message" role="status"></p>
 

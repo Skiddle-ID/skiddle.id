@@ -64,9 +64,9 @@ describe('timeline periods', () => {
 describe('timeline events', () => {
   const details = { title: 'Flight home', startTime: '18:05', endTime: '11:40', timeZone: 'Europe/Paris', place: 'CDG', note: 'Window seat.', link: '/posts/x/' };
 
-  it('an upcoming event shows only its kind, days and city', () => {
+  it('an upcoming event shows only its kind, days, city and note', () => {
     const e = eventFromRecord(uri('a'), { kind: 'flight', startsOn: '2026-11-28', endsOn: '2026-11-29', city: 'Paris', ...details }, NOW);
-    assert.deepEqual(e, { rkey: 'a', kind: 'flight', label: 'Flight', startsOn: '2026-11-28', endsOn: '2026-11-29', city: 'Paris', rough: true, over: false, timeZone: 'Asia/Bangkok' });
+    assert.deepEqual(e, { rkey: 'a', kind: 'flight', label: 'Flight', startsOn: '2026-11-28', endsOn: '2026-11-29', city: 'Paris', note: 'Window seat.', rough: true, over: false, timeZone: 'Asia/Bangkok' });
   });
 
   it('an event under way today is still rough', () => {
@@ -110,6 +110,6 @@ describe('timeline events', () => {
       'Link is a path on the site, like /posts/…/, or a full URL.',
     ]);
     assert.deepEqual(eventProblems({ startsOn: '2026-11-27', startTime: '10:00', endTime: '09:00' }), ['End time is before Start time.']);
-    assert.deepEqual(roughOnly({ kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false, ...details }), { kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false });
+    assert.deepEqual(roughOnly({ kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false, ...details }), { kind: 'trip', startsOn: '2026-11-27', city: 'Paris', announced: false, note: 'Window seat.' });
   });
 });
