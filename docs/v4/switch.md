@@ -74,7 +74,10 @@ About half an hour. Steps 1–4 are the window where it matters that nothing is 
    - The preview suite passes, 37 of 37.
 6. **`v4` became the default branch.** The backup and "Set status" workflows are active from it.
 7. **Jeff signed in to the admin app again** on 2026-11-26, giving it the new permissions: publishing posts and series, and creating the posts that announce them.
-8. *The scheduler: Jeff.*
+8. **The scheduler, `skiddle-publisher`, was deployed** by hand on 2026-11-18, with its `APP_PASSWORD` secret set, and runs every 5 minutes.
+   - On 2026-11-27 two runs in a row ended `ok`, with no errors and nothing due.
+   - It isn't on Workers Builds, so a change to `workers/publisher` needs `npx wrangler deploy --config wrangler.toml` by hand.
+   - It signs in only when a draft is due, so the first scheduled post is the first real test of the app password.
 9. **The first backup:** `backup-2026-11-18.tar.gz`, 13.6 MB, in the `backups` release.
    - `repo.car`'s root matched the PDS's latest commit, with 24,132 blocks.
    - All 373 blobs came through, with none missing.
