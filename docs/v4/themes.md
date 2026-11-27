@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)). Nothing is built yet; the share cards' design, the logo and the site's mode and accent already live in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Nothing is built yet; the share cards' design, the logo and the site's mode and accent already live in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -15,6 +15,8 @@ The site becomes a complete CMS on AT Protocol: its design, its layout and every
 The site ships a fixed set of blocks and design settings, each a tested component that's accessible, fast and allowed by the site's security policy. Records only choose which ones a page uses, in what order, with what options, and the theme's values. No record holds raw HTML, CSS or scripts. That keeps every page safe, fast and accessible whatever is changed in the admin app, and a new kind of block is a PR, like any code.
 
 Every lexicon is our own (`id.skiddle.*`). Block shapes are kept close to the common ones (a heading, text, an image), so they could be mapped onto other apps' later, but nothing depends on a lexicon someone else controls.
+
+The lexicons follow AT Protocol's rules for changing a published lexicon: a new field is always optional, and a type, a required field or a length limit never changes ([the spec](https://atproto.com/specs/lexicon#lexicon-evolution)). So every limit (how many blocks a page holds, how long the menu is) is picked once, with room to spare, when its lexicon is first published.
 
 **The redesign stays on hold.** This is the engine. It ships with today's look as its only preset and adds no new design. When the v5 direction is picked in January, it becomes a preset and layouts in this system, not a rebuild.
 
@@ -34,17 +36,17 @@ Three records hold it all. Real lists of things keep their own collections, and 
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `about`, `cv`, `home`, `notes`, `now`, `services`, `uses` | `post`, `draft`, `series`, `project`, `event`, `status`, `statusLog`, `media`, `categories`, `site`, `theme` |
 
-That's 18 lexicons down to 12, and a new page never needs a new one. A draft of a page is the same record under `<page>~draft` (`home~draft`).
+That's 18 lexicons down to 12, and a new page never needs a new one. A draft of a page is the same record under `<page>~draft` (`home~draft`): `~` is allowed in a record key, and a page's own address never has one, so anything that lists pages (the sitemap, search, the admin's list) leaves out the keys with a `~`. A page's key is its address, so a page of Jeff's own is one level deep (`/speaking/`): a record key can't hold a `/` ([record keys](https://atproto.com/specs/record-key)).
 
 ## Design: `id.skiddle.theme`
 
 The theme becomes the site's design tokens. Each is optional; one left out keeps today's value (`src/style.css`), so an empty record is today's site.
 
-- **Colours, for dark and for light:** background, alternate background, border, text, muted text, and the five accents. The mode and default accent stay as they are.
+- **Colours, for dark and for light:** background, alternate background, border, text, muted text, and the five accents. Each is stored as numbers, `{ r, g, b }` from 0 to 255, never as text, the shape Standard.site and Leaflet use for theirs (`site.standard.theme.color#rgb`, `pub.leaflet.theme.color#rgb`), defined in our own lexicon. A colour goes into the page's `<style>`, and a number can't carry anything else into it, so no record can inject CSS. The mode and default accent stay as they are.
 - **Fonts:** one for headings and menus, one for text, one for post text and one for code, each picked from a catalogue the site bundles and serves itself (`@fontsource`). Today: Geist Mono for all but post text, which is Geist. Only the fonts in use are preloaded.
 - **Sizes:** the base text size (in steps, not pixels) and the line height for text and for posts.
 - **Shape:** corner radius (none, small, round) and spacing (compact, normal, roomy).
-- **Decoration:** the terminal touches, each on or off: the `$` prompts, the blinking cursor, the `##` before headings.
+- **Decoration:** the terminal touches, each one a switch named so that off is today's look: `noPrompt` (the `$` prompts), `noCursor` (the blinking cursor), `noHeadingMarks` (the `##` before headings). AT Protocol's style guide asks for optional booleans whose default is `false`, and it keeps an empty record meaning today's site.
 
 The page gets the theme as CSS variables in a `<style>` in its head (the security policy allows inline styles). The share cards follow the colours and the heading font.
 
@@ -54,7 +56,7 @@ The page gets the theme as CSS variables in a `<style>` in its head (the securit
 
 - **Menu:** the sidebar's links, in order: a label, a link (a page or any address) and an icon from the site's set. The command bar lists the same.
 - **Footer:** its links.
-- **What the sidebar shows:** the status, the music card, the theme and accent buttons, each on or off.
+- **What the sidebar shows:** the status, the music card, the theme and accent buttons, each a switch that hides it (`hideStatus`, `hideMusic`, `hideThemeButtons`), so leaving it out shows it, as today.
 
 Where the frame sits (a sidebar on the left) stays in code. A top bar or another frame is design, and waits for the redesign.
 
@@ -67,6 +69,10 @@ A page also has a width (narrow for reading, wide for grids) and can hide the pa
 ## Blocks
 
 Each block is an Astro component in `src/components/blocks/`, with its shape as a def in `id.skiddle.page` (`#markdown`, `#jobs`…), a lenient reader and a registry entry. Every block renders inside a wrapper: one that fails shows nothing and logs the error, and the rest of the page renders.
+
+In the record, a page's `blocks` is a list of `#block` objects, each holding the block's layout and the block itself: `{ width, block }`, where `block` is a union of the block defs. Leaflet's pages have the same shape (`pub.leaflet.pages.linearDocument#block`: `{ block, alignment }`), and it keeps layout apart from content: a new layout option is a new optional field on `#block`, whatever the block.
+
+The union is **open**, as AT Protocol's style guide asks "in almost all situations", so a new kind of block is added without breaking the lexicon. A block the site doesn't know (one added by a newer admin app on another device) is left out of the page, and the editor keeps it as it is, shown as "an unknown block", so saving never drops it.
 
 **Text and media:**
 
@@ -126,13 +132,19 @@ A new page lives at the address he picks, e.g. `/speaking/`. Addresses the site 
 
 ## How it renders
 
-Pages render on request, as now: a page reads its record and the collections its blocks use, all cached like the other records and purged when the admin saves. Blocks are server-rendered; only those that update live (the status, the music) load a script. It fits Cloudflare's free Workers plan: the work per page is what it is today.
+Pages render on request, as now: a page reads its record and the collections its blocks use, all cached like the other records and purged when the admin saves. Blocks are server-rendered; only those that update live (the status, the music) load a script.
+
+**The free plan's budget.** A Worker on Cloudflare's free plan has 10 ms of CPU and 50 subrequests per request, and Cloudflare puts server-side rendering at "typically 10-20 ms" ([Workers limits](https://developers.cloudflare.com/workers/platform/limits/)). Most visits never render, since pages are cached at the edge, but a page that does has to fit. So:
+
+- reads are shared within a request: each collection is read once, however many blocks use it (two blocks with posts read the posts once)
+- each data block says what it reads, so the editor can warn when a page would read too much
+- phase 3 measures the home page's CPU time and subrequests with its blocks, against a budget (under 5 ms of CPU and 25 subrequests), before any other page moves
 
 If a page's record can't be read or isn't there, the page uses its built-in version, today's. If the theme can't be read, the site has today's look.
 
 ## Moving over
 
-Pages move one at a time. Until a page is moved, it reads its old record as now; once it has a `page` record, it reads that first, then the old one, then the built-in text. **Move to blocks** does the move for a page; publishing it is Jeff's step. When every page has moved, one PR removes the old lexicons and their permissions (a new sign-in), and deleting the old records is Jeff's call, since it can't be undone. Backups list the new collection.
+Pages move one at a time. Until a page is moved, it reads its old record as now; once it has a `page` record, it reads that first, then the old one, then the built-in text. **Move to blocks** does the move for a page; publishing it is Jeff's step. When every page has moved, one PR stops using the old lexicons and drops their permissions (a new sign-in). Their published schemas stay, marked deprecated in their descriptions: AT Protocol has no way to retire a published lexicon other than leaving it be, and others may still resolve it. Deleting the old records is Jeff's call, since it can't be undone. Backups list the new collection.
 
 ## Phases
 
@@ -141,11 +153,25 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
 3. **Pages from blocks, starting with home.** `id.skiddle.page`, the block registry and wrapper, the blocks home needs, the block editor with draft, preview and publish, and page share cards drawn in the admin app.
 4. **The other pages,** one PR each: About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks.
 5. **Pages of Jeff's own:** New page, the address rules, the sitemap, search and the menu.
-6. **Clean-up:** remove the seven old lexicons and their permissions.
+6. **Clean-up:** stop using the seven old lexicons, mark them deprecated, drop their permissions.
 7. **Later:** saved theme presets (switch, export, import), post page settings.
 
 ## Open questions
 
 - **The font catalogue:** Geist and Geist Mono, plus which? Candidates: IBM Plex Sans and Mono (the site's colours are IBM Carbon's), JetBrains Mono, Inter, and a serif for posts (Source Serif).
 - **The CV's address:** it stays `/works/`, as a page whose record key is `cv`, or the key becomes `works`.
-- **Presets:** when presets come (phase 7), `id.skiddle.theme`'s key changes from `self` only to any, with `self` the one in use.
+- **Presets (settled in the review):** `id.skiddle.theme` keeps the key `self` only. Changing it to any would break the published lexicon: a preset saved under another key wouldn't be valid under today's schema. Presets get a collection of their own, `id.skiddle.themePreset` (key: the preset's name), and applying one copies it into `self`.
+
+## The review
+
+On 2026-11-28 the plan was checked against the [lexicon spec](https://atproto.com/specs/lexicon), the [record key spec](https://atproto.com/specs/record-key), the [lexicon style guide](https://atproto.com/guides/lexicon-style-guide), [Leaflet's lexicons](https://github.com/hyperlink-academy/leaflet/tree/main/lexicons/pub/leaflet) and [Cloudflare's Workers limits](https://developers.cloudflare.com/workers/platform/limits/). It changed:
+
+1. **Presets** get their own collection instead of a new key type for the theme.
+2. **Colours** are `{ r, g, b }` numbers, so no record can put CSS into a page.
+3. **Blocks** sit in a `#block` wrapper that holds their layout.
+4. **The block union** is open, and unknown blocks are kept by the editor and left out of the page.
+5. **Switches** are named so `false`, or no field, is today's look.
+6. **Length limits** are picked once, when a lexicon is first published.
+7. **The old page lexicons** stay published, marked deprecated, when the pages move.
+8. **A CPU and subrequest budget** for a page, measured in phase 3.
+9. **Draft keys** (`home~draft`) are valid; lists of pages leave them out.
