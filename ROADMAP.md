@@ -94,7 +94,7 @@ Then the [launch checklist](#the-v4-branch).
 
 - [x] Events: `id.skiddle.event`, a Timeline section in the admin app, and `/timeline/` with its Week, Month and Day views
 - [x] Posts, status changes and notes join the timeline
-- [ ] Extras: a `.ics` feed, a "This week" card on the home page
+- [x] Extras: a `.ics` feed, a "This week" card on the home page
 
 ## The v4 branch
 
