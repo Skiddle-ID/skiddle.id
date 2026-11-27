@@ -22,8 +22,9 @@ import { seriesFeedUrl } from '~/lib/posts';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardSeriesOf, type CardSeries } from './card-text';
 import { dragHandle, sortable } from './sortable';
-import { el, errorText, formatTime, item, message, revalidate, row, saveState, viewLink } from './dom';
+import { el, errorText, formatTime, item, message, revalidate, saveState, viewLink } from './dom';
 import { PUBLISHING_LIVE, SERIES_NOT_LIVE_YET } from './launch';
+import { badge, cellLink, cellRow, renderTable } from './table';
 import { XrpcError, createRecord, deleteRecord, getRecord, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
 
 export interface SeriesRecord {
@@ -150,26 +151,37 @@ function publishedParts(key: string | undefined) {
 
 /** Each series, with its published and planned parts */
 export function renderSeries() {
-  const list = el('seriesList');
-  list.textContent = '';
-  if (!series.length) list.appendChild(item('No series yet.', 'admin-muted'));
-  for (const s of [...series].sort((a, b) => (a.value.name ?? '').localeCompare(b.value.name ?? ''))) {
-    const v = s.value;
-    const key = rkeyOf(s.uri);
-    const parts = publishedParts(key).map((p) => p.part);
-    const planned = (v.planned ?? []).filter((p) => !parts.includes(p.part)).length;
-    const note = [
-      `${parts.length} published`,
-      planned ? `${planned} planned` : '',
-      v.ongoing ? (v.cadence ? `new ${v.cadence}` : 'ongoing') : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    const r = row(`#series/${key}`, v.name ?? key, note);
-    // The site lists a series once it has a published part
-    if (parts.length && v.name) r.appendChild(viewLink(`/series/${key}/`, `View “${v.name}” on the site`));
-    list.appendChild(r);
-  }
+  const rows = [...series]
+    .sort((a, b) => (a.value.name ?? '').localeCompare(b.value.name ?? ''))
+    .map((s) => {
+      const v = s.value;
+      const key = rkeyOf(s.uri);
+      const parts = publishedParts(key).map((p) => p.part);
+      const planned = (v.planned ?? []).filter((p) => !parts.includes(p.part)).length;
+      return { key, name: v.name ?? key, published: parts.length, planned, ongoing: !!v.ongoing, cadence: v.cadence };
+    });
+  renderTable(
+    {
+      host: el('seriesTable'),
+      noun: 'series',
+      columns: [
+        {
+          label: 'Series',
+          // The site lists a series once it has a published part
+          cell: (r) => cellRow(cellLink(`#series/${r.key}`, r.name), ...(r.published ? [' ', viewLink(`/series/${r.key}/`, `View “${r.name}” on the site`)] : [])),
+        },
+        { label: 'Parts', cell: (r) => [`${r.published} published`, r.planned ? `${r.planned} planned` : ''].filter(Boolean).join(', '), secondary: true },
+        { label: 'Kind', cell: (r) => (r.ongoing ? badge(r.cadence ? `new ${r.cadence}` : 'ongoing', 'ok') : badge(r.planned ? 'in progress' : 'finished')) },
+      ],
+      filters: [
+        { label: 'Ongoing', test: (r) => r.ongoing },
+        { label: 'Finished', test: (r) => !r.ongoing && !r.planned },
+      ],
+      text: (r) => r.name,
+      empty: 'No series yet.',
+    },
+    rows,
+  );
 }
 
 // ---- The editor ----

@@ -11,8 +11,9 @@ import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJE
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
 import { DID } from '~/lib/standard-site.mjs';
-import { el, formatTime, item, message, viewLink } from './dom';
+import { el, formatTime, message, viewLink } from './dom';
 import { report } from './overview';
+import { badge, cellLink, cellRow, renderTable } from './table';
 import { missingScopes } from './oauth';
 import { getRecord, listRecords, type RepoRecord } from './xrpc';
 
@@ -78,8 +79,24 @@ export async function loadPages() {
     return { title: String(r.value.name || rkey), collection: PROJECT_COLLECTION, rkey, page: '/projects/', editor: `#project/${rkey}`, have: r };
   });
   report('pages', { count: pages.filter((p) => p.have).length + rows.length });
-  el('pagesList').replaceChildren(...pages.map(rowItem));
-  el('projectsList').replaceChildren(...(rows.length ? rows.map(rowItem) : [item('No projects yet.', 'admin-muted')]));
+  const all = [...pages, ...rows];
+  renderTable(
+    {
+      host: el('pagesTable'),
+      noun: 'pages and projects',
+      columns: [
+        { label: 'Page', cell: (r) => cellRow(cellLink(r.editor, r.title), ' ', viewLink(r.page, `View ${r.page} on the site`), ...(r.have ? [' ', recordLink(r)] : [])) },
+        { label: 'Saved', cell: savedNote, secondary: true },
+      ],
+      filters: [
+        { label: 'Pages', test: (r) => r.collection !== PROJECT_COLLECTION },
+        { label: 'Projects', test: (r) => r.collection === PROJECT_COLLECTION },
+      ],
+      text: (r) => `${r.title} ${r.page}`,
+      empty: 'Nothing yet.',
+    },
+    all,
+  );
   const absent = pages.filter((p) => !p.have && !p.fallback).length;
   message(
     'pagesMessage',
@@ -99,21 +116,9 @@ function recordLink(row: Row) {
   return a;
 }
 
-function rowItem(row: Row) {
-  const li = item('');
-  const head = document.createElement('div');
-  const name = document.createElement('a');
-  name.href = row.editor;
-  name.className = 'admin-pages-name';
-  name.textContent = row.title;
-  head.appendChild(name);
-  head.appendChild(viewLink(row.page, `View ${row.page} on the site`));
-  if (row.have) head.appendChild(recordLink(row));
-  const note = document.createElement('span');
-  const updated = row.have?.value.updatedAt ?? row.have?.value.createdAt;
-  note.className = row.have ? 'admin-muted' : '';
-  note.textContent = !row.have ? `no record yet: the page ${row.fallback ? `shows ${row.fallback}` : 'can’t show'}` : typeof updated === 'string' ? `saved ${formatTime(updated)}` : 'in your repo';
-  li.appendChild(head);
-  li.appendChild(note);
-  return li;
+/** When a page's record was saved, or what the page shows without one */
+function savedNote(row: Row): string | Node {
+  if (!row.have) return badge(`no record: ${row.fallback ? `shows ${row.fallback}` : 'can’t show'}`, row.fallback ? 'muted' : 'warn');
+  const updated = row.have.value.updatedAt ?? row.have.value.createdAt;
+  return typeof updated === 'string' ? `saved ${formatTime(updated)}` : 'in your repo';
 }
