@@ -7,6 +7,7 @@ import CommandBar from '../components/command-bar.astro';
 import { scriptJson } from '../lib/script-json.mjs';
 import { getSiteMeta, getSiteTheme } from '~/lib/page-content';
 import { pageMetaOf } from '~/lib/site-meta.mjs';
+import { decorationAttributes, fontsToPreload, themeCss } from '~/lib/site-theme.mjs';
 
 import '../style.css';
 
@@ -29,6 +30,8 @@ const { image, type = 'website', atDocument, feed } = Astro.props;
 const [siteMeta, theme] = await Promise.all([getSiteMeta(), getSiteTheme()]);
 // Without JavaScript, or until the script below runs: the theme's mode, dark when it follows the device
 const firstMode = theme.mode === 'light' ? 'light' : 'dark';
+// The theme's design: its CSS variables (none for today's look) and the terminal touches it hides
+const designCss = themeCss(theme);
 const { title, description, keywords, noindex } = pageMetaOf(siteMeta, Astro.url.pathname, Astro.props);
 const author = siteMeta.author;
 const site = Astro.site!;
@@ -70,7 +73,7 @@ const jsonLd = {
 };
 ---
 
-<html lang="en" data-theme={firstMode} data-accent={theme.accent} data-site-mode={theme.mode} data-site-accent={theme.accent}>
+<html lang="en" data-theme={firstMode} data-accent={theme.accent} data-site-mode={theme.mode} data-site-accent={theme.accent} {...decorationAttributes(theme)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -108,7 +111,10 @@ const jsonLd = {
       author={[author.name, author.alternateName && `(${author.alternateName})`].filter(Boolean).join(' ')}
       profiles={siteMeta.profiles}
       icon={siteMeta.icon}
+      fonts={fontsToPreload(theme, type === 'article')}
+      themeColors={{ dark: theme.colors.dark.bg, light: theme.colors.light.bg }}
     />
+    {designCss && <style set:html={designCss} />}
     <script is:inline>
       (function () {
         const m = document.getElementById('themeColor');
@@ -117,8 +123,8 @@ const jsonLd = {
     </script>
     <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
   </head>
-  <body class="antialiased font-mono tracking-normal leading-normal min-h-screen text-[15px]">
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-[var(--color-bg)] focus:border focus:rounded">Skip to content</a>
+  <body class="antialiased font-text tracking-normal leading-normal min-h-screen">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-[var(--color-bg)] focus:border focus:rounded-sm">Skip to content</a>
 
     <!-- Mobile top bar -->
     <div id="topbar" class="lg:hidden print:hidden fixed top-0 inset-x-0 h-12 border-b z-40 flex items-center justify-between px-4 bg-[var(--color-bg)]">

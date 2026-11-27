@@ -76,8 +76,8 @@ const h2 = 'font-semibold before-hash-2';
         <h2 id="now" class="sr-only">{recent.isCurrent ? 'Now playing' : 'Last played'}</h2>
         <div class="card p-4 flex items-center gap-4">
           {art
-            ? <img src={art} alt="" width="60" height="60" class="size-15 rounded shrink-0" />
-            : <span class="size-15 rounded border shrink-0 flex items-center justify-center text-[var(--color-muted)]" aria-hidden="true">♪</span>}
+            ? <img src={art} alt="" width="60" height="60" class="size-15 rounded-sm shrink-0" />
+            : <span class="size-15 rounded-sm border shrink-0 flex items-center justify-center text-[var(--color-muted)]" aria-hidden="true">♪</span>}
           <div class="min-w-0">
             <p class="text-xs text-[var(--color-muted)]">
               {recent.isCurrent ? <span class="text-[var(--color-ok)]">● now playing</span> : <span>last played · {recent.playedAt ? ago(recent.playedAt) : ''}</span>}

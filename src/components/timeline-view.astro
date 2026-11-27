@@ -78,7 +78,7 @@ const h2 = 'font-semibold before-hash-2';
       <a
         href={href(v.key)}
         aria-current={v.kind === period.kind ? 'page' : undefined}
-        class:list={['border rounded px-2 py-0.5 text-xs hover:text-[var(--color-primary)]', v.kind === period.kind && 'border-[var(--color-primary)] text-[var(--color-primary)]']}
+        class:list={['border rounded-sm px-2 py-0.5 text-xs hover:text-[var(--color-primary)]', v.kind === period.kind && 'border-[var(--color-primary)] text-[var(--color-primary)]']}
       >{v.label}</a>
     ))}
   </span>
@@ -97,7 +97,7 @@ const h2 = 'font-semibold before-hash-2';
         <section aria-labelledby={`d-${day}`}>
           <h2 id={`d-${day}`} class:list={[h2, day === today && 'text-[var(--color-primary)]']}>
             {period.kind === 'week' ? <a href={href(day)} class="hover:text-[var(--color-primary)]">{dayLabel(day)}</a> : dayLabel(day)}
-            {day === today && <span class="ml-2 text-xs font-normal border border-[var(--color-primary)] rounded px-1.5 align-middle">today</span>}
+            {day === today && <span class="ml-2 text-xs font-normal border border-[var(--color-primary)] rounded-sm px-1.5 align-middle">today</span>}
           </h2>
           {on.length === 0 ? (
             <p class="text-sm text-[var(--color-muted)] mt-2">nothing</p>
@@ -164,7 +164,7 @@ const h2 = 'font-semibold before-hash-2';
         return (
           <a
             href={href(day)}
-            class:list={['border rounded p-1.5 min-h-12 flex flex-col gap-1 hover:border-[var(--color-primary)]', day === today && 'border-[var(--color-primary)]']}
+            class:list={['border rounded-sm p-1.5 min-h-12 flex flex-col gap-1 hover:border-[var(--color-primary)]', day === today && 'border-[var(--color-primary)]']}
             aria-label={`${dayLabel(day)}${[n && `${n} ${n === 1 ? 'event' : 'events'}`, m && `${m} more`].filter(Boolean).map((x, i) => (i ? `, ${x}` : `: ${x}`)).join('')}`}
           >
             <span class:list={[day === today && 'text-[var(--color-primary)] font-semibold']}>{Number(day.slice(8))}</span>

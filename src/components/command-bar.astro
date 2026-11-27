@@ -11,7 +11,7 @@
 <dialog id="commandBar" class="cmdk print:hidden" aria-label="Search posts, pages and commands">
   <div class="cmdk-panel">
     <div class="cmdk-head">
-      <span class="cmdk-prompt" aria-hidden="true"><span class="text-[var(--color-primary)]">skiddle@web</span>:~$</span>
+      <span class="cmdk-prompt prompt" aria-hidden="true"><span class="text-[var(--color-primary)]">skiddle@web</span>:~$</span>
       <input
         id="cmdkInput"
         type="text"
@@ -45,7 +45,7 @@
     max-height: min(34rem, 76vh);
     margin: 12vh auto auto;
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 8px);
     background: var(--color-bg);
     color: var(--color-text);
     box-shadow: 0 16px 48px rgb(0 0 0 / 0.35);
@@ -81,7 +81,7 @@
     display: flex;
     gap: 0.25rem;
     padding: 0.45rem 0.5rem;
-    border-radius: 6px;
+    border-radius: var(--radius-md, 6px);
     cursor: pointer;
     font-size: 0.875rem;
     line-height: 1.45;
@@ -116,7 +116,7 @@
     margin-right: 0.2em;
     padding: 0 0.3em;
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm, 4px);
     font: inherit;
     text-align: center;
   }

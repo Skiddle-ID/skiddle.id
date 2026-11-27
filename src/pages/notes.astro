@@ -61,7 +61,7 @@ const pageUrl = (n: number) => (n === 1 ? '/notes/' : `/notes/?page=${n}`);
                             height={img.height}
                             loading="lazy"
                             decoding="async"
-                            class:list={['w-full rounded border bg-[var(--color-bg-alt)] object-cover', img.width ? 'h-auto max-h-96' : 'aspect-square']}
+                            class:list={['w-full rounded-sm border bg-[var(--color-bg-alt)] object-cover', img.width ? 'h-auto max-h-96' : 'aspect-square']}
                           />
                         ))}
                       </div>

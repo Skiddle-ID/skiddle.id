@@ -30,7 +30,7 @@ const isActive = (href: string) => {
           href={l.href}
           aria-current={isActive(l.href) ? 'page' : undefined}
           class:list={[
-            'block py-1 px-2 -mx-2 rounded transition-colors hover:text-[var(--color-primary)]',
+            'block py-1 px-2 -mx-2 rounded-sm transition-colors hover:text-[var(--color-primary)]',
             isActive(l.href) && 'text-[var(--color-primary)]',
           ]}
         >
@@ -47,10 +47,10 @@ const isActive = (href: string) => {
     data-cmdk-open
     aria-haspopup="dialog"
     aria-keyshortcuts="Meta+K Control+K /"
-    class="hidden lg:flex items-center mt-3 py-1 px-2 -mx-2 rounded text-[var(--color-muted)] transition-colors hover:text-[var(--color-primary)]"
+    class="hidden lg:flex items-center mt-3 py-1 px-2 -mx-2 rounded-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-primary)]"
   >
     <span aria-hidden="true" class="opacity-0">&gt; </span>search
-    <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded px-1.5 leading-5 empty:hidden"></kbd>
+    <kbd data-cmdk-key class="ml-auto font-[inherit] text-xs border rounded-sm px-1.5 leading-5 empty:hidden"></kbd>
   </a>
 
   <!-- Now playing (teal.fm's records, /api/music.json): stays hidden unless a track loads. Opens the
@@ -102,7 +102,8 @@ const isActive = (href: string) => {
   const syncThemeLabel = () => {
     const light = root.dataset.theme === 'light';
     themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
-    document.getElementById('themeColor')?.setAttribute('content', light ? '#ffffff' : '#161616');
+    const meta = document.getElementById('themeColor');
+    meta?.setAttribute('content', light ? (meta.dataset.light ?? '#ffffff') : (meta.dataset.dark ?? '#161616'));
   };
   syncThemeLabel();
   themeBtn?.addEventListener('click', () => {

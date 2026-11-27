@@ -62,7 +62,7 @@ const n = testimonials.length;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
-    border-radius: 2px;
+    border-radius: var(--radius-xs, 2px);
   }
   .slider-track::-webkit-scrollbar {
     display: none;
@@ -83,7 +83,7 @@ const n = testimonials.length;
     justify-content: center;
     min-width: 1.75rem;
     min-height: 1.75rem;
-    border-radius: 4px;
+    border-radius: var(--radius-sm, 4px);
     font-size: 1rem;
     line-height: 1;
     cursor: pointer;
