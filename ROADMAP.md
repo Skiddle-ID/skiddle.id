@@ -107,7 +107,7 @@ The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), i
 - [x] The frame: the menu, the footer's links and the sidebar's switches in `id.skiddle.site`, edited in Site and SEO ([#199](https://github.com/Skiddle-ID/skiddle.id/pull/199))
 - [x] Pages from blocks, starting with home: `id.skiddle.page`, the block editor, draft, preview and publish ([#200](https://github.com/Skiddle-ID/skiddle.id/pull/200))
 - [x] The other pages on blocks: About, Now, Uses, the CV, Services, Notes, each with Move to blocks ([#201](https://github.com/Skiddle-ID/skiddle.id/pull/201))
-- [x] Pages of Jeff's own, at an address he picks: New page, Delete page, the sitemap, the search and the command bar
+- [x] Pages of Jeff's own, at an address he picks: New page, Delete page, the sitemap, the search and the command bar ([#202](https://github.com/Skiddle-ID/skiddle.id/pull/202))
 - [ ] Clean-up: the seven old page lexicons go
 
 ## The v4 branch
