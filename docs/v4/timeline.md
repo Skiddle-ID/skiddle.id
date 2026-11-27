@@ -16,10 +16,11 @@ The rule is **rough until it's over**. An upcoming event says only:
 - what kind of event it is, such as Trip, Flight, Talk or Personal
 - the day or days it runs, with no times
 - the city
+- a note, if he wants one: a general description, such as "Visiting partners and a few factories" (allowed upcoming since 2026-11-27; it's public as soon as it's saved, so it stays vague)
 
-Once it's over, Jeff can add the rest: the title, the times, the place, a note and a link.
+Once it's over, Jeff can add the rest: the title, the times, the place and a link.
 
-- **The admin app enforces it.** For an event that hasn't ended, the form shows only the rough fields. The detail fields open once the end date has passed.
+- **The admin app enforces it.** For an event that hasn't ended, the form shows only the rough fields. The detail fields (title, times, place, link) open once the end date has passed.
 - **"Fill in the details":** the admin app lists past events that are still rough. Leaving one rough is fine too.
 - **Announced events.** A talk, or anything else meant to be public ahead of time, can be ticked **announced**. Its details are then public straight away, and the form says so.
 - **Private things stay out.** Nothing private goes on the timeline, rough or not. The form says this too.
@@ -41,7 +42,7 @@ One record per event, keyed by time (TID), in [`lexicons/id/skiddle/event.json`]
 | `startTime`, `endTime` | time (`18:05`) | Detail: the start time on the first day and the end time on the last, in its time zone; none means all day |
 | `timeZone` | IANA name | Detail: the zone its times are in; Bangkok if left out |
 | `place` | string, ≤ 100 characters | Detail: the venue, e.g. "Don Mueang airport" |
-| `note` | Markdown, ≤ 1,000 characters | Detail |
+| `note` | Markdown, ≤ 1,000 characters | Rough: allowed upcoming, kept general |
 | `link` | URL or site path | Detail: e.g. the post written about it |
 | `createdAt`, `updatedAt` | datetime | Set by the admin app |
 
@@ -73,7 +74,7 @@ Each shows at its own time, in the time zone it was made in where it has one (a 
 - **Week** (the default): the days in order, each with its entries by time. All-day events come first. An empty day says "nothing".
 - **Month:** a calendar grid, Monday first. Each day shows a dot for events and a dot for everything else. A day links to its Day view.
 - **Day:** one day's entries in full.
-- **Upcoming,** at the top of `/timeline/`: the next few events, rough.
+- **Upcoming,** at the top of `/timeline/`: the next few events, rough (kind, days, city).
 - **Moving around:** previous and next, plus Day, Week and Month links. Older weeks and months work like a diary going back.
 - **Days are Bangkok days,** so the grouping doesn't shift with the reader's zone. Each entry shows its own time and zone, like `/status/`.
 - **Rendered on request and cached** like the other pages (fresh for a minute, `pages` tag). `/api/revalidate` forgets the cached events after a save.

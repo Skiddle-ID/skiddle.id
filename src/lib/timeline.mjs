@@ -4,7 +4,8 @@
  * dependencies, so the site and the admin app share it.
  *
  * Rough until it's over: records are public, so an event that hasn't ended and isn't announced
- * shows only its kind, its days and its city. The admin app saves only those while it's upcoming;
+ * shows only its kind, its days, its city and its note (a general description, which Jeff keeps
+ * vague while it's upcoming). The admin app saves only those while it's upcoming;
  * the site applies the same rule as it reads (eventFromRecord), for records written elsewhere.
  *
  * Days are written YYYY-MM-DD and counted in Bangkok time (SITE_ZONE), so a day's entries don't
@@ -28,8 +29,8 @@ export const KINDS = {
   other: 'Event',
 };
 
-/** The fields an event keeps to itself until it's over, unless it's announced */
-export const DETAIL_FIELDS = ['title', 'startTime', 'endTime', 'timeZone', 'place', 'note', 'link'];
+/** The fields an event keeps to itself until it's over, unless it's announced: what says exactly where and when */
+export const DETAIL_FIELDS = ['title', 'startTime', 'endTime', 'timeZone', 'place', 'link'];
 
 const DAY_MS = 86400000;
 
@@ -219,7 +220,7 @@ export const isRough = (/** @type {Record<string, any>} */ v, now = Date.now()) 
 
 /**
  * An event as the timeline shows it, or null if it has no kind or start day. A rough event keeps
- * only its kind, days and city.
+ * only its kind, days, city and note.
  * @param {string} uri
  * @param {Record<string, any>} v
  * @param {number} [now]
@@ -242,6 +243,7 @@ export function eventFromRecord(uri, v, now = Date.now()) {
     timeZone: !rough && isZone(v.timeZone) ? v.timeZone : SITE_ZONE,
   };
   if (str(v.city)) e.city = str(v.city);
+  if (str(v.note)) e.note = str(v.note);
   if (rough) return e;
   if (str(v.title)) e.title = str(v.title);
   if (isTime(v.startTime)) {
@@ -249,7 +251,6 @@ export function eventFromRecord(uri, v, now = Date.now()) {
     if (isTime(v.endTime) && (endsOn > v.startsOn || v.endTime >= v.startTime)) e.endTime = v.endTime;
   }
   if (str(v.place)) e.place = str(v.place);
-  if (str(v.note)) e.note = str(v.note);
   if (isSafeLink(v.link)) e.link = v.link;
   return e;
 }
