@@ -3,6 +3,7 @@
 Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)). Nothing is built yet; the share cards' design, the logo and the site's mode and accent already live in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
+
 - **design:** colours for dark and light, fonts, sizes, corners and spacing
 - **the frame:** the menu, the footer and what the sidebar shows
 - **layout:** each page as rows of blocks, side by side on wide screens
@@ -21,16 +22,16 @@ Every lexicon is our own (`id.skiddle.*`). Block shapes are kept close to the co
 
 Three records hold it all. Real lists of things keep their own collections, and blocks point at them.
 
-| Record | Key | Holds |
-|---|---|---|
-| `id.skiddle.theme` | `self` | The design: colours, fonts, sizes, corners, spacing, the cards' design, the default mode and accent |
-| `id.skiddle.site` | `self` | What it already has (name, metadata, icon, profiles), plus the frame: the menu, the footer links, what the sidebar shows |
-| `id.skiddle.page` | the page's address: `home`, `about`, `speaking` | A page: its title, description, share card and blocks |
+| Record             | Key                                             | Holds                                                                                                                    |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id.skiddle.theme` | `self`                                          | The design: colours, fonts, sizes, corners, spacing, the cards' design, the default mode and accent                      |
+| `id.skiddle.site`  | `self`                                          | What it already has (name, metadata, icon, profiles), plus the frame: the menu, the footer links, what the sidebar shows |
+| `id.skiddle.page`  | the page's address: `home`, `about`, `speaking` | A page: its title, description, share card and blocks                                                                    |
 
 `id.skiddle.page` replaces the seven lexicons that exist only because each page had its own shape:
 
-| Merged into `id.skiddle.page` | Kept as they are |
-|---|---|
+| Merged into `id.skiddle.page`                             | Kept as they are                                                                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `about`, `cv`, `home`, `notes`, `now`, `services`, `uses` | `post`, `draft`, `series`, `project`, `event`, `status`, `statusLog`, `media`, `categories`, `site`, `theme` |
 
 That's 18 lexicons down to 12, and a new page never needs a new one. A draft of a page is the same record under `<page>~draft` (`home~draft`).
@@ -68,6 +69,7 @@ A page also has a width (narrow for reading, wide for grids) and can hide the pa
 Each block is an Astro component in `src/components/blocks/`, with its shape as a def in `id.skiddle.page` (`#markdown`, `#jobs`…), a lenient reader and a registry entry. Every block renders inside a wrapper: one that fails shows nothing and logs the error, and the rest of the page renders.
 
 **Text and media:**
+
 - **Markdown:** a section of text, rendered and sanitised as posts are
 - **Heading** with an optional `##` and anchor
 - **Image:** a library image (`/media/<cid>`), its alt text and caption
@@ -76,6 +78,7 @@ Each block is an Astro component in `src/components/blocks/`, with its shape as 
 - **Call to action:** a title, a line and a button ("Hire me")
 
 **The site's data**, read from its collections, so they stay current:
+
 - **Recent posts:** how many, from which category or series
 - **Series:** all, or picked ones
 - **Projects:** picked ones, in order, or all of a category
@@ -83,6 +86,7 @@ Each block is an Astro component in `src/components/blocks/`, with its shape as 
 - **Bluesky posts:** picked ones, as `/notes/` shows them
 
 **About Jeff**, the shapes the pages have now, kept as their own blocks so they keep their meaning:
+
 - **Profile:** greeting, tagline, photo
 - **Jobs** and **education** (the CV)
 - **Highlights**, **principles**, **So far** (About's life timeline)
@@ -93,15 +97,15 @@ Each block is an Astro component in `src/components/blocks/`, with its shape as 
 
 Today's pages, as blocks:
 
-| Page | Blocks |
-|---|---|
-| Home | Profile, Markdown (intro), Now and Status (half each), This week, Projects, Recent posts, Series, Testimonials, Call to action |
-| About | Profile, Markdown, Principles, So far, Markdown (outside work), Contact |
-| CV (`/works/`) | Profile, Highlights, Jobs, Education, Links |
-| Services | Markdown, Services, Testimonials, Call to action |
-| Uses | Uses |
-| Now | Now |
-| Notes | Bluesky posts |
+| Page           | Blocks                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Home           | Profile, Markdown (intro), Now and Status (half each), This week, Projects, Recent posts, Series, Testimonials, Call to action |
+| About          | Profile, Markdown, Principles, So far, Markdown (outside work), Contact                                                        |
+| CV (`/works/`) | Profile, Highlights, Jobs, Education, Links                                                                                    |
+| Services       | Markdown, Services, Testimonials, Call to action                                                                               |
+| Uses           | Uses                                                                                                                           |
+| Now            | Now                                                                                                                            |
+| Notes          | Bluesky posts                                                                                                                  |
 
 Post pages, `/posts/`, series, topics and `/timeline/` stay templates: they're views of collections, not layouts. They can get small settings later (show the series bar, comments), not blocks.
 
