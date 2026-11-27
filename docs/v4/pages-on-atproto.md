@@ -13,6 +13,7 @@ Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol))
 | /about/ | `src/data/about.ts`, moved out of the page | `id.skiddle.about` | `self` |
 | /now/, plus the home page's Now list (v4.1) | New; the home page's list moved to `src/data/now.ts` | `id.skiddle.now` | `self` |
 | /notes/ (v4.1): the older posts it shows besides those tagged #note | New | `id.skiddle.notes` | `self` |
+| The home page's own text (v4.1): its title and description, the intro, which projects it shows, the hire box and the Elsewhere links | `src/pages/index.astro`, moved to `src/data/home.ts` | `id.skiddle.home` | `self` |
 
 **What stays in git:**
 - each page's own headings, one-line intros and calls to action (the redesign in v5 rewrites those)
@@ -22,7 +23,7 @@ Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol))
 
 ## The lexicons
 
-They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`, `cv.json`, `services.json`, `uses.json`, `about.json`, `now.json` and `notes.json`. [`src/lib/page-records.mjs`](../../src/lib/page-records.mjs) turns today's data into records. `npm run check:lexicons` checks every one against its lexicon in CI, as it does posts. Any field the converter doesn't know fails the check, so nothing gets dropped quietly.
+They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`, `cv.json`, `services.json`, `uses.json`, `about.json`, `now.json`, `notes.json` and `home.json`. [`src/lib/page-records.mjs`](../../src/lib/page-records.mjs) turns today's data into records. `npm run check:lexicons` checks every one against its lexicon in CI, as it does posts. Any field the converter doesn't know fails the check, so nothing gets dropped quietly.
 
 - **One record per project.** Other records can point at a project: the CV's `selectedProjects` are `at://` addresses. Adding a project doesn't rewrite the others. The page orders them (featured first, then by year), as it does today.
 - **One record for each of the other pages,** with the key `self`, like the status. Each page is edited as a whole, its lists keep the order they're written in, and one `swapRecord` guards the whole page.
@@ -32,7 +33,7 @@ They're in [`lexicons/id/skiddle/`](../../lexicons/id/skiddle/): `project.json`,
   - the CV's `yearOrStatus` becomes `when`
   - a testimonial's `serviceName` becomes `service`
   - a position that ends "Present" has no `end`
-- **Markdown** for About's `intro` and `outside`, rendered like a post's text. The CV's summary stays plain paragraphs, as today. Now's `intro` is Markdown too, and each of its `items` is one line of Markdown: links, bold and italics. Raw HTML in Now shows as text.
+- **Markdown** for About's `intro` and `outside`, rendered like a post's text. The CV's summary stays plain paragraphs, as today. Now's `intro` is Markdown too, and each of its `items` is one line of Markdown: links, bold and italics. Raw HTML in Now shows as text. The home page's `intro` works the same way as Now's.
 - **Dates:** each singleton has `updatedAt`. Uses and Now show it as "last updated", which replaces `usesUpdated` on Uses. Projects have `createdAt` and `updatedAt`.
 
 To get there, two changes to today's data, with no change to the pages:
@@ -46,6 +47,7 @@ The pages work like the post pages ([`src/lib/page-content.ts`](../../src/lib/pa
 - **Same shapes, same templates:** `page-records.mjs` turns the records back into the data files' shapes, so the templates are unchanged. A unit test checks that going to records and back gives the data files exactly.
 - **Caching and refresh:** pages are cached for a minute, then served stale for up to a day while a new copy renders (tag `pages`). `/api/revalidate` purges them after a save, so edits never need a build. If the PDS can't be reached, a cached page still shows.
 - **Now's fallback:** until there's a Now record, /now/ and the home page show the list in `src/data/now.ts`, with no date. A malformed record or an unreachable PDS still throws, as for the other pages, so a cached page shows instead of the old list.
+- **The home page's fallback:** every field of the `id.skiddle.home` record is optional. The page uses `src/data/home.ts` for each field the record leaves out, and for all of them until there's a record, so a new record changes only what it sets. Nothing in it is required, so a field of the wrong type is left out rather than throwing. It keeps a selected project only if it's one of this repo's, and a link only if it's a path on the site or an `https:`, `http:` or `mailto:` URL. The avatar, the quick links and the hire box's buttons stay in the page.
 - **Notes** ([`src/lib/notes.mjs`](../../src/lib/notes.mjs)): /notes/ shows Jeff's Bluesky posts, read from his own repo with `listRecords`, not from the AppView. A post is a note when it has the tag `note` in any case, as a tag in its text or in its `tags`, and isn't a reply. The posts that the `id.skiddle.notes` record links to show too, replies included. Each link is a bsky.app link or an `at://` address of one of Jeff's posts. Links to other accounts' posts are left out.
   - The page reads at most 5 pages of 100 posts, newest first. A picked post older than the newest 500 doesn't show.
   - A note's text is rendered from the record with its facets: links, mentions and tags become links, and `#note` itself is muted. Images show as thumbnails from Bluesky's CDN, with their alt text. A link card shows its title and domain. A video, a feed, a list or a starter pack is a link to it on Bluesky.

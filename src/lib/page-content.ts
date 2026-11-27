@@ -1,14 +1,15 @@
 /**
  * The pages' content (docs/v4/pages-on-atproto.md), read when a page is requested: projects, the CV
- * and its highlights, services, uses, About and Now, from their records in Jeff's AT Protocol repo
+ * and its highlights, services, uses, About, Now and the home page, from their records in Jeff's AT Protocol repo
  * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs).
  * The admin app edits them (src/lib/admin/page-editor.ts). Also the notes: his Bluesky posts tagged
  * #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs), and the posts they quote,
  * from Bluesky's public AppView.
  *
  * If a record is missing or malformed, or the PDS can't be reached, this throws rather than show a
- * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now is
- * the exception for a missing record: the pages show the list in src/data/now.ts instead.
+ * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now and
+ * the home page are the exceptions for a missing record: they show src/data/now.ts and
+ * src/data/home.ts instead.
  *
  * Pages that use this are rendered on request and tag their cache with PAGES_TAG, so
  * /api/revalidate can purge them after a save.
@@ -16,12 +17,14 @@
 import {
   ABOUT_COLLECTION,
   CV_COLLECTION,
+  HOME_COLLECTION,
   NOW_COLLECTION,
   PROJECT_COLLECTION,
   SERVICES_COLLECTION,
   USES_COLLECTION,
   aboutFromRecord,
   cvFromRecord,
+  homeFromRecord,
   nowFromRecord,
   projectsFromRecords,
   servicesFromRecord,
@@ -30,7 +33,9 @@ import {
 import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import type { About } from '~/types/about';
+import { FALLBACK_HOME } from '~/data/home';
 import type { Highlight } from '~/types/highlights';
+import type { Home } from '~/types/home';
 import type { Now } from '~/types/now';
 import type { Project } from '~/types/projects';
 import type { ServicesData } from '~/types/services';
@@ -46,7 +51,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION].map((c) => `record/${c}/self`),
+  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION].map((c) => `record/${c}/self`),
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -83,6 +88,16 @@ export async function getAbout(): Promise<{ about: About }> {
 export async function getNow(): Promise<Now | null> {
   const value = await getRecord<Record<string, unknown>>(NOW_COLLECTION, 'self');
   return value ? (nowFromRecord(value) as Now) : null;
+}
+
+/**
+ * The home page's own text: the id.skiddle.home record's fields, and src/data/home.ts for any it
+ * leaves out (all of them until there's a record). Like Now, a missing record isn't an error.
+ */
+export async function getHome(): Promise<Home> {
+  const value = await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self');
+  const mine = (value ? homeFromRecord(value) : {}) as Partial<Home>;
+  return { ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } };
 }
 
 /** At most this many pages of 100 posts are read for the notes, newest first */

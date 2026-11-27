@@ -42,6 +42,7 @@ const SITE_COLLECTIONS = [
   'id.skiddle.about',
   'id.skiddle.now',
   'id.skiddle.notes',
+  'id.skiddle.home',
   'com.atproto.lexicon.schema',
 ];
 /** Blobs downloaded at a time */

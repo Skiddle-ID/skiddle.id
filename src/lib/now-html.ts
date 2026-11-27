@@ -1,5 +1,6 @@
 /**
- * The Now record's Markdown (lexicons/id/skiddle/now.json) as HTML, for /now/ and the home page.
+ * The Now and home records' Markdown (lexicons/id/skiddle/{now,home}.json) as HTML, for /now/ and the
+ * home page.
  * Raw HTML in it shows as text, and links get the site's link style.
  */
 import { Marked, type Tokens } from 'marked';
@@ -20,5 +21,5 @@ const marked = new Marked({
 /** One item of the list: a line of Markdown */
 export const nowItemHtml = (markdown: string) => marked.parseInline(markdown, { async: false });
 
-/** The intro on /now/: paragraphs of Markdown */
-export const nowIntroHtml = (markdown: string) => marked.parse(markdown, { async: false });
+/** An intro, on /now/ and the home page: paragraphs of Markdown */
+export const introHtml = (markdown: string) => marked.parse(markdown, { async: false });

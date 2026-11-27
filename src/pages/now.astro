@@ -5,7 +5,7 @@ import NowList from '../components/now-list.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { FALLBACK_NOW } from '~/data/now';
 import { PAGES_CACHE, getNow } from '~/lib/page-content';
-import { nowIntroHtml } from '~/lib/now-html';
+import { introHtml } from '~/lib/now-html';
 
 // Rendered on request: the page comes from its record (src/lib/page-content.ts), or the built-in
 // list until there is one
@@ -26,7 +26,7 @@ Astro.cache.set(PAGES_CACHE);
       {now && <p class="text-xs text-[var(--color-muted)] mt-3">Last updated <FormattedDate date={new Date(now.updatedAt)} /></p>}
     </header>
 
-    {now?.intro && <div class="prose mt-6" set:html={nowIntroHtml(now.intro)} />}
+    {now?.intro && <div class="prose mt-6" set:html={introHtml(now.intro)} />}
 
     <NowList items={now?.items ?? FALLBACK_NOW} class="mt-6" />
   </div>

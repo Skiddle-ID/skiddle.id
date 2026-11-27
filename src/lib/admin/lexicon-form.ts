@@ -63,6 +63,7 @@ const LABELS: Record<string, string> = {
   writeup: 'Write-up',
   live: 'Live site',
   id: 'Anchor',
+  me: 'One of my own profiles (rel="me")',
 };
 
 /** "selectedProjects" → "Selected projects" */

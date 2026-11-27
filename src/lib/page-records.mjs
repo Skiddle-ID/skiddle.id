@@ -1,6 +1,6 @@
 /**
  * The pages' content (docs/v4/pages-on-atproto.md) from its AT Protocol records: projects, the CV,
- * services, uses, About and Now, from the shapes in lexicons/id/skiddle/{project,cv,services,uses,about,now}.json
+ * services, uses, About, Now and the home page, from the shapes in lexicons/id/skiddle/{project,cv,services,uses,about,now,home}.json
  * to the shapes the pages use (src/types/). The pages read them through src/lib/page-content.ts;
  * the admin app edits them (src/lib/admin/page-editor.ts).
  *
@@ -17,6 +17,7 @@ export const SERVICES_COLLECTION = 'id.skiddle.services';
 export const USES_COLLECTION = 'id.skiddle.uses';
 export const ABOUT_COLLECTION = 'id.skiddle.about';
 export const NOW_COLLECTION = 'id.skiddle.now';
+export const HOME_COLLECTION = 'id.skiddle.home';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -237,5 +238,34 @@ export function nowFromRecord(v) {
       .map((i) => str(i.text))
       .filter((text) => !!text),
     updatedAt,
+  });
+}
+
+/** A link the home page may show: a path on the site, or an https:, http: or mailto: URL */
+const SAFE_HREF = /^(\/(?![/\\])|https?:\/\/|mailto:)/i;
+
+/**
+ * The home page's own text, from its record: only the fields it has, each checked, so the page
+ * fills in the rest from src/data/home.ts. Unlike the other pages' records, nothing here is
+ * required, and nothing throws: a field of the wrong type is left out. A selected project is kept
+ * only if it's one of this repo's (its id), and a link only if its address is safe to link to.
+ * @param {Record<string, any>} v The record
+ */
+export function homeFromRecord(v) {
+  const projectPrefix = projectUri('');
+  const hire = v.hire && typeof v.hire === 'object' ? defined({ title: str(v.hire.title) || undefined, blurb: str(v.hire.blurb) || undefined }) : {};
+  const selected = (strs(v.selectedProjects) ?? []).filter((uri) => uri.startsWith(projectPrefix)).map((uri) => uri.slice(projectPrefix.length));
+  const elsewhere = objects(v.elsewhere)
+    .map((l) => defined({ label: str(l.label), href: str(l.href), me: l.me === true ? true : undefined }))
+    .filter((l) => l.label && l.href && SAFE_HREF.test(l.href));
+  return defined({
+    title: str(v.title) || undefined,
+    description: str(v.description) || undefined,
+    greeting: str(v.greeting) || undefined,
+    tagline: str(v.tagline) || undefined,
+    intro: str(v.intro) || undefined,
+    selectedProjects: selected.length ? selected : undefined,
+    hire: Object.keys(hire).length ? hire : undefined,
+    elsewhere: elsewhere.length ? elsewhere : undefined,
   });
 }
