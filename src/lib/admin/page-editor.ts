@@ -9,6 +9,8 @@
  *     PUBLICATION_RKEY): its name, description, logo and whether readers may list it. The form uses
  *     the part of Standard.site's lexicon it edits (src/lib/admin/publication-lexicon.ts); the rest
  *     (its url, which /.well-known/site.standard.publication proves, and its theme) is kept as it is
+ *   - #page/theme: the site's theme (id.skiddle.theme, src/lib/card-theme.mjs): for now, the share
+ *     cards' design, picked from previews (src/lib/admin/design-field.ts)
  *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
@@ -37,6 +39,7 @@ import nowLexicon from '../../../lexicons/id/skiddle/now.json';
 import projectLexicon from '../../../lexicons/id/skiddle/project.json';
 import servicesLexicon from '../../../lexicons/id/skiddle/services.json';
 import siteLexicon from '../../../lexicons/id/skiddle/site.json';
+import themeLexicon from '../../../lexicons/id/skiddle/theme.json';
 import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
 import { FALLBACK_HOME } from '~/data/home';
 import { FALLBACK_SITE } from '~/data/site-meta';
@@ -52,6 +55,9 @@ import { el, errorText, formatTime, message, revalidate, saveState } from './dom
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-form';
 import { iconField, logoField } from './icon-field';
+import { designField } from './design-field';
+import { resetCardStyle } from './card-style';
+import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
 import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
@@ -80,7 +86,7 @@ interface PageEditor {
 let categoryUsage: () => Map<string, number> = () => new Map();
 
 /** The records with key `self` that have an editor, by their editor's address */
-export const PAGE_EDITORS: Record<'site' | 'publication' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
+export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
   site: {
     title: 'Site and search engines',
     collection: SITE_COLLECTION,
@@ -102,6 +108,13 @@ export const PAGE_EDITORS: Record<'site' | 'publication' | 'home' | 'cv' | 'serv
     fixed: { url: SITE_URL },
     noDates: true,
     initial: () => ({ name: PUBLICATION_NAME, description: PUBLICATION_DESCRIPTION, preferences: { showInDiscover: true } }),
+  },
+  theme: {
+    title: 'Theme',
+    collection: THEME_COLLECTION,
+    lexicon: themeLexicon as LexiconDoc,
+    page: '/',
+    initial: () => ({ cardDesign: DEFAULT_CARD_DESIGN }),
   },
   home: {
     title: 'Home',
@@ -149,7 +162,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
   if (hash === NEW_EVENT) return { newEvent: true };
-  const page = /^#page\/(site|publication|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
+  const page = /^#page\/(site|publication|theme|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
@@ -314,6 +327,7 @@ function fill(value: Value) {
     // The site's icon uploads files, which the lexicon can't make a form for
     ...(current.collection === SITE_COLLECTION ? { custom: { icon: iconField(session, onChange) } } : {}),
     ...(current.route === 'page/publication' ? { custom: { icon: logoField(session, onChange) } } : {}),
+    ...(current.collection === THEME_COLLECTION ? { custom: { cardDesign: designField(onChange) } } : {}),
     // The selected projects, on the CV and the home page
     choices: () =>
       projects
@@ -427,6 +441,8 @@ async function save(force = false) {
     const rkey = key || rkeyOf(res.uri);
     Object.assign(target, { rkey, cid: res.cid, record });
     removeBackup(target.route);
+    // Cards drawn from now on use the new design or logo
+    if (target.collection === THEME_COLLECTION || target.route === 'page/publication') resetCardStyle();
     await revalidate();
     void saved().catch(() => {});
     if (current === target) {

@@ -25,6 +25,7 @@ import { categoryUsage, loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
 import { clientMetadata, isLoopback, loopbackClientId, missingScopes } from './oauth';
 import { setupPageEditor } from './page-editor';
+import { configureCardStyle } from './card-style';
 import { loadPages, setupPages } from './pages';
 import { loadTimeline, setupTimeline } from './timeline';
 import { loadMedia, setupMedia } from './media';
@@ -470,6 +471,7 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupOverview();
   setupSections();
   // After a save: the Pages list, and the posts (whose Category menu follows the categories)
+  configureCardStyle(session);
   setupPageEditor(session, async () => void (await Promise.allSettled([loadPages(), loadPosts(), loadTimeline()])), categoryUsage);
   setupRedraw(session);
   const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages(), loadTimeline(), loadMedia()]);

@@ -4,8 +4,13 @@
  * an SVG. Turning that into a PNG is up to the caller, so the same layout runs at build time
  * (src/lib/share-card.ts, with resvg's Node build) and in the admin app when it publishes a post
  * (src/lib/admin/card.ts, with resvg's WebAssembly build). No Node-only code here.
+ *
+ * The design is the theme's (src/lib/card-theme.mjs, id.skiddle.theme): 'terminal' (the default),
+ * 'terminal-light' (the same in the light colours) or 'logo' (the logo large beside the title). The
+ * logo is the publication's.
  */
 import satori from 'satori';
+import type { CardDesign } from './card-theme.mjs';
 
 export interface CardFont {
   name: string;
@@ -20,15 +25,22 @@ export interface ShareCard {
   description?: string;
   /** Footer details after the author, e.g. ["Nov 23, 2025", "3 min read"] */
   meta?: string[];
-  /** data: URI of the logo shown in the footer */
+  /** data: URI of the logo: in the footer, or large in the 'logo' design */
   logo?: string;
+  /** The theme's design; 'terminal' if left out */
+  design?: CardDesign;
 }
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
 
+type Palette = { bg: string; line: string; fg: string; mute: string; accent: string };
 // The site's dark theme (IBM Carbon tokens in src/style.css)
-const C = { bg: '#161616', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', accent: '#82cfff' };
+const DARK: Palette = { bg: '#161616', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', accent: '#82cfff' };
+// Its light theme (:root[data-theme='light'])
+const LIGHT: Palette = { bg: '#ffffff', line: '#e0e0e0', fg: '#161616', mute: '#525252', accent: '#0f62fe' };
+/** The logo's size in the 'logo' design */
+const BIG_LOGO = 216;
 
 type Node = { type: string; props: Record<string, unknown> };
 const h = (type: string, style: Record<string, unknown>, children?: unknown, extra: Record<string, unknown> = {}): Node => ({
@@ -44,9 +56,12 @@ const BAR = 8;
 const INNER_W = CARD_WIDTH - PAD_X * 2;
 const INNER_H = CARD_HEIGHT - BAR - PAD_TOP - PAD_BOTTOM;
 
-/** The share card as an SVG, 1200×630 */
+/** The share card as an SVG, 1200×630, in its design ('logo' without a logo draws as 'terminal') */
 export async function shareCardSvg(card: ShareCard, fonts: CardFont[]): Promise<string> {
-  const titleSize = card.title.length > 54 ? 54 : 64;
+  const C = card.design === 'terminal-light' ? LIGHT : DARK;
+  const big = card.design === 'logo' && !!card.logo;
+  const titleSize = big ? (card.title.length > 40 ? 48 : 56) : card.title.length > 54 ? 54 : 64;
+  const textW = big ? INNER_W - BIG_LOGO - 56 : INNER_W;
 
   const prompt = h('div', { display: 'flex', alignItems: 'center', width: INNER_W, fontSize: 26, whiteSpace: 'nowrap' }, [
     h('span', { color: C.accent }, 'skiddle@web'),
@@ -57,16 +72,24 @@ export async function shareCardSvg(card: ShareCard, fonts: CardFont[]): Promise<
 
   const title = h(
     'div',
-    { display: 'block', width: INNER_W, marginTop: 52, fontSize: titleSize, fontWeight: 700, lineHeight: 1.18, color: C.fg, lineClamp: 3 },
+    { display: 'block', width: textW, marginTop: big ? 0 : 52, fontSize: titleSize, fontWeight: 700, lineHeight: 1.18, color: C.fg, lineClamp: 3 },
     card.title,
   );
 
   const description = card.description
-    ? h('div', { display: 'block', width: INNER_W, marginTop: 24, fontSize: 28, lineHeight: 1.45, color: C.mute, lineClamp: 2 }, card.description)
+    ? h('div', { display: 'block', width: textW, marginTop: 24, fontSize: big ? 26 : 28, lineHeight: 1.45, color: C.mute, lineClamp: big ? 3 : 2 }, card.description)
+    : null;
+
+  // The 'logo' design: the logo large, the title and description beside it, under the prompt
+  const body = big
+    ? h('div', { display: 'flex', alignItems: 'center', width: INNER_W, marginTop: 44 }, [
+        h('img', { width: BIG_LOGO, height: BIG_LOGO, borderRadius: 36, objectFit: 'cover' }, undefined, { src: card.logo, width: BIG_LOGO, height: BIG_LOGO }),
+        h('div', { display: 'flex', flexDirection: 'column', width: textW, marginLeft: 56 }, [title, description].filter(Boolean)),
+      ])
     : null;
 
   const footerLeft = h('div', { display: 'flex', alignItems: 'center' }, [
-    card.logo ? h('img', { width: 44, height: 44, borderRadius: 10, marginRight: 18 }, undefined, { src: card.logo, width: 44, height: 44 }) : null,
+    card.logo && !big ? h('img', { width: 44, height: 44, borderRadius: 10, marginRight: 18 }, undefined, { src: card.logo, width: 44, height: 44 }) : null,
     h('span', { color: C.fg }, 'Jeff (Skiddle)'),
     ...(card.meta ?? []).filter(Boolean).map((m) => h('span', { color: C.mute, marginLeft: 14 }, `· ${m}`)),
   ]);
@@ -80,7 +103,7 @@ export async function shareCardSvg(card: ShareCard, fonts: CardFont[]): Promise<
   const content = h(
     'div',
     { display: 'flex', flexDirection: 'column', width: INNER_W, height: INNER_H, marginTop: PAD_TOP, marginLeft: PAD_X },
-    [prompt, title, description, footer].filter(Boolean),
+    (big ? [prompt, body, footer] : [prompt, title, description, footer]).filter(Boolean),
   );
 
   const root = h(
@@ -103,6 +126,7 @@ export const BUTTON_HEIGHT = 31;
  * "skiddle.id" and the cursor in the accent colour, on the dark theme with a 1px border.
  */
 export async function buttonSvg(fonts: CardFont[]): Promise<string> {
+  const C = DARK;
   const inner = h(
     'div',
     { display: 'flex', alignItems: 'center', justifyContent: 'center', width: BUTTON_WIDTH - 2, height: BUTTON_HEIGHT - 2, marginTop: 1, marginLeft: 1, backgroundColor: C.bg, fontSize: 11, fontWeight: 700, color: C.accent },

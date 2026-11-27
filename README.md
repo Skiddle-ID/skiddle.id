@@ -33,7 +33,7 @@ In the admin app, **Posts → New draft**. A draft is an `id.skiddle.draft` reco
 - **Schedule**: pick a time and the share card is drawn for that date and stored on the draft. The scheduler, a small cron Worker ([`workers/publisher`](workers/publisher/README.md)), publishes due drafts every 5 minutes the same way.
 - **Editing a published post** keeps its address and publish date and sets "updated", unless it's ticked as a small fix. The card is redrawn if the title, description or length changed.
 - **Series** (Series section): name, description, planned parts ("coming"), ongoing and cadence. Saving draws the series' card.
-- **Share cards** (Site section): after a change to the card design, **Check share cards** redraws every stored card and saves the ones that changed.
+- **Share cards** (Site section): after a change to the card design, the theme or the logo, **Check share cards** redraws every stored card and saves the ones that changed.
 
 ### How the site reads the records
 
@@ -52,7 +52,7 @@ Every page that shows records is rendered when it's requested and cached at Clou
 
 **Avatars** are local, resized copies, so pages don't load full-size images from other sites. `public/avatars/bluesky.jpg` (224px, on the home page) comes from the Bluesky profile picture, and `public/avatars/github.jpg` (280px, on the about page) and `github-96.jpg` (96px, end of each post) from the GitHub one. To update one, save the new picture and resize it, e.g. `sips -z 224 224 -s format jpeg -s formatOptions 82 new.jpg --out public/avatars/bluesky.jpg`.
 
-The site's own share cards (`/og/site.png`, and the rendered pages' at `/og/pages/<path>.png`) are made at build time (`src/lib/share-card.ts`, `src/integrations/share-cards.ts`). Posts and series carry their own, drawn in the admin app with the same code.
+The site's own share cards (`/og/site.png`, and the rendered pages' at `/og/pages/<path>.png`) are made at build time (`src/lib/share-card.ts`, `src/integrations/share-cards.ts`). Posts and series carry their own, drawn in the admin app with the same code. All of them are in the theme's design (`id.skiddle.theme`: Terminal, Terminal light or Logo, picked in the admin app's Theme editor) with the publication's logo (`site.standard.publication`'s icon), read when they're drawn (`src/lib/card-theme.mjs`); the build falls back to the terminal design and the built-in icon if the repo can't be read.
 
 ```sh
 npm ci          # Node 24 (see .node-version), npm (see packageManager)
@@ -63,7 +63,7 @@ npm run lint    # ESLint (eslint.config.js); also runs on every PR (.github/work
 
 ### Admin app
 
-`/admin/` is a small app for running the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then use its sections, each with its own address, from a sidebar (a bar along the bottom on a phone): Overview (counts, the usual jobs and what changed lately), then Content, whose lists are tables with filters and search (Posts, Series, Pages, Timeline, the events on [`/timeline/`](docs/v4/timeline.md), and Media: every file in the repo by what uses it, plus a library of uploads, each kept by an `id.skiddle.media` record and usable in posts as `![alt](/media/<cid>)`; a file can't change in place, so Replace uploads the new image and moves the posts' and pages' links to it, keeping the old one while anything still links to it) and Site (Status, Site and SEO, with the site's icon made from one uploaded image, Publication: the Standard.site publication's name, description and logo, Lexicons and cards: the lexicons, share cards and the site's records). Add it to the home screen to use it like an app (it's a PWA).
+`/admin/` is a small app for running the site from a phone: sign in with the Bluesky account (AT Protocol OAuth), then use its sections, each with its own address, from a sidebar (a bar along the bottom on a phone): Overview (counts, the usual jobs and what changed lately), then Content, whose lists are tables with filters and search (Posts, Series, Pages, Timeline, the events on [`/timeline/`](docs/v4/timeline.md), and Media: every file in the repo by what uses it, plus a library of uploads, each kept by an `id.skiddle.media` record and usable in posts as `![alt](/media/<cid>)`; a file can't change in place, so Replace uploads the new image and moves the posts' and pages' links to it, keeping the old one while anything still links to it) and Site (Status, Site and SEO, with the site's icon made from one uploaded image, Publication: the Standard.site publication's name, description and logo, Theme: the share cards' design, picked from previews, Lexicons and cards: the lexicons, share cards and the site's records). Add it to the home screen to use it like an app (it's a PWA).
 
 - It runs entirely in the browser (`src/lib/admin/app.ts`, with `@atproto/oauth-client-browser`). There's no server or database: the sign-in tokens stay on the device, and the app writes straight to the PDS.
 - It may only write the site's collections, upload images, and create (never edit or delete) the Bluesky posts that announce new posts. Bluesky's sign-in page shows the list, which is `COLLECTIONS` and `CREATE_ONLY` in `src/lib/admin/oauth.ts`. Adding one there means signing in again; the app says so.

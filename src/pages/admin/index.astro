@@ -57,6 +57,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
         <a href="#status" data-section="status" data-primary><span>Status</span></a>
         <a href="#page/site" data-section="seo"><span>Site and SEO</span></a>
         <a href="#page/publication" data-section="publication"><span>Publication</span></a>
+        <a href="#page/theme" data-section="theme"><span>Theme</span></a>
         <a href="#site" data-section="site"><span>Lexicons and cards</span></a>
         <button id="sideMore" type="button" class="admin-side-more" aria-expanded="false" aria-controls="sectionNav">More</button>
       </nav>
@@ -1592,6 +1593,42 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     background: var(--color-bg);
+  }
+  /* The Theme editor's card designs (src/lib/admin/design-field.ts) */
+  .admin-designs {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .admin-design-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+  }
+  .admin-design {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .admin-design:has(input:checked) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+  .admin-design canvas {
+    width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    background: var(--color-bg-alt);
+  }
+  .admin-design-head {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    font-size: 0.875rem;
   }
   .admin-media-empty {
     grid-column: 1 / -1;
