@@ -23,9 +23,8 @@
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import pageLexicon from '../../../lexicons/id/skiddle/page.json';
 import { FALLBACK_HOME } from '~/data/home';
-import type { Home } from '~/types/home';
 import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
-import { HOME_COLLECTION, PROJECT_COLLECTION, homeFromRecord, projectUri } from '~/lib/page-records.mjs';
+import { HOME_COLLECTION, PROJECT_COLLECTION, homeOf, projectUri } from '~/lib/page-records.mjs';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, labelOf, problems, recordSchema, type Field, type LexiconDoc } from './lexicon-form';
@@ -84,8 +83,7 @@ export async function assertValidPage(record: Value) {
 
 /** The home page as it shows without a page record: its id.skiddle.home record over the built-in text, in blocks */
 export function legacyHomePage(home: Value | undefined): Value {
-  const mine = (home ? homeFromRecord(home) : {}) as Partial<Home>;
-  return homePageFromLegacy({ ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } }, new Date().toISOString());
+  return homePageFromLegacy(homeOf(home, FALLBACK_HOME), new Date().toISOString());
 }
 
 /** One block in the editor: a kind this app knows, with its form, or one it doesn't, kept as it is */

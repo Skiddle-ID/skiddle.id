@@ -14,7 +14,7 @@ import { join, relative } from 'node:path';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { FALLBACK_HOME } from '../src/data/home.ts';
 import { PAGE_COLLECTION, homePageFromLegacy } from '../src/lib/page-blocks.mjs';
-import { homeFromRecord } from '../src/lib/page-records.mjs';
+import { homeOf } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const errors = [];
@@ -55,8 +55,8 @@ for (const file of files.sort()) {
 const at = new Date().toISOString();
 const homeRecord = JSON.parse(readFileSync(join(ROOT, 'scripts/fixtures/home-record.json'), 'utf8'));
 const made = [
-  ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy({ ...FALLBACK_HOME, ...homeFromRecord(homeRecord) }, at)],
-  ['the home page from its built-in text', PAGE_COLLECTION, homePageFromLegacy(FALLBACK_HOME, at)],
+  ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy(homeOf(homeRecord, FALLBACK_HOME), at)],
+  ['the home page from its built-in text', PAGE_COLLECTION, homePageFromLegacy(homeOf(null, FALLBACK_HOME), at)],
 ];
 for (const [what, collection, record] of made) {
   try {

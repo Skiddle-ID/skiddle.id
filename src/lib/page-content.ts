@@ -24,7 +24,7 @@ import {
   USES_COLLECTION,
   aboutFromRecord,
   cvFromRecord,
-  homeFromRecord,
+  homeOf,
   nowFromRecord,
   projectsFromRecords,
   servicesFromRecord,
@@ -103,9 +103,7 @@ export async function getNow(): Promise<Now | null> {
  * leaves out (all of them until there's a record). Like Now, a missing record isn't an error.
  */
 export async function getHome(): Promise<Home> {
-  const value = await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self');
-  const mine = (value ? homeFromRecord(value) : {}) as Partial<Home>;
-  return { ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } };
+  return homeOf(await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self'), FALLBACK_HOME);
 }
 
 /**

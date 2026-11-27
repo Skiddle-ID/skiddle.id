@@ -253,7 +253,7 @@ const blockRecord = (kind, options = {}) => ({ block: { $type: blockType(kind), 
 
 /**
  * The home page's id.skiddle.page record, from what it showed before it had one: its own text
- * (the id.skiddle.home record over src/data/home.ts, as getHome() reads it) in the blocks it was
+ * (the id.skiddle.home record over src/data/home.ts: homeOf in src/lib/page-records.mjs) in the blocks it was
  * laid out in, with the links and buttons that were in the page's code. The home page renders it
  * until there's a page record, and the admin app's Move to blocks saves it as the draft.
  * @param {import('../types/home').Home} home

@@ -269,3 +269,15 @@ export function homeFromRecord(v) {
     elsewhere: elsewhere.length ? elsewhere : undefined,
   });
 }
+
+/**
+ * The home page's text: the id.skiddle.home record's fields over the built-in text, which fills in
+ * any field the record leaves out, or all of them when there's no record
+ * @param {Record<string, any> | null | undefined} record
+ * @param {import('../types/home').Home} fallback src/data/home.ts
+ * @returns {import('../types/home').Home}
+ */
+export function homeOf(record, fallback) {
+  const mine = /** @type {Partial<import('../types/home').Home>} */ (record ? homeFromRecord(record) : {});
+  return { ...fallback, ...mine, hire: { ...fallback.hire, ...mine.hire } };
+}
