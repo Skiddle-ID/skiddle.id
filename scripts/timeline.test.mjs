@@ -4,6 +4,7 @@ import {
   EVENT_COLLECTION,
   activitiesOf,
   eventInstant,
+  icsOf,
   noteLine,
   zoneLabel,
   eventFromRecord,
@@ -16,6 +17,7 @@ import {
   roughOnly,
   todayIn,
   upcoming,
+  weekSummary,
 } from '../src/lib/timeline.mjs';
 
 const uri = (rkey) => `at://did:plc:x/${EVENT_COLLECTION}/${rkey}`;
@@ -153,5 +155,68 @@ describe('timeline activity', () => {
     assert.equal(eventInstant({ startsOn: '2026-11-26', timeZone: 'Asia/Bangkok' }), undefined);
     assert.equal(zoneLabel('Asia/Bangkok', '2026-11-26'), '');
     assert.equal(zoneLabel('Europe/Paris', '2026-11-26'), 'CET');
+  });
+});
+
+describe('timeline calendar feed', () => {
+  const site = 'https://skiddle.id';
+  const now = Date.parse('2026-11-27T03:00:00Z');
+  const events = eventsFromRecords(
+    [
+      { uri: uri('rough'), value: { kind: 'trip', startsOn: '2026-11-30', endsOn: '2026-12-04', city: 'Hong Kong, Shenzhen', note: 'Visiting; partners.', title: 'secret' } },
+      { uri: uri('done'), value: { kind: 'class', startsOn: '2026-11-24', title: 'Ground school', startTime: '09:30', endTime: '12:00', place: 'School', city: 'Bangkok', link: '/posts/x/' } },
+    ],
+    now,
+  );
+  const ics = icsOf(events, { site, now });
+  const unfold = ics.replace(/\r\n /g, '');
+
+  it('is a calendar with CRLF lines no longer than 75 octets', () => {
+    assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+    assert.match(ics, /END:VCALENDAR\r\n$/);
+    for (const line of ics.split('\r\n')) assert.ok(new TextEncoder().encode(line).length <= 75, line);
+  });
+
+  it('keeps a rough event rough: all day, its kind and city, its note', () => {
+    assert.match(unfold, /UID:rough@skiddle\.id/);
+    assert.match(unfold, /DTSTART;VALUE=DATE:20261130\r\nDTEND;VALUE=DATE:20261205/);
+    assert.match(unfold, /SUMMARY:Trip · Hong Kong\\, Shenzhen/);
+    assert.match(unfold, /DESCRIPTION:Visiting\\; partners\.\\n\\nDetails after it’s over\.\\n\\nhttps:\/\/skiddle\.id\/timeline\/2026-11-30\//);
+    assert.doesNotMatch(unfold, /secret/);
+  });
+
+  it('gives a past event its times in UTC, its place and its link', () => {
+    assert.match(unfold, /DTSTART:20261124T023000Z\r\nDTEND:20261124T050000Z\r\nSUMMARY:Ground school\r\nLOCATION:School\\, Bangkok/);
+    assert.match(unfold, /URL:https:\/\/skiddle\.id\/posts\/x\//);
+  });
+});
+
+describe('this week on the home page', () => {
+  const now = Date.parse('2026-11-27T03:00:00Z');
+  const events = eventsFromRecords(
+    [
+      { uri: uri('a'), value: { kind: 'trip', startsOn: '2026-11-26', endsOn: '2026-11-27', city: 'Paris' } },
+      { uri: uri('b'), value: { kind: 'trip', startsOn: '2026-11-30', city: 'Hong Kong' } },
+    ],
+    now,
+  );
+  const activity = activitiesOf({
+    posts: [{ title: 'P', href: '/posts/p/', publishedAt: '2026-11-25T06:00:00Z' }],
+    notes: [
+      { text: 'a', url: 'u', createdAt: '2026-11-25T11:00:00Z' },
+      { text: 'b', url: 'u', createdAt: '2026-11-25T12:00:00Z' },
+      { text: 'old', url: 'u', createdAt: '2026-11-20T12:00:00Z' },
+    ],
+  });
+
+  it('lists the week’s events and counts its posts, status changes and notes', () => {
+    const w = weekSummary(events, activity, '2026-11-27');
+    assert.equal(w.week.key, '2026-W48');
+    assert.deepEqual(w.events.map((e) => e.rkey), ['a']);
+    assert.equal(w.activity, '1 post and 2 notes');
+  });
+
+  it('is nothing for an empty week', () => {
+    assert.equal(weekSummary(events, activity, '2026-11-11'), null);
   });
 });

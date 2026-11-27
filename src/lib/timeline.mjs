@@ -395,3 +395,96 @@ export function eventInstant(/** @type {TimelineEvent} */ e) {
   const minutes = m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
   return local - minutes * 60000;
 }
+
+// ---- The calendar feed, /timeline.ics (phase 3) ----
+
+/** Text in an iCalendar property: backslashes, semicolons, commas and line breaks escaped */
+const icsText = (/** @type {string} */ s) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+
+/** A content line folded at 75 octets, as iCalendar asks, without splitting a character */
+function fold(/** @type {string} */ line) {
+  const enc = new TextEncoder();
+  const out = [];
+  let cur = '';
+  for (const ch of line) {
+    if (enc.encode(cur + ch).length > (out.length ? 74 : 75)) {
+      out.push(cur);
+      cur = '';
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out.join('\r\n ');
+}
+
+const icsDate = (/** @type {string} */ day) => day.replaceAll('-', '');
+const icsUtc = (/** @type {number} */ at) => new Date(at).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+/**
+ * Jeff's events as an iCalendar feed, for Apple and Google Calendar and the like. It follows the
+ * timeline's rule: a rough event is all day, named by its kind and city, with its note. One with a
+ * start time starts then (in UTC, so no time zone definitions are needed) and ends at its end time,
+ * if it has one.
+ * @param {TimelineEvent[]} events
+ * @param {{ site: string, now?: number }} options The site's origin, for links and ids
+ */
+export function icsOf(events, { site, now = Date.now() }) {
+  const host = new URL(site).host;
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    `PRODID:-//${host}//timeline//EN`,
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    "X-WR-CALNAME:Jeff's timeline",
+    `X-WR-CALDESC:${icsText(`What Jeff (Skiddle) is up to: ${site}/timeline/`)}`,
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'X-PUBLISHED-TTL:PT1H',
+  ];
+  for (const e of events) {
+    const start = eventInstant(e);
+    const summary = e.title ?? [e.label, e.city].filter(Boolean).join(' · ');
+    const link = e.link ? (e.link.startsWith('/') ? `${site}${e.link}` : e.link) : `${site}/timeline/${e.startsOn}/`;
+    const description = [e.note, e.rough ? 'Details after it’s over.' : '', link].filter(Boolean).join('\n\n');
+    lines.push('BEGIN:VEVENT', `UID:${e.rkey}@${host}`, `DTSTAMP:${icsUtc(now)}`);
+    if (start !== undefined) {
+      lines.push(`DTSTART:${icsUtc(start)}`);
+      if (e.endTime) {
+        const end = eventInstant({ ...e, startsOn: e.endsOn, startTime: e.endTime });
+        if (end !== undefined && end >= start) lines.push(`DTEND:${icsUtc(end)}`);
+      }
+    } else {
+      // All day: the end is the day after the last
+      lines.push(`DTSTART;VALUE=DATE:${icsDate(e.startsOn)}`, `DTEND;VALUE=DATE:${icsDate(addDays(e.endsOn, 1))}`);
+    }
+    lines.push(`SUMMARY:${icsText(summary)}`);
+    const where = [e.place, e.city].filter(Boolean).join(', ');
+    if (where) lines.push(`LOCATION:${icsText(where)}`);
+    lines.push(`DESCRIPTION:${icsText(description)}`, `URL:${link}`, `CATEGORIES:${icsText(e.label)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.map(fold).join('\r\n') + '\r\n';
+}
+
+// ---- The home page's "This week" (phase 3) ----
+
+/**
+ * This week (Monday to Sunday) for the home page: its events, and how many posts, status changes
+ * and notes it has, in words ("1 post and 2 notes"); null if it has none of either
+ * @param {TimelineEvent[]} events
+ * @param {Activity[]} activity
+ * @param {string} today
+ */
+export function weekSummary(events, activity, today) {
+  const week = weekOf(today);
+  const evs = events.filter((e) => e.startsOn <= week.end && e.endsOn >= week.start);
+  const inWeek = activity.filter((a) => a.day >= week.start && a.day <= week.end);
+  const count = (/** @type {Activity['type']} */ type, /** @type {string} */ one, /** @type {string} */ many) => {
+    const n = inWeek.filter((a) => a.type === type).length;
+    return n ? `${n} ${n === 1 ? one : many}` : '';
+  };
+  const parts = [count('post', 'post', 'posts'), count('status', 'status change', 'status changes'), count('note', 'note', 'notes')].filter(Boolean);
+  const activityLine = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : (parts[0] ?? '');
+  if (!evs.length && !activityLine) return null;
+  return { week, events: evs, activity: activityLine };
+}

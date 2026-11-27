@@ -1,6 +1,6 @@
 # The timeline
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). Phases 1 (events) and 2 (posts, status changes and notes) are built; phase 3 isn't yet.
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). All three phases are built: events, then posts, status changes and notes, then the calendar feed and the home page's This week.
 
 A new page, `/timeline/`, shows what Jeff did and has coming up, by day, week and month. It mixes two kinds of entries:
 - **events** Jeff adds in the admin app, such as trips, flights, talks, classes, meetings and deadlines
@@ -95,15 +95,15 @@ The editor is made from the lexicon, like the page editors. It hides the detail 
 
 1. **Events.** The lexicon, the admin section and editor, and `/timeline/` with its Week, Month and Day views and Upcoming, showing events only. The sidebar link. Backups list the collection.
 2. **Everything else.** Posts, status changes and notes join the timeline.
-3. **Extras,** each optional:
-   - `/timeline.ics`: a calendar feed of the events, with the same rough rule, so people can subscribe in Apple or Google Calendar
-   - a "This week" card on the home page
-   - repeating events (a weekly class), left out until then because they make everything else harder
+3. **Extras:**
+   - `/timeline.ics`: a calendar feed of the events, with the same rough rule, so people can subscribe in Apple or Google Calendar. A rough event is all day, named by its kind and city, with its note. One with a start time starts then, in UTC, so the feed needs no time zone definitions. Posts, statuses and notes aren't in it. `/timeline/` links to it (`webcal://` to subscribe). Built by `icsOf` in `src/lib/timeline.mjs`.
+   - "This week" on the home page, after Now: the week's events, and a count of its posts, status changes and notes ("1 post and 2 notes"), linking to `/timeline/`. It's left out when the week has neither, or when the timeline can't be read (`weekSummary`).
+   - repeating events (a weekly class) are still left out, because they make everything else harder
 
 It all fits Cloudflare's free Workers plan: a page reads a few collections the site already caches.
 
 ## Open questions
 
 - **Kinds:** is the list above right?
-- **Upcoming on the home page:** in phase 3, or never?
+- **Upcoming on the home page:** done in phase 3, as This week.
 - **The sidebar link:** "timeline", or another word?
