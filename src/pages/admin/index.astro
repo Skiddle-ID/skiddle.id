@@ -50,6 +50,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           <a href="#series" data-section="series">Series</a>
           <a href="#pages" data-section="pages">Pages</a>
           <a href="#status" data-section="status">Status</a>
+          <a href="#timeline" data-section="timeline">Timeline</a>
           <a href="#site" data-section="site">Site</a>
         </nav>
 
@@ -162,6 +163,30 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           <p class="admin-small">Each status you save is kept, newest first. <a href="/status/" target="_blank" rel="noopener">See them all on /status/</a>.</p>
           <ul id="statusHistory" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
           <p id="statusHistoryMessage" class="admin-message" role="status"></p>
+        </section>
+
+        <section class="admin-card" data-section="timeline" aria-labelledby="timelineTitle">
+          <div class="admin-label-row">
+            <h2 id="timelineTitle">Timeline</h2>
+            <span class="admin-toolbar">
+              <a id="newEvent" href="#new-event" class="admin-btn admin-btn-ghost">New event</a>
+            </span>
+          </div>
+          <p>The events on <a href="/timeline/" target="_blank" rel="noopener">/timeline/</a>. Records are public, so until an event is over it holds only its kind, its days and its city, unless you tick Announced. Its title, times, place, note and link open once it’s over. Keep anything private off it.</p>
+          <div id="timelineScope" class="admin-notice" hidden>
+            <p>To write events, the app needs one more permission from your account.</p>
+            <button id="timelineSignIn" type="button" class="admin-btn">Sign in again</button>
+          </div>
+          <h3 class="admin-subhead">Upcoming</h3>
+          <ul id="timelineUpcoming" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
+          <div id="timelineRoughSection" hidden>
+            <h3 class="admin-subhead">Fill in the details</h3>
+            <p class="admin-small">Over, and still only rough. Add what you’d like to show, or leave them as they are.</p>
+            <ul id="timelineRough" class="admin-lexicons admin-pages"></ul>
+          </div>
+          <h3 class="admin-subhead">Past</h3>
+          <ul id="timelinePast" class="admin-lexicons admin-pages"></ul>
+          <p id="timelineMessage" class="admin-message" role="status"></p>
         </section>
 
         <section class="admin-card" data-section="site" aria-labelledby="lexiconTitle">
@@ -406,6 +431,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           <button id="peRestore" type="button" class="admin-btn">Restore them</button>
           <button id="peDiscard" type="button" class="admin-btn">Discard</button>
         </div>
+        <p id="peRough" class="admin-notice" hidden>Upcoming, so only its kind, its days and its city are saved: records are public. Its title, times, place, note and link open once it’s over. Tick Announced to make them public now.</p>
         <p id="peNote" class="admin-small" hidden>Not in your repo yet. Fill it in and save to create it.</p>
         <p id="peMessage" class="admin-message" role="status"></p>
 
@@ -1222,6 +1248,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   #dashboard[data-section='series'] > [data-section='series'],
   #dashboard[data-section='pages'] > [data-section='pages'],
   #dashboard[data-section='status'] > [data-section='status'],
+  #dashboard[data-section='timeline'] > [data-section='timeline'],
   #dashboard[data-section='site'] > [data-section='site'] {
     display: flex;
   }

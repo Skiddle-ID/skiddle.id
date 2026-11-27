@@ -32,6 +32,7 @@ import {
 } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
+import { EVENT_COLLECTION, eventsFromRecords, type TimelineEvent } from '~/lib/timeline.mjs';
 import type { About } from '~/types/about';
 import { FALLBACK_HOME } from '~/data/home';
 import type { Highlight } from '~/types/highlights';
@@ -52,6 +53,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
   ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION].map((c) => `record/${c}/self`),
+  `list/${EVENT_COLLECTION}`,
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -98,6 +100,11 @@ export async function getHome(): Promise<Home> {
   const value = await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self');
   const mine = (value ? homeFromRecord(value) : {}) as Partial<Home>;
   return { ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } };
+}
+
+/** The timeline's events (src/lib/timeline.mjs), in order, upcoming ones rough */
+export async function getEvents(): Promise<TimelineEvent[]> {
+  return eventsFromRecords(await listRecords<Record<string, unknown>>(EVENT_COLLECTION));
 }
 
 /** At most this many pages of 100 posts are read for the notes, newest first */

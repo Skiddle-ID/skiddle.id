@@ -50,6 +50,11 @@ export const CONTENT_PAGES = {
     description: 'Short notes by Jeff (Skiddle): his Bluesky posts tagged #note.',
     command: 'tail notes.log',
   },
+  timeline: {
+    title: 'Timeline',
+    description: 'What Jeff (Skiddle) has been doing and has coming up, by day, week and month.',
+    command: 'cal',
+  },
   status: {
     title: 'Status',
     description: 'Every status Jeff (Skiddle) has set on skiddle.id, newest first: what he was up to, and where.',

@@ -1,0 +1,88 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.event",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "An event on Jeff's timeline (/timeline/). Records are public, so until it's over an event holds only its kind, its days and its city, unless it's announced; the title, times, place, note and link are added after (docs/v4/timeline.md).",
+      "record": {
+        "type": "object",
+        "required": ["kind", "startsOn", "createdAt"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["trip", "flight", "talk", "class", "meeting", "deadline", "milestone", "personal", "other"],
+            "description": "What kind of event, shown as its label while it has no title."
+          },
+          "startsOn": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "A date (YYYY-MM-DD): the first day."
+          },
+          "endsOn": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "A date (YYYY-MM-DD): the last day. Leave it empty for a one-day event."
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "Where, roughly: the city, e.g. 'Paris'."
+          },
+          "announced": {
+            "type": "boolean",
+            "description": "Its details are public before it's over, e.g. a talk."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100
+          },
+          "startTime": {
+            "type": "string",
+            "maxLength": 5,
+            "description": "A time (HH:MM) on the first day, in the event's time zone. Leave it empty for all day."
+          },
+          "endTime": {
+            "type": "string",
+            "maxLength": 5,
+            "description": "A time (HH:MM) on the last day, in the event's time zone."
+          },
+          "timeZone": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "IANA time zone for its times, e.g. 'Europe/Paris'. Bangkok's if empty."
+          },
+          "place": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "The venue, e.g. 'Don Mueang airport'."
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 10000,
+            "maxGraphemes": 1000,
+            "description": "Markdown, rendered like a post's text: paragraphs, links, bold and italics."
+          },
+          "link": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "A path on skiddle.id, e.g. a post written about it (/posts/…/), or a full URL."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

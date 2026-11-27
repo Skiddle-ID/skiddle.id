@@ -92,7 +92,7 @@ Then the [launch checklist](#the-v4-branch).
 
 `/timeline/`: what Jeff did and has coming up, by day, week and month. Upcoming events stay rough (the kind, the days and the city) until they're over. The plan is [docs/v4/timeline.md](docs/v4/timeline.md).
 
-- [ ] Events: `id.skiddle.event`, a Timeline section in the admin app, and `/timeline/` with its Week, Month and Day views
+- [x] Events: `id.skiddle.event`, a Timeline section in the admin app, and `/timeline/` with its Week, Month and Day views
 - [ ] Posts, status changes and notes join the timeline
 - [ ] Extras: a `.ics` feed, a "This week" card on the home page
 
