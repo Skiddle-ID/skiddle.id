@@ -8,8 +8,8 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { PAGE_COLLECTION, pageFromRecord } from '../src/lib/page-blocks.mjs';
-import { aboutPageFromLegacy, nowPageFromLegacy } from '../src/lib/page-legacy.mjs';
-import { aboutFromRecord } from '../src/lib/page-records.mjs';
+import { aboutPageFromLegacy, nowPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutFromRecord, usesFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const fixture = (name) => JSON.parse(readFileSync(join(ROOT, `scripts/fixtures/${name}-record.json`), 'utf8'));
@@ -62,6 +62,23 @@ describe('the Now page from what it showed', () => {
     assert.equal(page.blocks[0].block.heading, 'Now');
     assert.match(page.blocks[0].block.text, /\[now page\]\(https:\/\/nownownow\.com\/about\)/);
     assert.equal(page.hideHeading, true);
+  });
+
+  it('is a valid id.skiddle.page record', () => assertValid(converted));
+});
+
+describe('the Uses page from its old record', () => {
+  const record = fixture('uses');
+  const converted = usesPageFromLegacy(usesFromRecord(record), meta);
+  const page = pageFromRecord(converted);
+
+  it('is one wide block of every section, dated when the record was', () => {
+    assert.deepEqual(kinds(page), ['uses']);
+    assert.deepEqual([page.width, page.hideHeading, page.updatedAt], ['wide', true, record.updatedAt]);
+    const { heading, sections, outro } = page.blocks[0].block;
+    assert.equal(heading, 'Uses');
+    assert.deepEqual(sections, usesFromRecord(record).uses);
+    assert.match(outro, /\[my homelab posts\]\(\/topics\/tag\/homelab\/\)/);
   });
 
   it('is a valid id.skiddle.page record', () => assertValid(converted));

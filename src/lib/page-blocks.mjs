@@ -22,7 +22,7 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
 
 /** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
-export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now']);
+export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -54,8 +54,11 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ kind: 'soFar', title: string, milestones: Milestone[], current: string }} SoFarBlock
  * @typedef {{ kind: 'contact', title: string, text: string, links: Link[] }} ContactBlock
  * @typedef {{ kind: 'nowFull', heading: string, text: string }} NowFullBlock
+ * @typedef {{ name: string, note?: string, href?: string }} UsesItem
+ * @typedef {{ id: string, title: string, blurb?: string, groups: { title: string, items: UsesItem[] }[] }} UsesSection
+ * @typedef {{ kind: 'uses', heading: string, text: string, sections: UsesSection[], outro: string }} UsesBlock
  * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
- *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock} KnownBlock
+ *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock | UsesBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -72,6 +75,7 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @property {boolean} hideHeading
  * @property {string} [card] The share card's CID
  * @property {PlacedBlock[]} blocks
+ * @property {string} updatedAt When the page was last saved, as the record says ('' if it doesn't)
  */
 
 /** @typedef {Record<string, any>} Raw */
@@ -238,6 +242,26 @@ export const BLOCKS = {
       return heading ? { kind: 'nowFull', heading, text: str(v.text) ?? '' } : null;
     },
   },
+  uses: {
+    reads: [],
+    parse: (v) => {
+      const heading = str(v.heading);
+      const sections = objects(v.sections).flatMap((s) => {
+        const [id, title] = [isId(s.id) ? s.id : undefined, str(s.title)];
+        const groups = objects(s.groups).flatMap((g) => {
+          const items = objects(g.items).flatMap((i) => {
+            const [name, note, href] = [str(i.name), str(i.note), hrefOf(i.href)];
+            return name ? [{ name, ...(note ? { note } : {}), ...(href ? { href } : {}) }] : [];
+          });
+          const groupTitle = str(g.title);
+          return groupTitle && items.length ? [{ title: groupTitle, items }] : [];
+        });
+        const blurb = str(s.blurb);
+        return id && title && groups.length ? [{ id, title, ...(blurb ? { blurb } : {}), groups }] : [];
+      });
+      return heading && sections.length ? { kind: 'uses', heading, text: str(v.text) ?? '', sections, outro: str(v.outro) ?? '' } : null;
+    },
+  },
 };
 
 const WIDTHS = /** @type {const} */ (['full', 'half', 'third']);
@@ -293,6 +317,7 @@ export function pageFromRecord(value) {
     hideHeading: v.hideHeading === true,
     ...(typeof cid === 'string' ? { card: cid } : {}),
     blocks: withAnchors(objects(v.blocks).flatMap((item) => placedBlockOf(item) ?? [])),
+    updatedAt: typeof v.updatedAt === 'string' && !Number.isNaN(Date.parse(v.updatedAt)) ? v.updatedAt : '',
   };
 }
 

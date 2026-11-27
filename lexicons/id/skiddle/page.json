@@ -84,7 +84,8 @@
             "#principles",
             "#soFar",
             "#contact",
-            "#nowFull"
+            "#nowFull",
+            "#uses"
           ],
           "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
         }
@@ -445,6 +446,109 @@
           "maxLength": 5000,
           "maxGraphemes": 500,
           "description": "The line under the heading, in Markdown: links, bold and italics."
+        }
+      }
+    },
+    "uses": {
+      "type": "object",
+      "description": "The things Jeff uses, in sections of groups, with links to jump to each section. Its heading is the page's main heading; under it, the lead, how many things there are and when the page was last updated.",
+      "required": ["heading", "sections"],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The page's main heading. The page hides its own."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500,
+          "description": "The line under the heading, in Markdown: links, bold and italics."
+        },
+        "sections": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#usesSection"
+          }
+        },
+        "outro": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500,
+          "description": "A line after the sections, in Markdown."
+        }
+      }
+    },
+    "usesSection": {
+      "type": "object",
+      "required": ["id", "title", "groups"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "Its address on the page (#homelab): letters, digits and hyphens, starting with a letter."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "blurb": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "groups": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#usesGroup"
+          }
+        }
+      }
+    },
+    "usesGroup": {
+      "type": "object",
+      "required": ["title", "items"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "items": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "ref",
+            "ref": "#usesItem"
+          }
+        }
+      }
+    },
+    "usesItem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Its website: a full https:// URL."
         }
       }
     }

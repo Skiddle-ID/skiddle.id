@@ -25,6 +25,7 @@ import section from './section.astro';
 import soFar from './soFar.astro';
 import testimonials from './testimonials.astro';
 import thisWeek from './thisWeek.astro';
+import uses from './uses.astro';
 
 interface Props {
   page: Page;
@@ -39,7 +40,7 @@ const { page, data, preview, class: className } = Astro.props;
 // Each kind of block's component (src/lib/page-blocks.mjs's BLOCKS has how each is read). A new kind
 // is a def in lexicons/id/skiddle/page.json, an entry in BLOCKS and a component here, which
 // scripts/page-blocks.test.mjs checks
-const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull } satisfies Record<BlockKind, unknown>;
+const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull, uses } satisfies Record<BlockKind, unknown>;
 const COLUMN = { narrow: 'max-w-[70ch] w-full', wide: 'max-w-[56rem] w-full' };
 // Blocks side by side line up at the top: the row has the space above it, not each block. A block
 // that shows nothing (it failed, or This week is empty) leaves no gap.
@@ -58,13 +59,13 @@ const rows = rowsOf(page.blocks).map((row) => row.map((placed) => ({ placed, Blo
   {rows.map((row) =>
     row[0].placed.width === 'full' ? (
       row.map(({ placed, Block }) => (
-        <Frame kind={placed.block.kind}><Block block={placed.block} anchor={placed.anchor} data={data} /></Frame>
+        <Frame kind={placed.block.kind}><Block block={placed.block} anchor={placed.anchor} data={data} page={page} /></Frame>
       ))
     ) : (
       <div class="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-6 mt-12">
         {row.map(({ placed, Block }) => (
           <div class={SPAN[placed.width]}>
-            <Frame kind={placed.block.kind}><Block block={placed.block} anchor={placed.anchor} data={data} /></Frame>
+            <Frame kind={placed.block.kind}><Block block={placed.block} anchor={placed.anchor} data={data} page={page} /></Frame>
           </div>
         ))}
       </div>

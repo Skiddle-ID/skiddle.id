@@ -83,9 +83,9 @@ export async function getServices(): Promise<{ services: ServicesData }> {
   return { services: servicesFromRecord(await record(SERVICES_COLLECTION)) as ServicesData };
 }
 
-/** The uses page's sections, and when it was last updated ("September 2025") */
-export async function getUses(): Promise<{ uses: UsesSection[]; usesUpdated: string }> {
-  return usesFromRecord(await record(USES_COLLECTION)) as { uses: UsesSection[]; usesUpdated: string };
+/** The uses page's sections, and when it was last updated ("September 2025", and its updatedAt) */
+export async function getUses(): Promise<{ uses: UsesSection[]; usesUpdated: string; updatedAt: string }> {
+  return usesFromRecord(await record(USES_COLLECTION)) as { uses: UsesSection[]; usesUpdated: string; updatedAt: string };
 }
 
 export async function getAbout(): Promise<{ about: About }> {

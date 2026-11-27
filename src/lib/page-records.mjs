@@ -22,6 +22,9 @@ export const HOME_COLLECTION = 'id.skiddle.home';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+/** A date's month and year, in UTC: "September 2025" */
+export const monthYear = (/** @type {Date} */ d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+
 /** A project's record's at:// address */
 export const projectUri = (/** @type {string} */ rkey) => `at://${DID}/${PROJECT_COLLECTION}/${rkey}`;
 
@@ -178,8 +181,8 @@ export function servicesFromRecord(v) {
 }
 
 /**
- * The uses page, as it uses it (src/types/uses.ts): its sections, and when it was last updated as a month
- * and year ("September 2025"), from the record's updatedAt
+ * The uses page, as it uses it (src/types/uses.ts): its sections, and when it was last updated, as a
+ * month and year ("September 2025") and as the record's updatedAt
  * @param {Record<string, any>} v The id.skiddle.uses record
  */
 export function usesFromRecord(v) {
@@ -198,7 +201,8 @@ export function usesFromRecord(v) {
         })),
       }),
     ),
-    usesUpdated: `${MONTHS[updated.getUTCMonth()]} ${updated.getUTCFullYear()}`,
+    usesUpdated: monthYear(updated),
+    updatedAt: v.updatedAt,
   };
 }
 

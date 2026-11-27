@@ -112,9 +112,9 @@ describe('page records, read', () => {
     const cid = 'bafkreigh2akiscaildcqabsyg3dfr6chu3fgpregiymsck7e7aqa4s52zy';
     assert.deepEqual(
       pageFromRecord({ ...page(), description: 'D', width: 'wide', hideHeading: true, card: { $type: 'blob', ref: { $link: cid }, mimeType: 'image/png', size: 1 } }),
-      { title: 'T', description: 'D', width: 'wide', hideHeading: true, card: cid, blocks: [] },
+      { title: 'T', description: 'D', width: 'wide', hideHeading: true, card: cid, blocks: [], updatedAt: at },
     );
-    assert.deepEqual(pageFromRecord({ blocks: [], width: 'huge', hideHeading: 'yes' }), { title: '', description: '', width: 'narrow', hideHeading: false, blocks: [] });
+    assert.deepEqual(pageFromRecord({ blocks: [], width: 'huge', hideHeading: 'yes', updatedAt: 'yesterday' }), { title: '', description: '', width: 'narrow', hideHeading: false, blocks: [], updatedAt: '' });
   });
 
   it('what a page reads, each once, leaving out unknown blocks', () => {
@@ -178,6 +178,31 @@ describe('the Now page’s block, read', () => {
     const p = pageFromRecord(page(block('nowFull', { heading: 'Now', text: 'A lead' }), block('nowFull', { text: 'no heading' })));
     assert.deepEqual(p.blocks.map((b) => b.block), [{ kind: 'nowFull', heading: 'Now', text: 'A lead' }]);
     assert.deepEqual(readsOf(p), ['now']);
+  });
+});
+
+describe('the Uses page’s block, read', () => {
+  const item = (name, more = {}) => ({ name, ...more });
+  const sections = [
+    { id: 'dev', title: 'Dev', blurb: 'b', groups: [{ title: 'Editors', items: [item('Zed', { href: 'https://zed.dev', note: 'n' }), item('vi', { href: 'javascript:x' }), { note: 'no name' }] }, { title: 'Empty', items: [] }] },
+    { id: '1bad', title: 'Bad id', groups: [{ title: 'G', items: [item('x')] }] },
+    { id: 'none', title: 'No groups', groups: [] },
+  ];
+
+  it('keeps sections with an id and a group of things, and a thing’s link only if it’s safe', () => {
+    const b = pageFromRecord(page(block('uses', { heading: 'Uses', sections, outro: 'o' }))).blocks[0].block;
+    assert.deepEqual(b, {
+      kind: 'uses',
+      heading: 'Uses',
+      text: '',
+      outro: 'o',
+      sections: [{ id: 'dev', title: 'Dev', blurb: 'b', groups: [{ title: 'Editors', items: [item('Zed', { note: 'n', href: 'https://zed.dev' }), item('vi')] }] }],
+    });
+  });
+
+  it('none of them, or no heading, no block', () => {
+    assert.equal(pageFromRecord(page(block('uses', { heading: 'Uses', sections: sections.slice(1) }))).blocks.length, 0);
+    assert.equal(pageFromRecord(page(block('uses', { sections }))).blocks.length, 0);
   });
 });
 

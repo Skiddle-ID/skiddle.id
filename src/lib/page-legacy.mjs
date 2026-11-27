@@ -137,3 +137,26 @@ export function nowPageFromLegacy(meta, updatedAt) {
     updatedAt,
   );
 }
+
+/**
+ * The Uses page's record, from its id.skiddle.uses record: its sections, with the heading, the lead
+ * and the closing line that were in the page's code. It keeps the record's updatedAt, which the page
+ * shows as when it was last updated.
+ * @param {{ uses: import('../types/uses').UsesSection[], updatedAt: string }} uses
+ * @param {PageMeta} meta
+ */
+export function usesPageFromLegacy({ uses, updatedAt }, meta) {
+  return pageRecord(
+    meta,
+    [
+      blockRecord('uses', {
+        heading: 'Uses',
+        text: 'The hardware, software and tools I use every day, from the dev box to the flight bag. Inspired by [uses.tech](https://uses.tech).',
+        sections: uses.map((s) => defined({ ...s, groups: s.groups.map((g) => ({ title: g.title, items: g.items.map((i) => defined({ ...i })) })) })),
+        outro: 'Want to know more about any of this? Ask me on [Bluesky](https://bsky.app/profile/skiddle.blue), or read [my homelab posts](/topics/tag/homelab/).',
+      }),
+    ],
+    updatedAt,
+    'wide',
+  );
+}
