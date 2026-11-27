@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Sets Jeff's status: writes the `id.skiddle.status` record (key `self`) to his AT Protocol repo.
+ * Sets Jeff's status: writes the `id.skiddle.status` record (key `self`) to his AT Protocol repo,
+ * then adds a copy to the history, `id.skiddle.statusLog` (src/lib/status-log.mjs), which /status/ lists.
  * /status.svg, /api/status.json and the home page read it (src/lib/at-status.ts). Everything in an
  * AT Protocol repo is public.
  *
@@ -26,6 +27,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { DID } from '../src/lib/standard-site.mjs';
+import { STATUS_LOG_COLLECTION, logEntryOf } from '../src/lib/status-log.mjs';
 import { MAX_CHARS as MAX, STATES, countChars, isEmoji, isState } from '../src/lib/status-states.mjs';
 
 const COLLECTION = 'id.skiddle.status';
@@ -85,8 +87,10 @@ async function main() {
     throw new Error(`Unknown time zone: ${record.timeZone} (use an IANA name like Asia/Bangkok)`);
   }
 
-  if (flag('dry-run')) return console.log(`DRY RUN: would write ${COLLECTION}/self:\n${JSON.stringify(record, null, 2)}`);
+  if (flag('dry-run')) return console.log(`DRY RUN: would write ${COLLECTION}/self, and a copy in ${STATUS_LOG_COLLECTION}:\n${JSON.stringify(record, null, 2)}`);
   await putRecord(pds, COLLECTION, 'self', record);
+  // The copy in the history; if it fails, the status is still set, and /status/ still shows it
+  await createRecord(pds, STATUS_LOG_COLLECTION, logEntryOf(record)).catch((err) => console.warn(`The status is set, but adding it to the history failed: ${err.message}`));
   console.log(`Status set: ${record.state} · ${record.emoji ? `${record.emoji} ` : ''}${record.text} · ${record.location} (${record.timeZone})`);
   console.log('skiddle.id shows it within a minute.');
 }
@@ -114,6 +118,17 @@ async function putRecord(pds, collection, rkey, record) {
     body: JSON.stringify({ repo: DID, collection, rkey, record }),
   });
   if (!res.ok) throw new Error(`putRecord ${collection}/${rkey} failed (${res.status}): ${await res.text()}`);
+}
+
+/** A new record, under a key the PDS picks (a TID) */
+async function createRecord(pds, collection, record) {
+  session ??= await createSession(pds);
+  const res = await fetch(`${pds}/xrpc/com.atproto.repo.createRecord`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.accessJwt}` },
+    body: JSON.stringify({ repo: DID, collection, record }),
+  });
+  if (!res.ok) throw new Error(`createRecord ${collection} failed (${res.status}): ${await res.text()}`);
 }
 
 async function createSession(pds) {

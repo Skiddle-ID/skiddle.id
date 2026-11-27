@@ -1,0 +1,67 @@
+---
+/*
+  /status/: every status Jeff has set, newest first. The current one is the id.skiddle.status
+  record; the ones before it are copies in id.skiddle.statusLog, added each time it's set
+  (src/lib/status-log.mjs). Set from the admin app, or with scripts/status.mjs.
+*/
+import Shell from '../layouts/shell.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { getStatusHistory } from '~/lib/at-status';
+import { PAGES_CACHE } from '~/lib/page-content';
+import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
+
+export const prerender = false;
+
+const history = await getStatusHistory();
+// A save purges it (/api/revalidate), like the pages
+Astro.cache.set(PAGES_CACHE);
+
+// In the time zone the status was set in, else Bangkok's
+const when = (iso: string, timeZone = 'Asia/Bangkok') => {
+  let tz = timeZone;
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: tz });
+  } catch {
+    tz = 'Asia/Bangkok';
+  }
+  return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+};
+const meta = CONTENT_PAGES.status;
+---
+
+<Shell title={`${meta.title} — Skiddle`} description={meta.description}>
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">Status</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        Every status I've set, newest first: what I was up to, and where. The one at the top is the one on the
+        <a href="/" class="link">home page</a> now. They're records in my own AT Protocol repo.
+      </p>
+    </header>
+
+    {history.length === 0 ? (
+      <p class="text-sm text-[var(--color-muted)] mt-8">No status yet.</p>
+    ) : (
+      <ol class="mt-8 flex flex-col">
+        {history.map((h) => (
+          <li class="flex gap-3 py-3 border-b last:border-b-0">
+            <span class="w-5 shrink-0 flex justify-center pt-0.5" aria-hidden="true">
+              {h.emoji
+                ? <span class="text-base leading-5">{h.emoji}</span>
+                : <span class="size-2 mt-1.5 rounded-full" style={`background: ${toneColour(STATE_INFO[h.state].tone)}`} />}
+            </span>
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <p>
+                <span class="sr-only">{STATE_INFO[h.state].label}: </span>{h.text}
+                {h.current && <span class="ml-2 text-xs text-[var(--color-primary)] border border-[var(--color-primary)] rounded px-1.5 align-middle">now</span>}
+              </p>
+              <p class="text-xs text-[var(--color-muted)]">
+                {h.current ? 'since ' : ''}<time datetime={h.at}>{when(h.at, h.timeZone)}</time>{h.location && <> · {h.location}</>}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</Shell>

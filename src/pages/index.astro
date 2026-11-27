@@ -71,12 +71,14 @@ const h2 = 'font-semibold before-hash-2';
       <div class="flex flex-col gap-1.5">
         <h1 id="intro" class="text-2xl font-semibold leading-tight">{home.greeting}</h1>
         <p class="text-[var(--color-primary)]">{home.tagline}</p>
-        <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
+        <!-- The status links to its history (/status/) -->
+        <a href="/status/" class="w-fit text-xs text-[var(--color-muted)] flex items-center gap-2 hover:text-[var(--color-primary)] transition-colors">
           <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.emoji && 'hidden']} style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
           <span id="statusEmoji" class:list={['text-sm leading-none shrink-0', !status.emoji && 'hidden']} aria-hidden="true">{status.emoji}</span>
           <span id="statusState" class="sr-only">{STATE_INFO[status.state].label}: </span>
           <span id="statusText">{capitalise(status.label)}</span>
-        </p>
+          <span class="sr-only"> (status history)</span>
+        </a>
       </div>
     </section>
 

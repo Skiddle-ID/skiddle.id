@@ -76,6 +76,7 @@ Then the [launch checklist](#the-v4-branch).
 - [x] Music from teal.fm's records (`fm.teal.feed.play`, and `fm.teal.actor.status` for what's playing now) instead of Last.fm: `/music.svg` and the sidebar's "now playing", with album art from Deezer (by ISRC, or a matching search run near Singapore by [`workers/covers`](workers/covers/README.md), since Deezer isn't open in Hong Kong) and the Cover Art Archive (by MusicBrainz release or release group, or a MusicBrainz search by album and track). piper sends plays from Apple Music, and from Spotify through Last.fm. The old `/lastfm.svg` serves the same card. The alpha collections stopped on Feb 22, 2026, when teal.fm moved off them; piper has written the new ones since Nov 12
 - [x] /listening/: now playing, this week's top artists and tracks, and every play, paged back through the alpha collection; the sidebar's "now playing" opens it
 - [x] A top-of-the-week music card, from the plays, `/music-week.svg`
+- [x] Status history: every status set is kept (`id.skiddle.statusLog`), listed on /status/ and in the admin app
 - [x] The home page's own text (`id.skiddle.home`): its intro, selected work, hire box and links, edited from the admin app ([#178](https://github.com/Skiddle-ID/skiddle.id/pull/178))
 
 ### v4.2: flying

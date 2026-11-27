@@ -14,6 +14,7 @@ import { CATEGORIES_RECORD_KEY } from '~/lib/site-categories';
 import { forget, pdsUrl } from '~/lib/pds';
 import { POSTS_TAG } from '~/lib/pds-posts';
 import { DID } from '~/lib/standard-site.mjs';
+import { STATUS_LOG_COLLECTION } from '~/lib/status-log.mjs';
 
 export const prerender = false;
 
@@ -37,7 +38,7 @@ export const POST: APIRoute = async ({ cache }) => {
   const last = lastRevInMemory ?? (await (await edgeCache()?.match(LAST_REV).catch(() => undefined))?.text());
   if (rev === last) return json({ purged: false, rev, reason: 'The repo hasn’t changed since the last purge' });
 
-  await forget(['list/site.standard.document', 'list/id.skiddle.series', `list/${GENERATOR_COLLECTION}`, 'record/id.skiddle.status/self', CATEGORIES_RECORD_KEY, ...PAGE_RECORD_KEYS]);
+  await forget(['list/site.standard.document', 'list/id.skiddle.series', `list/${GENERATOR_COLLECTION}`, 'record/id.skiddle.status/self', `list/${STATUS_LOG_COLLECTION}`, CATEGORIES_RECORD_KEY, ...PAGE_RECORD_KEYS]);
   let pages = true;
   try {
     await cache.invalidate({ tags: [POSTS_TAG, PAGES_TAG] });

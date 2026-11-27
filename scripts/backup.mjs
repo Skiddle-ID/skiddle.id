@@ -35,6 +35,7 @@ const SITE_COLLECTIONS = [
   'id.skiddle.series',
   'id.skiddle.draft',
   'id.skiddle.status',
+  'id.skiddle.statusLog',
   'id.skiddle.project',
   'id.skiddle.cv',
   'id.skiddle.services',

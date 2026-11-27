@@ -11,7 +11,7 @@ export const LIST_PAGES = {
 
 /**
  * The other pages rendered on request from records: the pages' content and the notes
- * (src/lib/page-content.ts), and the listening history (src/lib/listening.ts). Their title, description, and the command their
+ * (src/lib/page-content.ts), the status history (src/lib/at-status.ts) and the listening history (src/lib/listening.ts). Their title, description, and the command their
  * share card shows (the page's own prompt, or a cd into it).
  */
 export const CONTENT_PAGES = {
@@ -49,6 +49,11 @@ export const CONTENT_PAGES = {
     title: 'Notes',
     description: 'Short notes by Jeff (Skiddle): his Bluesky posts tagged #note.',
     command: 'tail notes.log',
+  },
+  status: {
+    title: 'Status',
+    description: 'Every status Jeff (Skiddle) has set on skiddle.id, newest first: what he was up to, and where.',
+    command: 'tail status.log',
   },
   listening: {
     title: 'Listening',
