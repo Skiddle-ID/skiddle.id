@@ -10,19 +10,25 @@
  *     options as a form made from its def in the lexicon (src/lib/admin/lexicon-form.ts). A block
  *     of a kind this app doesn't know (saved by a newer one) shows as an unknown block, and is saved
  *     back exactly as it was, in its place
- *   - Add a block, from the kinds in BLOCKS
+ *   - Add a block, from the kinds in BLOCKS, grouped as BLOCKS groups them: text and links, the
+ *     site's data, and the parts of the site's own pages
  * and shows what the page reads from the site's data.
+ *
+ * A page of Jeff's own (src/lib/own-pages.mjs) starts from the Pages section's New page, with its
+ * title, and isn't in the repo until its draft is saved. Delete page, after a confirm, deletes it and
+ * its draft; the site's own pages can't be deleted.
  *
  * Save draft checks the record with @atproto/lexicon and writes it as <key>~draft. Preview opens the
  * page reading the draft (?preview=draft). Publish, after a confirm, draws the page's share card
  * (every page but home, and home if "Its own share card" is ticked), copies the saved draft over the
- * page's record and deletes the draft. Each write uses swapRecord, so a change made on another
- * device isn't overwritten unseen, then the site's pages are refreshed. Leaving with unsaved changes
- * asks first. Writes follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
+ * page's record and deletes the draft. Each write and delete uses swapRecord, so a change made on
+ * another device isn't overwritten unseen, then the site's pages are refreshed. Leaving with unsaved
+ * changes asks first. Writes follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import pageLexicon from '../../../lexicons/id/skiddle/page.json';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, pageFromRecord, readsOf, type BlockGroup } from '~/lib/page-blocks.mjs';
+import { ownKeyProblem } from '~/lib/own-pages.mjs';
 import { PROJECT_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { LEGACY_PAGES, isSitePage, legacyPage } from './legacy-pages';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
@@ -37,6 +43,8 @@ type BlockKind = keyof typeof BLOCKS;
 const WIDTHS = ['full', 'half', 'third'] as const;
 const DOC = pageLexicon as LexiconDoc;
 const KINDS = Object.keys(BLOCKS) as BlockKind[];
+/** The catalogue's groups, in the order it offers them */
+const GROUPS: Record<BlockGroup, string> = { text: 'Text and links', data: 'The site’s data', about: 'From the site’s own pages' };
 /** How many blocks a page holds (the lexicon's limit) */
 const MAX_BLOCKS: number = recordSchema(DOC).properties.blocks.maxLength;
 /** The record's fields the editor sets itself, not from the settings form */
@@ -104,12 +112,14 @@ interface Open {
   base: Value;
   settings: Field;
   rows: Row[];
-  /** What a save or a publish that met a change made elsewhere was doing */
-  conflict?: 'save' | 'publish';
+  /** What a save, a publish or a delete that met a change made elsewhere was doing */
+  conflict?: 'save' | 'publish' | 'delete';
 }
 
 let session: OAuthSession;
 let saved: () => Promise<void>;
+/** A new page from New page, until the editor opens it */
+let pending: { key: string; title: string } | undefined;
 let projects: RepoRecord<Value>[] = [];
 let current: Open | undefined;
 /** The form has changes that aren't saved */
@@ -127,7 +137,12 @@ export function setupBlockEditor(s: OAuthSession, onSaved: () => Promise<void>) 
   el('bkNotLive').hidden = PUBLISHING_LIVE;
   el('bkForm').addEventListener('submit', (event) => event.preventDefault());
   const kinds = el<HTMLSelectElement>('bkAddKind');
-  for (const kind of KINDS) kinds.appendChild(new Option(labelOf(kind), kind));
+  for (const [group, label] of Object.entries(GROUPS)) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = label;
+    for (const kind of KINDS) if (BLOCKS[kind].group === group) optgroup.appendChild(new Option(labelOf(kind), kind));
+    kinds.appendChild(optgroup);
+  }
   el('bkAdd').addEventListener('click', () => {
     if (!current) return;
     addRow(current, { block: { $type: blockType(kinds.value) } }, true);
@@ -138,6 +153,7 @@ export function setupBlockEditor(s: OAuthSession, onSaved: () => Promise<void>) 
     if (current) window.open(`${addressOf(current.key)}?preview=draft`, '_blank', 'noopener');
   });
   el('bkPublish').addEventListener('click', () => void publish());
+  el('bkDelete').addEventListener('click', () => void deletePage());
   el('bkLoadTheirs').addEventListener('click', () => void resolveConflict('theirs'));
   el('bkKeepMine').addEventListener('click', () => void resolveConflict('mine'));
   sortable(el('bkBlocks'), {
@@ -155,11 +171,17 @@ export function setupBlockEditor(s: OAuthSession, onSaved: () => Promise<void>) 
   });
 }
 
+/** Opens the block editor for a new page of Jeff's own, at an address New page checked */
+export function newPage(key: string, title: string) {
+  pending = { key, title };
+  location.hash = `#blocks/${key}`;
+}
+
 /** Opens the block editor for a page */
 export async function openBlocks(key: string) {
   if (current?.key === key || !leaveBlocks()) return;
   document.body.dataset.view = 'blocks';
-  el('bkTitle').textContent = isSitePage(key) ? LEGACY_PAGES[key].title : key;
+  el('bkTitle').textContent = isSitePage(key) ? LEGACY_PAGES[key].title : addressOf(key);
   el('bkFrom').textContent = '';
   el('bkConflict').hidden = true;
   el('bkForm').hidden = true;
@@ -180,14 +202,24 @@ export async function openBlocks(key: string) {
     return message('bkMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
   }
   if (blocksRoute(location.hash) !== key) return; // moved on while it loaded
-  const base = draft?.value ?? page?.value ?? legacy ?? { $type: PAGE_COLLECTION, title: '', blocks: [] };
-  el('bkFrom').textContent = draft
-    ? `The draft, saved ${formatTime(String(draft.value.updatedAt))}.${page ? ' The page shows the published version until you publish it.' : ' Not published yet.'}`
-    : page
-      ? 'The published page. Saving makes a draft; the page changes when you publish it.'
-      : isSitePage(key)
-        ? `No page record yet, so ${addressOf(key)} shows ${LEGACY_PAGES[key].shows}: these are its blocks. Save a draft, preview it, then publish it.`
-        : 'Not in your repo yet. Save a draft to create it.';
+  const title = pending?.key === key ? pending.title : '';
+  pending = undefined;
+  // A page that isn't one of the site's own can only be made where the site would show it
+  const problem = isSitePage(key) ? null : ownKeyProblem(key);
+  if (problem && !page && !draft) {
+    saveState('bkState', '');
+    return message('bkMessage', `There can’t be a page here: ${problem}`, 'error');
+  }
+  const base = draft?.value ?? page?.value ?? legacy ?? { $type: PAGE_COLLECTION, title, blocks: [] };
+  el('bkFrom').textContent = problem
+    ? `It doesn’t show on the site: ${problem} You can delete it.`
+    : draft
+      ? `The draft, saved ${formatTime(String(draft.value.updatedAt))}.${page ? ' The page shows the published version until you publish it.' : ' Not published yet.'}`
+      : page
+        ? 'The published page. Saving makes a draft; the page changes when you publish it.'
+        : isSitePage(key)
+          ? `No page record yet, so ${addressOf(key)} shows ${LEGACY_PAGES[key].shows}: these are its blocks. Save a draft, preview it, then publish it.`
+          : 'Not in your repo yet. Save a draft to create it.';
   current = { key, page: page ?? undefined, draft: draft ?? undefined, base, settings: { el: document.createElement('div'), read: () => ({}) }, rows: [] };
   fill(current);
   el('bkForm').hidden = false;
@@ -372,6 +404,8 @@ function refresh() {
   el<HTMLButtonElement>('bkSave').disabled = blocked || found.length > 0 || (!!open.draft && !dirty);
   el<HTMLButtonElement>('bkPreview').disabled = !open.draft || dirty;
   el<HTMLButtonElement>('bkPublish').disabled = blocked || !open.draft || dirty;
+  el('bkDelete').hidden = isSitePage(open.key) || (!open.page && !open.draft);
+  el<HTMLButtonElement>('bkDelete').disabled = blocked;
   el('bkHint').textContent = dirty ? 'Save the draft to preview or publish it.' : open.draft ? '' : 'Save a draft to preview it.';
   const view = el<HTMLAnchorElement>('bkView');
   view.href = addressOf(open.key);
@@ -386,10 +420,10 @@ function changed() {
 }
 
 /** Marks a write that met a change made elsewhere */
-function conflicted(open: Open, action: 'save' | 'publish') {
+function conflicted(open: Open, action: NonNullable<Open['conflict']>) {
   open.conflict = action;
   el('bkConflict').hidden = false;
-  saveState('bkState', action === 'save' ? 'Not saved: changed elsewhere' : 'Not published: changed elsewhere');
+  saveState('bkState', { save: 'Not saved', publish: 'Not published', delete: 'Not deleted' }[action] + ': changed elsewhere');
 }
 
 async function saveDraft() {
@@ -493,6 +527,57 @@ async function publish() {
 }
 
 /**
+ * Deletes a page of Jeff's own and its draft, after a confirm: the page first, so the site stops
+ * showing it, then the draft. If the draft's delete fails, Delete page deletes what's left.
+ */
+async function deletePage() {
+  if (!PUBLISHING_LIVE || !current || busy || current.conflict || isSitePage(current.key)) return;
+  const open = current;
+  const address = addressOf(open.key);
+  const title = String((open.page ?? open.draft)?.value.title || address);
+  const what = open.page ? `${address} stops showing it${open.draft ? ', and its draft is deleted too' : ''}` : 'Its draft is deleted';
+  if (!confirm(`Delete “${title}”? ${what}. This can’t be undone.`)) return;
+  busy = true;
+  refresh();
+  message('bkMessage', '');
+  let deleted = false;
+  let done = '';
+  try {
+    saveState('bkState', 'Deleting…');
+    if (open.page) {
+      await deleteRecord(session, PAGE_COLLECTION, open.key, open.page.cid);
+      open.page = undefined;
+      deleted = true;
+    }
+    if (open.draft) {
+      await deleteRecord(session, PAGE_COLLECTION, draftKey(open.key), open.draft.cid);
+      open.draft = undefined;
+      deleted = true;
+    }
+    if (current === open) {
+      dirty = false;
+      leaveBlocks();
+      location.hash = '#pages';
+    }
+    done = `Deleted “${title}”. ${address} is the site’s 404 now.`;
+  } catch (err) {
+    if (err instanceof XrpcError && err.error === 'InvalidSwap') conflicted(open, 'delete');
+    else {
+      saveState('bkState', 'Not deleted');
+      message('bkMessage', `Couldn’t delete it${deleted ? ' all: the page is deleted, its draft isn’t' : ''}: ${errorText(err)}`, 'error');
+    }
+  } finally {
+    busy = false;
+    refresh();
+    if (deleted) {
+      await revalidate();
+      await saved().catch(() => {});
+    }
+    if (done) message('pagesMessage', done, 'ok');
+  }
+}
+
+/**
  * After a write met a change made elsewhere: load the page and draft as they are now, or keep the
  * form and write it over them
  */
@@ -514,6 +599,7 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
       const at = (draft ?? page)?.value.updatedAt;
       saveState('bkState', typeof at === 'string' ? `Loaded the version saved ${formatTime(at)}` : 'Loaded the saved version');
     } else if (action === 'save') await saveDraft();
+    else if (action === 'delete') await deletePage();
     else {
       // Publish the draft this editor saved, over the newer page, then delete the draft as it is now
       if (!draft || !mine) return message('bkMessage', 'The draft was deleted elsewhere. Save it again to publish it.', 'error');

@@ -22,6 +22,5 @@ if (!preview) Astro.cache.set(PAGES_CACHE);
 </Shell>
 
 <script>
-  // The CV header's and contact box's print buttons
-  document.querySelectorAll('#printCv, [data-print]').forEach((b) => b.addEventListener('click', () => window.print()));
+  import '~/components/blocks/scripts/print-buttons';
 </script>

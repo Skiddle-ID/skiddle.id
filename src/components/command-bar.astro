@@ -5,7 +5,8 @@
   "search" row, the search icon in the mobile top bar). Those are links to /posts/, so search
   still works without JavaScript. Desktop: a box near the top. Mobile: a full-screen sheet.
   Posts, series and categories come from /search.json, fetched the first time the bar opens. The
-  pages are the site's own and the menu's (src/lib/site-meta.mjs's commandPagesOf), in data-pages.
+  pages are the site's own and the menu's (src/lib/site-meta.mjs's commandPagesOf), in data-pages,
+  then Jeff's own pages (src/lib/own-pages.mjs) from /search.json once it's loaded.
 */
 import type { CommandPage } from '~/lib/site-meta.mjs';
 
@@ -184,10 +185,16 @@ const { pages } = Astro.props;
     description: string;
     posts: number;
   }
+  interface IndexedPage {
+    title: string;
+    url: string;
+    description: string;
+  }
   interface SearchIndex {
     posts: IndexedPost[];
     series: IndexedSeries[];
     categories: IndexedCategory[];
+    pages?: IndexedPage[];
   }
   interface Item {
     label: string;
@@ -208,6 +215,8 @@ const { pages } = Astro.props;
   function setup(dialog: HTMLDialogElement, input: HTMLInputElement, list: HTMLElement, status: HTMLElement) {
     // The site's pages and the menu's, from the layout; `keywords` are only for matching, not shown
     const PAGES: CommandPage[] = JSON.parse(dialog.dataset.pages ?? '[]');
+    // Then Jeff's own pages, from the search data, but for any the menu already lists
+    let pages = PAGES;
 
     let posts: IndexedPost[] | null = null;
     let seriesList: IndexedSeries[] = [];
@@ -226,6 +235,8 @@ const { pages } = Astro.props;
           posts = data.posts;
           seriesList = data.series ?? [];
           categoryList = data.categories ?? [];
+          const own = (data.pages ?? []).filter((pg) => !PAGES.some((p) => p.href === pg.url));
+          pages = [...PAGES, ...own.map((pg) => ({ label: pg.title, href: pg.url, hint: pg.description, keywords: '' }))];
           failed = false;
           if (dialog.open) render();
         })
@@ -311,7 +322,7 @@ const { pages } = Astro.props;
 
       if (!terms.length) {
         out.push({ label: 'latest posts', items: posts ? posts.slice(0, 5).map(postItem) : [], note: posts ? undefined : note });
-        out.push({ label: 'pages', items: PAGES.map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
+        out.push({ label: 'pages', items: pages.map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
         out.push({ label: 'actions', items: actions() });
         return out;
       }
@@ -334,7 +345,7 @@ const { pages } = Astro.props;
           .filter((c) => has(`${c.label} ${c.id} ${c.description} category topic`))
           .map((c) => ({ label: c.label, href: c.url, meta: `${c.posts} ${c.posts === 1 ? 'post' : 'posts'}`, detail: c.description })),
       });
-      out.push({ label: 'pages', items: PAGES.filter((pg) => has(`${pg.label} ${pg.href} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
+      out.push({ label: 'pages', items: pages.filter((pg) => has(`${pg.label} ${pg.href} ${pg.hint} ${pg.keywords}`)).map((pg) => ({ label: pg.label, href: pg.href, meta: pg.href, detail: pg.hint })) });
       out.push({ label: 'actions', items: actions().filter((a) => has(`${a.label} ${a.keywords}`)) });
       return out.filter((g) => g.items.length || g.note);
     }

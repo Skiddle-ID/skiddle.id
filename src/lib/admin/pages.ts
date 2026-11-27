@@ -6,7 +6,9 @@
  * The pages made of blocks (id.skiddle.page, docs/v4/themes.md) are listed too, each opening the
  * block editor (src/lib/admin/block-editor.ts) with its draft noted. The site's own (Home, the CV,
  * Services, Uses, About, Now and Notes) are always there: until one has a page record, it shows what
- * its old record says (src/lib/admin/legacy-pages.ts).
+ * its old record says (src/lib/admin/legacy-pages.ts). Then Jeff's own pages, each published or a
+ * draft, under Your pages; New page picks a new one's title and address (src/lib/own-pages.mjs),
+ * checked as it's typed, and opens it in the block editor.
  *
  * Until the v4 launch this section also imported the records from the data files in src/data/,
  * once; they've left git since.
@@ -16,7 +18,9 @@ import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJE
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
 import { PAGE_COLLECTION, SITE_PAGES, draftKey, isPageKey } from '~/lib/page-blocks.mjs';
+import { ownKeyFrom, ownKeyProblem, ownPagePath } from '~/lib/own-pages.mjs';
 import { LEGACY_PAGES, isSitePage } from './legacy-pages';
+import { newPage } from './block-editor';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, formatTime, message, viewLink } from './dom';
 import { report } from './overview';
@@ -40,6 +44,8 @@ interface Row {
   have?: RepoRecord<PageRecord>;
   /** A page made of blocks: its draft, if there is one */
   draft?: RepoRecord<PageRecord>;
+  /** A page of Jeff's own: why it can't show on the site, if it can't (a key made elsewhere) */
+  problem?: string | null;
 }
 
 const COLLECTIONS = [PROJECT_COLLECTION, PAGE_COLLECTION, SITE_COLLECTION, HOME_COLLECTION, CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION];
@@ -58,6 +64,8 @@ const PAGES: Omit<Row, 'rkey' | 'have'>[] = [
 
 let session: OAuthSession;
 let signInAgain: () => void;
+/** The page records' keys, drafts' too, as last read: a new page can't take one's address */
+let pageKeys: string[] = [];
 
 const rkeyOf = (uri: string) => uri.split('/').pop() ?? '';
 
@@ -69,6 +77,48 @@ export function setupPages(s: OAuthSession, again: () => void) {
   session = s;
   signInAgain = again;
   el('pagesSignIn').addEventListener('click', () => signInAgain());
+  setupNewPage();
+}
+
+/** New page: a title and an address, which follows the title until it's typed in, checked as you type */
+function setupNewPage() {
+  const form = el<HTMLFormElement>('newPageForm');
+  const title = el<HTMLInputElement>('newPageTitle');
+  const key = el<HTMLInputElement>('newPageKey');
+  const create = el<HTMLButtonElement>('newPageCreate');
+  let typed = false;
+  const check = () => {
+    const problem = title.value.trim() ? ownKeyProblem(key.value, pageKeys) : 'Give it a title.';
+    message('newPageProblem', problem ?? `It’ll be at ${ownPagePath(key.value)}`, problem ? 'error' : 'info');
+    key.setAttribute('aria-invalid', String(!!problem && !!key.value));
+    create.disabled = !!problem;
+  };
+  const toggle = (open: boolean) => {
+    form.hidden = !open;
+    el('newPageOpen').setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    form.reset();
+    typed = false;
+    check();
+    title.focus();
+  };
+  el('newPageOpen').addEventListener('click', () => toggle(form.hidden));
+  el('newPageCancel').addEventListener('click', () => toggle(false));
+  title.addEventListener('input', () => {
+    if (!typed) key.value = ownKeyFrom(title.value);
+    check();
+  });
+  key.addEventListener('input', () => {
+    typed = true;
+    check();
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    check();
+    if (create.disabled) return;
+    toggle(false);
+    newPage(key.value, title.value.trim());
+  });
 }
 
 /** Reads the pages' records and lists them */
@@ -82,6 +132,7 @@ export async function loadPages() {
     ...PAGES.map((p) => getRecord<PageRecord>(session, p.collection, 'self')),
   ]);
   const pages: Row[] = PAGES.map((p, i) => ({ ...p, rkey: 'self', have: singletons[i] ?? undefined }));
+  pageKeys = blockRecords.map((r) => rkeyOf(r.uri));
   const blocks = blockPages(blockRecords);
   // In the order they were added, which /projects/ starts from
   const sorted = [...projects].sort((a, b) => String(a.value.createdAt ?? '').localeCompare(String(b.value.createdAt ?? '')) || a.uri.localeCompare(b.uri));
@@ -96,11 +147,13 @@ export async function loadPages() {
       host: el('pagesTable'),
       noun: 'pages and projects',
       columns: [
-        { label: 'Page', cell: (r) => cellRow(cellLink(r.editor, r.title), ' ', viewLink(r.page, `View ${r.page} on the site`), ...(r.have ? [' ', recordLink(r)] : [])) },
+        // A page of Jeff's own that's only a draft isn't on the site yet
+        { label: 'Page', cell: (r) => cellRow(cellLink(r.editor, r.title), ...(r.have || !isOwn(r) ? [' ', viewLink(r.page, `View ${r.page} on the site`)] : []), ...(r.have ? [' ', recordLink(r)] : [])) },
         { label: 'Saved', cell: savedNote, secondary: true },
       ],
       filters: [
         { label: 'Pages', test: (r) => r.collection !== PROJECT_COLLECTION },
+        { label: 'Your pages', test: isOwn },
         { label: 'Projects', test: (r) => r.collection === PROJECT_COLLECTION },
       ],
       text: (r) => `${r.title} ${r.page}`,
@@ -116,20 +169,25 @@ export async function loadPages() {
   );
 }
 
-/** The pages made of blocks, with their drafts: the site's own first, always, then the others by key */
+/** A page of Jeff's own */
+const isOwn = (row: Row) => row.collection === PAGE_COLLECTION && !isSitePage(row.rkey);
+
+/**
+ * The pages made of blocks, with their drafts: the site's own first, always, then Jeff's own by
+ * address, including those with only a draft
+ */
 function blockPages(records: RepoRecord<PageRecord>[]): Row[] {
   const byKey = new Map(records.map((r) => [rkeyOf(r.uri), r]));
-  const keys = new Set<string>([...SITE_PAGES, ...[...byKey.keys()].filter(isPageKey).sort()]);
-  return [...keys].map((key) => ({
-    title: `${isSitePage(key) ? LEGACY_PAGES[key].title : String(byKey.get(key)?.value.title || key)} (blocks)`,
-    collection: PAGE_COLLECTION,
-    rkey: key,
-    page: key === 'home' ? '/' : `/${key}/`,
-    editor: `#blocks/${key}`,
-    fallback: isSitePage(key) ? LEGACY_PAGES[key].shows : undefined,
-    have: byKey.get(key),
-    draft: byKey.get(draftKey(key)),
-  }));
+  const own = [...byKey.keys()].map((k) => k.replace(/~draft$/, '')).filter((k) => isPageKey(k) && !isSitePage(k));
+  return [...new Set<string>([...SITE_PAGES, ...own.sort()])].map((key) => {
+    const [have, draft] = [byKey.get(key), byKey.get(draftKey(key))];
+    if (isSitePage(key)) {
+      const { title, shows } = LEGACY_PAGES[key];
+      return { title: `${title} (blocks)`, collection: PAGE_COLLECTION, rkey: key, page: key === 'home' ? '/' : `/${key}/`, editor: `#blocks/${key}`, fallback: shows, have, draft };
+    }
+    const title = String((have ?? draft)?.value.title || key);
+    return { title, collection: PAGE_COLLECTION, rkey: key, page: ownPagePath(key), editor: `#blocks/${key}`, have, draft, problem: ownKeyProblem(key) };
+  });
 }
 
 function recordLink(row: Row) {
@@ -145,12 +203,20 @@ function recordLink(row: Row) {
 
 /** When a page's record was saved, or what the page shows without one, and when its draft was saved */
 function savedNote(row: Row): string | Node {
+  if (isOwn(row)) return ownState(row);
   const note = row.collection === PAGE_COLLECTION ? 'no page record' : 'no record';
   const saved = !row.have
     ? badge(`${note}: ${row.fallback ? `shows ${row.fallback}` : row.draft ? 'not published yet' : 'can’t show'}`, row.fallback || row.draft ? 'muted' : 'warn')
     : savedAt(row.have.value) ?? 'in your repo';
   const draft = row.draft && savedAt(row.draft.value);
   return draft ? cellRow(saved, ` · draft ${draft}`) : saved;
+}
+
+/** A page of Jeff's own: published or a draft, or why it can't show; when each was saved */
+function ownState(row: Row): Node {
+  const state = row.problem ? badge(`not shown: ${row.problem}`, 'warn') : row.have ? badge('published', 'ok') : badge('draft', 'muted');
+  const times = (row.have ? [savedAt(row.have.value), row.draft && `draft ${savedAt(row.draft.value) ?? 'saved'}`] : [row.draft && savedAt(row.draft.value)]).filter((t): t is string => !!t);
+  return cellRow(state, ...(times.length ? [` ${times.join(' · ')}`] : []));
 }
 
 const savedAt = (value: PageRecord) => {
