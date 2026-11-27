@@ -139,6 +139,7 @@ Pages render on request, as now: a page reads its record and the collections its
 - reads are shared within a request: each collection is read once, however many blocks use it (two blocks with posts read the posts once)
 - each data block says what it reads, so the editor can warn when a page would read too much
 - phase 3 measures the home page's CPU time and subrequests with its blocks, against a budget (under 5 ms of CPU and 25 subrequests), before any other page moves
+- Cache API reads and writes count against the same 50 as fetches. Records are kept a minute, so they stay in memory only (`EDGE_MIN_TTL` in `src/lib/edge-cache.ts`): with an edge read and write for each, the home page's cold render made 54 subrequests (22 fetches, 16 edge reads, 16 edge writes), and now makes 18. `listRecords` also stops at a page short of the limit instead of reading an empty last page.
 
 If a page's record can't be read or isn't there, the page uses its built-in version, today's. If the theme can't be read, the site has today's look.
 
