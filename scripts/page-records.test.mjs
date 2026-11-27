@@ -7,6 +7,7 @@ import { describe, it } from 'node:test';
 import {
   aboutFromRecord,
   cvFromRecord,
+  homeFromRecord,
   nowFromRecord,
   projectFromRecord,
   projectUri,
@@ -52,6 +53,43 @@ describe('page records, read', () => {
   it('Now keeps its items in order, with their Markdown, and when it was updated', () => {
     const now = nowFromRecord({ intro: 'What I *do*.', items: [{ text: 'Flying, [how it started](/topics/tag/aviation/)' }, { text: '**Advising**' }], updatedAt: at });
     assert.deepEqual(now, { intro: 'What I *do*.', items: ['Flying, [how it started](/topics/tag/aviation/)', '**Advising**'], updatedAt: at });
+  });
+});
+
+describe('the home record', () => {
+  it('keeps the fields it has, and only those, so the page fills in the rest', () => {
+    assert.deepEqual(homeFromRecord({ updatedAt: at }), {});
+    const home = homeFromRecord({
+      greeting: 'Hi',
+      intro: 'One.\n\nTwo, [a link](/posts/).',
+      selectedProjects: [projectUri('shortlink'), projectUri('checkdomain')],
+      hire: { title: 'Hire me' },
+      elsewhere: [{ label: 'Bluesky', href: 'https://bsky.app/profile/skiddle.blue', me: true }, { label: 'RSS', href: '/rss.xml' }],
+      updatedAt: at,
+    });
+    assert.deepEqual(home, {
+      greeting: 'Hi',
+      intro: 'One.\n\nTwo, [a link](/posts/).',
+      selectedProjects: ['shortlink', 'checkdomain'],
+      hire: { title: 'Hire me' },
+      elsewhere: [{ label: 'Bluesky', href: 'https://bsky.app/profile/skiddle.blue', me: true }, { label: 'RSS', href: '/rss.xml' }],
+    });
+  });
+
+  it('leaves out what it can’t use: wrong types, empty text, other repos’ projects, unsafe links', () => {
+    const home = homeFromRecord({
+      title: 3,
+      tagline: '',
+      selectedProjects: ['at://did:plc:someone/id.skiddle.project/x'],
+      hire: 'no',
+      elsewhere: [
+        { label: 'Bad', href: 'javascript:alert(1)' },
+        { label: 'Other site', href: '//evil.example/' },
+        { label: 'No link' },
+        { label: 'Mail', href: 'mailto:jeff@skiddle.id', me: 'yes' },
+      ],
+    });
+    assert.deepEqual(home, { elsewhere: [{ label: 'Mail', href: 'mailto:jeff@skiddle.id' }] });
   });
 });
 

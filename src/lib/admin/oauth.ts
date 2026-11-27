@@ -16,7 +16,7 @@
  *   - id.skiddle.status: the status
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
- *   - id.skiddle.project, .cv, .services, .uses, .about, .now and .notes: the pages' content
+ *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
  *     (docs/v4/pages-on-atproto.md), edited in the Pages section
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
  *     edited or unpublished
@@ -39,6 +39,7 @@ export const COLLECTIONS = [
   'id.skiddle.about',
   'id.skiddle.now',
   'id.skiddle.notes',
+  'id.skiddle.home',
   'site.standard.document',
   'id.skiddle.series',
   'id.skiddle.categories',

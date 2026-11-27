@@ -1,0 +1,110 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.home",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "The home page's own text: the intro, the selected work, the hire box and the links. One record, key 'self'. A field left out shows the built-in text (src/data/home.ts). Now, the posts and the testimonials come from their own records.",
+      "record": {
+        "type": "object",
+        "required": ["updatedAt"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 70,
+            "description": "The page's title, in the browser tab and in search results."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "What search results and link previews say about the site."
+          },
+          "greeting": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "The heading beside the avatar."
+          },
+          "tagline": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "The line under the heading, in the accent colour."
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 30000,
+            "maxGraphemes": 3000,
+            "description": "Under the heading. Markdown, rendered like a post's text: paragraphs, links, bold and italics."
+          },
+          "selectedProjects": {
+            "type": "array",
+            "maxLength": 6,
+            "items": {
+              "type": "string",
+              "format": "at-uri"
+            },
+            "description": "Selected work: id.skiddle.project records to show, in order."
+          },
+          "hire": {
+            "type": "ref",
+            "ref": "#hire"
+          },
+          "elsewhere": {
+            "type": "array",
+            "maxLength": 10,
+            "items": {
+              "type": "ref",
+              "ref": "#link"
+            },
+            "description": "The links at the bottom, after 'Elsewhere:'."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "hire": {
+      "type": "object",
+      "description": "The box asking people to work with Jeff. Its buttons stay as they are.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "blurb": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 500,
+          "maxGraphemes": 50,
+          "description": "e.g. 'Bluesky'."
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "A path on skiddle.id, e.g. /rss.xml, or a full URL: https://… or mailto:…."
+        },
+        "me": {
+          "type": "boolean",
+          "description": "One of Jeff's own profiles (rel=\"me\"), so the profile can check it links back here."
+        }
+      }
+    }
+  }
+}

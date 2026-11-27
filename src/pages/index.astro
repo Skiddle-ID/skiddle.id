@@ -8,18 +8,21 @@ import TestimonialSlider from '../components/testimonial-slider.astro';
 import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 import { FALLBACK_NOW } from '~/data/now';
-import { PAGES_TAG, getNow, getProjects, getServices } from '~/lib/page-content';
+import { PAGES_TAG, getHome, getNow, getProjects, getServices } from '~/lib/page-content';
+import { introHtml } from '~/lib/now-html';
 import { getStatus } from '~/lib/at-status';
 import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 // Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts), and
-// so do Now, the project cards and the testimonial (src/lib/page-content.ts)
+// so do the page's own text (id.skiddle.home, or src/data/home.ts), Now, the project cards and the
+// testimonial (src/lib/page-content.ts)
 export const prerender = false;
 
 // Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
 const profileImg = '/avatars/bluesky.jpg';
 
-const [{ posts, seriesInfo }, now, { projects }, { services }, status] = await Promise.all([
+const [{ posts, seriesInfo }, home, now, { projects }, { services }, status] = await Promise.all([
   sitePosts(),
+  getHome(),
   getNow(),
   getProjects(),
   getServices(),
@@ -49,9 +52,8 @@ const seriesMeta = (s: Series) =>
     : `${seriesStatus(s)} · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
 const seriesLangs = (s: Series) => [...new Set(s.parts.map((p) => p.data.lang))];
 
-// Hand-picked order for the homepage; everything else lives on /projects/
-const selectedIds = ['checkdomain', 'shortlink', 'blocklist'];
-const selected = selectedIds
+// Picked in the home record, in its order; everything else lives on /projects/
+const selected = home.selectedProjects
   .map((id) => projects.find((p) => p.id === id))
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
@@ -60,15 +62,15 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const h2 = 'font-semibold before-hash-2';
 ---
 
-<Shell title="Skiddle — protocol engineer in Bangkok" description="Jeff (Skiddle) — protocol engineer and founder of Skiddle Labs in Bangkok, with a background in delivery pipelines and self-hosted infrastructure. I write about it, and I fly as a private pilot.">
+<Shell title={home.title} description={home.description}>
   <div class="max-w-[70ch] w-full">
 
     <!-- Intro -->
     <section aria-labelledby="intro" class="flex flex-col sm:flex-row sm:items-center gap-6">
       <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-24 sm:size-28 rounded-full shrink-0 border" />
       <div class="flex flex-col gap-1.5">
-        <h1 id="intro" class="text-2xl font-semibold leading-tight">Hi, I'm Jeff. Known as Skiddle.</h1>
-        <p class="text-[var(--color-primary)]">Protocol engineer · Founder of Skiddle Labs · Bangkok</p>
+        <h1 id="intro" class="text-2xl font-semibold leading-tight">{home.greeting}</h1>
+        <p class="text-[var(--color-primary)]">{home.tagline}</p>
         <p class="text-xs text-[var(--color-muted)] flex items-center gap-2">
           <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.emoji && 'hidden']} style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
           <span id="statusEmoji" class:list={['text-sm leading-none shrink-0', !status.emoji && 'hidden']} aria-hidden="true">{status.emoji}</span>
@@ -78,17 +80,7 @@ const h2 = 'font-semibold before-hash-2';
       </div>
     </section>
 
-    <div class="prose mt-8">
-      <p>
-        I run Skiddle Labs, my own company. Right now my team and I are on a protocol-engineering contract for a
-        client I can't name. My background is delivery pipelines and keeping infrastructure running across the
-        cloud and my homelab. If I have to do something twice, I'd rather write a small tool for it.
-      </p>
-      <p>
-        I'm a fan of open source and open protocols like ATProto, and I write here about infra, the open web,
-        homelab experiments and life, including flying.
-      </p>
-    </div>
+    <div class="prose mt-8" set:html={introHtml(home.intro)} />
 
     <nav aria-label="Quick links" class="flex flex-wrap gap-2 mt-6">
       <a href="#work" class="btn">Selected work</a>
@@ -171,11 +163,8 @@ const h2 = 'font-semibold before-hash-2';
 
     <!-- Work with me -->
     <section aria-labelledby="hire" class="mt-12 card p-5">
-      <h2 id="hire" class="font-semibold">Need a hand with infrastructure?</h2>
-      <p class="text-sm text-[var(--color-muted)] mt-1.5">
-        I help with server hardening, CI/CD, automation, monitoring and self-hosting.
-        Tell me what you're working on and I'll reply with next steps.
-      </p>
+      <h2 id="hire" class="font-semibold">{home.hire.title}</h2>
+      <p class="text-sm text-[var(--color-muted)] mt-1.5">{home.hire.blurb}</p>
       <div class="flex flex-wrap gap-2 mt-4">
         <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id?subject=Hello%20from%20skiddle.id">Email work@skiddle.id</a>
         <a class="btn" href="/services/">See services</a>
@@ -186,11 +175,13 @@ const h2 = 'font-semibold before-hash-2';
     <!-- Elsewhere -->
     <p class="mt-10 text-sm text-[var(--color-muted)] flex flex-wrap gap-x-4 gap-y-1">
       <span>Elsewhere:</span>
-      <a class="link" href="https://bsky.app/profile/skiddle.blue" rel="me noopener" target="_blank">Bluesky</a>
-      <a class="link" href="https://github.com/arcestia" rel="me noopener" target="_blank">GitHub</a>
-      <a class="link" href="https://www.instagram.com/skiddle.id" rel="noopener" target="_blank">Instagram</a>
-      <a class="link" href="mailto:jeff@skiddle.id">Email</a>
-      <a class="link" href="/rss.xml">RSS</a>
+      {home.elsewhere.map((l) => {
+        // Links off the site open in a new tab; rel="me" marks Jeff's own profiles
+        const external = /^https?:/i.test(l.href);
+        return (
+          <a class="link" href={l.href} target={external ? '_blank' : undefined} rel={external ? [l.me && 'me', 'noopener'].filter(Boolean).join(' ') : l.me ? 'me' : undefined}>{l.label}</a>
+        );
+      })}
     </p>
   </div>
 </Shell>
