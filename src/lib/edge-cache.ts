@@ -1,8 +1,9 @@
 /**
  * The cache behind src/lib/pds.ts and the pages' own reads: a value is cached in two places
  *   - in memory, per Worker isolate, so one page render that needs a key twice loads it once
- *   - Cloudflare's edge cache (caches.default), shared by the isolates in a data centre. It does
- *     nothing on *.workers.dev (staging and previews), only on skiddle.id.
+ *   - Cloudflare's edge cache (caches.default), shared by the isolates in a data centre, for values
+ *     kept EDGE_MIN_TTL or longer. It does nothing on *.workers.dev (staging and previews), only on
+ *     skiddle.id.
  *
  * A load that's still running is shared by every request that asks for its key. But a load belongs
  * to the request that started it: if that request is cut off (the visitor left), its fetch is
@@ -17,6 +18,13 @@
  * waiting request just loads the key a second time.
  */
 export const PENDING_MS = 8000;
+/**
+ * The shortest TTL, in seconds, worth keeping at the edge: a value kept for less (a record, a minute)
+ * stays in memory only. An edge read and write are two of the 50 subrequests a request may make on
+ * the free plan, and a page rendered with every record expired would otherwise make more than 50
+ * (the home page made 54: 22 fetches, 16 edge reads, 16 edge writes).
+ */
+export const EDGE_MIN_TTL = 300;
 /** Edge cache keys live under this made-up origin; nothing is ever fetched from it */
 const CACHE_ORIGIN = 'https://pds-cache.skiddle.id';
 
@@ -52,7 +60,7 @@ export async function cached<T>(key: string, ttl: number, load: () => Promise<T>
 
   const since = Date.now();
   const value = (async () => {
-    const cache = edgeCache();
+    const cache = ttl >= EDGE_MIN_TTL ? edgeCache() : undefined;
     const stored = await cache?.match(edgeKey(key)).catch(() => undefined);
     if (stored) return (await stored.json()) as T;
     const fresh = await load();

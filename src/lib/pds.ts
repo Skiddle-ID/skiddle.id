@@ -17,6 +17,8 @@ type Fetch = typeof fetch;
 export const RECORD_TTL = 60;
 const PDS_TTL = 3600;
 const TIMEOUT_MS = 4000;
+/** The most records listRecords asks for at once, the most the PDS gives */
+const LIST_LIMIT = 100;
 
 export interface RepoRecord<T = Record<string, unknown>> {
   uri: string;
@@ -58,13 +60,16 @@ export function listRecords<T>(collection: string, { ttl = RECORD_TTL, fetcher =
     let cursor = '';
     do {
       const res = await fetcher(
-        `${pds}/xrpc/com.atproto.repo.listRecords?repo=${DID}&collection=${collection}&limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`,
+        `${pds}/xrpc/com.atproto.repo.listRecords?repo=${DID}&collection=${collection}&limit=${LIST_LIMIT}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`,
         { signal: AbortSignal.timeout(TIMEOUT_MS) },
       );
       if (!res.ok) throw new Error(`listRecords ${collection}: ${res.status}`);
       const data = (await res.json()) as { records?: RepoRecord<T>[]; cursor?: string };
-      out.push(...(data.records ?? []));
-      cursor = data.records?.length ? (data.cursor ?? '') : '';
+      const records = data.records ?? [];
+      out.push(...records);
+      // A page short of the limit is the last: the PDS still sends a cursor, which would cost a
+      // read of an empty page on every list
+      cursor = records.length === LIST_LIMIT ? (data.cursor ?? '') : '';
     } while (cursor);
     return out;
   });
