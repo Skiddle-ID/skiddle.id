@@ -81,10 +81,20 @@ Then the [launch checklist](#the-v4-branch).
 
 ### v4.2: flying
 
+**On hold** (2026-11-27): Jeff is working out how to keep it simple and not too nerdy.
+
 - [ ] `id.skiddle.flight` for the logbook (needs your logbook data)
 - [ ] /flying: From Fear to Flight plus logbook stats, from the records
 - [ ] Flying logbook card, `/flying.svg`
 - [ ] Log a flight from the admin app
+
+### v4.3: the timeline
+
+`/timeline/`: what Jeff did and has coming up, by day, week and month. Upcoming events stay rough (the kind, the days and the city) until they're over. The plan is [docs/v4/timeline.md](docs/v4/timeline.md).
+
+- [ ] Events: `id.skiddle.event`, a Timeline section in the admin app, and `/timeline/` with its Week, Month and Day views
+- [ ] Posts, status changes and notes join the timeline
+- [ ] Extras: a `.ics` feed, a "This week" card on the home page
 
 ## The v4 branch
 
