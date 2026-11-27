@@ -77,6 +77,7 @@ Then the [launch checklist](#the-v4-branch).
 - [x] /listening/: now playing, this week's top artists and tracks, and every play, paged back through the alpha collection; the sidebar's "now playing" opens it
 - [x] A top-of-the-week music card, from the plays, `/music-week.svg`
 - [x] The site's metadata for search engines (`id.skiddle.site`): name, description, keywords, author, profiles, and per-page titles, descriptions and noindex, edited from the admin app
+- [x] The admin app as a CMS: a sidebar and Overview, tables with filters and search, and a media library (`id.skiddle.media`)
 - [x] Status history: every status set is kept (`id.skiddle.statusLog`), listed on /status/ and in the admin app
 - [x] The home page's own text (`id.skiddle.home`): its intro, selected work, hire box and links, edited from the admin app ([#178](https://github.com/Skiddle-ID/skiddle.id/pull/178))
 

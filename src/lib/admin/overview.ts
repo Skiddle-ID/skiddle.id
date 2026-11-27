@@ -29,7 +29,7 @@ interface Report {
 const reports = new Map<string, Report>();
 
 /** The order Overview shows its numbers in */
-const STAT_ORDER = ['Posts', 'Drafts', 'Scheduled', 'Upcoming events', 'Series', 'Pages'];
+const STAT_ORDER = ['Posts', 'Drafts', 'Scheduled', 'Upcoming events', 'Series', 'Media files'];
 /** How many changes Recent lists */
 const RECENT = 8;
 

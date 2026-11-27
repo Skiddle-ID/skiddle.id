@@ -1,7 +1,7 @@
 /**
  * The admin app's sections, one at a time beside the sidebar: Overview (src/lib/admin/overview.ts),
- * then Content (Posts, Series, Pages, Timeline) and Site (Status, Site and SEO, Lexicons and cards).
- * Each has an address (#overview, #posts, #series, #pages, #timeline, #status, #site), so a reload
+ * then Content (Posts, Series, Pages, Timeline, Media) and Site (Status, Site and SEO, Lexicons and cards).
+ * Each has an address (#overview, #posts, #series, #pages, #timeline, #media, #status, #site), so a reload
  * or a home-screen shortcut opens the same one; Site and SEO is the #page/site editor. The editors
  * (#draft/…, #post/…, #series/…, #page/…, #project/…, #event/…) take the sections' place while
  * they're open, and the sidebar marks the section they belong to.
@@ -12,7 +12,7 @@
  */
 import { el } from './dom';
 
-export const SECTIONS = ['overview', 'posts', 'series', 'pages', 'status', 'timeline', 'site'] as const;
+export const SECTIONS = ['overview', 'posts', 'series', 'pages', 'status', 'timeline', 'media', 'site'] as const;
 export type Section = (typeof SECTIONS)[number];
 
 /** The section an address asks for; Overview if it names none */

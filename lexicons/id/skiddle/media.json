@@ -1,0 +1,38 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.media",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "An image in Jeff's media library, uploaded in the admin app's Media section. The record keeps the file: a PDS removes a blob no record uses. The site serves it at /media/<cid>, so a post can use it as ![alt](/media/<cid>).",
+      "record": {
+        "type": "object",
+        "required": ["file", "createdAt"],
+        "properties": {
+          "file": {
+            "type": "blob",
+            "accept": ["image/*"],
+            "maxSize": 5000000
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "What it's called in the library, e.g. its file name."
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 10000,
+            "maxGraphemes": 1000,
+            "description": "What the image shows, for people who can't see it: used when it's copied as Markdown."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
