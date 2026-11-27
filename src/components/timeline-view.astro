@@ -1,0 +1,155 @@
+---
+/*
+  The timeline's views (/timeline/, src/lib/timeline.mjs): a week or a day as lists of entries by
+  day, and a month as a calendar grid with its events listed under it. Prev and next move by the
+  period; Day, Week and Month switch views around the same day.
+*/
+import { introHtml } from '~/lib/now-html';
+import {
+  SITE_ZONE,
+  dayLabel,
+  dayOf,
+  daysOf,
+  eventsOn,
+  monthGrid,
+  monthOf,
+  spanLabel,
+  weekOf,
+  type Period,
+  type TimelineEvent,
+} from '~/lib/timeline.mjs';
+
+interface Props {
+  period: Period;
+  events: TimelineEvent[];
+  today: string;
+}
+const { period, events, today } = Astro.props;
+
+const href = (key: string) => `/timeline/${key}/`;
+// The day the Day, Week and Month links centre on: today if it's in this period
+const focus = today >= period.start && today <= period.end ? today : period.start;
+const views = [
+  { label: 'Day', key: dayOf(focus).key, kind: 'day' },
+  { label: 'Week', key: weekOf(focus).key, kind: 'week' },
+  { label: 'Month', key: monthOf(focus).key, kind: 'month' },
+];
+const prevLabel = { day: 'previous day', week: 'previous week', month: 'previous month' }[period.kind];
+const nextLabel = { day: 'next day', week: 'next week', month: 'next month' }[period.kind];
+
+/** "18:05 CET": a time, with its zone's short name on that day */
+function timeIn(day: string, time: string, zone: string) {
+  const short = new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'short' })
+    .formatToParts(new Date(`${day}T12:00:00Z`))
+    .find((p) => p.type === 'timeZoneName')?.value;
+  return zone === SITE_ZONE || !short ? time : `${time} ${short}`;
+}
+/** The time column for an event on a day */
+function when(e: TimelineEvent, first: boolean, last: boolean) {
+  if (first && e.startTime) return timeIn(e.startsOn, e.startTime, e.timeZone) + (e.endTime && last ? `–${e.endTime}` : '');
+  if (last && !first && e.endTime) return `until ${e.endTime}`;
+  return 'all day';
+}
+const isExternal = (link: string) => /^https?:/i.test(link);
+
+const days = period.kind === 'month' ? [] : daysOf(period);
+const grid = period.kind === 'month' ? monthGrid(period) : [];
+const monthEvents = period.kind === 'month' ? events.filter((e) => e.startsOn <= period.end && e.endsOn >= period.start) : [];
+const h2 = 'font-semibold before-hash-2';
+---
+
+<nav aria-label="Timeline" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mt-6">
+  <a href={href(period.prev)} class="link" rel="prev">← {prevLabel}</a>
+  <span class="font-semibold">{period.label}</span>
+  <a href={href(period.next)} class="link" rel="next">{nextLabel} →</a>
+  <span class="flex gap-1 ml-auto">
+    {views.map((v) => (
+      <a
+        href={href(v.key)}
+        aria-current={v.kind === period.kind ? 'page' : undefined}
+        class:list={['border rounded px-2 py-0.5 text-xs hover:text-[var(--color-primary)]', v.kind === period.kind && 'border-[var(--color-primary)] text-[var(--color-primary)]']}
+      >{v.label}</a>
+    ))}
+  </span>
+</nav>
+
+{period.kind !== 'month' && (
+  <div class="mt-6 flex flex-col gap-6">
+    {days.map((day) => {
+      const on = eventsOn(events, day);
+      return (
+        <section aria-labelledby={`d-${day}`}>
+          <h2 id={`d-${day}`} class:list={[h2, day === today && 'text-[var(--color-primary)]']}>
+            {period.kind === 'week' ? <a href={href(day)} class="hover:text-[var(--color-primary)]">{dayLabel(day)}</a> : dayLabel(day)}
+            {day === today && <span class="ml-2 text-xs font-normal border border-[var(--color-primary)] rounded px-1.5 align-middle">today</span>}
+          </h2>
+          {on.length === 0 ? (
+            <p class="text-sm text-[var(--color-muted)] mt-2">nothing</p>
+          ) : (
+            <ul class="mt-2 flex flex-col">
+              {on.map(({ event: e, first, last }) => (
+                <li class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 border-b last:border-b-0 text-sm">
+                  <span class="text-xs text-[var(--color-muted)] pt-0.5">{when(e, first, last)}</span>
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <p>
+                      <span class="text-[var(--color-primary)]" aria-hidden="true">● </span>{e.title ?? e.label}
+                    </p>
+                    <p class="text-xs text-[var(--color-muted)]">
+                      {[e.title && e.label, e.startsOn !== e.endsOn && spanLabel(e.startsOn, e.endsOn), e.city, e.place].filter(Boolean).join(' · ')}
+                      {e.rough && <span>{e.title || e.city || e.startsOn !== e.endsOn ? ' · ' : ''}details after it's over</span>}
+                    </p>
+                    {e.note && first && <div class="text-sm leading-relaxed mt-1 flex flex-col gap-1" set:html={introHtml(e.note)} />}
+                    {e.link && first && (
+                      <a href={e.link} class="link text-xs mt-0.5 w-fit" {...(isExternal(e.link) ? { target: '_blank', rel: 'noopener' } : {})}>more →</a>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      );
+    })}
+  </div>
+)}
+
+{period.kind === 'month' && (
+  <>
+    <div class="mt-6 grid grid-cols-7 gap-1 text-xs">
+      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
+        <div class="text-center text-[var(--color-muted)] pb-1" aria-hidden="true">{d}</div>
+      ))}
+      {grid.map((day) => {
+        if (!day) return <div aria-hidden="true" />;
+        const n = eventsOn(events, day).length;
+        return (
+          <a
+            href={href(day)}
+            class:list={['border rounded p-1.5 min-h-12 flex flex-col gap-1 hover:border-[var(--color-primary)]', day === today && 'border-[var(--color-primary)]']}
+            aria-label={`${dayLabel(day)}${n ? `: ${n} ${n === 1 ? 'event' : 'events'}` : ''}`}
+          >
+            <span class:list={[day === today && 'text-[var(--color-primary)] font-semibold']}>{Number(day.slice(8))}</span>
+            {n > 0 && (
+              <span class="flex gap-0.5 flex-wrap" aria-hidden="true">
+                {Array.from({ length: Math.min(n, 3) }, () => <span class="size-1.5 rounded-full bg-[var(--color-primary)]" />)}
+              </span>
+            )}
+          </a>
+        );
+      })}
+    </div>
+    <h2 class={`${h2} mt-8`}>This month</h2>
+    {monthEvents.length === 0 ? (
+      <p class="text-sm text-[var(--color-muted)] mt-2">nothing</p>
+    ) : (
+      <ul class="mt-2 flex flex-col text-sm">
+        {monthEvents.map((e) => (
+          <li class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 border-b last:border-b-0">
+            <a href={href(e.startsOn)} class="text-xs text-[var(--color-muted)] pt-0.5 hover:text-[var(--color-primary)]">{spanLabel(e.startsOn, e.endsOn)}</a>
+            <span>{e.title ?? e.label}<span class="text-xs text-[var(--color-muted)]">{[e.title && e.label, e.city].filter(Boolean).map((x) => ` · ${x}`).join('')}</span></span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </>
+)}

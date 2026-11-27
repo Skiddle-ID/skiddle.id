@@ -1,0 +1,31 @@
+---
+/*
+  /timeline/<period>/: a week (2026-W48), a month (2026-11) or a day (2026-11-27) on Jeff's timeline
+  (src/lib/timeline.mjs). Anything else is a 404. /timeline/ is this week.
+*/
+import Shell from '~/layouts/shell.astro';
+import TimelineIntro from '~/components/timeline-intro.astro';
+import TimelineView from '~/components/timeline-view.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { PAGES_CACHE, getEvents } from '~/lib/page-content';
+import { parsePeriod, todayIn } from '~/lib/timeline.mjs';
+import { env } from 'cloudflare:workers';
+
+export const prerender = false;
+
+const period = parsePeriod(Astro.params.period ?? '');
+if (!period) {
+  const page = await env.ASSETS.fetch(new URL('/404.html', Astro.url));
+  return new Response(page.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+const events = await getEvents();
+Astro.cache.set(PAGES_CACHE);
+const meta = CONTENT_PAGES.timeline;
+---
+
+<Shell title={`${period.label} · ${meta.title} — Skiddle`} description={meta.description}>
+  <div class="max-w-[70ch] w-full">
+    <TimelineIntro />
+    <TimelineView period={period} events={events} today={todayIn()} />
+  </div>
+</Shell>

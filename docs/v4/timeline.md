@@ -1,6 +1,6 @@
 # The timeline
 
-A plan, not built yet. Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). Phase 1 (events) is built; phases 2 and 3 aren't yet.
 
 A new page, `/timeline/`, shows what Jeff did and has coming up, by day, week and month. It mixes two kinds of entries:
 - **events** Jeff adds in the admin app, such as trips, flights, talks, classes, meetings and deadlines
@@ -28,7 +28,7 @@ Posts, statuses and notes are public already, so they show as they are.
 
 ## The record: `id.skiddle.event`
 
-One record per event, keyed by time (TID), in `lexicons/id/skiddle/event.json`. This is a draft.
+One record per event, keyed by time (TID), in [`lexicons/id/skiddle/event.json`](../../lexicons/id/skiddle/event.json).
 
 | Field | Type | Notes |
 |---|---|---|
@@ -38,14 +38,14 @@ One record per event, keyed by time (TID), in `lexicons/id/skiddle/event.json`. 
 | `city` | string, ≤ 64 characters | Rough place, e.g. "Paris" |
 | `announced` | boolean | Its details are public before it's over |
 | `title` | string, ≤ 100 characters | Detail: once it's over, or when announced |
-| `startsAt`, `endsAt` | datetime | Detail: the times, when it has them |
-| `timeZone` | IANA name | Where it happens, for showing its times; Bangkok if left out |
+| `startTime`, `endTime` | time (`18:05`) | Detail: the start time on the first day and the end time on the last, in its time zone; none means all day |
+| `timeZone` | IANA name | Detail: the zone its times are in; Bangkok if left out |
 | `place` | string, ≤ 100 characters | Detail: the venue, e.g. "Don Mueang airport" |
 | `note` | Markdown, ≤ 1,000 characters | Detail |
 | `link` | URL or site path | Detail: e.g. the post written about it |
 | `createdAt`, `updatedAt` | datetime | Set by the admin app |
 
-Without a title, the page shows the kind ("Trip"). With no times, it's an all-day entry.
+Without a title, the page shows the kind ("Trip"). With no times, it's an all-day entry. Times are written as they are where the event happens, so no conversion is needed: the page shows them with the zone's short name, like "18:05 CET". Dates and times are plain strings, since lexicons have no date or time formats; the admin form gives them date and time pickers, and `src/lib/timeline.mjs` checks them.
 
 The site checks it as it's read (`src/lib/timeline.mjs`): an event that hasn't ended and isn't announced shows only its rough fields. That covers a record written by something other than the admin app, though the record itself is still public.
 

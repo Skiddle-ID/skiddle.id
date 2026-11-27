@@ -3,7 +3,8 @@
  * property of the record, in the lexicon's order, so the editors always match the lexicons in
  * lexicons/id/skiddle/.
  *   - a string: a text box, or a larger one for long text (Markdown); a list to pick from when the
- *     lexicon knows its values; a URL box for format "uri"; the projects for format "at-uri"
+ *     lexicon knows its values; a URL box for format "uri"; the projects for format "at-uri"; a date
+ *     or a time picker when its description starts "A date (YYYY-MM-DD)" or "A time (HH:MM)"
  *   - an integer: a number box; a boolean: a checkbox
  *   - an object (a ref to another def): its fields, grouped
  *   - a list: a row per item, each with a handle to drag it, move up, move down and remove, and a
@@ -95,6 +96,9 @@ const isLong = (s: Schema) => (s.maxGraphemes ?? 0) >= 1000 || (!s.maxGraphemes 
 const isMedium = (s: Schema) => (s.maxGraphemes ?? 0) >= 300;
 /** A field the site renders as Markdown, as its description says */
 const isMarkdown = (s: Schema) => typeof s.description === 'string' && /markdown/i.test(s.description);
+/** A date or a time of day, as its description says (lexicons have no such formats) */
+const pickerOf = (s: Schema) =>
+  typeof s.description !== 'string' ? undefined : s.description.startsWith('A date (YYYY-MM-DD)') ? 'date' : s.description.startsWith('A time (HH:MM)') ? 'time' : undefined;
 /** A short value that's likely to repeat: a short field, or a short item in a list (a tag, a language) */
 const isSuggestible = (s: Schema, item: boolean) =>
   s.type === 'string' && !s.format && !s.knownValues && ((item && (s.maxGraphemes ?? 0) > 0 && s.maxGraphemes <= 100) || ((s.maxGraphemes ?? 0) > 0 && s.maxGraphemes <= 50));
@@ -259,7 +263,8 @@ function control(schema: Schema, value: unknown, options: FormOptions, path: str
     return area;
   }
   const input = document.createElement('input');
-  input.type = schema.format === 'uri' ? 'url' : 'text';
+  const picker = pickerOf(schema);
+  input.type = picker ?? (schema.format === 'uri' ? 'url' : 'text');
   if (schema.format === 'uri') input.inputMode = 'url';
   input.autocomplete = 'off';
   input.value = text;

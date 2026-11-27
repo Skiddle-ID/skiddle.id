@@ -14,6 +14,7 @@
  * images. Bluesky's sign-in page lists them. A new collection is added here, and signing in again
  * grants it; the app asks for that when its session lacks one (missingScopes).
  *   - id.skiddle.status: the status, and id.skiddle.statusLog: its history
+ *   - id.skiddle.event: the timeline's events (docs/v4/timeline.md)
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
  *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
@@ -31,6 +32,7 @@
 export const COLLECTIONS = [
   'id.skiddle.status',
   'id.skiddle.statusLog',
+  'id.skiddle.event',
   'com.atproto.lexicon.schema',
   'id.skiddle.draft',
   'id.skiddle.project',

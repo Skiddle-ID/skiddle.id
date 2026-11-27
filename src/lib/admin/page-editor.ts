@@ -7,6 +7,9 @@
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
  *   - #project/<key>: a project; #new-project for a new one, whose key comes from its name
+ *   - #event/<key>: an event on the timeline; #new-event for a new one, keyed by time by the PDS.
+ *     Until it's over, and unless it's announced, the form has only its rough fields (its kind,
+ *     days and city) and saves only those, since records are public (src/lib/timeline.mjs)
  *
  * Each form is made from its lexicon (src/lib/admin/lexicon-form.ts). Saving:
  *   - checks the record with @atproto/lexicon
@@ -21,6 +24,7 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import aboutLexicon from '../../../lexicons/id/skiddle/about.json';
 import categoriesLexicon from '../../../lexicons/id/skiddle/categories.json';
 import cvLexicon from '../../../lexicons/id/skiddle/cv.json';
+import eventLexicon from '../../../lexicons/id/skiddle/event.json';
 import homeLexicon from '../../../lexicons/id/skiddle/home.json';
 import notesLexicon from '../../../lexicons/id/skiddle/notes.json';
 import nowLexicon from '../../../lexicons/id/skiddle/now.json';
@@ -33,6 +37,7 @@ import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJE
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoryProblems } from '~/lib/categories.mjs';
 import { seriesSlug } from '~/lib/post-record.mjs';
+import { DETAIL_FIELDS, EVENT_COLLECTION, KINDS, eventProblems, isRough } from '~/lib/timeline.mjs';
 import { ranked, valuesAt } from '~/lib/suggest.mjs';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
@@ -94,22 +99,38 @@ export const PAGE_EDITORS: Record<'home' | 'cv' | 'services' | 'uses' | 'about' 
 };
 export type PageName = keyof typeof PAGE_EDITORS;
 
-export type PageRoute = { page: PageName } | { project: string } | { newProject: true };
+export type PageRoute = { page: PageName } | { project: string } | { newProject: true } | { event: string } | { newEvent: true };
 
 const NEW_PROJECT = '#new-project';
+const NEW_EVENT = '#new-event';
 const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 
 /** The page editor an address asks for, if any */
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
+  if (hash === NEW_EVENT) return { newEvent: true };
   const page = /^#page\/(home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
+  const event = /^#event\/(.+)$/.exec(hash)?.[1];
+  if (event && RECORD_KEY.test(event) && event !== '.' && event !== '..') return { event };
   return undefined;
 }
 
-const routeKey = (r: PageRoute) => ('page' in r ? `page/${r.page}` : 'project' in r ? `project/${r.project}` : 'new-project');
+const routeKey = (r: PageRoute) =>
+  'page' in r ? `page/${r.page}` : 'project' in r ? `project/${r.project}` : 'event' in r ? `event/${r.event}` : 'newEvent' in r ? 'new-event' : 'new-project';
+
+/** The event lexicon with only the rough fields, for an event that isn't over or announced */
+const roughEventLexicon: LexiconDoc = (() => {
+  const doc = structuredClone(eventLexicon) as LexiconDoc;
+  for (const key of DETAIL_FIELDS) delete recordSchema(doc).properties[key];
+  return doc;
+})();
+
+/** An event's heading: its title, or its kind and first day */
+const eventTitle = (v: Value) =>
+  typeof v.title === 'string' && v.title ? v.title : `${KINDS[v.kind as keyof typeof KINDS] ?? 'Event'}${typeof v.startsOn === 'string' ? `, ${v.startsOn}` : ''}`;
 
 interface Open {
   route: string;
@@ -118,8 +139,12 @@ interface Open {
   lexicon: LexiconDoc;
   /** Where it shows on the site */
   page: string;
-  /** The record key; a new project has none until it's saved */
+  /** The record key; a new project or event has none until it's saved */
   rkey?: string;
+  /** An event's whole lexicon, while the form shows only its rough fields */
+  full?: LexiconDoc;
+  /** An event's form shows only its rough fields */
+  rough?: boolean;
   cid?: string;
   record?: Value;
   read: () => Value;
@@ -137,6 +162,9 @@ let conflict = false;
 const now = () => new Date().toISOString();
 const backupKey = (route: string) => `skiddle-admin:page:${route}`;
 const isProject = (o: Open) => o.collection === PROJECT_COLLECTION;
+const isEvent = (o: Open) => o.collection === EVENT_COLLECTION;
+/** One record among many (a project, an event): it has createdAt, and can be deleted */
+const isItem = (o: Open) => isProject(o) || isEvent(o);
 const rkeyOf = (uri: string) => uri.split('/').pop() ?? '';
 
 /**
@@ -171,12 +199,16 @@ export async function openPage(route: PageRoute) {
   const target: PageEditor & { rkey?: string } =
     'page' in route
       ? { ...PAGE_EDITORS[route.page], rkey: 'self' }
-      : { title: 'project' in route ? route.project : 'A new project', collection: PROJECT_COLLECTION, lexicon: projectLexicon as LexiconDoc, page: '/projects/', rkey: 'project' in route ? route.project : undefined };
+      : 'event' in route || 'newEvent' in route
+        ? { title: 'event' in route ? 'An event' : 'A new event', collection: EVENT_COLLECTION, lexicon: eventLexicon as LexiconDoc, page: '/timeline/', rkey: 'event' in route ? route.event : undefined, check: eventProblems }
+        : { title: 'project' in route ? route.project : 'A new project', collection: PROJECT_COLLECTION, lexicon: projectLexicon as LexiconDoc, page: '/projects/', rkey: 'project' in route ? route.project : undefined };
   el('peTitle').textContent = target.title;
-  // Categories open from the Posts section, the rest from Pages
+  // Categories open from the Posts section, events from Timeline, the rest from Pages
   const back = el<HTMLAnchorElement>('peBack');
-  back.href = target.collection === CATEGORIES_COLLECTION ? '#posts' : '#pages';
-  back.textContent = target.collection === CATEGORIES_COLLECTION ? '← Posts' : '← Pages';
+  const from = target.collection === CATEGORIES_COLLECTION ? 'Posts' : target.collection === EVENT_COLLECTION ? 'Timeline' : 'Pages';
+  back.href = `#${from.toLowerCase()}`;
+  back.textContent = `← ${from}`;
+  el('peRough').hidden = true;
   message('peMessage', '');
   el('peConflict').hidden = true;
   el('peBackup').hidden = true;
@@ -195,12 +227,13 @@ export async function openPage(route: PageRoute) {
   }
   const still = pageRoute(location.hash);
   if (!still || routeKey(still) !== key) return; // moved on while it loaded
-  if ('project' in route && !record) {
+  if (('project' in route || 'event' in route) && !record) {
     saveState('peState', '');
-    return message('peMessage', 'This project isn’t in your repo.', 'error');
+    return message('peMessage', `This ${'event' in route ? 'event' : 'project'} isn’t in your repo.`, 'error');
   }
   current = { ...target, route: key, rkey: target.rkey, cid: record?.cid, record: record?.value, read: () => ({}) };
   if ('project' in route && record?.value.name) el('peTitle').textContent = String(record.value.name);
+  if ('event' in route && record) el('peTitle').textContent = eventTitle(record.value);
   fill(record?.value ?? target.initial?.() ?? {});
   el('peForm').hidden = false;
   const updated = record?.value.updatedAt ?? record?.value.createdAt;
@@ -227,6 +260,13 @@ export function leavePage() {
 /** Builds the form for a record's fields */
 function fill(value: Value) {
   if (!current) return;
+  if (isEvent(current)) {
+    // Only the rough fields while it's upcoming and not announced (src/lib/timeline.mjs)
+    current.rough = isRough(value);
+    current.full = eventLexicon as LexiconDoc;
+    current.lexicon = current.rough ? roughEventLexicon : (eventLexicon as LexiconDoc);
+    el('peRough').hidden = !current.rough;
+  }
   const form = buildForm(current.lexicon, value, {
     onChange,
     // The selected projects, on the CV and the home page
@@ -247,8 +287,8 @@ function fill(value: Value) {
   refresh();
 }
 
-/** The key a new project would get from its name, or the record's own */
-const keyFor = (o: Open, value: Value) => o.rkey ?? seriesSlug(String(value.name ?? '').trim());
+/** The key a new project would get from its name, or the record's own; a new event's comes from the PDS ('') */
+const keyFor = (o: Open, value: Value) => o.rkey ?? (isEvent(o) ? '' : seriesSlug(String(value.name ?? '').trim()));
 
 /** What's wrong with the form: the lexicon's rules, and a new project's key */
 function issues(o: Open, value: Value): string[] {
@@ -282,12 +322,22 @@ function refresh() {
   view.href = current.page;
   view.hidden = !current.record;
   const del = el<HTMLButtonElement>('peDelete');
-  del.hidden = !isProject(current) || !current.record;
+  del.hidden = !isItem(current) || !current.record;
+  del.textContent = isEvent(current) ? 'Delete event' : 'Delete project';
   del.disabled = !PUBLISHING_LIVE;
 }
 
 function onChange() {
   if (!current) return;
+  // An event whose dates or Announced change between upcoming and not: the form gains or loses
+  // the detail fields, with the saved ones back when it gains them
+  if (isEvent(current)) {
+    const value = current.read();
+    if (isRough(value) !== current.rough) {
+      const saved = Object.fromEntries(Object.entries(current.record ?? {}).filter(([k]) => DETAIL_FIELDS.includes(k)));
+      fill({ ...saved, ...value });
+    }
+  }
   if (!conflict) {
     dirty = true;
     saveBackup();
@@ -298,9 +348,10 @@ function onChange() {
 
 /** The record to write: the form's fields over any the form doesn't know, plus the dates */
 function recordOf(o: Open, value: Value, at: string): Value {
-  const known = new Set(Object.keys(recordSchema(o.lexicon).properties ?? {}));
+  // An event's detail fields count as known while its form leaves them out, so they aren't kept
+  const known = new Set(Object.keys(recordSchema(o.full ?? o.lexicon).properties ?? {}));
   const kept = Object.fromEntries(Object.entries(o.record ?? {}).filter(([k]) => !known.has(k) && k !== '$type'));
-  const dates = isProject(o) ? { createdAt: (o.record?.createdAt as string | undefined) ?? at, ...(o.record ? { updatedAt: at } : {}) } : { updatedAt: at };
+  const dates = isItem(o) ? { createdAt: (o.record?.createdAt as string | undefined) ?? at, ...(o.record ? { updatedAt: at } : {}) } : { updatedAt: at };
   return { $type: o.collection, ...kept, ...value, ...dates };
 }
 
@@ -320,23 +371,26 @@ async function save(force = false) {
     const record = recordOf(target, value, now());
     const { Lexicons } = await import('@atproto/lexicon');
     // A copy: loading a lexicon rewrites its refs in place, which the form reads
-    new Lexicons([structuredClone(target.lexicon) as never]).assertValidRecord(target.collection, record);
+    new Lexicons([structuredClone(target.full ?? target.lexicon) as never]).assertValidRecord(target.collection, record);
     step('Saving…');
     const res = target.record
       ? await putRecord(session, target.collection, key, record, target.cid)
-      : await createRecord(session, target.collection, record, key);
+      : await createRecord(session, target.collection, record, key || undefined);
     const wasNew = !target.rkey;
-    Object.assign(target, { rkey: key, cid: res.cid, record });
+    // A new event's key is the one the PDS picked
+    const rkey = key || rkeyOf(res.uri);
+    Object.assign(target, { rkey, cid: res.cid, record });
     removeBackup(target.route);
     await revalidate();
     void saved().catch(() => {});
     if (current === target) {
       dirty = false;
       if (wasNew) {
-        // The editor now shows the saved project, at its own address
-        target.route = `project/${key}`;
-        history.replaceState(null, '', `#project/${key}`);
-        el('peTitle').textContent = String(record.name ?? key);
+        // The editor now shows the saved project or event, at its own address
+        const kind = isEvent(target) ? 'event' : 'project';
+        target.route = `${kind}/${rkey}`;
+        history.replaceState(null, '', `#${kind}/${rkey}`);
+        el('peTitle').textContent = isEvent(target) ? eventTitle(record) : String(record.name ?? rkey);
       }
       el('peNote').hidden = true;
       step(`Saved ${formatTime(String(record.updatedAt ?? record.createdAt))}`);
@@ -380,22 +434,24 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
   }
 }
 
-/** Deletes a project, after a confirm */
+/** Deletes a project or an event, after a confirm */
 async function remove() {
-  if (!PUBLISHING_LIVE || !current?.rkey || !isProject(current)) return;
+  if (!PUBLISHING_LIVE || !current?.rkey || !isItem(current)) return;
   const target = current;
-  const name = String(target.record?.name ?? target.rkey);
-  if (!confirm(`Delete the project “${name}”? This can’t be undone. If the CV selects it, it drops off the CV.`)) return;
+  const event = isEvent(target);
+  const name = event ? eventTitle(target.record ?? {}) : String(target.record?.name ?? target.rkey);
+  const warning = event ? 'It goes from the timeline.' : 'If the CV selects it, it drops off the CV.';
+  if (!confirm(`Delete the ${event ? 'event' : 'project'} “${name}”? This can’t be undone. ${warning}`)) return;
   try {
-    await deleteRecord(session, PROJECT_COLLECTION, target.rkey!, target.cid);
+    await deleteRecord(session, target.collection, target.rkey!, target.cid);
     removeBackup(target.route);
     current = undefined;
     dirty = false;
     await revalidate();
-    location.hash = '#pages';
+    location.hash = event ? '#timeline' : '#pages';
     // After the list reloads, which sets its own message
     await saved().catch(() => {});
-    message('pagesMessage', `Deleted the project “${name}”.`, 'ok');
+    message(event ? 'timelineMessage' : 'pagesMessage', `Deleted the ${event ? 'event' : 'project'} “${name}”.`, 'ok');
   } catch (err) {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') {
       conflict = true;
