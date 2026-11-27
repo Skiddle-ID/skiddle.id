@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Nothing is built yet; the share cards' design, the logo and the site's mode and accent already live in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phase 1, the design, is built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -148,7 +148,7 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
 
 ## Phases
 
-1. **Design.** The theme's colours, fonts, sizes, shape and decoration; the Theme editor with its live preview and contrast check; share cards follow.
+1. **Design.** The theme's colours, fonts, sizes, shape and decoration; the Theme editor with its live preview and contrast check; share cards follow. **Built** ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198)): `src/lib/site-theme.mjs` reads the record and writes the page's CSS variables, which `src/style.css` reads with today's values as fallbacks. The font catalogue is Geist, Geist Mono, IBM Plex Sans, IBM Plex Mono, Inter, JetBrains Mono and Source Serif 4. Every theme colour is used for body-size text somewhere, so the contrast check asks 4.5:1 of each, never the 3:1 of large text.
 2. **The frame.** The menu, the footer and the sidebar's parts in `id.skiddle.site`; the sidebar, the command bar and the footer read them.
 3. **Pages from blocks, starting with home.** `id.skiddle.page`, the block registry and wrapper, the blocks home needs, the block editor with draft, preview and publish, and page share cards drawn in the admin app.
 4. **The other pages,** one PR each: About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks.
@@ -158,7 +158,6 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
 
 ## Open questions
 
-- **The font catalogue:** Geist and Geist Mono, plus which? Candidates: IBM Plex Sans and Mono (the site's colours are IBM Carbon's), JetBrains Mono, Inter, and a serif for posts (Source Serif).
 - **The CV's address:** it stays `/works/`, as a page whose record key is `cv`, or the key becomes `works`.
 - **Presets (settled in the review):** `id.skiddle.theme` keeps the key `self` only. Changing it to any would break the published lexicon: a preset saved under another key wouldn't be valid under today's schema. Presets get a collection of their own, `id.skiddle.themePreset` (key: the preset's name), and applying one copies it into `self`.
 

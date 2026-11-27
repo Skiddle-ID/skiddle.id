@@ -28,7 +28,7 @@ const itemCount = uses.reduce((n, s) => n + s.groups.reduce((m, g) => m + g.item
       <p class="text-xs flex flex-wrap gap-x-1 gap-y-1.5">
         <span class="text-[var(--color-muted)] mr-1" aria-hidden="true">cd</span>
         {uses.map((s) => (
-          <a href={`#${s.id}`} class="px-2 py-0.5 rounded border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">{s.id}/</a>
+          <a href={`#${s.id}`} class="px-2 py-0.5 rounded-sm border hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">{s.id}/</a>
         ))}
       </p>
     </nav>

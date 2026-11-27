@@ -1,10 +1,6 @@
 ---
-// Preload the site font (the same files src/style.css imports) so text doesn't reflow when it arrives
-import geistMono400 from '@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2?url';
-import geistMono600 from '@fontsource/geist-mono/files/geist-mono-latin-600-normal.woff2?url';
-// Posts also preload Geist Sans, the font for post text (see .prose-reading in src/style.css)
-import geist400 from '@fontsource/geist/files/geist-latin-400-normal.woff2?url';
-import geist600 from '@fontsource/geist/files/geist-latin-600-normal.woff2?url';
+import { FONT_FILES } from '~/lib/font-files';
+import { DEFAULT_COLORS, type FontId } from '~/lib/site-theme.mjs';
 import { PUBLICATION_URI } from '~/lib/standard-site.mjs';
 
 interface Props {
@@ -27,6 +23,10 @@ interface Props {
   profiles?: string[];
   /** The site's icon from its metadata: blob CIDs, served at /media/<cid>. Without it, the icons in /public */
   icon?: { png32: string; png180: string; png192: string; png512: string };
+  /** The theme's fonts to preload (the same files src/style.css declares), so text doesn't reflow when they arrive */
+  fonts?: FontId[];
+  /** The theme's backgrounds, for the browser's toolbar (theme-color), dark and light */
+  themeColors?: { dark: string; light: string };
 }
 
 const {
@@ -42,6 +42,8 @@ const {
   author = 'Laurensius Jeffrey (Skiddle)',
   profiles = ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
   icon,
+  fonts = ['geist-mono'],
+  themeColors = { dark: DEFAULT_COLORS.dark.bg, light: DEFAULT_COLORS.light.bg },
 } = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
@@ -54,10 +56,7 @@ const isCard = ogImage.startsWith('/og/');
 const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, site).toString();
 ---
 
-<link rel="preload" href={geistMono400} as="font" type="font/woff2" crossorigin />
-<link rel="preload" href={geistMono600} as="font" type="font/woff2" crossorigin />
-{type === 'article' && <link rel="preload" href={geist400} as="font" type="font/woff2" crossorigin />}
-{type === 'article' && <link rel="preload" href={geist600} as="font" type="font/woff2" crossorigin />}
+{fonts.flatMap((id) => FONT_FILES[id]).map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
 <link rel="canonical" href={canonical} />
 <!-- Preview builds (pull requests, which can show drafts) stay out of search engines -->
 <meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : noindex ? 'noindex,follow' : 'index,follow'} />
@@ -67,8 +66,15 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
 <!-- Text and data mining reserved (W3C TDMRep): no AI training on this writing, see LICENSE-CONTENT.md -->
 <meta name="tdm-reservation" content="1" />
-<!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
-<meta name="theme-color" content="#161616" id="themeColor" />
+<!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar, which read
+     the theme's own backgrounds from data-dark and data-light when it has them -->
+<meta
+  name="theme-color"
+  content={themeColors.dark}
+  id="themeColor"
+  data-dark={themeColors.dark === DEFAULT_COLORS.dark.bg ? undefined : themeColors.dark}
+  data-light={themeColors.light === DEFAULT_COLORS.light.bg ? undefined : themeColors.light}
+/>
 <link rel="alternate" type="application/rss+xml" title={`${siteName} — posts`} href="/rss.xml" />
 {feed && <link rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href} />}
 {profiles.map((href) => <link rel="me" href={href} />)}

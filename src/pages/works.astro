@@ -37,7 +37,7 @@ const selectedProjects = works.selectedProjects
     <header class="card p-5 sm:p-6 print:border-0 print:p-0">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p class="text-xs text-[var(--color-muted)] print:hidden" aria-hidden="true">
+          <p class="prompt text-xs text-[var(--color-muted)] print:hidden" aria-hidden="true">
             <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ cat cv.md
           </p>
           <h1 class="text-2xl font-semibold mt-2 print:mt-0">{works.header.name}</h1>
@@ -96,7 +96,7 @@ const selectedProjects = works.selectedProjects
                   <div class="flex flex-wrap items-baseline justify-between gap-x-3">
                     <h4 class="text-[var(--color-primary)]">
                       {pos.role}
-                      {pos.employment && <span class="ml-2 align-middle text-[11px] px-1.5 py-0.5 rounded border text-[var(--color-muted)]">{pos.employment.toLowerCase()}</span>}
+                      {pos.employment && <span class="ml-2 align-middle text-[11px] px-1.5 py-0.5 rounded-sm border text-[var(--color-muted)]">{pos.employment.toLowerCase()}</span>}
                     </h4>
                     <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {pos.end}</span>
                   </div>
@@ -123,7 +123,7 @@ const selectedProjects = works.selectedProjects
           <div class="card p-4">
             <h3 class="text-xs uppercase tracking-wider text-[var(--color-primary)]">{g.title}</h3>
             <p class="mt-2.5 flex flex-wrap gap-1.5">
-              {g.items.map((s) => <span class="text-xs px-2 py-0.5 rounded border">{s}</span>)}
+              {g.items.map((s) => <span class="text-xs px-2 py-0.5 rounded-sm border">{s}</span>)}
             </p>
           </div>
         ))}

@@ -12,10 +12,11 @@
  * A post's and a series' card is drawn in the admin app and stored in its record (served from
  * /media/<cid>), so none are drawn here.
  *
- * The cards are in the theme's design (id.skiddle.theme) with the publication's logo
- * (site.standard.publication), read from Jeff's repo when the build runs (src/lib/card-theme.mjs).
- * If the repo can't be read, they're in the terminal design with the built-in icon, so a build never
- * fails on it. A change to either shows on these cards from the next deploy.
+ * The cards are in the theme's design, colours and headings' font (id.skiddle.theme) with the
+ * publication's logo (site.standard.publication), read from Jeff's repo when the build runs
+ * (src/lib/card-theme.mjs, src/lib/site-theme.mjs). If the repo can't be read, they're in today's
+ * terminal design with the built-in icon, so a build never fails on it. A change to either shows on
+ * these cards from the next deploy.
  */
 import type { AstroIntegration } from 'astro';
 import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
@@ -24,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { renderButton, renderShareCard, type CardFont } from '../lib/share-card';
 import { CONTENT_PAGES, LIST_PAGES } from '../data/list-pages';
 import { THEME_COLLECTION, cardDesignOf, cardLogoCid, type CardDesign } from '../lib/card-theme.mjs';
+import { DEFAULT_SITE_THEME, cardColors, fontOf, siteThemeOf, type SiteTheme } from '../lib/site-theme.mjs';
 import { DID, PUBLICATION_RKEY } from '../lib/standard-site.mjs';
 
 export default function shareCards(): AstroIntegration {
@@ -38,7 +40,19 @@ export default function shareCards(): AstroIntegration {
         const started = Date.now();
         const file = (path: string) => fileURLToPath(new URL(path, root));
         const fontFile = (pkg: string, name: string) => readFile(file(`node_modules/@fontsource/${pkg}/files/${name}`));
+        const builtIn = `data:image/png;base64,${(await readFile(file('public/android-chrome-192x192.png'))).toString('base64')}`;
+        const { design, logo, theme } = await themeOf(builtIn).catch((err: unknown) => {
+          logger.warn(`Couldn’t read the theme or the logo, so the cards use the built-in ones: ${err instanceof Error ? err.message : err}`);
+          return { design: 'terminal' as CardDesign, logo: builtIn, theme: DEFAULT_SITE_THEME };
+        });
+        const heading = theme.fonts.heading;
+        const font = fontOf(heading).family;
+        const colors = cardColors(theme);
         const fonts: CardFont[] = [
+          // The theme's headings' font, when it isn't Geist Mono (satori reads WOFF, not WOFF2)
+          ...(heading === 'geist-mono'
+            ? []
+            : await Promise.all(([400, 700] as const).map(async (weight) => ({ name: font, weight, data: await fontFile(heading, `${heading}-latin-${weight}-normal.woff`) })))),
           { name: 'Geist Mono', weight: 400, data: await fontFile('geist-mono', 'geist-mono-latin-400-normal.woff') },
           { name: 'Geist Mono', weight: 700, data: await fontFile('geist-mono', 'geist-mono-latin-700-normal.woff') },
           // Separate family names: satori only falls back between differently named fonts
@@ -47,12 +61,7 @@ export default function shareCards(): AstroIntegration {
           { name: 'Noto Sans Thai', weight: 400, data: await fontFile('noto-sans-thai', 'noto-sans-thai-thai-400-normal.woff') },
           { name: 'Noto Sans Thai', weight: 700, data: await fontFile('noto-sans-thai', 'noto-sans-thai-thai-700-normal.woff') },
         ];
-        const builtIn = `data:image/png;base64,${(await readFile(file('public/android-chrome-192x192.png'))).toString('base64')}`;
-        const { design, logo } = await themeOf(builtIn).catch((err: unknown) => {
-          logger.warn(`Couldn’t read the theme or the logo, so the cards use the built-in ones: ${err instanceof Error ? err.message : err}`);
-          return { design: 'terminal' as CardDesign, logo: builtIn };
-        });
-        logger.info(`Share cards: the ${design} design, ${logo === builtIn ? 'the built-in logo' : 'the publication’s logo'}`);
+        logger.info(`Share cards: the ${design} design in ${font}, ${logo === builtIn ? 'the built-in logo' : 'the publication’s logo'}`);
 
         const out = new URL('og/', dir);
         await mkdir(out, { recursive: true });
@@ -66,6 +75,8 @@ export default function shareCards(): AstroIntegration {
               description: 'Protocol engineer and founder of Skiddle Labs, in Bangkok. Writing about infra, open protocols, homelab and life.',
               logo,
               design,
+              colors,
+              font,
             },
             fonts,
           ),
@@ -98,6 +109,8 @@ export default function shareCards(): AstroIntegration {
               meta: [posts ? `${posts} post${posts === 1 ? '' : 's'}` : ''],
               logo,
               design,
+              colors,
+              font,
             },
             fonts,
           );
@@ -115,7 +128,7 @@ export default function shareCards(): AstroIntegration {
         for (const { path, title, description, command } of onRequest) {
           const target = new URL(`pages/${path}.png`, out);
           await mkdir(new URL('.', target), { recursive: true });
-          await writeFile(target, await renderShareCard({ command, title, description, meta: [''], logo, design }, fonts));
+          await writeFile(target, await renderShareCard({ command, title, description, meta: [''], logo, design, colors, font }, fonts));
           pageCount++;
         }
         for (const [image, page] of used) {
@@ -132,8 +145,8 @@ export default function shareCards(): AstroIntegration {
 /** How long the build waits for Jeff's repo */
 const TIMEOUT_MS = 8000;
 
-/** The theme's design and the publication's logo (a data: URI), or the built-in logo if it has none */
-async function themeOf(builtIn: string): Promise<{ design: CardDesign; logo: string }> {
+/** The theme (its cards' design, and its design) and the publication's logo (a data: URI), or the built-in logo if it has none */
+async function themeOf(builtIn: string): Promise<{ design: CardDesign; logo: string; theme: SiteTheme }> {
   const get = async (url: string) => {
     const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
     if (!res.ok && res.status !== 400) throw new Error(`${url}: ${res.status}`);
@@ -159,7 +172,7 @@ async function themeOf(builtIn: string): Promise<{ design: CardDesign; logo: str
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     logo = `data:${type};base64,${btoa(bin)}`;
   }
-  return { design: cardDesignOf(theme), logo };
+  return { design: cardDesignOf(theme), logo, theme: siteThemeOf(theme) };
 }
 
 /** A <meta property="…"> value from the built HTML, with entities decoded */

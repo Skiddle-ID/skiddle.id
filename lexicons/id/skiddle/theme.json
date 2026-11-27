@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "The site's theme: its look for visitors who haven't picked their own (light or dark, and the accent colour), and the design of its share cards (the pictures link previews show). One record, key 'self'. A field left out uses the default: follow the device, blue, and the terminal cards. A card's logo is the publication's (site.standard.publication's icon).",
+      "description": "The site's theme: its look for visitors who haven't picked their own (light or dark, and the accent colour), its design (colours for dark and light, fonts, text size, line heights, corners, spacing and the terminal touches), and the design of its share cards (the pictures link previews show). One record, key 'self'. A field left out, or a value the site doesn't know, keeps today's look: follow the device, blue, the site's own colours and fonts, and the terminal cards. A card's logo is the publication's (site.standard.publication's icon).",
       "record": {
         "type": "object",
         "required": ["updatedAt"],
@@ -22,6 +22,58 @@
             "knownValues": ["blue", "teal", "purple", "pink", "green"],
             "description": "The accent colour (links, the cursor, highlights) for visitors who haven't picked one. A visitor's own pick wins."
           },
+          "colors": {
+            "type": "ref",
+            "ref": "#colors",
+            "description": "The site's colours, for dark and for light. A colour left out keeps today's."
+          },
+          "fonts": {
+            "type": "ref",
+            "ref": "#fonts",
+            "description": "The site's fonts. A font left out keeps today's: Geist Mono, and Geist for post text."
+          },
+          "textSize": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["small", "normal", "large", "larger"],
+            "description": "The base text size, in steps: 'normal' is today's. Every size and the spacing follow it."
+          },
+          "textLineHeight": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["tight", "normal", "loose"],
+            "description": "The line height of the site's text: 'normal' is today's."
+          },
+          "postLineHeight": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["tight", "normal", "loose"],
+            "description": "The line height of a post's text: 'normal' is today's."
+          },
+          "radius": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["none", "small", "round"],
+            "description": "The corners of cards, buttons and images: 'small' is today's."
+          },
+          "spacing": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["compact", "normal", "roomy"],
+            "description": "The space around and between things: 'normal' is today's."
+          },
+          "noPrompt": {
+            "type": "boolean",
+            "description": "Hide the terminal prompts ('skiddle@web:~$') above sections and in the search. Left out, or false, shows them, as today."
+          },
+          "noCursor": {
+            "type": "boolean",
+            "description": "Hide the blinking cursor. Left out, or false, shows it, as today."
+          },
+          "noHeadingMarks": {
+            "type": "boolean",
+            "description": "Hide the '#' and '##' before headings. Left out, or false, shows them, as today."
+          },
           "cardDesign": {
             "type": "string",
             "maxLength": 64,
@@ -32,6 +84,160 @@
             "type": "string",
             "format": "datetime"
           }
+        }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "description": "The site's colours for each mode.",
+      "properties": {
+        "dark": {
+          "type": "ref",
+          "ref": "#palette"
+        },
+        "light": {
+          "type": "ref",
+          "ref": "#palette"
+        }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "description": "The colours of one mode, dark or light. A colour left out keeps today's.",
+      "properties": {
+        "bg": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The background."
+        },
+        "bgAlt": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The alternate background: code blocks, table headers."
+        },
+        "border": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "Borders and lines."
+        },
+        "text": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "Text."
+        },
+        "muted": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "Muted text: dates, notes, the '##' before headings."
+        },
+        "blue": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The blue accent."
+        },
+        "teal": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The teal accent."
+        },
+        "purple": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The purple accent."
+        },
+        "pink": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The pink accent."
+        },
+        "green": {
+          "type": "ref",
+          "ref": "#rgb",
+          "description": "The green accent."
+        }
+      }
+    },
+    "rgb": {
+      "type": "object",
+      "description": "A colour, as red, green and blue from 0 to 255 (the shape of site.standard.theme.color#rgb).",
+      "required": ["r", "g", "b"],
+      "properties": {
+        "r": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "g": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "b": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      }
+    },
+    "fonts": {
+      "type": "object",
+      "description": "The fonts, each one of those the site bundles, by its id.",
+      "properties": {
+        "heading": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": [
+            "geist-mono",
+            "geist",
+            "ibm-plex-sans",
+            "ibm-plex-mono",
+            "inter",
+            "jetbrains-mono",
+            "source-serif-4"
+          ],
+          "description": "Headings and menus. One the site doesn't bundle keeps today's."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": [
+            "geist-mono",
+            "geist",
+            "ibm-plex-sans",
+            "ibm-plex-mono",
+            "inter",
+            "jetbrains-mono",
+            "source-serif-4"
+          ],
+          "description": "The site's text. One the site doesn't bundle keeps today's."
+        },
+        "post": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": [
+            "geist-mono",
+            "geist",
+            "ibm-plex-sans",
+            "ibm-plex-mono",
+            "inter",
+            "jetbrains-mono",
+            "source-serif-4"
+          ],
+          "description": "A post's text. One the site doesn't bundle keeps today's."
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": [
+            "geist-mono",
+            "geist",
+            "ibm-plex-sans",
+            "ibm-plex-mono",
+            "inter",
+            "jetbrains-mono",
+            "source-serif-4"
+          ],
+          "description": "Code. One the site doesn't bundle keeps today's."
         }
       }
     }

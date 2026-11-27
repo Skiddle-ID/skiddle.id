@@ -4,6 +4,7 @@ import Icon from '../components/icon.astro';
 import { marked } from 'marked';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { PAGES_CACHE, getAbout } from '~/lib/page-content';
+import { ACCENTS, DEFAULT_COLORS } from '~/lib/site-theme.mjs';
 
 // Rendered on request: the page comes from its record (src/lib/page-content.ts)
 export const prerender = false;
@@ -11,13 +12,12 @@ export const prerender = false;
 const { about } = await getAbout();
 Astro.cache.set(PAGES_CACHE);
 
-const accents = [
-  { id: 'blue', dark: '#82cfff', light: '#0f62fe' },
-  { id: 'teal', dark: '#3ddbd9', light: '#007d79' },
-  { id: 'purple', dark: '#be95ff', light: '#8a3ffc' },
-  { id: 'pink', dark: '#ff7eb6', light: '#d02670' },
-  { id: 'green', dark: '#42be65', light: '#198038' },
-];
+// The theme's accent colours (src/style.css's --theme-* variables), today's when it doesn't set them
+const accents = ACCENTS.map((id) => ({
+  id,
+  dark: `var(--theme-dark-${id}, ${DEFAULT_COLORS.dark[id]})`,
+  light: `var(--theme-light-${id}, ${DEFAULT_COLORS.light[id]})`,
+}));
 
 // The prose fields are Markdown (lexicons/id/skiddle/about.json)
 const html = (markdown: string) => marked.parse(markdown, { async: false });
@@ -29,7 +29,7 @@ const html = (markdown: string) => marked.parse(markdown, { async: false });
 
     <!-- neofetch -->
     <section aria-label="Profile" class="card mt-5 p-5 text-sm">
-      <p class="text-[var(--color-muted)]" aria-hidden="true">
+      <p class="prompt text-[var(--color-muted)]" aria-hidden="true">
         <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ neofetch
       </p>
       <div class="mt-4 flex flex-col sm:flex-row gap-6">

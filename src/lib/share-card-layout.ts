@@ -7,10 +7,12 @@
  *
  * The design is the theme's (src/lib/card-theme.mjs, id.skiddle.theme): 'terminal' (the default),
  * 'terminal-light' (the same in the light colours) or 'logo' (the logo large beside the title). The
- * logo is the publication's.
+ * logo is the publication's. The colours and the font are the theme's too (src/lib/site-theme.mjs):
+ * its dark or light colours, and its headings' font.
  */
 import satori from 'satori';
 import type { CardDesign } from './card-theme.mjs';
+import { DEFAULT_SITE_THEME, cardColors } from './site-theme.mjs';
 
 export interface CardFont {
   name: string;
@@ -29,16 +31,20 @@ export interface ShareCard {
   logo?: string;
   /** The theme's design; 'terminal' if left out */
   design?: CardDesign;
+  /** The theme's colours (cardColors); today's if left out */
+  colors?: CardColors;
+  /** The family of the theme's headings' font, one of `fonts`; Geist Mono if left out */
+  font?: string;
 }
+
+export type CardColors = ReturnType<typeof cardColors>;
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
 
-type Palette = { bg: string; line: string; fg: string; mute: string; accent: string };
-// The site's dark theme (IBM Carbon tokens in src/style.css)
-const DARK: Palette = { bg: '#161616', line: '#393939', fg: '#f2f4f8', mute: '#a8a8a8', accent: '#82cfff' };
-// Its light theme (:root[data-theme='light'])
-const LIGHT: Palette = { bg: '#ffffff', line: '#e0e0e0', fg: '#161616', mute: '#525252', accent: '#0f62fe' };
+/** Today's colours, dark and light */
+const DEFAULT_COLORS = cardColors(DEFAULT_SITE_THEME);
+const DEFAULT_FONT = 'Geist Mono';
 /** The logo's size in the 'logo' design */
 const BIG_LOGO = 216;
 
@@ -58,7 +64,8 @@ const INNER_H = CARD_HEIGHT - BAR - PAD_TOP - PAD_BOTTOM;
 
 /** The share card as an SVG, 1200×630, in its design ('logo' without a logo draws as 'terminal') */
 export async function shareCardSvg(card: ShareCard, fonts: CardFont[]): Promise<string> {
-  const C = card.design === 'terminal-light' ? LIGHT : DARK;
+  const colors = card.colors ?? DEFAULT_COLORS;
+  const C = card.design === 'terminal-light' ? colors.light : colors.dark;
   const big = card.design === 'logo' && !!card.logo;
   const titleSize = big ? (card.title.length > 40 ? 48 : 56) : card.title.length > 54 ? 54 : 64;
   const textW = big ? INNER_W - BIG_LOGO - 56 : INNER_W;
@@ -108,7 +115,7 @@ export async function shareCardSvg(card: ShareCard, fonts: CardFont[]): Promise<
 
   const root = h(
     'div',
-    { display: 'flex', flexDirection: 'column', width: CARD_WIDTH, height: CARD_HEIGHT, backgroundColor: C.bg, fontFamily: 'Geist Mono, Geist Mono Ext, Noto Sans Thai' },
+    { display: 'flex', flexDirection: 'column', width: CARD_WIDTH, height: CARD_HEIGHT, backgroundColor: C.bg, fontFamily: [...new Set([card.font ?? DEFAULT_FONT, 'Geist Mono', 'Geist Mono Ext', 'Noto Sans Thai'])].join(', ') },
     [h('div', { width: CARD_WIDTH, height: BAR, backgroundColor: C.accent }), content],
   );
 
@@ -126,7 +133,7 @@ export const BUTTON_HEIGHT = 31;
  * "skiddle.id" and the cursor in the accent colour, on the dark theme with a 1px border.
  */
 export async function buttonSvg(fonts: CardFont[]): Promise<string> {
-  const C = DARK;
+  const C = DEFAULT_COLORS.dark;
   const inner = h(
     'div',
     { display: 'flex', alignItems: 'center', justifyContent: 'center', width: BUTTON_WIDTH - 2, height: BUTTON_HEIGHT - 2, marginTop: 1, marginLeft: 1, backgroundColor: C.bg, fontSize: 11, fontWeight: 700, color: C.accent },

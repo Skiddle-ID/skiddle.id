@@ -1,11 +1,13 @@
 /**
- * The admin app's share cards' style: the theme's design (id.skiddle.theme) and the publication's
- * logo (src/lib/card-theme.mjs), read once and kept until the Theme or Publication editor saves
+ * The admin app's share cards' style: the theme's design, colours and headings' font
+ * (id.skiddle.theme, src/lib/site-theme.mjs) and the publication's logo (src/lib/card-theme.mjs), read once and kept until the Theme or Publication editor saves
  * (resetCardStyle). Apart from src/lib/admin/card.ts, which loads about 3 MB, so the editors can
  * reset it without loading that. Without a logo, or if it can't be read, cards use the built-in icon.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { THEME_COLLECTION, cardDesignOf, cardLogoCid, type CardDesign } from '~/lib/card-theme.mjs';
+import { cardColors, siteThemeOf, type FontId } from '~/lib/site-theme.mjs';
+import type { CardColors } from '~/lib/share-card-layout';
 import { PUBLICATION_RKEY } from '~/lib/standard-site.mjs';
 import { getRecord } from './xrpc';
 
@@ -16,6 +18,9 @@ export interface CardStyle {
   design: CardDesign;
   /** The logo, as a data: URI */
   logo: string;
+  colors: CardColors;
+  /** The headings' font */
+  font: FontId;
 }
 
 let session: OAuthSession | undefined;
@@ -38,7 +43,8 @@ export function cardStyle(): Promise<CardStyle> {
       : [null, null];
     const cid = cardLogoCid(publication?.value);
     const logo = (cid ? await dataUri(`/media/${cid}`).catch(() => undefined) : undefined) ?? (await dataUri(BUILT_IN_LOGO));
-    return { design: cardDesignOf(theme?.value), logo };
+    const site = siteThemeOf(theme?.value);
+    return { design: cardDesignOf(theme?.value), logo, colors: cardColors(site), font: site.fonts.heading };
   })();
   style.catch(() => (style = undefined));
   return style;

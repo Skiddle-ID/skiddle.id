@@ -9,8 +9,10 @@
  *     PUBLICATION_RKEY): its name, description, logo and whether readers may list it. The form uses
  *     the part of Standard.site's lexicon it edits (src/lib/admin/publication-lexicon.ts); the rest
  *     (its url, which /.well-known/site.standard.publication proves, and its theme) is kept as it is
- *   - #page/theme: the site's theme (id.skiddle.theme, src/lib/card-theme.mjs): for now, the share
- *     cards' design, picked from previews (src/lib/admin/design-field.ts)
+ *   - #page/theme: the site's theme (id.skiddle.theme, src/lib/site-theme.mjs): its mode and accent,
+ *     its design (src/lib/admin/theme-editor.ts: colours, fonts, sizes, corners, spacing and the
+ *     terminal touches, beside a live preview in dark and light), and the share cards' design, picked
+ *     from previews (src/lib/admin/design-field.ts). A text colour under WCAG AA can't be saved.
  *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
@@ -57,6 +59,7 @@ import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-fo
 import { iconField, logoField } from './icon-field';
 import { ACCENT_COLOURS, choiceField, designField } from './design-field';
 import { ACCENTS, DEFAULT_SITE_THEME } from '~/lib/site-theme.mjs';
+import { KEPT_ON_RESET, designFields, themePreview, themeProblems } from './theme-editor';
 import { resetCardStyle } from './card-style';
 import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
@@ -115,7 +118,8 @@ export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'c
     collection: THEME_COLLECTION,
     lexicon: themeLexicon as LexiconDoc,
     page: '/',
-    initial: () => ({ ...DEFAULT_SITE_THEME, cardDesign: DEFAULT_CARD_DESIGN }),
+    initial: () => ({ mode: DEFAULT_SITE_THEME.mode, accent: DEFAULT_SITE_THEME.accent, cardDesign: DEFAULT_CARD_DESIGN }),
+    check: themeProblems,
   },
   home: {
     title: 'Home',
@@ -175,7 +179,7 @@ export function pageRoute(hash: string): PageRoute | undefined {
 const routeKey = (r: PageRoute) =>
   'page' in r ? `page/${r.page}` : 'project' in r ? `project/${r.project}` : 'event' in r ? `event/${r.event}` : 'newEvent' in r ? 'new-event' : 'new-project';
 
-/** The Theme editor's fields: light or dark, the accent, and the cards' design */
+/** The Theme editor's fields: light or dark, the accent, the design, and the cards' design */
 function themeFields() {
   const ownPick = 'A visitor’s own pick (the sidebar’s buttons) still wins. Saving changes the site at once.';
   return {
@@ -199,6 +203,7 @@ function themeFields() {
       DEFAULT_SITE_THEME.accent,
       onChange,
     ),
+    ...designFields(onChange),
     cardDesign: designField(onChange),
   };
 }
@@ -233,6 +238,8 @@ interface Open {
   record?: Value;
   read: () => Value;
   check?: (value: Value) => string[];
+  /** The Theme editor's preview, drawn from the form as it changes */
+  preview?: (value: Value) => void;
 }
 
 let session: OAuthSession;
@@ -371,8 +378,24 @@ function fill(value: Value) {
     },
   });
   current.read = form.read as () => Value;
-  el('peFields').replaceChildren(form.el);
+  if (current.collection === THEME_COLLECTION) {
+    const preview = themePreview(resetTheme);
+    current.preview = preview.update;
+    const layout = document.createElement('div');
+    layout.className = 'admin-theme-layout';
+    layout.appendChild(form.el);
+    layout.appendChild(preview.el);
+    el('peFields').replaceChildren(layout);
+  } else el('peFields').replaceChildren(form.el);
   refresh();
+}
+
+/** The Theme editor's Reset: today's design, keeping the mode, the accent and the cards' design */
+function resetTheme() {
+  if (!current) return;
+  const value = current.read();
+  fill(Object.fromEntries(KEPT_ON_RESET.filter((k) => k in value).map((k) => [k, value[k]])));
+  onChange();
 }
 
 /** The key a new project would get from its name, or the record's own; a new event's comes from the PDS ('') */
@@ -394,6 +417,7 @@ function refresh() {
   if (!current) return;
   const value = current.read();
   const found = issues(current, value);
+  current.preview?.(value);
   // A new project that nothing's been typed into yet isn't wrong, just empty
   message('peProblems', current.record || dirty ? found.join(' ') : '', found.length ? 'error' : 'info');
   const key = keyFor(current, value);

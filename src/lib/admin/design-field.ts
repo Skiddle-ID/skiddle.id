@@ -5,6 +5,7 @@
  * when the editor opens: about 3 MB). The previews are drawn on canvases.
  */
 import { CARD_DESIGNS, cardDesignOf } from '~/lib/card-theme.mjs';
+import { ACCENTS, DEFAULT_COLORS, type Accent } from '~/lib/site-theme.mjs';
 import type { Field } from './lexicon-form';
 import { errorText } from './dom';
 
@@ -145,10 +146,4 @@ export function choiceField(name: string, legendText: string, help: string, choi
 }
 
 /** The accents' colours, dark then light, as src/style.css has them */
-export const ACCENT_COLOURS: Record<string, [string, string]> = {
-  blue: ['#82cfff', '#0f62fe'],
-  teal: ['#3ddbd9', '#007d79'],
-  purple: ['#be95ff', '#8a3ffc'],
-  pink: ['#ff7eb6', '#d02670'],
-  green: ['#42be65', '#198038'],
-};
+export const ACCENT_COLOURS = Object.fromEntries(ACCENTS.map((a) => [a, [DEFAULT_COLORS.dark[a], DEFAULT_COLORS.light[a]]])) as Record<Accent, [string, string]>;

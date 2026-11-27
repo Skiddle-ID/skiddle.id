@@ -103,7 +103,7 @@ Then the [launch checklist](#the-v4-branch).
 The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), its frame (the menu, the footer) and every page as rows of blocks, all set in the admin app and kept in three records: `id.skiddle.theme`, `id.skiddle.site` and a new `id.skiddle.page`, which replaces the seven per-page lexicons. The code defines the blocks and the design settings; the records arrange them. It ships with today's look only: the redesign stays on hold until January. The plan is [docs/v4/themes.md](docs/v4/themes.md).
 
 - [x] Share cards: the publication's logo and a design from the theme ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194)); the site's default mode and accent ([#195](https://github.com/Skiddle-ID/skiddle.id/pull/195))
-- [ ] Design: colours, fonts, sizes, shape and decoration in the theme, with a live preview and a contrast check
+- [x] Design: colours, fonts, sizes, shape and decoration in the theme, with a live preview and a contrast check ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198))
 - [ ] The frame: the menu, the footer and the sidebar's parts
 - [ ] Pages from blocks, starting with home: `id.skiddle.page`, the block editor, draft, preview and publish
 - [ ] The other pages on blocks: About, Now, Uses, the CV, Services, Notes

@@ -4,6 +4,23 @@
 @import '@fontsource/geist/latin-400.css' layer(base);
 @import '@fontsource/geist/latin-600.css' layer(base);
 @import '@fontsource/geist/latin-400-italic.css' layer(base);
+/* The rest of the theme's font catalogue (src/lib/site-theme.mjs): declared here, downloaded only
+   when the theme (id.skiddle.theme) uses one */
+@import '@fontsource/ibm-plex-sans/latin-400.css' layer(base);
+@import '@fontsource/ibm-plex-sans/latin-600.css' layer(base);
+@import '@fontsource/ibm-plex-sans/latin-400-italic.css' layer(base);
+@import '@fontsource/ibm-plex-mono/latin-400.css' layer(base);
+@import '@fontsource/ibm-plex-mono/latin-600.css' layer(base);
+@import '@fontsource/ibm-plex-mono/latin-400-italic.css' layer(base);
+@import '@fontsource/inter/latin-400.css' layer(base);
+@import '@fontsource/inter/latin-600.css' layer(base);
+@import '@fontsource/inter/latin-400-italic.css' layer(base);
+@import '@fontsource/jetbrains-mono/latin-400.css' layer(base);
+@import '@fontsource/jetbrains-mono/latin-600.css' layer(base);
+@import '@fontsource/jetbrains-mono/latin-400-italic.css' layer(base);
+@import '@fontsource/source-serif-4/latin-400.css' layer(base);
+@import '@fontsource/source-serif-4/latin-600.css' layer(base);
+@import '@fontsource/source-serif-4/latin-400-italic.css' layer(base);
 
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
@@ -13,6 +30,8 @@
   IBM Carbon palette. Dark tokens are the base; light via <html data-theme="light">, which the
   head script sets from the visitor's pick or, failing that, the device's light/dark setting.
   Accent colour via <html data-accent="blue|teal|purple|pink|green">.
+  The site's theme (id.skiddle.theme, src/lib/site-theme.mjs) sets --theme-* variables in a <style>
+  in the head; each value here falls back to today's when the theme doesn't set it.
 */
 @theme {
   /* Carbon base (kept so old utilities like text-base03 still resolve) */
@@ -27,12 +46,12 @@
   --color-base0A: #82cfff;
 
   /* Semantic tokens — dark (default) */
-  --color-bg: #161616;
-  --color-bg-alt: #1f1f1f;
-  --color-border: #393939;
-  --color-text: #f2f4f8;
-  --color-muted: #a8a8a8;
-  --color-primary: #82cfff;
+  --color-bg: var(--theme-dark-bg, #161616);
+  --color-bg-alt: var(--theme-dark-bgAlt, #1f1f1f);
+  --color-border: var(--theme-dark-border, #393939);
+  --color-text: var(--theme-dark-text, #f2f4f8);
+  --color-muted: var(--theme-dark-muted, #a8a8a8);
+  --color-primary: var(--theme-dark-blue, #82cfff);
 
   /* Status colours (project status dots, terminal errors) */
   --color-ok: #42be65;
@@ -46,10 +65,13 @@
   --color-gray: var(--color-border);
 
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-reading: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-heading: var(--font-mono);
+  --font-text: var(--theme-font-text, var(--font-mono));
+  --font-heading: var(--theme-font-heading, var(--font-mono));
+  --font-reading: var(--theme-font-post, 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  --font-code: var(--theme-font-code, var(--font-mono));
+  --default-mono-font-family: var(--font-code);
   --tracking-normal: -0.32px;
-  --leading-normal: 180%;
+  --leading-normal: var(--theme-leading-text, 180%);
 
   --animate-blink: blink 1.45s infinite step-start;
   @keyframes blink {
@@ -60,12 +82,12 @@
 
 /* ── Light theme ── */
 :root[data-theme='light'] {
-  --color-bg: #ffffff;
-  --color-bg-alt: #f4f4f4;
-  --color-border: #e0e0e0;
-  --color-text: #161616;
-  --color-muted: #525252;
-  --color-primary: #0f62fe;
+  --color-bg: var(--theme-light-bg, #ffffff);
+  --color-bg-alt: var(--theme-light-bgAlt, #f4f4f4);
+  --color-border: var(--theme-light-border, #e0e0e0);
+  --color-text: var(--theme-light-text, #161616);
+  --color-muted: var(--theme-light-muted, #525252);
+  --color-primary: var(--theme-light-blue, #0f62fe);
   --color-ok: #198038;
   --color-warn: #8e6a00;
   --color-err: #da1e28;
@@ -73,16 +95,16 @@
 }
 
 /* ── Accent colours (dark values, then light values with enough contrast) ── */
-:root[data-accent='blue']   { --color-primary: #82cfff; }
-:root[data-accent='teal']   { --color-primary: #3ddbd9; }
-:root[data-accent='purple'] { --color-primary: #be95ff; }
-:root[data-accent='pink']   { --color-primary: #ff7eb6; }
-:root[data-accent='green']  { --color-primary: #42be65; }
-:root[data-theme='light'][data-accent='blue']   { --color-primary: #0f62fe; }
-:root[data-theme='light'][data-accent='teal']   { --color-primary: #007d79; }
-:root[data-theme='light'][data-accent='purple'] { --color-primary: #8a3ffc; }
-:root[data-theme='light'][data-accent='pink']   { --color-primary: #d02670; }
-:root[data-theme='light'][data-accent='green']  { --color-primary: #198038; }
+:root[data-accent='blue']   { --color-primary: var(--theme-dark-blue, #82cfff); }
+:root[data-accent='teal']   { --color-primary: var(--theme-dark-teal, #3ddbd9); }
+:root[data-accent='purple'] { --color-primary: var(--theme-dark-purple, #be95ff); }
+:root[data-accent='pink']   { --color-primary: var(--theme-dark-pink, #ff7eb6); }
+:root[data-accent='green']  { --color-primary: var(--theme-dark-green, #42be65); }
+:root[data-theme='light'][data-accent='blue']   { --color-primary: var(--theme-light-blue, #0f62fe); }
+:root[data-theme='light'][data-accent='teal']   { --color-primary: var(--theme-light-teal, #007d79); }
+:root[data-theme='light'][data-accent='purple'] { --color-primary: var(--theme-light-purple, #8a3ffc); }
+:root[data-theme='light'][data-accent='pink']   { --color-primary: var(--theme-light-pink, #d02670); }
+:root[data-theme='light'][data-accent='green']  { --color-primary: var(--theme-light-green, #198038); }
 
 /* ── Base ── */
 @layer base {
@@ -93,10 +115,16 @@
     color-scheme: dark;
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
+    /* The theme's text size: every rem, and the spacing, follow it */
+    font-size: calc(100% * var(--theme-text-scale, 1));
   }
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
+    font-size: calc(15px * var(--theme-text-scale, 1));
+  }
+  :where(h1, h2, h3, h4, h5, h6), #sidebar, #topbar {
+    font-family: var(--font-heading);
   }
   a { text-underline-offset: 3px; }
   ::selection {
@@ -137,7 +165,7 @@
   h6::before { content: '###### ' / ''; }
 
   p { margin: 0 0 1.1em; }
-  img { border-radius: 6px; border: 1px solid var(--color-border); }
+  img { border-radius: var(--radius-md, 6px); border: 1px solid var(--color-border); }
   hr { border-color: var(--color-border); margin: 2em 0; }
 
   blockquote {
@@ -151,7 +179,7 @@
 
   pre {
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: var(--radius-md, 6px);
     font-size: 0.85em;
     line-height: 1.6;
   }
@@ -159,7 +187,7 @@
     color: var(--color-primary);
     background: var(--color-bg-alt);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm, 4px);
     padding: 0.1em 0.35em;
     font-weight: 400;
     &::before, &::after { content: '' !important; }
@@ -181,7 +209,7 @@
 html .prose {
   max-width: 70ch;
   font-size: 0.95rem;
-  line-height: 1.85;
+  line-height: var(--theme-leading-prose, 1.85);
 }
 
 /* Post text: Geist Sans, a little larger, for long reading. Headings keep Geist Mono and their
@@ -189,11 +217,11 @@ html .prose {
 html .prose.prose-reading {
   font-family: var(--font-reading);
   font-size: 1.09375rem; /* 17.5px */
-  line-height: 1.7;
+  line-height: var(--theme-leading-post, 1.7);
   letter-spacing: 0;
 }
 .prose-reading :where(h1, h2, h3, h4, h5, h6) {
-  font-family: var(--font-mono);
+  font-family: var(--font-heading);
   letter-spacing: -0.02em;
   line-height: 1.35;
 }
@@ -221,7 +249,7 @@ html .prose.prose-reading {
 /* Subtle bordered block — used sparingly (callouts, ToC) */
 @utility card {
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-md, 6px);
 }
 
 /* Inline tag link: #astro */
@@ -237,7 +265,7 @@ html .prose.prose-reading {
   align-items: center;
   gap: 0.4rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-md, 6px);
   padding: 0.3rem 0.7rem;
   font-size: 0.8rem;
   color: var(--color-text);
@@ -261,7 +289,7 @@ html .prose.prose-reading {
   font-size: 11px; line-height: 1;
   border: 1px solid var(--color-border);
   background: var(--color-bg); color: var(--color-muted);
-  border-radius: 4px; padding: 5px 8px;
+  border-radius: var(--radius-sm, 4px); padding: 5px 8px;
   opacity: 0; transition: opacity .15s;
 }
 .prose pre:hover .code-copy, .prose pre:focus-within .code-copy, .code-copy:focus-visible { opacity: 1; }
@@ -277,6 +305,12 @@ html .prose.prose-reading {
 @media (prefers-reduced-motion: reduce) {
   .cursor-blink { animation: none; }
 }
+
+/* ── The theme's switches for the terminal touches (src/lib/site-theme.mjs, DECORATIONS) ── */
+:root[data-no-cursor] .cursor-blink,
+:root[data-no-prompt] .prompt { display: none; }
+:root[data-no-heading-marks] :is(.before-hash-1, .before-hash-2, .before-hash-3)::before,
+:root[data-no-heading-marks] .prose :is(h1, h2, h3, h4, h5, h6)::before { content: none; }
 
 /* ── Page transitions ──
    Cross-document view transitions: CSS only, no JavaScript. Browsers without support just

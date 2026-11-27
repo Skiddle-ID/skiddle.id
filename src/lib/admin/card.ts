@@ -16,7 +16,20 @@ import monoExt400 from '@fontsource/geist-mono/files/geist-mono-latin-ext-400-no
 import monoExt700 from '@fontsource/geist-mono/files/geist-mono-latin-ext-700-normal.woff?url';
 import thai400 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-400-normal.woff?url';
 import thai700 from '@fontsource/noto-sans-thai/files/noto-sans-thai-thai-700-normal.woff?url';
+import cardGeist400 from '@fontsource/geist/files/geist-latin-400-normal.woff?url';
+import cardGeist700 from '@fontsource/geist/files/geist-latin-700-normal.woff?url';
+import cardIbmPlexSans400 from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff?url';
+import cardIbmPlexSans700 from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff?url';
+import cardIbmPlexMono400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff?url';
+import cardIbmPlexMono700 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-700-normal.woff?url';
+import cardInter400 from '@fontsource/inter/files/inter-latin-400-normal.woff?url';
+import cardInter700 from '@fontsource/inter/files/inter-latin-700-normal.woff?url';
+import cardJetbrainsMono400 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff?url';
+import cardJetbrainsMono700 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff?url';
+import cardSourceSerifFour400 from '@fontsource/source-serif-4/files/source-serif-4-latin-400-normal.woff?url';
+import cardSourceSerifFour700 from '@fontsource/source-serif-4/files/source-serif-4-latin-700-normal.woff?url';
 import type { CardDesign } from '~/lib/card-theme.mjs';
+import { fontOf, type FontId } from '~/lib/site-theme.mjs';
 import { CARD_WIDTH, shareCardSvg, type CardFont } from '~/lib/share-card-layout';
 import { cardStyle } from './card-style';
 import { postCard, seriesCard, type CardPost, type CardSeries, type CardText } from './card-text';
@@ -34,16 +47,28 @@ const FONTS: { name: string; weight: 400 | 700; url: string }[] = [
   { name: 'Noto Sans Thai', weight: 700, url: thai700 },
 ];
 
+/** The theme's other headings' fonts, fetched when the theme uses one: Geist Mono is always in FONTS */
+const HEADING_FONTS: Record<Exclude<FontId, 'geist-mono'>, [string, string]> = {
+  'geist': [cardGeist400, cardGeist700],
+  'ibm-plex-sans': [cardIbmPlexSans400, cardIbmPlexSans700],
+  'ibm-plex-mono': [cardIbmPlexMono400, cardIbmPlexMono700],
+  'inter': [cardInter400, cardInter700],
+  'jetbrains-mono': [cardJetbrainsMono400, cardJetbrainsMono700],
+  'source-serif-4': [cardSourceSerifFour400, cardSourceSerifFour700],
+};
+
 let ready: Promise<CardFont[]> | undefined;
+const headings = new Map<FontId, Promise<CardFont[]>>();
+
+const bytes = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
+};
 
 /** Fonts and resvg, fetched once */
 function load() {
   ready ??= (async () => {
-    const bytes = async (url: string) => {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`${url}: ${res.status}`);
-      return new Uint8Array(await res.arrayBuffer());
-    };
     const [fonts] = await Promise.all([Promise.all(FONTS.map(async (f) => ({ name: f.name, weight: f.weight, data: await bytes(f.url) }))), initWasm(fetch(resvgWasm))]);
     return fonts;
   })();
@@ -51,10 +76,28 @@ function load() {
   return ready;
 }
 
+/** The headings' font, fetched once; none for Geist Mono, which load() has */
+function headingFont(id: FontId): Promise<CardFont[]> {
+  if (id === 'geist-mono') return Promise.resolve([]);
+  let fonts = headings.get(id);
+  if (!fonts) {
+    const name = fontOf(id).family;
+    const [w400, w700] = HEADING_FONTS[id];
+    fonts = Promise.all([bytes(w400), bytes(w700)]).then(([a, b]) => [
+      { name, weight: 400 as const, data: a },
+      { name, weight: 700 as const, data: b },
+    ]);
+    fonts.catch(() => headings.delete(id));
+    headings.set(id, fonts);
+  }
+  return fonts;
+}
+
 /** A card as a 1200×630 PNG, in the theme's design unless another is asked for */
 async function draw(card: CardText, design?: CardDesign): Promise<Blob> {
   const [fonts, style] = await Promise.all([load(), cardStyle()]);
-  const svg = await shareCardSvg({ ...card, logo: style.logo, design: design ?? style.design }, fonts);
+  const heading = await headingFont(style.font);
+  const svg = await shareCardSvg({ ...card, logo: style.logo, design: design ?? style.design, colors: style.colors, font: fontOf(style.font).family }, [...heading, ...fonts]);
   const png = new Resvg(svg, { fitTo: { mode: 'width', value: CARD_WIDTH } }).render().asPng();
   return new Blob([new Uint8Array(png)], { type: 'image/png' });
 }
