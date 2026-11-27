@@ -10,6 +10,7 @@
 import { rowsOf, type BlockKind, type Page } from '~/lib/page-blocks.mjs';
 import type { PageData } from '~/lib/page-data';
 import Frame from './frame.astro';
+import blueskyPosts from './blueskyPosts.astro';
 import brief from './brief.astro';
 import callToAction from './callToAction.astro';
 import contact from './contact.astro';
@@ -52,7 +53,7 @@ const { page, data, preview, class: className } = Astro.props;
 // Each kind of block's component (src/lib/page-blocks.mjs's BLOCKS has how each is read). A new kind
 // is a def in lexicons/id/skiddle/page.json, an entry in BLOCKS and a component here, which
 // scripts/page-blocks.test.mjs checks
-const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull, uses, cvHeader, jobs, skills, projectGrid, education, cvContact, servicesIntro, highlights, services, steps, reviews, brief } satisfies Record<BlockKind, unknown>;
+const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull, uses, cvHeader, jobs, skills, projectGrid, education, cvContact, servicesIntro, highlights, services, steps, reviews, brief, blueskyPosts } satisfies Record<BlockKind, unknown>;
 const COLUMN = { narrow: 'max-w-[70ch] w-full', wide: 'max-w-[56rem] w-full' };
 // Blocks side by side line up at the top: the row has the space above it, not each block. A block
 // that shows nothing (it failed, or This week is empty) leaves no gap.

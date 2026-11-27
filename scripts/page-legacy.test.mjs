@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { PAGE_COLLECTION, pageFromRecord } from '../src/lib/page-blocks.mjs';
-import { aboutPageFromLegacy, cvPageFromLegacy, nowPageFromLegacy, servicesPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutPageFromLegacy, cvPageFromLegacy, notesPageFromLegacy, nowPageFromLegacy, servicesPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { aboutFromRecord, cvFromRecord, usesFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -140,6 +140,19 @@ describe('the Services page from what it showed', () => {
     assert.equal(url.searchParams.get('body'), services.brief);
     assert.match(services.brief, /What I need help with:/);
     assert.deepEqual(brief.links.map((l) => l.href), [email.href, 'https://bsky.app/profile/skiddle.blue']);
+  });
+
+  it('is a valid id.skiddle.page record', () => assertValid(converted));
+});
+
+describe('the Notes page from what it showed', () => {
+  const converted = notesPageFromLegacy(meta, at);
+
+  it('is its heading and lead over the notes, which stay where the timeline reads them', () => {
+    const page = pageFromRecord(converted);
+    assert.deepEqual(kinds(page), ['blueskyPosts']);
+    assert.deepEqual([page.blocks[0].block.heading, page.hideHeading, page.width], ['Notes', true, 'narrow']);
+    assert.match(page.blocks[0].block.text, /\[my Bluesky\]\(https:\/\/bsky\.app\/profile\/skiddle\.blue\)/);
   });
 
   it('is a valid id.skiddle.page record', () => assertValid(converted));

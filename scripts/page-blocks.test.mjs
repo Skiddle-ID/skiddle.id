@@ -276,6 +276,14 @@ describe('the Services page’s blocks, read', () => {
   });
 });
 
+describe('the Notes page’s block, read', () => {
+  it('needs its heading, and reads the notes', () => {
+    const p = pageFromRecord(page(block('blueskyPosts', { heading: 'Notes', text: 'Mine' }), block('blueskyPosts', { text: 'no heading' })));
+    assert.deepEqual(p.blocks.map((b) => b.block), [{ kind: 'blueskyPosts', heading: 'Notes', text: 'Mine' }]);
+    assert.deepEqual(readsOf(p), ['notes']);
+  });
+});
+
 describe('rows', () => {
   const rows = (...widths) => rowsOf(pageFromRecord(page(...widths.map((w) => block('now', {}, w)))).blocks).map((r) => r.map((b) => b.width));
 

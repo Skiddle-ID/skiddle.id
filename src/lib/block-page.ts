@@ -10,7 +10,7 @@
 import type { AstroGlobal } from 'astro';
 import { pageFromRecord, readsOf, type Page } from '~/lib/page-blocks.mjs';
 import { getPage } from '~/lib/page-content';
-import { pageData, preload, type PageData } from '~/lib/page-data';
+import { pageData, preload, type PageData, type PageDataOptions } from '~/lib/page-data';
 
 export interface BlockPage {
   page: Page;
@@ -22,13 +22,14 @@ export interface BlockPage {
 /**
  * @param key The page's record key, its address: `about` for /about/
  * @param legacy The page's record made from its old record and the text that was in its code
+ * @param options What the page's reads depend on besides the records (src/lib/page-data.ts)
  */
-export async function blockPage(astro: AstroGlobal, key: string, legacy: () => Promise<unknown>): Promise<BlockPage> {
+export async function blockPage(astro: AstroGlobal, key: string, legacy: () => Promise<unknown>, options: PageDataOptions = {}): Promise<BlockPage> {
   const preview = astro.url.searchParams.get('preview') === 'draft';
   const draft = preview ? await getPage(key, { draft: true }) : null;
   const page = draft ?? (await getPage(key)) ?? pageFromRecord(await legacy());
   if (!page) throw new Error(`page ${key}: its old record made no page`);
-  const data = pageData();
+  const data = pageData(options);
   await preload(data, readsOf(page));
   if (preview) {
     astro.response.headers.set('Cache-Control', 'no-store');

@@ -22,7 +22,7 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
 
 /** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
-export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses', 'works', 'services']);
+export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses', 'works', 'services', 'notes']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -31,7 +31,7 @@ export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
 export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${kind}`;
 
 /**
- * @typedef {'status' | 'now' | 'projects' | 'posts' | 'services' | 'week'} Source What a block reads
+ * @typedef {'status' | 'now' | 'projects' | 'posts' | 'services' | 'week' | 'notes'} Source What a block reads
  * from the site's data (src/lib/page-data.ts)
  * @typedef {'full' | 'half' | 'third'} BlockWidth
  * @typedef {{ label: string, href: string, me: boolean, primary: boolean }} Link
@@ -73,10 +73,11 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ kind: 'steps', title: string, steps: Point[] }} StepsBlock
  * @typedef {{ kind: 'reviews', title: string }} ReviewsBlock
  * @typedef {{ kind: 'brief', title: string, text: string, points: string[], links: Link[] }} BriefBlock
+ * @typedef {{ kind: 'blueskyPosts', heading: string, text: string }} BlueskyPostsBlock
  * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
  *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock | UsesBlock
  *   | CvHeaderBlock | JobsBlock | SkillsBlock | ProjectGridBlock | EducationBlock | CvContactBlock
- *   | ServicesIntroBlock | HighlightsBlock | ServicesBlock | StepsBlock | ReviewsBlock | BriefBlock} KnownBlock
+ *   | ServicesIntroBlock | HighlightsBlock | ServicesBlock | StepsBlock | ReviewsBlock | BriefBlock | BlueskyPostsBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -422,6 +423,13 @@ export const BLOCKS = {
     parse: (v) => {
       const title = str(v.title);
       return title ? { kind: 'brief', title, text: str(v.text) ?? '', points: strings(v.points), links: linksOf(v.links) } : null;
+    },
+  },
+  blueskyPosts: {
+    reads: ['notes'],
+    parse: (v) => {
+      const heading = str(v.heading);
+      return heading ? { kind: 'blueskyPosts', heading, text: str(v.text) ?? '' } : null;
     },
   },
 };

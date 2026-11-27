@@ -279,3 +279,17 @@ export function servicesPageFromLegacy(highlights, meta, updatedAt) {
     'wide',
   );
 }
+
+/**
+ * The Notes page's record: its heading and lead, which were in the page's code, over the notes,
+ * which stay where the timeline reads them too (Jeff's posts tagged #note, and id.skiddle.notes).
+ * @param {PageMeta} meta
+ * @param {string} updatedAt
+ */
+export function notesPageFromLegacy(meta, updatedAt) {
+  return pageRecord(
+    meta,
+    [blockRecord('blueskyPosts', { heading: 'Notes', text: 'Short posts from [my Bluesky](https://bsky.app/profile/skiddle.blue), the ones I tag #note.' })],
+    updatedAt,
+  );
+}
