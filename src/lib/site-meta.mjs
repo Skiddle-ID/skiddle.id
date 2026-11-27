@@ -37,8 +37,8 @@ export const isFrameHref = (/** @type {string} */ s) => /^(\/(?![/\\])\S*|https:
 
 /** A link a page may show: one the frame may (isFrameHref), or a place on the page, like #hire */
 export const isPageHref = (/** @type {string} */ s) => isFrameHref(s) || /^#[A-Za-z][\w-]*$/.test(s);
-/** A link that leaves the site, which opens in a new tab */
-export const isExternal = (/** @type {string} */ href) => /^https:/i.test(href);
+/** A link that leaves the site, which opens in a new tab: an https: one to another host than skiddle.id */
+export const isExternal = (/** @type {string} */ href) => /^https:/i.test(href) && !/^https:\/\/skiddle\.id(?:[/?#]|$)/i.test(href);
 const isIcon = (/** @type {unknown} */ s) => ICON_NAMES.some((n) => n === s);
 
 /**

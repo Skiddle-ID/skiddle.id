@@ -76,7 +76,9 @@ import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL }
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
 import { PAGE_COLLECTION, draftKey } from '~/lib/page-blocks.mjs';
 import { assertValidPage } from './block-editor';
-import { LEGACY_PAGES, legacyPage, sitePageOfEditor } from './legacy-pages';
+import { LEGACY_PAGES, legacyPage, sitePageOfEditor, type SitePage } from './legacy-pages';
+
+const MOVE_NOTE = 'Move to blocks makes a draft of this page in blocks from what it shows now, to check, preview and publish in the block editor. Until it’s published, the page shows this record.';
 
 type Value = Record<string, unknown>;
 
@@ -354,6 +356,28 @@ export async function openPage(route: PageRoute) {
   // A page whose record wasn't imported starts empty
   el('peNote').hidden = !('page' in route) || !!record;
   checkBackup();
+  void notePublished(current);
+}
+
+/** The pages whose blocks still read their old editor's record once they're published: the Now list, the services, the notes */
+const READ_AFTER_MOVE = new Set<SitePage>(['now', 'services', 'notes']);
+
+/**
+ * On an old editor whose page is published in blocks, says what this record still changes: for
+ * most pages nothing, since the page shows its blocks; for the Now list, the services and the
+ * notes, what their blocks read from it.
+ */
+async function notePublished(target: Open) {
+  const note = el('peToBlocksNote');
+  note.textContent = MOVE_NOTE;
+  const key = sitePageOfEditor(target.route);
+  if (!key) return;
+  const published = await getRecord<Value>(session, PAGE_COLLECTION, key).catch(() => null);
+  if (!published || current !== target) return;
+  const { title } = LEGACY_PAGES[key];
+  note.textContent = READ_AFTER_MOVE.has(key)
+    ? `${title} is published in blocks: edit its layout and text in Pages. What its blocks read from this record still shows on it.`
+    : `${title} is published in blocks, so this record no longer changes it: edit it in Pages. Move to blocks again only to start over from this record.`;
 }
 
 /** ⌘S in a page editor: saves, if the Save button could */

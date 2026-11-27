@@ -227,7 +227,8 @@ export const BLOCKS = {
         const [label, value] = [str(f.label), str(f.value)];
         return label && value ? [{ label, value }] : [];
       });
-      return facts.length ? { kind: 'facts', heading: str(v.heading) ?? '', facts } : null;
+      const heading = str(v.heading) ?? '';
+      return heading || facts.length ? { kind: 'facts', heading, facts } : null;
     },
   },
   section: {
@@ -256,7 +257,7 @@ export const BLOCKS = {
         const [year, text, href, link] = [str(m.year), str(m.text), hrefOf(m.href), str(m.link)];
         return year && text ? [{ year, text, ...(href ? { href } : {}), ...(href && link ? { link } : {}) }] : [];
       });
-      return title && milestones.length ? { kind: 'soFar', title, milestones, current: str(v.current) ?? '' } : null;
+      return title ? { kind: 'soFar', title, milestones, current: str(v.current) ?? '' } : null;
     },
   },
   contact: {
@@ -291,7 +292,7 @@ export const BLOCKS = {
         const blurb = str(s.blurb);
         return id && title && groups.length ? [{ id, title, ...(blurb ? { blurb } : {}), groups }] : [];
       });
-      return heading && sections.length ? { kind: 'uses', heading, text: str(v.text) ?? '', sections, outro: str(v.outro) ?? '' } : null;
+      return heading ? { kind: 'uses', heading, text: str(v.text) ?? '', sections, outro: str(v.outro) ?? '' } : null;
     },
   },
   cvHeader: {

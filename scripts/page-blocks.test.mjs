@@ -126,9 +126,10 @@ describe('page records, read', () => {
 describe('the About page’s blocks, read', () => {
   const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
 
-  it('facts: only the ones with a label and a value; none, no block', () => {
+  it('facts: only the ones with a label and a value; with none, only its heading', () => {
     const facts = [{ label: 'OS', value: 'macOS' }, { label: 'Shell' }, { value: 'x' }, 'Editor: Zed'];
     assert.deepEqual(read('facts', { heading: 'About me', facts }), { kind: 'facts', heading: 'About me', facts: [{ label: 'OS', value: 'macOS' }] });
+    assert.deepEqual(read('facts', { heading: 'About me' }), { kind: 'facts', heading: 'About me', facts: [] });
     assert.equal(read('facts', { facts: [{ label: 'Shell' }] }), undefined);
   });
 
@@ -163,6 +164,8 @@ describe('the About page’s blocks, read', () => {
       milestones: [{ year: '2020', text: 'a', href: '/posts/a/', link: 'read it' }, { year: '2021', text: 'b' }, { year: '2022', text: 'c' }],
       current: 'now',
     });
+    assert.deepEqual(read('soFar', { title: 'So far', current: 'now' }), { kind: 'soFar', title: 'So far', milestones: [], current: 'now' });
+    assert.equal(read('soFar', { milestones, current: 'now' }), undefined);
   });
 
   it('contact: its links, each with the icon of where it goes', () => {
@@ -200,8 +203,8 @@ describe('the Uses page’s block, read', () => {
     });
   });
 
-  it('none of them, or no heading, no block', () => {
-    assert.equal(pageFromRecord(page(block('uses', { heading: 'Uses', sections: sections.slice(1) }))).blocks.length, 0);
+  it('with none of them, only its heading; with no heading, no block', () => {
+    assert.deepEqual(pageFromRecord(page(block('uses', { heading: 'Uses', sections: sections.slice(1) }))).blocks[0].block.sections, []);
     assert.equal(pageFromRecord(page(block('uses', { sections }))).blocks.length, 0);
   });
 });
