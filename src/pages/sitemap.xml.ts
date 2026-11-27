@@ -1,9 +1,12 @@
 import type { APIRoute } from 'astro';
 import { categoryUrl, groupSeries, seriesUrl } from '~/lib/posts';
+import { ownPagesOf } from '~/lib/own-pages.mjs';
+import { PAGES_TAG, getPageRecords } from '~/lib/page-content';
 import { getCategories, withUsed } from '~/lib/site-categories';
 import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
 
-// Rendered on request: the post URLs come from the PDS (src/lib/site-posts.ts); drafts are left out
+// Rendered on request: the post URLs and Jeff's own pages come from the PDS (src/lib/site-posts.ts,
+// src/lib/own-pages.mjs); drafts are left out
 export const prerender = false;
 // Build-time discovery of static pages under src/pages using Vite's glob import.
 function discoverStaticRoutes(): string[] {
@@ -32,7 +35,7 @@ function discoverStaticRoutes(): string[] {
 }
 
 export const GET: APIRoute = async ({ site, request, cache }) => {
-  cache.set(POSTS_CACHE);
+  cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
   const requestUrl = new URL(request.url);
   const base = site ? site.toString() : `${requestUrl.origin}/`;
   const urls = discoverStaticRoutes();
@@ -66,6 +69,15 @@ export const GET: APIRoute = async ({ site, request, cache }) => {
     const newest = Math.max(...[...lastmod.values()].map((d) => d.valueOf()));
     if (Number.isFinite(newest)) lastmod.set('/posts/', new Date(newest));
   } catch (_) {}
+  // Jeff's own pages, each dated when it was last published
+  try {
+    for (const { path, page } of ownPagesOf(await getPageRecords())) {
+      urls.push(path);
+      if (page.updatedAt) lastmod.set(path, new Date(page.updatedAt));
+    }
+  } catch (err) {
+    console.error('sitemap: reading the pages failed:', err);
+  }
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
