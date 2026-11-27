@@ -9,7 +9,7 @@ import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
 import { homePageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
-import { introHtml } from '../src/lib/now-html.ts';
+import { introHtml, lineHtml, mutedLineHtml, proseHtml } from '../src/lib/now-html.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const lexicon = JSON.parse(readFileSync(join(ROOT, 'lexicons/id/skiddle/page.json'), 'utf8'));
@@ -47,6 +47,12 @@ describe('page records, read', () => {
     const html = introHtml('[run](javascript:alert(1)) [now](/now/) [hire](#hire)');
     assert.doesNotMatch(html, /javascript:/);
     assert.match(html, /run <a href="\/now\/" class="link">now<\/a> <a href="#hire" class="link">hire<\/a>/);
+  });
+
+  it('Markdown: a link off the site opens in a new tab; in .prose, links take the prose’s style', () => {
+    assert.equal(lineHtml('A [now page](https://nownownow.com/about), [mine](/now/)'), 'A <a href="https://nownownow.com/about" class="link" target="_blank" rel="noopener">now page</a>, <a href="/now/" class="link">mine</a>');
+    assert.equal(proseHtml('My [CV](/works/) and <b>this</b>'), '<p>My <a href="/works/">CV</a> and &lt;b&gt;this&lt;/b&gt;</p>\n');
+    assert.equal(mutedLineHtml('Runs through **Skiddle Labs**.'), 'Runs through <span class="text-[var(--color-text)]">Skiddle Labs</span>.');
   });
 
   it('keeps only links it’s safe to follow', () => {
@@ -164,6 +170,14 @@ describe('the About page’s blocks, read', () => {
     const contact = read('contact', { title: 'Say hi', links });
     assert.deepEqual(contact.links.map((l) => linkIcon(l.href)), ['mail', 'bluesky', 'github', undefined]);
     assert.deepEqual(contact.links.map((l) => [l.me, l.primary]), [[false, true], [true, false], [true, false], [false, false]]);
+  });
+});
+
+describe('the Now page’s block, read', () => {
+  it('needs its heading, and reads the Now record', () => {
+    const p = pageFromRecord(page(block('nowFull', { heading: 'Now', text: 'A lead' }), block('nowFull', { text: 'no heading' })));
+    assert.deepEqual(p.blocks.map((b) => b.block), [{ kind: 'nowFull', heading: 'Now', text: 'A lead' }]);
+    assert.deepEqual(readsOf(p), ['now']);
   });
 });
 

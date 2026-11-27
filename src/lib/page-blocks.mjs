@@ -22,7 +22,7 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
 
 /** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
-export const SITE_PAGES = /** @type {const} */ (['home', 'about']);
+export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -53,8 +53,9 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ kind: 'principles', title: string, principles: Point[] }} PrinciplesBlock
  * @typedef {{ kind: 'soFar', title: string, milestones: Milestone[], current: string }} SoFarBlock
  * @typedef {{ kind: 'contact', title: string, text: string, links: Link[] }} ContactBlock
+ * @typedef {{ kind: 'nowFull', heading: string, text: string }} NowFullBlock
  * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
- *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock} KnownBlock
+ *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -228,6 +229,13 @@ export const BLOCKS = {
     parse: (v) => {
       const title = str(v.title);
       return title ? { kind: 'contact', title, text: str(v.text) ?? '', links: linksOf(v.links) } : null;
+    },
+  },
+  nowFull: {
+    reads: ['now'],
+    parse: (v) => {
+      const heading = str(v.heading);
+      return heading ? { kind: 'nowFull', heading, text: str(v.text) ?? '' } : null;
     },
   },
 };

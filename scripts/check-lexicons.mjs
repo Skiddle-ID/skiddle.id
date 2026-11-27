@@ -15,7 +15,7 @@ import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { FALLBACK_HOME } from '../src/data/home.ts';
 import { PAGE_COLLECTION } from '../src/lib/page-blocks.mjs';
 import { CONTENT_PAGES } from '../src/data/list-pages.ts';
-import { aboutPageFromLegacy, homePageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutPageFromLegacy, homePageFromLegacy, nowPageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { aboutFromRecord, homeOf } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -60,6 +60,7 @@ const made = [
   ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy(homeOf(fixture('home'), FALLBACK_HOME), at)],
   ['the home page from its built-in text', PAGE_COLLECTION, homePageFromLegacy(homeOf(null, FALLBACK_HOME), at)],
   ['the About page from its live record', PAGE_COLLECTION, aboutPageFromLegacy(aboutFromRecord(fixture('about')), CONTENT_PAGES.about, at)],
+  ['the Now page', PAGE_COLLECTION, nowPageFromLegacy(CONTENT_PAGES.now, at)],
 ];
 for (const [what, collection, record] of made) {
   try {

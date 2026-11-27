@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { PAGE_COLLECTION, pageFromRecord } from '../src/lib/page-blocks.mjs';
-import { aboutPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutPageFromLegacy, nowPageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { aboutFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -48,6 +48,20 @@ describe('the About page from its old record', () => {
       contact.links.map((l) => [l.href, l.me, l.primary]),
       record.contact.links.map((l, i) => [l.url, !l.url.startsWith('mailto:'), i === 0]),
     );
+  });
+
+  it('is a valid id.skiddle.page record', () => assertValid(converted));
+});
+
+describe('the Now page from what it showed', () => {
+  const converted = nowPageFromLegacy(meta, at);
+
+  it('is its heading and lead over the Now record, which stays where the home page reads it', () => {
+    const page = pageFromRecord(converted);
+    assert.deepEqual(kinds(page), ['nowFull']);
+    assert.equal(page.blocks[0].block.heading, 'Now');
+    assert.match(page.blocks[0].block.text, /\[now page\]\(https:\/\/nownownow\.com\/about\)/);
+    assert.equal(page.hideHeading, true);
   });
 
   it('is a valid id.skiddle.page record', () => assertValid(converted));

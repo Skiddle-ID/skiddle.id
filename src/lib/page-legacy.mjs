@@ -118,3 +118,22 @@ export function aboutPageFromLegacy(about, meta, updatedAt) {
     updatedAt,
   );
 }
+
+/**
+ * The Now page's record: its heading and what a now page is, which were in the page's code. The
+ * list stays in the id.skiddle.now record, which the home page shows too.
+ * @param {PageMeta} meta
+ * @param {string} updatedAt
+ */
+export function nowPageFromLegacy(meta, updatedAt) {
+  return pageRecord(
+    meta,
+    [
+      blockRecord('nowFull', {
+        heading: 'Now',
+        text: "What I'm focused on these days. A [now page](https://nownownow.com/about) answers \"what are you up to?\" for anyone who hasn't caught up with me in a while.",
+      }),
+    ],
+    updatedAt,
+  );
+}

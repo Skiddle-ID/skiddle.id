@@ -83,7 +83,8 @@
             "#section",
             "#principles",
             "#soFar",
-            "#contact"
+            "#contact",
+            "#nowFull"
           ],
           "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
         }
@@ -425,6 +426,25 @@
             "type": "ref",
             "ref": "#link"
           }
+        }
+      }
+    },
+    "nowFull": {
+      "type": "object",
+      "description": "What Jeff is doing now, in full: a heading, the page's main heading, and a lead, when it was last updated, the intro and the whole list (id.skiddle.now).",
+      "required": ["heading"],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The page's main heading. The page hides its own."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500,
+          "description": "The line under the heading, in Markdown: links, bold and italics."
         }
       }
     }

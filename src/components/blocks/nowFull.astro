@@ -1,0 +1,34 @@
+---
+/*
+  The now in full block (src/lib/page-blocks.mjs): its heading, the page's main heading, and a lead,
+  when the id.skiddle.now record was last updated, its intro and its whole list, or the built-in list
+  (src/data/now.ts) while there's no record.
+*/
+import FormattedDate from '../formatted-date.astro';
+import NowList from '../now-list.astro';
+import { FALLBACK_NOW } from '~/data/now';
+import type { NowFullBlock } from '~/lib/page-blocks.mjs';
+import { introHtml, lineHtml } from '~/lib/now-html';
+import type { PageData } from '~/lib/page-data';
+
+interface Props {
+  block: NowFullBlock;
+  data: PageData;
+}
+const { block, data } = Astro.props;
+const now = await data.now();
+---
+
+<header>
+  <h1 class="font-semibold text-xl before-hash-1">{block.heading}</h1>
+  {block.text && (
+    <p class="text-sm mt-2 leading-relaxed">
+      <Fragment set:html={lineHtml(block.text)} />
+    </p>
+  )}
+  {now && <p class="text-xs text-[var(--color-muted)] mt-3">Last updated <FormattedDate date={new Date(now.updatedAt)} /></p>}
+</header>
+
+{now?.intro && <div class="prose mt-6" set:html={introHtml(now.intro)} />}
+
+<NowList items={now?.items ?? FALLBACK_NOW} class="mt-6" />

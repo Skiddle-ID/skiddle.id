@@ -16,6 +16,7 @@ import facts from './facts.astro';
 import links from './links.astro';
 import markdown from './markdown.astro';
 import now from './now.astro';
+import nowFull from './nowFull.astro';
 import principles from './principles.astro';
 import profile from './profile.astro';
 import projects from './projects.astro';
@@ -38,7 +39,7 @@ const { page, data, preview, class: className } = Astro.props;
 // Each kind of block's component (src/lib/page-blocks.mjs's BLOCKS has how each is read). A new kind
 // is a def in lexicons/id/skiddle/page.json, an entry in BLOCKS and a component here, which
 // scripts/page-blocks.test.mjs checks
-const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact } satisfies Record<BlockKind, unknown>;
+const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull } satisfies Record<BlockKind, unknown>;
 const COLUMN = { narrow: 'max-w-[70ch] w-full', wide: 'max-w-[56rem] w-full' };
 // Blocks side by side line up at the top: the row has the space above it, not each block. A block
 // that shows nothing (it failed, or This week is empty) leaves no gap.
