@@ -4,7 +4,7 @@
  *
  * It opens the page's draft (<key>~draft) if there is one, else the page's record, else, for home,
  * the home page as it shows today (its id.skiddle.home record over src/data/home.ts, turned into
- * blocks by homePageFromLegacy in src/lib/page-blocks.mjs). It edits:
+ * blocks by homePageFromLegacy in src/lib/page-legacy.mjs). It edits:
  *   - the page's settings: its title, description, width and whether it hides its heading
  *   - its blocks, in order: each with its kind, its width, a handle to drag it, ↑/↓, Remove and its
  *     options as a form made from its def in the lexicon (src/lib/admin/lexicon-form.ts). A block
@@ -23,7 +23,8 @@
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import pageLexicon from '../../../lexicons/id/skiddle/page.json';
 import { FALLBACK_HOME } from '~/data/home';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
+import { homePageFromLegacy } from '~/lib/page-legacy.mjs';
 import { HOME_COLLECTION, PROJECT_COLLECTION, homeOf, projectUri } from '~/lib/page-records.mjs';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';

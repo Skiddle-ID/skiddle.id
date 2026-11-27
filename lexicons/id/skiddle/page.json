@@ -78,7 +78,12 @@
             "#projects",
             "#recentPosts",
             "#testimonials",
-            "#callToAction"
+            "#callToAction",
+            "#facts",
+            "#section",
+            "#principles",
+            "#soFar",
+            "#contact"
           ],
           "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
         }
@@ -241,6 +246,185 @@
             "ref": "#link"
           },
           "description": "The buttons; one marked primary stands out."
+        }
+      }
+    },
+    "facts": {
+      "type": "object",
+      "description": "Jeff's avatar beside facts about him, a label and a value each, as neofetch prints them, with buttons to pick the site's accent colour. Its heading, if it has one, is the page's main heading, above the card.",
+      "required": ["facts"],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The page's main heading, above the card, e.g. 'About me'. Left out, the card has none."
+        },
+        "facts": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "ref",
+            "ref": "#fact"
+          }
+        }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "required": ["label", "value"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 300,
+          "maxGraphemes": 30,
+          "description": "e.g. 'Location'."
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "description": "A section of text, under its own heading when it has a title.",
+      "required": ["text"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading. Without one, the text follows the block before it."
+        },
+        "anchor": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "The heading's id, so a link can point at it (#outside): lowercase letters, digits and hyphens. Made from the title when it's left out."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 200000,
+          "maxGraphemes": 20000,
+          "description": "Markdown: paragraphs, headings, lists, links, bold and italics. Raw HTML shows as text."
+        }
+      }
+    },
+    "principles": {
+      "type": "object",
+      "description": "How Jeff works: numbered cards, two to a row.",
+      "required": ["title", "principles"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "principles": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#point"
+          }
+        }
+      }
+    },
+    "point": {
+      "type": "object",
+      "required": ["title", "body"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        }
+      }
+    },
+    "soFar": {
+      "type": "object",
+      "description": "Jeff's life so far: a line for each year, oldest first, ending with what he's doing now.",
+      "required": ["title", "milestones"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "milestones": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "ref",
+            "ref": "#milestone"
+          }
+        },
+        "current": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300,
+          "description": "The last line: what Jeff is doing now."
+        }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "required": ["year", "text"],
+      "properties": {
+        "year": {
+          "type": "string",
+          "maxLength": 100,
+          "maxGraphemes": 10
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Where to read more: a path on skiddle.id (/posts/…) or a full https:// URL."
+        },
+        "link": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "The link's text: 'read the post' if it's left out."
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "description": "Ways to reach Jeff: a heading, a line, and buttons with icons for email, Bluesky and GitHub. The one marked primary stands out.",
+      "required": ["title", "links"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          }
         }
       }
     }

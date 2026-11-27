@@ -1,0 +1,35 @@
+---
+/*
+  The so far block (src/lib/page-blocks.mjs): Jeff's life as a timeline, a line for each year, oldest
+  first, each with a link to read more if it has one, ending with what he's doing now.
+*/
+import type { SoFarBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: SoFarBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <h2 id={anchor} class="font-semibold before-hash-2">{block.title}</h2>
+  <ol class="mt-4 relative border-l ml-1.5">
+    {block.milestones.map((t) => (
+      <li class="relative pl-6 pb-5 last:pb-0">
+        <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full border-2 border-[var(--color-primary)] bg-[var(--color-bg)]" aria-hidden="true"></span>
+        <p class="text-sm grid grid-cols-[3rem_1fr]">
+          <span class="text-[var(--color-primary)] font-semibold tabular-nums">{t.year}</span>
+          <span>
+            {t.text}
+            {t.href && <a href={t.href} class="link ml-1 text-xs">{t.link ?? 'read the post'} →</a>}
+          </span>
+        </p>
+      </li>
+    ))}
+    <li class="relative pl-6">
+      <span class="absolute -left-[5px] top-[0.55em] size-2.5 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
+      <p class="text-sm grid grid-cols-[3rem_1fr]"><span class="text-[var(--color-primary)] font-semibold">now</span><span>{block.current} <span class="cursor-blink align-middle" aria-hidden="true"></span></span></p>
+    </li>
+  </ol>
+</section>

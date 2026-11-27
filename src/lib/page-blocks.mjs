@@ -1,6 +1,7 @@
 /**
  * Pages made of blocks (docs/v4/themes.md, lexicons/id/skiddle/page.json): an id.skiddle.page
- * record read into the shape the page renders, and the home page's old record turned into one.
+ * record read into the shape the page renders. The pages' old records turned into page records are
+ * in src/lib/page-legacy.mjs.
  *
  * BLOCKS is the one table of the kinds of block: how each is read from a record, what each reads
  * from the site's data (src/lib/page-data.ts loads that once per request, however many blocks use
@@ -19,6 +20,9 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 
 /** The record key of a page's draft: `home~draft` */
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
+
+/** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
+export const SITE_PAGES = /** @type {const} */ (['home', 'about']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -41,7 +45,16 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ kind: 'recentPosts', limit: number, hideSeries: boolean }} RecentPostsBlock
  * @typedef {{ kind: 'testimonials' }} TestimonialsBlock
  * @typedef {{ kind: 'callToAction', title: string, text: string, links: Link[] }} CallToActionBlock
- * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock} KnownBlock
+ * @typedef {{ label: string, value: string }} Fact
+ * @typedef {{ title: string, body: string }} Point
+ * @typedef {{ year: string, text: string, href?: string, link?: string }} Milestone
+ * @typedef {{ kind: 'facts', heading: string, facts: Fact[] }} FactsBlock
+ * @typedef {{ kind: 'section', title: string, text: string, anchor?: string }} SectionBlock
+ * @typedef {{ kind: 'principles', title: string, principles: Point[] }} PrinciplesBlock
+ * @typedef {{ kind: 'soFar', title: string, milestones: Milestone[], current: string }} SoFarBlock
+ * @typedef {{ kind: 'contact', title: string, text: string, links: Link[] }} ContactBlock
+ * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
+ *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -65,6 +78,19 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
 const str = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() ? v : undefined);
 const objects = (/** @type {unknown} */ v) => /** @type {Raw[]} */ (Array.isArray(v) ? v.filter((o) => o && typeof o === 'object' && !Array.isArray(o)) : []);
 
+/** A link's address, if it's one the site would follow (isPageHref) */
+const hrefOf = (/** @type {unknown} */ v) => (typeof v === 'string' && isPageHref(v) ? v : undefined);
+/** An id for an element: a letter, then letters, digits, - or _ */
+const isId = (/** @type {unknown} */ v) => typeof v === 'string' && /^[A-Za-z][\w-]{0,63}$/.test(v);
+/** An id made from a heading: "Outside of work" is outside-of-work */
+const slugOf = (/** @type {string} */ s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').replace(/^(?=[0-9])/, 's-').slice(0, 64);
+/** The items of a list of { title, body } that have both */
+const pointsOf = (/** @type {unknown} */ v) =>
+  objects(v).flatMap((p) => {
+    const [title, body] = [str(p.title), str(p.body)];
+    return title && body ? [{ title, body }] : [];
+  });
+
 /** @returns {Link[]} */
 const linksOf = (/** @type {unknown} */ v) =>
   objects(v)
@@ -81,13 +107,25 @@ export function linkAttributes(l) {
   return l.me ? { rel: 'me' } : {};
 }
 
+/**
+ * The icon a button gets for where it goes: email, Bluesky or GitHub, or none
+ * @param {string} href
+ * @returns {'mail' | 'bluesky' | 'github' | undefined}
+ */
+export function linkIcon(href) {
+  if (/^mailto:/i.test(href)) return 'mail';
+  const host = /^https:\/\/([^/?#]+)/i.exec(href)?.[1].toLowerCase();
+  return host === 'bsky.app' ? 'bluesky' : host === 'github.com' ? 'github' : undefined;
+}
+
 const PROJECT_PREFIX = projectUri('');
 
 /**
  * @template {BlockKind} K
  * @typedef {object} BlockSpec
  * @property {Source[]} reads What it reads from the site's data
- * @property {string} [anchor] The id its heading gets; a second block of the kind gets `<anchor>-2`
+ * @property {string} [anchor] The id its heading gets, unless the block sets its own; a second
+ *   block with the same id gets `<anchor>-2`
  * @property {(v: Raw) => Extract<KnownBlock, { kind: K }> | null} parse A record's block, or null if it lacks what it needs
  */
 
@@ -145,6 +183,53 @@ export const BLOCKS = {
       return title ? { kind: 'callToAction', title, text: str(v.text) ?? '', links: linksOf(v.links) } : null;
     },
   },
+  facts: {
+    reads: [],
+    parse: (v) => {
+      const facts = objects(v.facts).flatMap((f) => {
+        const [label, value] = [str(f.label), str(f.value)];
+        return label && value ? [{ label, value }] : [];
+      });
+      return facts.length ? { kind: 'facts', heading: str(v.heading) ?? '', facts } : null;
+    },
+  },
+  section: {
+    reads: [],
+    parse: (v) => {
+      const [text, title] = [str(v.text), str(v.title) ?? ''];
+      if (!text) return null;
+      const anchor = isId(v.anchor) ? v.anchor : title && slugOf(title);
+      return { kind: 'section', title, text, ...(anchor ? { anchor } : {}) };
+    },
+  },
+  principles: {
+    reads: [],
+    anchor: 'how',
+    parse: (v) => {
+      const [title, principles] = [str(v.title), pointsOf(v.principles)];
+      return title && principles.length ? { kind: 'principles', title, principles } : null;
+    },
+  },
+  soFar: {
+    reads: [],
+    anchor: 'timeline',
+    parse: (v) => {
+      const title = str(v.title);
+      const milestones = objects(v.milestones).flatMap((m) => {
+        const [year, text, href, link] = [str(m.year), str(m.text), hrefOf(m.href), str(m.link)];
+        return year && text ? [{ year, text, ...(href ? { href } : {}), ...(href && link ? { link } : {}) }] : [];
+      });
+      return title && milestones.length ? { kind: 'soFar', title, milestones, current: str(v.current) ?? '' } : null;
+    },
+  },
+  contact: {
+    reads: [],
+    anchor: 'hi',
+    parse: (v) => {
+      const title = str(v.title);
+      return title ? { kind: 'contact', title, text: str(v.text) ?? '', links: linksOf(v.links) } : null;
+    },
+  },
 };
 
 const WIDTHS = /** @type {const} */ (['full', 'half', 'third']);
@@ -176,7 +261,7 @@ function withAnchors(/** @type {PlacedBlock[]} */ blocks) {
   /** @type {Map<string, number>} */
   const seen = new Map();
   return blocks.map((b) => {
-    const base = b.block.kind === 'unknown' ? undefined : BLOCKS[b.block.kind].anchor;
+    const base = b.block.kind === 'unknown' ? undefined : ('anchor' in b.block && b.block.anchor) || BLOCKS[b.block.kind].anchor;
     if (!base) return b;
     const n = (seen.get(base) ?? 0) + 1;
     seen.set(base, n);
@@ -234,63 +319,4 @@ export function rowsOf(blocks) {
  */
 export function readsOf(page) {
   return [...new Set(page.blocks.flatMap((b) => (b.block.kind === 'unknown' ? [] : BLOCKS[b.block.kind].reads)))];
-}
-
-/**
- * A link in a record's shape: me and primary only when they're true
- * @param {{ label: string, href: string, me?: boolean, primary?: boolean }} l
- */
-const linkRecord = (l) => ({ label: l.label, href: l.href, ...(l.me ? { me: true } : {}), ...(l.primary ? { primary: true } : {}) });
-
-/**
- * A full-width block in a record's shape
- * @param {BlockKind} kind
- * @param {Raw} [options]
- */
-const blockRecord = (kind, options = {}) => ({ block: { $type: blockType(kind), ...options } });
-
-/**
- * The home page's id.skiddle.page record, from what it showed before it had one: its own text
- * (the id.skiddle.home record over src/data/home.ts: homeOf in src/lib/page-records.mjs) in the blocks it was
- * laid out in, with the links and buttons that were in the page's code. The home page renders it
- * until there's a page record, and the admin app's Move to blocks saves it as the draft.
- * @param {import('../types/home').Home} home
- * @param {string} updatedAt
- */
-export function homePageFromLegacy(home, updatedAt) {
-  return {
-    $type: PAGE_COLLECTION,
-    title: home.title,
-    description: home.description,
-    hideHeading: true,
-    blocks: [
-      blockRecord('profile', { greeting: home.greeting, tagline: home.tagline }),
-      blockRecord('markdown', { text: home.intro }),
-      blockRecord('links', {
-        label: 'Quick links',
-        buttons: true,
-        links: [
-          { label: 'Selected work', href: '#work' },
-          { label: 'Read the blog', href: '/posts/' },
-          { label: 'Work with me →', href: '/services/', primary: true },
-        ].map(linkRecord),
-      }),
-      blockRecord('now'),
-      blockRecord('thisWeek'),
-      blockRecord('projects', { projects: home.selectedProjects.map(projectUri) }),
-      blockRecord('recentPosts'),
-      blockRecord('testimonials'),
-      blockRecord('callToAction', {
-        title: home.hire.title,
-        text: home.hire.blurb,
-        links: [
-          { label: 'Email work@skiddle.id', href: 'mailto:work@skiddle.id?subject=Hello%20from%20skiddle.id', primary: true },
-          { label: 'See services', href: '/services/' },
-          { label: 'View my CV', href: '/works/' },
-        ].map(linkRecord),
-      }),
-      blockRecord('links', { label: 'Elsewhere', links: home.elsewhere.map(linkRecord) }),
-    ],
-    updatedAt,
-  };
 }

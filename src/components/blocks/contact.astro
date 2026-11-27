@@ -1,0 +1,28 @@
+---
+/*
+  The contact block (src/lib/page-blocks.mjs): a box with a heading, a line and buttons, each with
+  its icon (linkIcon), the one marked primary in the accent colour. Links off the site open in a
+  new tab; rel="me" marks Jeff's own profiles.
+*/
+import Icon from '../icon.astro';
+import { linkAttributes, linkIcon, type ContactBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: ContactBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+const links = block.links.map((l) => ({ ...l, ...linkAttributes(l), icon: linkIcon(l.href) }));
+---
+
+<section aria-labelledby={anchor} class="mt-12 card p-5">
+  <h2 id={anchor} class="font-semibold">{block.title}</h2>
+  <p class="text-sm text-[var(--color-muted)] mt-1.5">
+    {block.text}
+  </p>
+  <div class="flex flex-wrap gap-2 mt-4">
+    {links.map((l) => (
+      <a class={l.primary ? 'btn border-[var(--color-primary)] text-[var(--color-primary)]' : 'btn'} href={l.href} rel={l.rel} target={l.target}>{l.icon ? <><Icon name={l.icon} size={14} /> {l.label}</> : l.label}</a>
+    ))}
+  </div>
+</section>

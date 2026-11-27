@@ -3,18 +3,20 @@
  * Checks the lexicons in lexicons/: each is a valid lexicon document, and its path matches its id
  * (lexicons/id/skiddle/post.json is id.skiddle.post). Runs in CI: `npm run check:lexicons`.
  *
- * It also checks the records the site and the admin app make themselves: the home page's
- * id.skiddle.page record converted from its old record (the live one in scripts/fixtures/, and the
- * built-in text in src/data/home.ts), which the page renders until it has one and Move to blocks
- * saves as a draft. Before the v4 launch it checked every post, series and page of the site's data
+ * It also checks the records the site and the admin app make themselves: each page's
+ * id.skiddle.page record converted from its old record (the live ones in scripts/fixtures/, and the
+ * home page's built-in text in src/data/home.ts), which the page renders until it has one and Move
+ * to blocks saves as a draft (src/lib/page-legacy.mjs). Before the v4 launch it checked every post, series and page of the site's data
  * on their way into records; since then the admin app checks each record it saves.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { FALLBACK_HOME } from '../src/data/home.ts';
-import { PAGE_COLLECTION, homePageFromLegacy } from '../src/lib/page-blocks.mjs';
-import { homeOf } from '../src/lib/page-records.mjs';
+import { PAGE_COLLECTION } from '../src/lib/page-blocks.mjs';
+import { CONTENT_PAGES } from '../src/data/list-pages.ts';
+import { aboutPageFromLegacy, homePageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutFromRecord, homeOf } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const errors = [];
@@ -53,10 +55,11 @@ for (const file of files.sort()) {
 
 // Records made from data, each checked against its lexicon
 const at = new Date().toISOString();
-const homeRecord = JSON.parse(readFileSync(join(ROOT, 'scripts/fixtures/home-record.json'), 'utf8'));
+const fixture = (name) => JSON.parse(readFileSync(join(ROOT, `scripts/fixtures/${name}-record.json`), 'utf8'));
 const made = [
-  ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy(homeOf(homeRecord, FALLBACK_HOME), at)],
+  ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy(homeOf(fixture('home'), FALLBACK_HOME), at)],
   ['the home page from its built-in text', PAGE_COLLECTION, homePageFromLegacy(homeOf(null, FALLBACK_HOME), at)],
+  ['the About page from its live record', PAGE_COLLECTION, aboutPageFromLegacy(aboutFromRecord(fixture('about')), CONTENT_PAGES.about, at)],
 ];
 for (const [what, collection, record] of made) {
   try {

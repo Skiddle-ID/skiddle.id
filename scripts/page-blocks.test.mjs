@@ -6,7 +6,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, isPageKey, linkAttributes, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { homePageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
 import { introHtml } from '../src/lib/now-html.ts';
 
@@ -113,6 +114,56 @@ describe('page records, read', () => {
   it('what a page reads, each once, leaving out unknown blocks', () => {
     const p = pageFromRecord(page(block('profile', { greeting: 'Hi' }), block('recentPosts'), block('recentPosts', { hideSeries: true }), { block: { $type: 'x' } }, block('markdown', { text: 'x' })));
     assert.deepEqual(readsOf(p), ['status', 'posts']);
+  });
+});
+
+describe('the About page’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('facts: only the ones with a label and a value; none, no block', () => {
+    const facts = [{ label: 'OS', value: 'macOS' }, { label: 'Shell' }, { value: 'x' }, 'Editor: Zed'];
+    assert.deepEqual(read('facts', { heading: 'About me', facts }), { kind: 'facts', heading: 'About me', facts: [{ label: 'OS', value: 'macOS' }] });
+    assert.equal(read('facts', { facts: [{ label: 'Shell' }] }), undefined);
+  });
+
+  it('a section’s heading id: its own if it’s one, else made from its title; none without a title', () => {
+    const anchors = [{ title: 'Outside of work', anchor: 'outside' }, { title: 'Outside of work' }, { title: '2 Things', anchor: 'a b"' }, {}].map(
+      (o) => pageFromRecord(page(block('section', { text: 'x', ...o }))).blocks[0].anchor,
+    );
+    assert.deepEqual(anchors, ['outside', 'outside-of-work', 's-2-things', undefined]);
+    assert.equal(read('section', { title: 'Empty', text: ' ' }), undefined);
+  });
+
+  it('a block’s own id is unique on the page too', () => {
+    const p = pageFromRecord(page(block('section', { title: 'A', anchor: 'how', text: 'x' }), block('principles', { title: 'How', principles: [{ title: 't', body: 'b' }] })));
+    assert.deepEqual(p.blocks.map((b) => b.anchor), ['how', 'how-2']);
+  });
+
+  it('principles: only the ones with a title and a body, under a title', () => {
+    assert.deepEqual(read('principles', { title: 'How I work', principles: [{ title: 'A', body: 'B' }, { title: 'C' }] }).principles, [{ title: 'A', body: 'B' }]);
+    assert.equal(read('principles', { principles: [{ title: 'A', body: 'B' }] }), undefined);
+  });
+
+  it('so far: a milestone’s link only if the site would follow it, and its text only with a link', () => {
+    const milestones = [
+      { year: '2020', text: 'a', href: '/posts/a/', link: 'read it' },
+      { year: '2021', text: 'b', href: 'javascript:alert(1)', link: 'run' },
+      { year: '2022', text: 'c', link: 'no link' },
+      { year: '2023' },
+    ];
+    assert.deepEqual(read('soFar', { title: 'So far', milestones, current: 'now' }), {
+      kind: 'soFar',
+      title: 'So far',
+      milestones: [{ year: '2020', text: 'a', href: '/posts/a/', link: 'read it' }, { year: '2021', text: 'b' }, { year: '2022', text: 'c' }],
+      current: 'now',
+    });
+  });
+
+  it('contact: its links, each with the icon of where it goes', () => {
+    const links = [{ label: 'Email', href: 'mailto:a@b.c', primary: true }, { label: 'Bluesky', href: 'https://bsky.app/profile/x', me: true }, { label: 'GitHub', href: 'https://github.com/x', me: true }, { label: 'RSS', href: '/rss.xml' }];
+    const contact = read('contact', { title: 'Say hi', links });
+    assert.deepEqual(contact.links.map((l) => linkIcon(l.href)), ['mail', 'bluesky', 'github', undefined]);
+    assert.deepEqual(contact.links.map((l) => [l.me, l.primary]), [[false, true], [true, false], [true, false], [false, false]]);
   });
 });
 
