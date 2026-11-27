@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phase 1, the design, is built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 and 2, the design and the frame, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -56,7 +56,7 @@ The page gets the theme as CSS variables in a `<style>` in its head (the securit
 
 - **Menu:** the sidebar's links, in order: a label, a link (a page or any address) and an icon from the site's set. The command bar lists the same.
 - **Footer:** its links.
-- **What the sidebar shows:** the status, the music card, the theme and accent buttons, each a switch that hides it (`hideStatus`, `hideMusic`, `hideThemeButtons`), so leaving it out shows it, as today.
+- **What the sidebar shows:** the music card and the theme and accent buttons, each a switch that hides it (`hideMusic`, `hideThemeButtons`), so leaving it out shows it, as today. The plan had `hideStatus` too, but the sidebar shows no status.
 
 Where the frame sits (a sidebar on the left) stays in code. A top bar or another frame is design, and waits for the redesign.
 
@@ -149,7 +149,7 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
 ## Phases
 
 1. **Design.** The theme's colours, fonts, sizes, shape and decoration; the Theme editor with its live preview and contrast check; share cards follow. **Built** ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198)): `src/lib/site-theme.mjs` reads the record and writes the page's CSS variables, which `src/style.css` reads with today's values as fallbacks. The font catalogue is Geist, Geist Mono, IBM Plex Sans, IBM Plex Mono, Inter, JetBrains Mono and Source Serif 4. Every theme colour is used for body-size text somewhere, so the contrast check asks 4.5:1 of each, never the 3:1 of large text.
-2. **The frame.** The menu, the footer and the sidebar's parts in `id.skiddle.site`; the sidebar, the command bar and the footer read them.
+2. **The frame.** The menu, the footer and the sidebar's parts in `id.skiddle.site`; the sidebar, the command bar and the footer read them. **Built** ([#199](https://github.com/Skiddle-ID/skiddle.id/pull/199)): `menu` (up to 50 items, each a label, a link and an optional icon), `footerLinks` (up to 30), `hideMusic` and `hideThemeButtons`, read by `src/lib/site-meta.mjs`, which drops a link that isn't a site path, an `https:` or a `mailto:` address. The built-in menu, footer links and command bar pages are in `src/data/frame.ts`. The command bar lists the site's pages and, when the record sets a menu, its other links. There's no `hideStatus`: the sidebar shows no status, so it waits until it does.
 3. **Pages from blocks, starting with home.** `id.skiddle.page`, the block registry and wrapper, the blocks home needs, the block editor with draft, preview and publish, and page share cards drawn in the admin app.
 4. **The other pages,** one PR each: About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks.
 5. **Pages of Jeff's own:** New page, the address rules, the sitemap, search and the menu.
