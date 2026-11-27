@@ -5,6 +5,8 @@ import Footer from '../components/footer.astro';
 import Icon from '../components/icon.astro';
 import CommandBar from '../components/command-bar.astro';
 import { scriptJson } from '../lib/script-json.mjs';
+import { getSiteMeta } from '~/lib/page-content';
+import { pageMetaOf } from '~/lib/site-meta.mjs';
 
 import '../style.css';
 
@@ -17,16 +19,16 @@ interface Props {
   atDocument?: string;
   /** The page's own RSS feed (a series'), linked next to the site's */
   feed?: { title: string; href: string };
+  /** The page's own keywords (a post's tags), before the site's */
+  keywords?: string[];
 }
 
-const {
-  title = 'Skiddle',
-  description = 'Jeff (Skiddle) — protocol engineer in Bangkok, writing about infra, open protocols, homelab and life.',
-  image,
-  type = 'website',
-  atDocument,
-  feed,
-} = Astro.props;
+const { image, type = 'website', atDocument, feed } = Astro.props;
+// The site's metadata (id.skiddle.site, src/lib/site-meta.mjs): its name, description, keywords and
+// author, and this page's own entry, which wins over what the page says
+const siteMeta = await getSiteMeta();
+const { title, description, keywords, noindex } = pageMetaOf(siteMeta, Astro.url.pathname, Astro.props);
+const author = siteMeta.author;
 const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
 // Share card: the home page uses the site card; every other page gets its own, rendered after
@@ -47,18 +49,18 @@ const breadcrumbItems = [
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'WebSite', name: 'Skiddle', url: site.toString(), inLanguage: 'en' },
+    { '@type': 'WebSite', name: siteMeta.name, url: site.toString(), inLanguage: 'en' },
     {
       '@type': 'Person',
-      name: 'Laurensius Jeffrey',
-      alternateName: 'Skiddle',
-      jobTitle: ['Founder', 'Protocol Engineer'],
-      worksFor: { '@type': 'Organization', name: 'Skiddle Labs Pte. Ltd.' },
-      knowsAbout: ['Protocol engineering', 'DevOps', 'Platform engineering', 'CI/CD', 'Cloudflare Workers', 'Kubernetes', 'Self-hosting', 'ATProto'],
-      homeLocation: { '@type': 'Place', name: 'Bangkok, Thailand' },
+      name: author.name,
+      ...(author.alternateName ? { alternateName: author.alternateName } : {}),
+      ...(author.jobTitles.length ? { jobTitle: author.jobTitles } : {}),
+      ...(author.worksFor ? { worksFor: { '@type': 'Organization', name: author.worksFor } } : {}),
+      ...(author.knowsAbout.length ? { knowsAbout: author.knowsAbout } : {}),
+      ...(author.location ? { homeLocation: { '@type': 'Place', name: author.location } } : {}),
       url: site.toString(),
       image: new URL('/android-chrome-512x512.png', site).toString(),
-      sameAs: ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
+      sameAs: siteMeta.profiles,
     },
     { '@type': 'WebPage', url: canonical, name: title, description },
     { '@type': 'BreadcrumbList', itemListElement: breadcrumbItems },
@@ -88,7 +90,19 @@ const jsonLd = {
         if (a) d.dataset.accent = a;
       })();
     </script>
-    <BaseHead title={title} description={description} image={shareImage} type={type} atDocument={atDocument} feed={feed} />
+    <BaseHead
+      title={title}
+      description={description}
+      image={shareImage}
+      type={type}
+      atDocument={atDocument}
+      feed={feed}
+      keywords={keywords}
+      noindex={noindex}
+      siteName={siteMeta.name}
+      author={[author.name, author.alternateName && `(${author.alternateName})`].filter(Boolean).join(' ')}
+      profiles={siteMeta.profiles}
+    />
     <script is:inline>
       (function () {
         const m = document.getElementById('themeColor');

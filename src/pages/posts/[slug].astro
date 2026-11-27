@@ -115,7 +115,7 @@ const jsonLd = {
 };
 ---
 
-<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage} atDocument={atDocument}>
+<Shell title={`${entry.data.title} — Skiddle`} description={description} type="article" image={shareImage} atDocument={atDocument} keywords={entry.data.tags}>
   <script type="application/ld+json" set:html={scriptJson(jsonLd)} />
 
   <!-- Wide screens: article plus a sticky "On this page" column, centred together -->

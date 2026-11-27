@@ -33,6 +33,8 @@ import {
 import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import { EVENT_COLLECTION, eventsFromRecords, type TimelineEvent } from '~/lib/timeline.mjs';
+import { SITE_COLLECTION, siteMetaOf, type SiteMeta } from '~/lib/site-meta.mjs';
+import { FALLBACK_SITE } from '~/data/site-meta';
 import type { About } from '~/types/about';
 import { FALLBACK_HOME } from '~/data/home';
 import type { Highlight } from '~/types/highlights';
@@ -52,7 +54,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION].map((c) => `record/${c}/self`),
+  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION].map((c) => `record/${c}/self`),
   `list/${EVENT_COLLECTION}`,
 ];
 
@@ -100,6 +102,20 @@ export async function getHome(): Promise<Home> {
   const value = await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self');
   const mine = (value ? homeFromRecord(value) : {}) as Partial<Home>;
   return { ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } };
+}
+
+/**
+ * The site's metadata for every page's head (src/lib/site-meta.mjs): the id.skiddle.site record over
+ * src/data/site-meta.ts. Unlike the pages' records, a failed read doesn't fail the page: it gets the
+ * built-in values, and the error is logged.
+ */
+export async function getSiteMeta(): Promise<SiteMeta> {
+  try {
+    return siteMetaOf(FALLBACK_SITE, await getRecord<Record<string, unknown>>(SITE_COLLECTION, 'self'));
+  } catch (err) {
+    console.error('site meta:', err);
+    return FALLBACK_SITE;
+  }
 }
 
 /** The timeline's events (src/lib/timeline.mjs), in order, upcoming ones rough */

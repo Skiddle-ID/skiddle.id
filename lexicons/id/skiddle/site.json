@@ -1,0 +1,149 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.site",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
+      "record": {
+        "type": "object",
+        "required": ["updatedAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "The site's name, e.g. 'Skiddle': shown by link previews and search results."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "What a page says about itself when it has no description of its own."
+          },
+          "keywords": {
+            "type": "array",
+            "maxLength": 30,
+            "items": {
+              "type": "string",
+              "maxLength": 640,
+              "maxGraphemes": 64
+            },
+            "description": "Keywords for every page; a post adds its tags, and a page's own keywords come first."
+          },
+          "author": {
+            "type": "ref",
+            "ref": "#author"
+          },
+          "profiles": {
+            "type": "array",
+            "maxLength": 10,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Jeff's profiles elsewhere, e.g. https://bsky.app/profile/skiddle.blue: each page links to them as his (rel=\"me\")."
+          },
+          "pages": {
+            "type": "array",
+            "maxLength": 50,
+            "items": {
+              "type": "ref",
+              "ref": "#page"
+            },
+            "description": "A page's own title, description and keywords, over what the page says itself."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "author": {
+      "type": "object",
+      "description": "Who the site is by, for search engines' knowledge of him (schema.org Person).",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "e.g. 'Laurensius Jeffrey'."
+        },
+        "alternateName": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "Another name he goes by, e.g. 'Skiddle'."
+        },
+        "jobTitles": {
+          "type": "array",
+          "maxLength": 5,
+          "items": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100
+          }
+        },
+        "worksFor": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "His company, e.g. 'Skiddle Labs Pte. Ltd.'."
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "Where he's based, e.g. 'Bangkok, Thailand'."
+        },
+        "knowsAbout": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64
+          },
+          "description": "What he knows about, e.g. 'Protocol engineering'."
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "The page, e.g. /uses/ or /posts/lab-notes-3/."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "The whole title, as the browser tab and search results show it."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "keywords": {
+          "type": "array",
+          "maxLength": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64
+          }
+        },
+        "noindex": {
+          "type": "boolean",
+          "description": "Ask search engines not to list it."
+        }
+      }
+    }
+  }
+}

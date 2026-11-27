@@ -1,5 +1,7 @@
 /**
  * The page editors (docs/v4/pages-on-atproto.md, step 5), opened from the Pages section:
+ *   - #page/site: the site's metadata for search engines and link previews (id.skiddle.site,
+ *     src/lib/site-meta.mjs), starting from the built-in values (src/data/site-meta.ts)
  *   - #page/home, #page/cv, #page/services, #page/uses, #page/about, #page/now and #page/notes: each
  *     page's record, key `self`. Home and Now start with the built-in text (src/data/home.ts,
  *     src/data/now.ts) if there's no record yet
@@ -30,8 +32,11 @@ import notesLexicon from '../../../lexicons/id/skiddle/notes.json';
 import nowLexicon from '../../../lexicons/id/skiddle/now.json';
 import projectLexicon from '../../../lexicons/id/skiddle/project.json';
 import servicesLexicon from '../../../lexicons/id/skiddle/services.json';
+import siteLexicon from '../../../lexicons/id/skiddle/site.json';
 import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
 import { FALLBACK_HOME } from '~/data/home';
+import { FALLBACK_SITE } from '~/data/site-meta';
+import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
 import { FALLBACK_NOW } from '~/data/now';
 import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
@@ -62,7 +67,18 @@ interface PageEditor {
 let categoryUsage: () => Map<string, number> = () => new Map();
 
 /** The records with key `self` that have an editor, by their editor's address */
-export const PAGE_EDITORS: Record<'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
+export const PAGE_EDITORS: Record<'site' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
+  site: {
+    title: 'Site and search engines',
+    collection: SITE_COLLECTION,
+    lexicon: siteLexicon as LexiconDoc,
+    page: '/',
+    // The built-in values, in the record's shape (empty lists left out)
+    initial: () => {
+      const { pages: _pages, keywords, ...rest } = FALLBACK_SITE;
+      return { ...rest, ...(keywords.length ? { keywords: [...keywords] } : {}), author: structuredClone(FALLBACK_SITE.author), profiles: [...FALLBACK_SITE.profiles] };
+    },
+  },
   home: {
     title: 'Home',
     collection: HOME_COLLECTION,
@@ -109,7 +125,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
   if (hash === NEW_EVENT) return { newEvent: true };
-  const page = /^#page\/(home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
+  const page = /^#page\/(site|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
