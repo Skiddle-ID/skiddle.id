@@ -1,7 +1,7 @@
 /**
- * The site's built-in metadata: what every page's head uses for each field the id.skiddle.site
- * record leaves out, or for all of them until there's a record (src/lib/site-meta.mjs), and what
- * the admin app's Site editor starts from.
+ * The site's built-in metadata and frame (src/data/frame.ts): what every page uses for each field
+ * the id.skiddle.site record leaves out, or for all of them until there's a record
+ * (src/lib/site-meta.mjs), and what the admin app's Site editor starts from.
  */
 import type { SiteMeta } from '~/lib/site-meta.mjs';
 import { FALLBACK_FOOTER_LINKS, FALLBACK_MENU } from './frame';

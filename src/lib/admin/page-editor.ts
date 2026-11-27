@@ -21,6 +21,10 @@
  *     Until it's over, and unless it's announced, the form has only its rough fields (its kind,
  *     days and city) and saves only those, since records are public (src/lib/timeline.mjs)
  *
+ * The site's editor also has the frame: the menu, the footer's links and the sidebar's switches. A
+ * record without a menu or footer links shows the built-in ones, and saving leaves them out while
+ * they're unchanged, so the site keeps following its own (src/data/frame.ts).
+ *
  * Each form is made from its lexicon (src/lib/admin/lexicon-form.ts). Saving:
  *   - checks the record with @atproto/lexicon
  *   - keeps any field the form doesn't know, and sets updatedAt (a new project's createdAt)
@@ -45,7 +49,7 @@ import themeLexicon from '../../../lexicons/id/skiddle/theme.json';
 import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
 import { FALLBACK_HOME } from '~/data/home';
 import { FALLBACK_SITE } from '~/data/site-meta';
-import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
+import { SITE_COLLECTION, frameProblems } from '~/lib/site-meta.mjs';
 import { FALLBACK_NOW } from '~/data/now';
 import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
@@ -64,7 +68,7 @@ import { resetCardStyle } from './card-style';
 import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
 import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
-import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
+import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
 
 type Value = Record<string, unknown>;
 
@@ -76,6 +80,11 @@ interface PageEditor {
   page: string;
   /** What the form starts with when there's no record yet (otherwise it starts empty) */
   initial?: () => Value;
+  /**
+   * Fields the form shows with their built-in values when the record leaves them out; saving leaves
+   * them out again while they still equal those values
+   */
+  defaults?: () => Value;
   /** Problems the lexicon can't express */
   check?: (value: Value) => string[];
   /** Its record key, when it isn't `self` */
@@ -101,6 +110,8 @@ export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'c
       const { pages: _pages, keywords, ...rest } = FALLBACK_SITE;
       return { ...rest, ...(keywords.length ? { keywords: [...keywords] } : {}), author: structuredClone(FALLBACK_SITE.author), profiles: [...FALLBACK_SITE.profiles] };
     },
+    defaults: () => ({ menu: structuredClone(FALLBACK_SITE.menu), footerLinks: structuredClone(FALLBACK_SITE.footerLinks) }),
+    check: frameProblems,
   },
   publication: {
     title: 'Publication',
@@ -234,6 +245,7 @@ interface Open {
   rough?: boolean;
   fixed?: Value;
   noDates?: boolean;
+  defaults?: () => Value;
   cid?: string;
   record?: Value;
   read: () => Value;
@@ -358,7 +370,7 @@ function fill(value: Value) {
     current.lexicon = current.rough ? roughEventLexicon : (eventLexicon as LexiconDoc);
     el('peRough').hidden = !current.rough;
   }
-  const form = buildForm(current.lexicon, value, {
+  const form = buildForm(current.lexicon, { ...current.defaults?.(), ...value }, {
     onChange,
     // The site's icon uploads files, which the lexicon can't make a form for
     ...(current.collection === SITE_COLLECTION ? { custom: { icon: iconField(session, onChange) } } : {}),
@@ -458,13 +470,15 @@ function onChange() {
   refresh();
 }
 
-/** The record to write: the form's fields over any the form doesn't know, plus the dates */
+/** The record to write: the form's fields over any the form doesn't know, less unchanged defaults, plus the dates */
 function recordOf(o: Open, value: Value, at: string): Value {
+  const defaults = o.defaults?.() ?? {};
+  const own = Object.fromEntries(Object.entries(value).filter(([k, v]) => !(k in defaults) || canonical(v) !== canonical(defaults[k])));
   // An event's detail fields count as known while its form leaves them out, so they aren't kept
   const known = new Set(Object.keys(recordSchema(o.full ?? o.lexicon).properties ?? {}));
   const kept = Object.fromEntries(Object.entries(o.record ?? {}).filter(([k]) => !known.has(k) && k !== '$type'));
   const dates = o.noDates ? {} : isItem(o) ? { createdAt: (o.record?.createdAt as string | undefined) ?? at, ...(o.record ? { updatedAt: at } : {}) } : { updatedAt: at };
-  return { $type: o.collection, ...kept, ...value, ...o.fixed, ...dates };
+  return { $type: o.collection, ...kept, ...own, ...o.fixed, ...dates };
 }
 
 async function save(force = false) {
