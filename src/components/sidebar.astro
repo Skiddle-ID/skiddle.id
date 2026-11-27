@@ -6,6 +6,8 @@ import { isExternal, type SiteFrame } from '~/lib/site-meta.mjs';
 type Props = Pick<SiteFrame, 'menu' | 'hideMusic' | 'hideThemeButtons'>;
 const { menu, hideMusic, hideThemeButtons } = Astro.props;
 
+// With an icon on any item, the others keep its space, so the labels line up
+const withIcons = menu.some((l) => l.icon);
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 // A link's page, without a trailing slash; the home page is '/'
 const pageOf = (href: string) => href.split(/[?#]/)[0].replace(/\/$/, '') || '/';
@@ -34,7 +36,7 @@ const isActive = (href: string) => {
             isActive(l.href) && 'text-[var(--color-primary)]',
           ]}
         >
-          {isActive(l.href) ? <span aria-hidden="true">&gt; </span> : <span aria-hidden="true" class="opacity-0">&gt; </span>}{l.icon && <Icon name={l.icon} size={14} class="inline-block align-[-2px] mr-1.5" />}{l.label}
+          {isActive(l.href) ? <span aria-hidden="true">&gt; </span> : <span aria-hidden="true" class="opacity-0">&gt; </span>}{l.icon ? <Icon name={l.icon} size={14} class="inline-block align-[-2px] mr-1.5" /> : withIcons && <span aria-hidden="true" class="inline-block w-3.5 mr-1.5"></span>}{l.label}
         </a>
       </li>
     ))}
