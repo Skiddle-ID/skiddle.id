@@ -14,7 +14,7 @@
             "type": "string",
             "maxLength": 2000,
             "maxGraphemes": 200,
-            "description": "The page's title, in the browser tab and in search results, and its heading unless hideHeading is set."
+            "description": "The page's title, in the browser tab and in search results, and its heading unless that's hidden."
           },
           "description": {
             "type": "string",
