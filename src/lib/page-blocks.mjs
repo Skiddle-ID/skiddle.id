@@ -34,6 +34,8 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {'status' | 'now' | 'projects' | 'posts' | 'services' | 'week' | 'notes'} Source What a block reads
  * from the site's data (src/lib/page-data.ts)
  * @typedef {'full' | 'half' | 'third'} BlockWidth
+ * @typedef {'text' | 'data' | 'about'} BlockGroup What a kind of block is: text and links for any
+ *   page, the site's data (posts, projects, Now…), or a part of one of the site's own pages about Jeff
  * @typedef {{ label: string, href: string, me: boolean, primary: boolean }} Link
  *
  * @typedef {{ kind: 'profile', greeting: string, tagline: string, hideStatus: boolean }} ProfileBlock
@@ -165,6 +167,7 @@ const projectKeysOf = (/** @type {unknown} */ v) =>
 /**
  * @template {BlockKind} K
  * @typedef {object} BlockSpec
+ * @property {BlockGroup} group Where the admin app's catalogue offers it
  * @property {Source[]} reads What it reads from the site's data
  * @property {string} [anchor] The id its heading gets, unless the block sets its own; a second
  *   block with the same id gets `<anchor>-2`
@@ -174,6 +177,7 @@ const projectKeysOf = (/** @type {unknown} */ v) =>
 /** @type {{ [K in BlockKind]: BlockSpec<K> }} */
 export const BLOCKS = {
   profile: {
+    group: 'about',
     reads: ['status'],
     anchor: 'intro',
     parse: (v) => {
@@ -182,6 +186,7 @@ export const BLOCKS = {
     },
   },
   markdown: {
+    group: 'text',
     reads: [],
     parse: (v) => {
       const text = str(v.text);
@@ -189,20 +194,23 @@ export const BLOCKS = {
     },
   },
   links: {
+    group: 'text',
     reads: [],
     parse: (v) => {
       const links = linksOf(v.links);
       return links.length ? { kind: 'links', label: str(v.label) ?? '', buttons: v.buttons === true, links } : null;
     },
   },
-  now: { reads: ['now'], anchor: 'now', parse: () => ({ kind: 'now' }) },
-  thisWeek: { reads: ['week'], anchor: 'this-week', parse: () => ({ kind: 'thisWeek' }) },
+  now: { group: 'data', reads: ['now'], anchor: 'now', parse: () => ({ kind: 'now' }) },
+  thisWeek: { group: 'data', reads: ['week'], anchor: 'this-week', parse: () => ({ kind: 'thisWeek' }) },
   projects: {
+    group: 'data',
     reads: ['projects'],
     anchor: 'work',
     parse: (v) => ({ kind: 'projects', projects: projectKeysOf(v.projects) }),
   },
   recentPosts: {
+    group: 'data',
     reads: ['posts'],
     anchor: 'writing',
     parse: (v) => ({
@@ -211,8 +219,9 @@ export const BLOCKS = {
       hideSeries: v.hideSeries === true,
     }),
   },
-  testimonials: { reads: ['services'], parse: () => ({ kind: 'testimonials' }) },
+  testimonials: { group: 'data', reads: ['services'], parse: () => ({ kind: 'testimonials' }) },
   callToAction: {
+    group: 'text',
     reads: [],
     anchor: 'hire',
     parse: (v) => {
@@ -221,6 +230,7 @@ export const BLOCKS = {
     },
   },
   facts: {
+    group: 'about',
     reads: [],
     parse: (v) => {
       const facts = objects(v.facts).flatMap((f) => {
@@ -232,6 +242,7 @@ export const BLOCKS = {
     },
   },
   section: {
+    group: 'text',
     reads: [],
     parse: (v) => {
       const [text, title] = [str(v.text), str(v.title) ?? ''];
@@ -241,6 +252,7 @@ export const BLOCKS = {
     },
   },
   principles: {
+    group: 'text',
     reads: [],
     anchor: 'how',
     parse: (v) => {
@@ -249,6 +261,7 @@ export const BLOCKS = {
     },
   },
   soFar: {
+    group: 'about',
     reads: [],
     anchor: 'timeline',
     parse: (v) => {
@@ -261,6 +274,7 @@ export const BLOCKS = {
     },
   },
   contact: {
+    group: 'text',
     reads: [],
     anchor: 'hi',
     parse: (v) => {
@@ -269,6 +283,7 @@ export const BLOCKS = {
     },
   },
   nowFull: {
+    group: 'data',
     reads: ['now'],
     parse: (v) => {
       const heading = str(v.heading);
@@ -276,6 +291,7 @@ export const BLOCKS = {
     },
   },
   uses: {
+    group: 'about',
     reads: [],
     parse: (v) => {
       const heading = str(v.heading);
@@ -296,6 +312,7 @@ export const BLOCKS = {
     },
   },
   cvHeader: {
+    group: 'about',
     reads: [],
     parse: (v) => {
       const [name, title] = [str(v.name), str(v.title)];
@@ -317,6 +334,7 @@ export const BLOCKS = {
     },
   },
   jobs: {
+    group: 'about',
     reads: [],
     anchor: 'experience',
     parse: (v) => {
@@ -333,6 +351,7 @@ export const BLOCKS = {
     },
   },
   skills: {
+    group: 'about',
     reads: [],
     anchor: 'skills',
     parse: (v) => {
@@ -345,6 +364,7 @@ export const BLOCKS = {
     },
   },
   projectGrid: {
+    group: 'data',
     reads: ['projects'],
     anchor: 'cv-projects',
     parse: (v) => {
@@ -357,6 +377,7 @@ export const BLOCKS = {
     },
   },
   education: {
+    group: 'about',
     reads: [],
     anchor: 'education',
     parse: (v) => {
@@ -373,6 +394,7 @@ export const BLOCKS = {
     },
   },
   cvContact: {
+    group: 'about',
     reads: [],
     anchor: 'cv-contact',
     parse: (v) => {
@@ -381,6 +403,7 @@ export const BLOCKS = {
     },
   },
   servicesIntro: {
+    group: 'about',
     reads: [],
     parse: (v) => {
       const heading = str(v.heading);
@@ -388,6 +411,7 @@ export const BLOCKS = {
     },
   },
   highlights: {
+    group: 'text',
     reads: [],
     parse: (v) => {
       const highlights = highlightsOf(v.highlights);
@@ -395,6 +419,7 @@ export const BLOCKS = {
     },
   },
   services: {
+    group: 'data',
     reads: ['services'],
     anchor: 'services',
     parse: (v) => {
@@ -403,6 +428,7 @@ export const BLOCKS = {
     },
   },
   steps: {
+    group: 'text',
     reads: [],
     anchor: 'process',
     parse: (v) => {
@@ -411,6 +437,7 @@ export const BLOCKS = {
     },
   },
   reviews: {
+    group: 'data',
     reads: ['services'],
     anchor: 'kind-words',
     parse: (v) => {
@@ -419,6 +446,7 @@ export const BLOCKS = {
     },
   },
   brief: {
+    group: 'about',
     reads: [],
     anchor: 'contact',
     parse: (v) => {
@@ -427,6 +455,7 @@ export const BLOCKS = {
     },
   },
   blueskyPosts: {
+    group: 'data',
     reads: ['notes'],
     parse: (v) => {
       const heading = str(v.heading);

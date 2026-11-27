@@ -6,7 +6,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
-import { PAGE_COLLECTION, SITE_PAGES, blockType, draftKey } from '../src/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, SITE_PAGES, blockType, draftKey } from '../src/lib/page-blocks.mjs';
 import { OWN_KEY_MAX, RESERVED_KEYS, isOwnKey, ownKeyFrom, ownKeyProblem, ownPageOf, ownPagePath, ownPagesOf } from '../src/lib/own-pages.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -141,3 +141,12 @@ describe('a new page’s record', () => {
   });
 });
 
+describe('the block catalogue', () => {
+  it('offers the kinds that make sense on any page apart from those of the site’s own pages', () => {
+    const groups = Object.fromEntries(['text', 'data', 'about'].map((g) => [g, Object.keys(BLOCKS).filter((k) => BLOCKS[k].group === g)]));
+    assert.equal(Object.values(groups).flat().length, Object.keys(BLOCKS).length, 'every kind is in a group');
+    for (const kind of ['markdown', 'section', 'links', 'callToAction']) assert.ok(groups.text.includes(kind), kind);
+    for (const kind of ['recentPosts', 'projects', 'now', 'thisWeek']) assert.ok(groups.data.includes(kind), kind);
+    for (const kind of ['profile', 'cvHeader', 'servicesIntro']) assert.ok(groups.about.includes(kind), kind);
+  });
+});

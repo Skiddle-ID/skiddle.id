@@ -106,9 +106,28 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
         <section class="admin-card" data-section="pages" aria-labelledby="pagesTitle">
           <div class="admin-label-row">
             <h2 id="pagesTitle">Pages</h2>
-            <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
+            <div class="admin-toolbar">
+              <button id="newPageOpen" type="button" class="admin-btn admin-btn-ghost" aria-expanded="false" aria-controls="newPageForm">New page</button>
+              <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
+            </div>
           </div>
-          <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes and the projects: records in your repo, which the site’s pages read. Open one to edit it. Pages made of blocks open the block editor.</p>
+          <form id="newPageForm" class="admin-form admin-new-page" novalidate hidden>
+            <div class="admin-field">
+              <label for="newPageTitle">Title</label>
+              <input id="newPageTitle" type="text" autocomplete="off" placeholder="Speaking" />
+            </div>
+            <div class="admin-field">
+              <label for="newPageKey">Address</label>
+              <div class="admin-affix"><span>skiddle.id/</span><input id="newPageKey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="speaking" aria-describedby="newPageProblem" /><span>/</span></div>
+              <p id="newPageProblem" class="admin-message" role="status"></p>
+            </div>
+            <div class="admin-toolbar">
+              <button id="newPageCreate" type="submit" class="admin-btn admin-btn-primary">Create</button>
+              <button id="newPageCancel" type="button" class="admin-btn admin-btn-ghost">Cancel</button>
+            </div>
+            <p class="admin-small">It opens in the block editor. It’s in your repo once you save a draft, and on the site once you publish it.</p>
+          </form>
+          <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes, your own pages and the projects: records in your repo, which the site’s pages read. Open one to edit it. Pages made of blocks open the block editor.</p>
           <div id="pagesScope" class="admin-notice" hidden>
             <p>To write the pages’ records, the app needs more permissions from your account.</p>
             <button id="pagesSignIn" type="button" class="admin-btn">Sign in again</button>
@@ -524,6 +543,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p id="bkHint" class="admin-small"></p>
             <p id="bkNotLive" class="admin-small" hidden></p>
             <a id="bkView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
+            <button id="bkDelete" type="button" class="admin-btn" hidden>Delete page</button>
           </div>
         </form>
         <p id="bkMessage" class="admin-message" role="status"></p>
@@ -1262,6 +1282,16 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   }
   .admin-affix span:last-child {
     padding-right: 0.75rem;
+  }
+  .admin-affix:has(input[aria-invalid='true']) {
+    border-color: var(--color-err);
+  }
+  /* New page, in the Pages section: a title and an address (src/lib/admin/pages.ts) */
+  .admin-new-page {
+    margin-block: 0.75rem;
+    padding: 0.875rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 0.5rem;
   }
   .admin-check {
     display: flex;
