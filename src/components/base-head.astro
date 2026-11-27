@@ -16,9 +16,30 @@ interface Props {
   atDocument?: string;
   /** The page's own RSS feed (a series'), linked next to the site's */
   feed?: { title: string; href: string };
+  /** The page's keywords, then the site's (src/lib/site-meta.mjs) */
+  keywords?: string[];
+  /** Ask search engines not to list it */
+  noindex?: boolean;
+  /** From the site's metadata (id.skiddle.site) */
+  siteName?: string;
+  author?: string;
+  /** Jeff's profiles elsewhere, linked as his (rel="me") */
+  profiles?: string[];
 }
 
-const { title, description, image, type = 'website', atDocument, feed } = Astro.props as Props;
+const {
+  title,
+  description,
+  image,
+  type = 'website',
+  atDocument,
+  feed,
+  keywords = [],
+  noindex = false,
+  siteName = 'Skiddle',
+  author = 'Laurensius Jeffrey (Skiddle)',
+  profiles = ['https://bsky.app/profile/skiddle.blue', 'https://github.com/arcestia'],
+} = Astro.props as Props;
 const site = Astro.site;
 const canonical = new URL(Astro.url.pathname, site).toString();
 const ogTitle = title ?? 'Skiddle';
@@ -36,18 +57,18 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 {type === 'article' && <link rel="preload" href={geist600} as="font" type="font/woff2" crossorigin />}
 <link rel="canonical" href={canonical} />
 <!-- Preview builds (pull requests, which can show drafts) stay out of search engines -->
-<meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : 'index,follow'} />
+<meta name="robots" content={__PREVIEW__ ? 'noindex,nofollow' : noindex ? 'noindex,follow' : 'index,follow'} />
 <!-- The commit this page was built from: lets CI tell which commit a preview serves (tests/wait-for-preview.mjs) -->
 <meta name="build" content={__GIT_HASH__} />
-<meta name="author" content="Laurensius Jeffrey (Skiddle)" />
+<meta name="author" content={author} />
+{keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
 <!-- Text and data mining reserved (W3C TDMRep): no AI training on this writing, see LICENSE-CONTENT.md -->
 <meta name="tdm-reservation" content="1" />
 <!-- Follows the site theme (dark default); updated by the theme script in shell/sidebar -->
 <meta name="theme-color" content="#161616" id="themeColor" />
-<link rel="alternate" type="application/rss+xml" title="Skiddle — posts" href="/rss.xml" />
+<link rel="alternate" type="application/rss+xml" title={`${siteName} — posts`} href="/rss.xml" />
 {feed && <link rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href} />}
-<link rel="me" href="https://bsky.app/profile/skiddle.blue" />
-<link rel="me" href="https://github.com/arcestia" />
+{profiles.map((href) => <link rel="me" href={href} />)}
 <!-- Standard.site (AT Protocol): this site's publication record and, on posts, the post's document
      record. See src/lib/standard-site.mjs. -->
 <link rel="site.standard.publication" href={PUBLICATION_URI} />
@@ -56,7 +77,7 @@ const absOgImage = /^https?:\/\//i.test(ogImage) ? ogImage : new URL(ogImage, si
 <!-- Open Graph -->
 <meta property="og:type" content={type} />
 <meta property="og:url" content={canonical} />
-<meta property="og:site_name" content="Skiddle" />
+<meta property="og:site_name" content={siteName} />
 <meta property="og:title" content={ogTitle} />
 <meta property="og:description" content={ogDesc} />
 <meta property="og:image" content={absOgImage} />

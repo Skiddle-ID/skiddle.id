@@ -17,6 +17,7 @@
  *   - id.skiddle.event: the timeline's events (docs/v4/timeline.md)
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
+ *   - id.skiddle.site: the site's metadata for search engines and link previews
  *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
  *     (docs/v4/pages-on-atproto.md), edited in the Pages section
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
@@ -43,6 +44,7 @@ export const COLLECTIONS = [
   'id.skiddle.now',
   'id.skiddle.notes',
   'id.skiddle.home',
+  'id.skiddle.site',
   'site.standard.document',
   'id.skiddle.series',
   'id.skiddle.categories',
