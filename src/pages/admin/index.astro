@@ -204,7 +204,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <button id="mediaSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
           <div id="mediaUpload" class="admin-form admin-media-upload" hidden>
-            <img id="mediaUploadPreview" alt="The image to upload" />
+            <canvas id="mediaUploadPreview" role="img" aria-label="The image to upload"></canvas>
             <label class="admin-field"><span>Name</span><input id="mediaUploadName" type="text" autocomplete="off" /></label>
             <label class="admin-field"><span>Alt text: what the image shows</span><textarea id="mediaUploadAlt" rows="3"></textarea></label>
             <div class="admin-toolbar admin-quick">
@@ -1600,7 +1600,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     gap: 0.25rem;
     font-size: 0.875rem;
   }
-  .admin-media-upload img {
+  .admin-media-upload canvas {
     max-width: 16rem;
     max-height: 12rem;
     border: 1px solid var(--color-border);

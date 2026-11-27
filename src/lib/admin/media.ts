@@ -243,19 +243,36 @@ function chosen() {
   if (!file.type.startsWith('image/')) return message('mediaMessage', 'Pick an image: PNG, JPEG, GIF, WebP or AVIF.', 'error');
   if (file.size > MAX_BYTES) return message('mediaMessage', `That’s ${sizeLabel(file.size)}; the most is ${sizeLabel(MAX_BYTES)}.`, 'error');
   picked = file;
-  el<HTMLImageElement>('mediaUploadPreview').src = URL.createObjectURL(file);
+  void preview(file);
   el<HTMLInputElement>('mediaUploadName').value = file.name;
   el<HTMLTextAreaElement>('mediaUploadAlt').value = '';
   el('mediaUpload').hidden = false;
   el('mediaUploadAlt').focus();
 }
 
+/** Draws the picked image, decoded, on the preview canvas (no address made from the file) */
+async function preview(file: File) {
+  const canvas = el<HTMLCanvasElement>('mediaUploadPreview');
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    canvas.hidden = false;
+  } catch {
+    // An image the browser can't decode: no preview, and the upload can still go
+    canvas.hidden = true;
+  }
+}
+
 function resetUpload() {
   picked = undefined;
   el<HTMLInputElement>('mediaFile').value = '';
-  const preview = el<HTMLImageElement>('mediaUploadPreview');
-  if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
-  preview.removeAttribute('src');
+  const canvas = el<HTMLCanvasElement>('mediaUploadPreview');
+  canvas.width = 0;
+  canvas.height = 0;
   el('mediaUpload').hidden = true;
 }
 
