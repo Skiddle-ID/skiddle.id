@@ -50,8 +50,9 @@ import { el, errorText, formatTime, item, message, revalidate, row, saveState, v
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { ariaShortcut, insertText, markdownTools, pressedShortcut, shortcut } from './markdown-tools';
 import { missingScopes } from './oauth';
+import { report } from './overview';
 import { leavePage, openPage, pageRoute, savePageNow } from './page-editor';
-import { sectionFromHash, showSection } from './sections';
+import { markNav, sectionFromHash, showSection } from './sections';
 import { tagSuggest } from './tag-suggest';
 import { leaveSeries, openSeries, renderSeries, saveSeriesNow, seriesList, seriesRoute, setSeriesList, setupSeries, type SeriesRecord } from './series';
 import { XrpcError, createRecord, deleteRecord, getRecord, listRecords, putRecord, uploadBlob, type BlobRef, type RepoRecord } from './xrpc';
@@ -172,6 +173,7 @@ export async function route() {
   const p = pageRoute(location.hash);
   if (!s) leaveSeries();
   if (!p) leavePage();
+  markNav(location.hash);
   if (m) return open(m[1] as Kind, m[2]);
   await leaveEditor();
   if (s) return openSeries(s);
@@ -197,6 +199,7 @@ export async function loadPosts() {
   categories = fromRecord.length ? fromRecord : DEFAULT_CATEGORIES;
   fillCategories();
   setSeriesList(s);
+  report('series', { count: s.length, stats: { Series: s.length } });
   renderLists();
 }
 
@@ -220,6 +223,14 @@ function renderLists() {
     published.appendChild(r);
   }
   el('publishedCount').textContent = String(posts.length);
+  report('posts', {
+    count: posts.length,
+    stats: { Posts: posts.length, Drafts: drafts.length, Scheduled: drafts.filter((d) => d.value.publishAt).length },
+    recent: [
+      ...posts.map((d) => ({ kind: 'post', text: d.value.title ?? d.value.path!, at: d.value.publishedAt ?? '', href: `#post/${rkeyOf(d.uri)}` })),
+      ...drafts.map((d) => ({ kind: d.value.publishAt ? 'scheduled' : 'draft', text: d.value.title || 'Untitled', at: d.value.updatedAt ?? d.value.createdAt, href: `#draft/${rkeyOf(d.uri)}` })),
+    ],
+  });
   renderSeries();
 }
 
