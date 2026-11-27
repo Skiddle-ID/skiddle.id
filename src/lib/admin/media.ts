@@ -5,11 +5,16 @@
  * what it is and what uses it, with Copy Markdown, Copy link and Open. Library files can be renamed,
  * given alt text, and deleted, which deletes the record and lets the PDS drop the file.
  *
+ * Replace swaps a library file for a new image, keeping its name and alt text. A file can't be
+ * changed in place (its address, /media/<cid>, is its content's fingerprint), so the posts and pages
+ * whose text links to the old one are listed, and the ones ticked are moved to the new link. If any
+ * still link to the old file, it stays in the library as its own entry, so those links keep working.
+ *
  * Uploading takes an image of up to 5 MB: the file goes up (uploadBlob), then its record is
  * written, which keeps it.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
-import { MEDIA_COLLECTION, SITE_BLOB_COLLECTIONS, editorHref, mediaItems, mediaMarkdown, sizeLabel, type MediaItem } from '~/lib/media.mjs';
+import { MEDIA_COLLECTION, MEDIA_READ_COLLECTIONS, editorHref, mediaItems, mediaMarkdown, relinked, sizeLabel, type BlobUse, type MediaItem } from '~/lib/media.mjs';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, errorText, item, message, revalidate } from './dom';
 import { missingScopes } from './oauth';
@@ -57,7 +62,7 @@ export async function loadMedia() {
   el('mediaUploadLabel').hidden = missing;
   const [cids, ...lists] = await Promise.all([
     listBlobs(),
-    ...SITE_BLOB_COLLECTIONS.map((c) => listRecords<Record<string, unknown>>(session, c).then((rs) => rs.map((r) => ({ collection: c, uri: r.uri, value: r.value, cid: r.cid })))),
+    ...MEDIA_READ_COLLECTIONS.map((c) => listRecords<Record<string, unknown>>(session, c).then((rs) => rs.map((r) => ({ collection: c, uri: r.uri, value: r.value, cid: r.cid })))),
   ]);
   items = mediaItems(cids, lists.flat());
   report('media', { count: items.length, stats: { 'Media files': items.length } });
@@ -156,13 +161,8 @@ function renderDetail() {
   if (!it.uses.length) used.appendChild(item('Not used by the site: another app’s file, or one no record of the site names.', 'admin-muted'));
   for (const u of it.uses) {
     const li = document.createElement('li');
-    const href = editorHref(u);
-    if (href) {
-      const a = document.createElement('a');
-      a.href = href;
-      a.textContent = u.label;
-      li.appendChild(a);
-    } else li.textContent = u.label;
+    li.appendChild(useLink(u));
+    if (u.link) li.appendChild(document.createTextNode(' (links to it)'));
     used.appendChild(li);
   }
   parts.push(used);
@@ -211,8 +211,11 @@ function libraryForm(it: MediaItem) {
   );
   row.appendChild(
     button('Delete', async () => {
-      const uses = it.uses.filter((u) => u.collection !== MEDIA_COLLECTION);
-      const warning = uses.length ? ` ${uses.map((u) => u.label).join(', ')} still uses it, so the file stays until that changes.` : ' Your PDS then removes the file.';
+      const holds = it.uses.filter((u) => u.collection !== MEDIA_COLLECTION && !u.link);
+      const links = it.uses.filter((u) => u.link);
+      const warning = holds.length
+        ? ` ${holds.map((u) => u.label).join(', ')} still uses it, so the file stays until that changes.`
+        : ` Your PDS then removes the file.${links.length ? ` ${links.map((u) => u.label).join(', ')} links to it, and that image will stop showing.` : ''}`;
       if (!confirm(`Delete “${it.name ?? it.cid}” from your library? This can’t be undone.${warning}`)) return;
       try {
         await deleteRecord(session, MEDIA_COLLECTION, it.mediaRkey!);
@@ -225,10 +228,191 @@ function libraryForm(it: MediaItem) {
       }
     }),
   );
+  const replace = replacePanel(it);
+  row.appendChild(replace.pick);
   form.appendChild(name.wrap);
   form.appendChild(alt.wrap);
   form.appendChild(row);
+  form.appendChild(replace.panel);
   return form;
+}
+
+/** A use, as a link to its editor where it has one */
+function useLink(u: BlobUse): Node {
+  const href = editorHref(u);
+  if (!href) return document.createTextNode(u.label);
+  const a = document.createElement('a');
+  a.href = href;
+  a.textContent = u.label;
+  return a;
+}
+
+// ---- Replacing ----
+
+/** Replace…: pick an image, see it, choose which links move to it, and Replace */
+function replacePanel(it: MediaItem) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.className = 'sr-only';
+  const pick = document.createElement('label');
+  pick.className = 'admin-btn';
+  pick.textContent = 'Replace…';
+  pick.appendChild(input);
+
+  const panel = document.createElement('div');
+  panel.className = 'admin-media-upload admin-form';
+  panel.hidden = true;
+
+  input.addEventListener('change', () => {
+    const f = input.files?.[0];
+    input.value = '';
+    message('mediaMessage', '');
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return message('mediaMessage', 'Pick an image: PNG, JPEG, GIF, WebP or AVIF.', 'error');
+    if (f.size > MAX_BYTES) return message('mediaMessage', `That’s ${sizeLabel(f.size)}; the most is ${sizeLabel(MAX_BYTES)}.`, 'error');
+    draw(f);
+  });
+
+  const draw = (f: File) => {
+    const parts: Node[] = [];
+    const title = document.createElement('p');
+    title.textContent = `Replace “${it.name ?? it.cid}” with ${f.name} (${sizeLabel(f.size)}). The name and alt text stay.`;
+    parts.push(title);
+    const canvas = document.createElement('canvas');
+    canvas.hidden = true;
+    void drawPreview(f, canvas);
+    parts.push(canvas);
+
+    // Posts and pages whose text links to the old file: ticked ones move to the new link
+    const links = it.uses.filter((u) => u.link);
+    const boxes: [BlobUse, HTMLInputElement][] = [];
+    if (links.length) {
+      const fs = document.createElement('fieldset');
+      fs.className = 'admin-media-uses';
+      const lg = document.createElement('legend');
+      lg.textContent = 'Also change the link to the new image in:';
+      fs.appendChild(lg);
+      for (const u of links) {
+        const l = document.createElement('label');
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = true;
+        l.appendChild(box);
+        l.appendChild(document.createTextNode(' '));
+        l.appendChild(useLink(u));
+        fs.appendChild(l);
+        boxes.push([u, box]);
+      }
+      parts.push(fs);
+    }
+    const holds = it.uses.filter((u) => u.collection !== MEDIA_COLLECTION && !u.link);
+    const note = document.createElement('p');
+    note.className = 'admin-small';
+    note.textContent = [
+      links.length ? 'A post or page left unticked keeps showing the old image, which then stays in the library as its own entry.' : 'Nothing links to it, so the old file goes once it’s replaced.',
+      holds.length ? `${holds.map((u) => u.label).join(', ')} holds the old file itself, so it stays for that.` : '',
+      'A published post changes on the site at once.',
+    ]
+      .filter(Boolean)
+      .join(' ');
+    parts.push(note);
+
+    const row = document.createElement('div');
+    row.className = 'admin-toolbar admin-quick';
+    const go = button('Replace', async () => {
+      go.disabled = true;
+      try {
+        await replace(
+          it,
+          f,
+          boxes.filter(([, b]) => b.checked).map(([u]) => u),
+          boxes.filter(([, b]) => !b.checked).map(([u]) => u),
+        );
+      } finally {
+        go.disabled = false;
+      }
+    });
+    go.classList.add('admin-btn-primary');
+    row.appendChild(go);
+    row.appendChild(
+      button('Cancel', () => {
+        panel.hidden = true;
+        panel.replaceChildren();
+      }),
+    );
+    parts.push(row);
+    panel.replaceChildren(...parts);
+    panel.hidden = false;
+  };
+  return { pick, panel };
+}
+
+/**
+ * Uploads the new image, moves the chosen links to it, keeps the old file as its own library entry if
+ * anything still links to it, then puts the new file in the library record
+ */
+async function replace(it: MediaItem, picked: File, move: BlobUse[], keep: BlobUse[]) {
+  message('mediaMessage', 'Uploading…');
+  try {
+    const file = await uploadBlob(session, picked);
+    const to = file.ref.$link;
+    if (to === it.cid) return message('mediaMessage', 'That’s the same image: nothing to replace.', 'error');
+
+    const failed: BlobUse[] = [];
+    for (const u of move) {
+      message('mediaMessage', `Changing the link in ${u.label}…`);
+      try {
+        const cur = await getRecord<Record<string, unknown>>(session, u.collection, u.rkey);
+        if (cur) await putRecord(session, u.collection, u.rkey, relinked(cur.value, it.cid, to), cur.cid);
+      } catch {
+        failed.push(u);
+      }
+    }
+
+    const current = await getRecord<Record<string, unknown>>(session, MEDIA_COLLECTION, it.mediaRkey!);
+    if (!current) throw new Error('it isn’t in your repo any more');
+    const stillLinked = [...keep, ...failed];
+    // Written before the swap, so the old file always has a record keeping it
+    if (stillLinked.length) {
+      const name = `${it.name ?? 'image'} (before replacing)`.slice(0, 100);
+      await createRecord(session, MEDIA_COLLECTION, { ...current.value, file: current.value.file, name, createdAt: new Date().toISOString() });
+    }
+    await putRecord(session, MEDIA_COLLECTION, it.mediaRkey!, { ...current.value, file }, current.cid);
+
+    open = to;
+    void revalidate();
+    message(
+      'mediaMessage',
+      [
+        'Replaced.',
+        move.length - failed.length ? `Changed the link in ${move.length - failed.length} ${move.length - failed.length === 1 ? 'place' : 'places'}.` : '',
+        failed.length ? `Couldn’t change ${failed.map((u) => u.label).join(', ')}: it still shows the old image.` : '',
+        stillLinked.length ? 'The old image stays in the library, “(before replacing)”.' : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+      failed.length ? 'error' : 'ok',
+    );
+    await loadMedia();
+  } catch (err) {
+    message('mediaMessage', `Couldn’t replace it: ${errorText(err)}`, 'error');
+  }
+}
+
+/** Draws a picked image, decoded, on a canvas (no address made from the file) */
+async function drawPreview(file: File, canvas: HTMLCanvasElement) {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    canvas.hidden = false;
+  } catch {
+    canvas.hidden = true;
+  }
 }
 
 // ---- Uploading ----
@@ -250,22 +434,8 @@ function chosen() {
   el('mediaUploadAlt').focus();
 }
 
-/** Draws the picked image, decoded, on the preview canvas (no address made from the file) */
-async function preview(file: File) {
-  const canvas = el<HTMLCanvasElement>('mediaUploadPreview');
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-    canvas.hidden = false;
-  } catch {
-    // An image the browser can't decode: no preview, and the upload can still go
-    canvas.hidden = true;
-  }
-}
+/** Draws the picked image on the upload's preview canvas */
+const preview = (file: File) => drawPreview(file, el<HTMLCanvasElement>('mediaUploadPreview'));
 
 function resetUpload() {
   picked = undefined;

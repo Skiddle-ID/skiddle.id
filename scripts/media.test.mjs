@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { MEDIA_COLLECTION, blobRefsIn, editorHref, mediaItems, mediaMarkdown, sizeLabel } from '../src/lib/media.mjs';
+import { MEDIA_COLLECTION, blobRefsIn, editorHref, mediaItems, mediaLinksIn, mediaMarkdown, relinked, sizeLabel } from '../src/lib/media.mjs';
 
 const blob = (cid, mimeType = 'image/png', size = 1000) => ({ $type: 'blob', ref: { $link: cid }, mimeType, size });
 const uri = (collection, rkey) => `at://did:plc:x/${collection}/${rkey}`;
@@ -35,6 +35,32 @@ describe('media library', () => {
     ]);
     assert.equal(it0.group, 'library');
     assert.equal(it0.uses.length, 2);
+  });
+
+  it('counts a post’s link to a file as a use that doesn’t keep it', () => {
+    const cid = 'bafkreiaaaaaaaaaaaaaaaaaaaaaa';
+    const items = mediaItems([cid], [
+      { collection: MEDIA_COLLECTION, uri: uri(MEDIA_COLLECTION, 'm1'), value: { file: blob(cid), name: 'plane.png' } },
+      { collection: 'site.standard.document', uri: uri('site.standard.document', 'p1'), value: { title: 'Lab Notes #3', content: { markdown: `Look: ![a plane](/media/${cid}) and again /media/${cid}` } } },
+      { collection: 'id.skiddle.about', uri: uri('id.skiddle.about', 'self'), value: { body: `https://skiddle.id/media/${cid}` } },
+    ]);
+    assert.deepEqual(items[0].uses.map((u) => [u.label, !!u.link]), [['library: plane.png', false], ['post: Lab Notes #3', true], ['page: about', true]]);
+    assert.equal(editorHref(items[0].uses[2]), '#page/about');
+    assert.equal(editorHref({ collection: 'id.skiddle.event', rkey: 'e1', label: '' }), '#event/e1');
+  });
+
+  it('finds and moves a record’s links to a file', () => {
+    const a = 'bafkreiaaaaaaaaaaaaaaaaaaaaaa';
+    const b = 'bafkreibbbbbbbbbbbbbbbbbbbbbb';
+    const v = { title: 'T', n: 3, content: { markdown: `![x](/media/${a}) ![y](/media/${a})`, images: [{ image: blob(a) }] }, tags: [`/media/${a}`] };
+    assert.deepEqual(mediaLinksIn(v), [a]);
+    const out = relinked(v, a, b);
+    assert.equal(out.content.markdown, `![x](/media/${b}) ![y](/media/${b})`);
+    assert.deepEqual(out.tags, [`/media/${b}`]);
+    // A file the record holds is left alone: only links in text move
+    assert.equal(out.content.images[0].image.ref.$link, a);
+    assert.equal(out.n, 3);
+    assert.deepEqual(mediaLinksIn({ s: '/media/short' }), []);
   });
 
   it('writes Markdown and sizes', () => {
