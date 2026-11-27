@@ -13,6 +13,7 @@
  * tests run it in Node (scripts/page-blocks.test.mjs).
  */
 import { projectUri } from './page-records.mjs';
+import { isPageHref } from './site-meta.mjs';
 
 export const PAGE_COLLECTION = 'id.skiddle.page';
 
@@ -64,14 +65,11 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
 const str = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() ? v : undefined);
 const objects = (/** @type {unknown} */ v) => /** @type {Raw[]} */ (Array.isArray(v) ? v.filter((o) => o && typeof o === 'object' && !Array.isArray(o)) : []);
 
-/** A link a block may show: a path on the site, a place on the page, or an https:, http: or mailto: URL */
-const SAFE_HREF = /^(\/(?![/\\])|#[A-Za-z][\w-]*$|https?:\/\/|mailto:)/i;
-
 /** @returns {Link[]} */
 const linksOf = (/** @type {unknown} */ v) =>
   objects(v)
     .map((l) => ({ label: str(l.label) ?? '', href: str(l.href) ?? '', me: l.me === true, primary: l.primary === true }))
-    .filter((l) => l.label && SAFE_HREF.test(l.href));
+    .filter((l) => l.label && isPageHref(l.href));
 
 /**
  * How a link opens: one off the site in a new tab, and rel="me" on Jeff's own profiles

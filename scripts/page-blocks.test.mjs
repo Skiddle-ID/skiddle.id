@@ -8,6 +8,7 @@ import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, isPageKey, linkAttributes, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
 import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
+import { introHtml } from '../src/lib/now-html.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const lexicon = JSON.parse(readFileSync(join(ROOT, 'lexicons/id/skiddle/page.json'), 'utf8'));
@@ -41,6 +42,12 @@ describe('page records, read', () => {
     assert.deepEqual(kinds(p), ['now']);
   });
 
+  it('shows a Markdown link it wouldn’t follow as its text', () => {
+    const html = introHtml('[run](javascript:alert(1)) [now](/now/) [hire](#hire)');
+    assert.doesNotMatch(html, /javascript:/);
+    assert.match(html, /run <a href="\/now\/" class="link">now<\/a> <a href="#hire" class="link">hire<\/a>/);
+  });
+
   it('keeps only links it’s safe to follow', () => {
     const links = [
       { label: 'path', href: '/rss.xml' },
@@ -51,6 +58,9 @@ describe('page records, read', () => {
       { label: 'backslash', href: '/\\evil.example' },
       { label: 'script', href: 'javascript:alert(1)' },
       { label: 'not an anchor', href: '#work" onclick="x' },
+      { label: 'tab', href: '/\t/evil.example' },
+      { label: 'plain web', href: 'http://example.com' },
+      { label: 'bare mail', href: 'mailto:' },
     ];
     const [{ block: b }] = pageFromRecord(page(block('links', { links }))).blocks;
     assert.deepEqual(
