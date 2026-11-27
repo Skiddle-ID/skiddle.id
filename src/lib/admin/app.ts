@@ -10,6 +10,8 @@
  *     (src/lib/admin/page-editor.ts)
  *   - the timeline's events (id.skiddle.event), listed in the Timeline section
  *     (src/lib/admin/timeline.ts) and edited in the page editor
+ *   - the media library (id.skiddle.media), and every file in the repo by what uses it, in the
+ *     Media section (src/lib/admin/media.ts)
  *   - share cards, checked and redrawn from the Site section (src/lib/admin/redraw.ts)
  * and lists the site's other collections, read-only. One section at a time: Posts, Series, Pages,
  * Status and Site (src/lib/admin/sections.ts).
@@ -25,6 +27,7 @@ import { clientMetadata, isLoopback, loopbackClientId, missingScopes } from './o
 import { setupPageEditor } from './page-editor';
 import { loadPages, setupPages } from './pages';
 import { loadTimeline, setupTimeline } from './timeline';
+import { loadMedia, setupMedia } from './media';
 import { report, setupOverview } from './overview';
 import { setupSections } from './sections';
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, xrpc, type RepoRecord } from './xrpc';
@@ -463,12 +466,13 @@ async function signedIn(session: OAuthSession, signInAgain: () => void) {
   setupPosts(session, signInAgain);
   setupPages(session, signInAgain);
   setupTimeline(session, signInAgain);
+  setupMedia(session, signInAgain);
   setupOverview();
   setupSections();
   // After a save: the Pages list, and the posts (whose Category menu follows the categories)
   setupPageEditor(session, async () => void (await Promise.allSettled([loadPages(), loadPosts(), loadTimeline()])), categoryUsage);
   setupRedraw(session);
-  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages(), loadTimeline()]);
+  const results = await Promise.allSettled([loadStatus(session), loadLexicons(session), loadRecords(session), loadPosts(), loadPages(), loadTimeline(), loadMedia()]);
   const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
   if (failed) notice(`Couldn't load everything from your PDS: ${errorText(failed.reason)}`);
   await route();

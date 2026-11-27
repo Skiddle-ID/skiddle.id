@@ -52,6 +52,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
         <a href="#series" data-section="series"><span>Series</span><span class="admin-count" data-count="series"></span></a>
         <a href="#pages" data-section="pages"><span>Pages</span><span class="admin-count" data-count="pages"></span></a>
         <a href="#timeline" data-section="timeline" data-primary><span>Timeline</span><span class="admin-count" data-count="timeline"></span></a>
+        <a href="#media" data-section="media"><span>Media</span><span class="admin-count" data-count="media"></span></a>
         <p class="admin-side-group">Site</p>
         <a href="#status" data-section="status" data-primary><span>Status</span></a>
         <a href="#page/site" data-section="seo"><span>Site and SEO</span></a>
@@ -67,6 +68,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <a href="#status" class="admin-btn">Set status</a>
             <a href="#new-event" class="admin-btn">New event</a>
             <a href="#page/home" class="admin-btn">Edit home page</a>
+            <a href="#media" class="admin-btn">Media</a>
           </div>
           <h3 class="admin-subhead">Recent</h3>
           <ul id="overviewRecent" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
@@ -189,6 +191,32 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
           </div>
           <div id="timelineTable" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
           <p id="timelineMessage" class="admin-message" role="status"></p>
+        </section>
+
+        <section class="admin-card" data-section="media" aria-labelledby="mediaTitle">
+          <div class="admin-label-row">
+            <h2 id="mediaTitle">Media</h2>
+            <label id="mediaUploadLabel" class="admin-btn admin-btn-ghost">Upload<input id="mediaFile" type="file" accept="image/*" class="sr-only" /></label>
+          </div>
+          <p>Every file in your repo, by what uses it. Library is what you upload here; Site is the share cards and post images; Elsewhere is other apps’ files, which only those apps change. Files are public, and a post can show any image with Copy Markdown.</p>
+          <div id="mediaScope" class="admin-notice" hidden>
+            <p>To keep uploads in your library, the app needs one more permission from your account.</p>
+            <button id="mediaSignIn" type="button" class="admin-btn">Sign in again</button>
+          </div>
+          <div id="mediaUpload" class="admin-form admin-media-upload" hidden>
+            <canvas id="mediaUploadPreview" role="img" aria-label="The image to upload"></canvas>
+            <label class="admin-field"><span>Name</span><input id="mediaUploadName" type="text" autocomplete="off" /></label>
+            <label class="admin-field"><span>Alt text: what the image shows</span><textarea id="mediaUploadAlt" rows="3"></textarea></label>
+            <div class="admin-toolbar admin-quick">
+              <button id="mediaUploadSave" type="button" class="admin-btn admin-btn-primary">Upload to the library</button>
+              <button id="mediaUploadCancel" type="button" class="admin-btn">Cancel</button>
+            </div>
+          </div>
+          <div id="mediaFilters" class="admin-filters" role="group" aria-label="Show files"></div>
+          <div id="mediaGrid" class="admin-media-grid"><p class="admin-muted">Loading…</p></div>
+          <button id="mediaMore" type="button" class="admin-btn admin-self-start" hidden>More</button>
+          <div id="mediaDetail" class="admin-media-detail" hidden></div>
+          <p id="mediaMessage" class="admin-message" role="status"></p>
         </section>
 
         <section class="admin-card" data-section="site" aria-labelledby="lexiconTitle">
@@ -1249,6 +1277,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   #dashboard[data-section='pages'] > [data-section='pages'],
   #dashboard[data-section='status'] > [data-section='status'],
   #dashboard[data-section='timeline'] > [data-section='timeline'],
+  #dashboard[data-section='media'] > [data-section='media'],
   #dashboard[data-section='site'] > [data-section='site'] {
     display: flex;
   }
@@ -1502,6 +1531,80 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     .admin-table td:first-child {
       flex: 1 0 100%;
     }
+  }
+  /* The Media section (src/lib/admin/media.ts): a grid of files, and the open one under it */
+  .admin-media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    gap: 0.5rem;
+  }
+  .admin-media-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .admin-media-tile[aria-pressed='true'],
+  .admin-media-tile:hover {
+    border-color: var(--color-primary);
+  }
+  .admin-media-tile img,
+  .admin-media-ph {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--color-bg-alt);
+  }
+  .admin-media-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+  .admin-media-cap {
+    padding: 0 0.5rem 0.375rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-media-empty {
+    grid-column: 1 / -1;
+  }
+  .admin-media-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    overflow-wrap: anywhere;
+  }
+  .admin-media-detail[hidden] {
+    display: none;
+  }
+  .admin-media-uses {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+  }
+  .admin-media-upload canvas {
+    max-width: 16rem;
+    max-height: 12rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
   }
   .admin-stats {
     display: grid;

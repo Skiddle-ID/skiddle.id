@@ -15,6 +15,7 @@
  * grants it; the app asks for that when its session lacks one (missingScopes).
  *   - id.skiddle.status: the status, and id.skiddle.statusLog: its history
  *   - id.skiddle.event: the timeline's events (docs/v4/timeline.md)
+ *   - id.skiddle.media: the media library's uploads, which keep their files (src/lib/admin/media.ts)
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
  *   - id.skiddle.site: the site's metadata for search engines and link previews
@@ -34,6 +35,7 @@ export const COLLECTIONS = [
   'id.skiddle.status',
   'id.skiddle.statusLog',
   'id.skiddle.event',
+  'id.skiddle.media',
   'com.atproto.lexicon.schema',
   'id.skiddle.draft',
   'id.skiddle.project',
