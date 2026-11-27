@@ -31,6 +31,16 @@ const LIVE = [
   [/\b\d+ (?:second|minute|hour|day|week|month|year)s? ago\b/g, '… ago'],
 ];
 
+/** The HTML without its comments, which a page's visitors never see */
+const withoutComments = (html) =>
+  html
+    .split('<!--')
+    .map((part, i) => {
+      const end = part.indexOf('-->');
+      return i === 0 ? part : end < 0 ? '' : part.slice(end + 3);
+    })
+    .join('');
+
 /** The page's parts to compare, normalised */
 function partsOf(html) {
   const pick = (re) => re.exec(html)?.[1] ?? '';
@@ -40,8 +50,7 @@ function partsOf(html) {
     title: pick(/<title>([\s\S]*?)<\/title>/),
     description: pick(/<meta name="description" content="([^"]*)"/),
     'JSON-LD': jsonLd ? JSON.stringify(JSON.parse(jsonLd), null, 1) : '',
-    main: LIVE.reduce((s, [re, to]) => s.replace(re, to), main)
-      .replace(/<!--[\s\S]*?-->/g, '')
+    main: withoutComments(LIVE.reduce((s, [re, to]) => s.replace(re, to), main))
       .replace(/(\/_astro\/[^"'\s)]+?)\.[A-Za-z0-9_-]{8}\.(js|css|webp|png|jpg|svg|woff2?)/g, '$1.HASH.$2')
       .replace(/\s*data-astro-cid-[a-z0-9]+(="[^"]*")?/g, '')
       .replace(/\s+/g, ' '),
