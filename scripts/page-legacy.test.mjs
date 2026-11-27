@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { PAGE_COLLECTION, pageFromRecord } from '../src/lib/page-blocks.mjs';
-import { aboutPageFromLegacy, cvPageFromLegacy, nowPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutPageFromLegacy, cvPageFromLegacy, nowPageFromLegacy, servicesPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { aboutFromRecord, cvFromRecord, usesFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -115,6 +115,31 @@ describe('the CV from its old record', () => {
     assert.deepEqual(education.schools.map((e) => e.degree), record.education.map((e) => e.degree));
     assert.deepEqual(education.certifications, record.certifications.map(({ title, when }) => ({ title, when })));
     assert.deepEqual(contact.links.map((l) => [l.href, l.primary]), [['mailto:work@skiddle.id?subject=Hello%20from%20your%20CV', true], ['/services/', false]]);
+  });
+
+  it('is a valid id.skiddle.page record', () => assertValid(converted));
+});
+
+describe('the Services page from what it showed', () => {
+  const { highlights } = cvFromRecord(fixture('cv'));
+  const converted = servicesPageFromLegacy(highlights, meta, at);
+  const page = pageFromRecord(converted);
+  const [intro, record, services, , , brief] = page.blocks.map((b) => b.block);
+
+  it('lays out what the page showed, wide, under its own heading, with the CV’s highlights as its track record', () => {
+    assert.deepEqual(kinds(page), ['servicesIntro', 'highlights', 'services', 'steps', 'reviews', 'brief']);
+    assert.deepEqual([page.width, page.hideHeading], ['wide', true]);
+    assert.equal(record.label, 'Track record');
+    assert.deepEqual(record.highlights, highlights);
+  });
+
+  it('its emails start with the brief, to the address the services block sends to', () => {
+    const [email] = intro.links;
+    const url = new URL(email.href);
+    assert.equal(url.protocol + url.pathname, `mailto:${services.email}`);
+    assert.equal(url.searchParams.get('body'), services.brief);
+    assert.match(services.brief, /What I need help with:/);
+    assert.deepEqual(brief.links.map((l) => l.href), [email.href, 'https://bsky.app/profile/skiddle.blue']);
   });
 
   it('is a valid id.skiddle.page record', () => assertValid(converted));

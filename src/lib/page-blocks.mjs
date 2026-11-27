@@ -22,7 +22,7 @@ export const PAGE_COLLECTION = 'id.skiddle.page';
 export const draftKey = (/** @type {string} */ key) => `${key}~draft`;
 
 /** The keys of the site's own pages made of blocks, each with a route in src/pages/: `about` is /about/ */
-export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses', 'works']);
+export const SITE_PAGES = /** @type {const} */ (['home', 'about', 'now', 'uses', 'works', 'services']);
 
 /** A page's own key, not a draft's: lists of pages leave out keys with a `~` */
 export const isPageKey = (/** @type {string} */ key) => !key.includes('~');
@@ -67,9 +67,16 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @typedef {{ degree: string, school: string, start?: string, end?: string, description?: string }} School
  * @typedef {{ kind: 'education', title: string, schools: School[], certificationsTitle: string, certifications: { title: string, when: string }[] }} EducationBlock
  * @typedef {{ kind: 'cvContact', title: string, text: string, links: Link[] }} CvContactBlock
+ * @typedef {{ kind: 'servicesIntro', heading: string, tagline: string, lines: string[], status: string, links: Link[] }} ServicesIntroBlock
+ * @typedef {{ kind: 'highlights', label: string, highlights: Highlight[] }} HighlightsBlock
+ * @typedef {{ kind: 'services', title: string, email: string, brief: string }} ServicesBlock
+ * @typedef {{ kind: 'steps', title: string, steps: Point[] }} StepsBlock
+ * @typedef {{ kind: 'reviews', title: string }} ReviewsBlock
+ * @typedef {{ kind: 'brief', title: string, text: string, points: string[], links: Link[] }} BriefBlock
  * @typedef {ProfileBlock | MarkdownBlock | LinksBlock | NowBlock | ThisWeekBlock | ProjectsBlock | RecentPostsBlock | TestimonialsBlock | CallToActionBlock
  *   | FactsBlock | SectionBlock | PrinciplesBlock | SoFarBlock | ContactBlock | NowFullBlock | UsesBlock
- *   | CvHeaderBlock | JobsBlock | SkillsBlock | ProjectGridBlock | EducationBlock | CvContactBlock} KnownBlock
+ *   | CvHeaderBlock | JobsBlock | SkillsBlock | ProjectGridBlock | EducationBlock | CvContactBlock
+ *   | ServicesIntroBlock | HighlightsBlock | ServicesBlock | StepsBlock | ReviewsBlock | BriefBlock} KnownBlock
  * @typedef {KnownBlock['kind']} BlockKind
  * @typedef {{ kind: 'unknown', type: string }} UnknownBlock A kind of block this site doesn't know
  *
@@ -369,6 +376,52 @@ export const BLOCKS = {
     parse: (v) => {
       const title = str(v.title);
       return title ? { kind: 'cvContact', title, text: str(v.text) ?? '', links: linksOf(v.links) } : null;
+    },
+  },
+  servicesIntro: {
+    reads: [],
+    parse: (v) => {
+      const heading = str(v.heading);
+      return heading ? { kind: 'servicesIntro', heading, tagline: str(v.tagline) ?? '', lines: strings(v.lines), status: str(v.status) ?? '', links: linksOf(v.links) } : null;
+    },
+  },
+  highlights: {
+    reads: [],
+    parse: (v) => {
+      const highlights = highlightsOf(v.highlights);
+      return highlights.length ? { kind: 'highlights', label: str(v.label) ?? 'Highlights', highlights } : null;
+    },
+  },
+  services: {
+    reads: ['services'],
+    anchor: 'services',
+    parse: (v) => {
+      const [title, email] = [str(v.title), emailOf(v.email)];
+      return title && email ? { kind: 'services', title, email, brief: str(v.brief) ?? '' } : null;
+    },
+  },
+  steps: {
+    reads: [],
+    anchor: 'process',
+    parse: (v) => {
+      const [title, steps] = [str(v.title), pointsOf(v.steps)];
+      return title && steps.length ? { kind: 'steps', title, steps } : null;
+    },
+  },
+  reviews: {
+    reads: ['services'],
+    anchor: 'kind-words',
+    parse: (v) => {
+      const title = str(v.title);
+      return title ? { kind: 'reviews', title } : null;
+    },
+  },
+  brief: {
+    reads: [],
+    anchor: 'contact',
+    parse: (v) => {
+      const title = str(v.title);
+      return title ? { kind: 'brief', title, text: str(v.text) ?? '', points: strings(v.points), links: linksOf(v.links) } : null;
     },
   },
 };

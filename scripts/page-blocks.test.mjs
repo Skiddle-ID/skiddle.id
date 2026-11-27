@@ -248,6 +248,34 @@ describe('the CV’s blocks, read', () => {
   });
 });
 
+describe('the Services page’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('the intro: its lines, status and safe links, under its heading', () => {
+    const b = read('servicesIntro', { heading: 'Services', lines: ['a', '', 3], links: [{ label: 'CV', href: '/works/' }, { label: 'x', href: 'javascript:x' }] });
+    assert.deepEqual(b, { kind: 'servicesIntro', heading: 'Services', tagline: '', lines: ['a'], status: '', links: [{ label: 'CV', href: '/works/', me: false, primary: false }] });
+    assert.equal(read('servicesIntro', { tagline: 'no heading' }), undefined);
+  });
+
+  it('highlights: each with a value and a label, its story only if it’s a link the site would follow', () => {
+    const b = read('highlights', { highlights: [{ value: '5', label: 'years', href: '/posts/x/' }, { value: '1', label: 'l', href: 'javascript:x' }, { label: 'no value' }] });
+    assert.deepEqual(b, { kind: 'highlights', label: 'Highlights', highlights: [{ value: '5', label: 'years', href: '/posts/x/' }, { value: '1', label: 'l' }] });
+  });
+
+  it('services: needs an email to send to, and reads the services record, as the reviews do', () => {
+    assert.equal(read('services', { title: 'What I can help with', email: 'nope' }), undefined);
+    const p = pageFromRecord(page(block('services', { title: 'S', email: 'work@skiddle.id', brief: 'Hi' }), block('reviews', { title: 'R' }), block('steps', { title: 'How', steps: [{ title: 't', body: 'b' }] })));
+    assert.deepEqual(kinds(p), ['services', 'reviews', 'steps']);
+    assert.deepEqual(readsOf(p), ['services']);
+    assert.deepEqual(p.blocks.map((b) => b.anchor), ['services', 'kind-words', 'process']);
+  });
+
+  it('the brief: what to include, and its buttons', () => {
+    const b = read('brief', { title: 'Tell me', points: ['what', ''], links: [{ label: 'Bluesky', href: 'https://bsky.app/profile/x' }] });
+    assert.deepEqual([b.points, b.links.map((l) => linkIcon(l.href))], [['what'], ['bluesky']]);
+  });
+});
+
 describe('rows', () => {
   const rows = (...widths) => rowsOf(pageFromRecord(page(...widths.map((w) => block('now', {}, w)))).blocks).map((r) => r.map((b) => b.width));
 

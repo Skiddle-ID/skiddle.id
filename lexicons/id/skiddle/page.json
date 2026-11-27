@@ -91,7 +91,13 @@
             "#skills",
             "#projectGrid",
             "#education",
-            "#cvContact"
+            "#cvContact",
+            "#servicesIntro",
+            "#highlights",
+            "#services",
+            "#steps",
+            "#reviews",
+            "#brief"
           ],
           "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
         }
@@ -936,6 +942,165 @@
           "type": "string",
           "maxLength": 10000,
           "maxGraphemes": 1000
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          },
+          "description": "The buttons; one marked primary stands out."
+        }
+      }
+    },
+    "servicesIntro": {
+      "type": "object",
+      "description": "The Services page's pitch: a heading, the page's main heading, a tagline, a few lines, whether Jeff is available, and buttons.",
+      "required": ["heading"],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The page's main heading. The page hides its own."
+        },
+        "tagline": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "lines": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 5000,
+            "maxGraphemes": 500
+          },
+          "description": "Lines in Markdown, in a muted colour; bold shows in the text colour."
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "e.g. 'Open to consulting · based in Bangkok (UTC+7)'."
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          },
+          "description": "The buttons; one marked primary stands out."
+        }
+      }
+    },
+    "highlights": {
+      "type": "object",
+      "description": "Numbers that back the page up, as cards, each with a link to the story behind it.",
+      "required": ["highlights"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "What they are, read out by screen readers, e.g. 'Track record'."
+        },
+        "highlights": {
+          "type": "array",
+          "maxLength": 12,
+          "items": {
+            "type": "ref",
+            "ref": "#highlight"
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "description": "What Jeff offers (id.skiddle.services), as cards, each with its rating from the testimonials and a link to email about it.",
+      "required": ["title", "email"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 254,
+          "description": "Where each card's 'Ask about this' email goes."
+        },
+        "brief": {
+          "type": "string",
+          "maxLength": 5000,
+          "maxGraphemes": 500,
+          "description": "What those emails start with."
+        }
+      }
+    },
+    "steps": {
+      "type": "object",
+      "description": "How working with Jeff goes, as numbered steps.",
+      "required": ["title", "steps"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "steps": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#point"
+          }
+        }
+      }
+    },
+    "reviews": {
+      "type": "object",
+      "description": "Every testimonial of the Services page (id.skiddle.services), with its rating and the average, sliding, with chips to show one service's once there are many.",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        }
+      }
+    },
+    "brief": {
+      "type": "object",
+      "description": "A box asking about a project: a heading, a line, what to include, and buttons with icons.",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The section's heading."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 3000,
+          "maxGraphemes": 300
+        },
+        "points": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100
+          },
+          "description": "What to include, as a list."
         },
         "links": {
           "type": "array",

@@ -15,7 +15,7 @@ import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { FALLBACK_HOME } from '../src/data/home.ts';
 import { PAGE_COLLECTION } from '../src/lib/page-blocks.mjs';
 import { CONTENT_PAGES } from '../src/data/list-pages.ts';
-import { aboutPageFromLegacy, cvPageFromLegacy, homePageFromLegacy, nowPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
+import { aboutPageFromLegacy, cvPageFromLegacy, homePageFromLegacy, nowPageFromLegacy, servicesPageFromLegacy, usesPageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { aboutFromRecord, cvFromRecord, homeOf, usesFromRecord } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -63,6 +63,7 @@ const made = [
   ['the Now page', PAGE_COLLECTION, nowPageFromLegacy(CONTENT_PAGES.now, at)],
   ['the Uses page from its live record', PAGE_COLLECTION, usesPageFromLegacy(usesFromRecord(fixture('uses')), CONTENT_PAGES.uses)],
   ['the CV from its live record', PAGE_COLLECTION, cvPageFromLegacy(cvFromRecord(fixture('cv')).works, cvFromRecord(fixture('cv')).highlights, CONTENT_PAGES.works, at)],
+  ['the Services page with the CV’s live highlights', PAGE_COLLECTION, servicesPageFromLegacy(cvFromRecord(fixture('cv')).highlights, CONTENT_PAGES.services, at)],
 ];
 for (const [what, collection, record] of made) {
   try {

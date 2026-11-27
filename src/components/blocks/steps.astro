@@ -1,0 +1,23 @@
+---
+/* The steps block (src/lib/page-blocks.mjs): how working with Jeff goes, as numbered cards, four to a row on a wide screen */
+import type { StepsBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: StepsBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <h2 id={anchor} class="font-semibold before-hash-2">{block.title}</h2>
+  <ol class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {block.steps.map((s, i) => (
+      <li class="card p-4">
+        <p class="text-xs text-[var(--color-primary)] font-semibold">step {i + 1}</p>
+        <h3 class="font-semibold mt-1">{s.title}</h3>
+        <p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{s.body}</p>
+      </li>
+    ))}
+  </ol>
+</section>

@@ -10,12 +10,14 @@
 import { rowsOf, type BlockKind, type Page } from '~/lib/page-blocks.mjs';
 import type { PageData } from '~/lib/page-data';
 import Frame from './frame.astro';
+import brief from './brief.astro';
 import callToAction from './callToAction.astro';
 import contact from './contact.astro';
 import cvContact from './cvContact.astro';
 import cvHeader from './cvHeader.astro';
 import education from './education.astro';
 import facts from './facts.astro';
+import highlights from './highlights.astro';
 import jobs from './jobs.astro';
 import links from './links.astro';
 import markdown from './markdown.astro';
@@ -26,9 +28,13 @@ import projectGrid from './projectGrid.astro';
 import profile from './profile.astro';
 import projects from './projects.astro';
 import recentPosts from './recentPosts.astro';
+import reviews from './reviews.astro';
 import section from './section.astro';
+import services from './services.astro';
+import servicesIntro from './servicesIntro.astro';
 import skills from './skills.astro';
 import soFar from './soFar.astro';
+import steps from './steps.astro';
 import testimonials from './testimonials.astro';
 import thisWeek from './thisWeek.astro';
 import uses from './uses.astro';
@@ -46,7 +52,7 @@ const { page, data, preview, class: className } = Astro.props;
 // Each kind of block's component (src/lib/page-blocks.mjs's BLOCKS has how each is read). A new kind
 // is a def in lexicons/id/skiddle/page.json, an entry in BLOCKS and a component here, which
 // scripts/page-blocks.test.mjs checks
-const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull, uses, cvHeader, jobs, skills, projectGrid, education, cvContact } satisfies Record<BlockKind, unknown>;
+const BLOCK_COMPONENTS = { profile, markdown, links, now, thisWeek, projects, recentPosts, testimonials, callToAction, facts, section, principles, soFar, contact, nowFull, uses, cvHeader, jobs, skills, projectGrid, education, cvContact, servicesIntro, highlights, services, steps, reviews, brief } satisfies Record<BlockKind, unknown>;
 const COLUMN = { narrow: 'max-w-[70ch] w-full', wide: 'max-w-[56rem] w-full' };
 // Blocks side by side line up at the top: the row has the space above it, not each block. A block
 // that shows nothing (it failed, or This week is empty) leaves no gap.

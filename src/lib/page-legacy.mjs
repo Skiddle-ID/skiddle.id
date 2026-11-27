@@ -223,3 +223,59 @@ export function cvPageFromLegacy(works, highlights, meta, updatedAt) {
     'wide',
   );
 }
+
+/** What the Services page's emails start with, so people know what to say */
+const SERVICES_BRIEF = ['Hi Jeff,', '', 'What I need help with:', '', 'Goal / what "done" looks like:', '', 'Timeline:', '', 'Current setup and constraints:', ''].join('\n');
+
+/**
+ * An email to Jeff's work address with a subject, and SERVICES_BRIEF as its start
+ * @param {string} subject
+ */
+const briefMail = (subject) => `mailto:work@skiddle.id?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(SERVICES_BRIEF)}`;
+
+/**
+ * The Services page's record: what was in the page's code, and the CV's highlights as its track
+ * record. The services and testimonials stay in the id.skiddle.services record, which the home page
+ * reads too.
+ * @param {import('../types/highlights').Highlight[]} highlights The id.skiddle.cv record's
+ * @param {PageMeta} meta
+ * @param {string} updatedAt
+ */
+export function servicesPageFromLegacy(highlights, meta, updatedAt) {
+  const email = { label: 'Email work@skiddle.id', href: briefMail('Service inquiry from skiddle.id'), primary: true };
+  return pageRecord(
+    meta,
+    [
+      blockRecord('servicesIntro', {
+        heading: 'Services',
+        tagline: "Infrastructure that's secure, automated and boring in the best way, so you can get back to your product.",
+        lines: [
+          "I help small teams and individuals with servers, pipelines, monitoring and self-hosting. If you don't see exactly what you need, ask anyway and we'll figure it out.",
+          'Client work runs through **Skiddle Labs Pte. Ltd.**, my own company.',
+        ],
+        status: 'Open to consulting · based in Bangkok (UTC+7)',
+        links: [email, { label: 'See what I do', href: '#services' }, { label: 'View my CV', href: '/works/' }].map(linkRecord),
+      }),
+      blockRecord('highlights', { label: 'Track record', highlights: highlights.map((h) => defined({ ...h })) }),
+      blockRecord('services', { title: 'What I can help with', email: 'work@skiddle.id', brief: SERVICES_BRIEF }),
+      blockRecord('steps', {
+        title: 'How it works',
+        steps: [
+          { title: 'Tell me about it', body: 'Email what you need, your goal, timeline and constraints. The template below helps.' },
+          { title: 'Get a plan', body: 'I reply with next steps and a lightweight plan, so you know what you’re getting before we start.' },
+          { title: 'Build it', body: 'I set it up, keep you posted, and stick to what we agreed.' },
+          { title: 'Hand over', body: 'You get notes on what was set up and how to run it, so you’re not dependent on me.' },
+        ],
+      }),
+      blockRecord('reviews', { title: 'What people say' }),
+      blockRecord('brief', {
+        title: 'Tell me about your project',
+        text: "A few lines is plenty. The email button opens with a short template so you don't have to think about what to include:",
+        points: ['what you need help with', 'what "done" looks like', 'your timeline', 'your current setup and any constraints'],
+        links: [email, { label: 'Or say hi on Bluesky', href: 'https://bsky.app/profile/skiddle.blue' }].map(linkRecord),
+      }),
+    ],
+    updatedAt,
+    'wide',
+  );
+}

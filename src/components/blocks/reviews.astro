@@ -1,0 +1,144 @@
+---
+/*
+  The reviews block (src/lib/page-blocks.mjs): every testimonial of id.skiddle.services, in the
+  record's order (drag them in the admin app to reorder), with its rating and the average, as a row
+  of equal cards that slides (src/lib/slider.ts): 3 in view on a wide screen, 2 on a tablet, 1 on a
+  phone with the next one peeking. Long quotes are cut at 7 lines with "Read more". Chips show one
+  service's once there are many. Without JavaScript the row still scrolls, and quotes are whole. The
+  Services page's script runs the slider, the chips and "Read more" (src/pages/services.astro).
+*/
+import type { ReviewsBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+import { ratingSummary, reviews, serviceAnchor, serviceKey, serviceOf, stars, testimonialGroups } from '~/lib/testimonials.mjs';
+
+interface Props {
+  block: ReviewsBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { block, anchor, data } = Astro.props;
+const { services, testimonials } = await data.services();
+// What the testimonials are about, for the chips
+const summary = ratingSummary(testimonials);
+const groups = testimonialGroups(testimonials, services);
+// The chips appear once there are more testimonials than two rows of the slider would show, about
+// more than one thing
+const filterable = testimonials.length > 6 && groups.length > 1;
+---
+
+{testimonials.length > 0 && (
+  <section id={anchor} aria-labelledby={anchor && `${anchor}-title`} class="mt-12 scroll-mt-16" data-testimonials>
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h2 id={anchor && `${anchor}-title`} class="font-semibold before-hash-2">{block.title}</h2>
+      {summary && (
+        <p class="text-xs text-[var(--color-muted)]">
+          <span class="text-[var(--color-warn)]" aria-hidden="true">★</span> {summary.average} average · {reviews(summary.count)}
+        </p>
+      )}
+    </div>
+    {/* One row that scrolls sideways on a phone, so the chips don't push the testimonials down; wrapped on wider screens */}
+    {filterable && (
+      <div class="mt-3 -mx-1 px-1 pb-1 flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible [scrollbar-width:thin]" role="group" aria-label="Show testimonials about" data-filters hidden>
+        <button type="button" class="btn shrink-0 whitespace-nowrap aria-pressed:border-[var(--color-primary)] aria-pressed:text-[var(--color-primary)]" aria-pressed="true" data-filter="">All <span class="text-[var(--color-muted)] tabular-nums">{testimonials.length}</span></button>
+        {groups.map((g) => (
+          <button type="button" class="btn shrink-0 whitespace-nowrap aria-pressed:border-[var(--color-primary)] aria-pressed:text-[var(--color-primary)]" aria-pressed="false" data-filter={g.key}>{g.label} <span class="text-[var(--color-muted)] tabular-nums">{g.count}</span></button>
+        ))}
+      </div>
+    )}
+    <div
+      class="ts-track mt-4"
+      data-track
+      tabindex="0"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Testimonials"
+    >
+      {testimonials.map((t, i) => {
+        const service = serviceOf(services, t.serviceName);
+        return (
+          <figure class="ts-card card p-5 flex flex-col" data-slide data-service={serviceKey(service?.name ?? t.serviceName ?? '')} aria-roledescription="slide" aria-label={`${i + 1} of ${testimonials.length}`}>
+            <p class="text-[var(--color-warn)] text-sm tracking-[0.15em]" role="img" aria-label={`${t.rating} out of 5 stars`}>{stars(t.rating)}</p>
+            <blockquote class="ts-quote text-sm leading-relaxed mt-2" data-quote>“{t.quote}”</blockquote>
+            <button type="button" class="self-start mt-1 text-xs link" data-read-more hidden aria-expanded="false">Read more</button>
+            <figcaption class="mt-auto pt-4 text-xs text-[var(--color-muted)]">
+              <span class="block text-[var(--color-text)]">{t.author}</span>
+              {t.role}
+              {service ? (
+                <a href={`#${serviceAnchor(service.name)}`} class="block mt-1 text-[var(--color-primary)] hover:underline">{service.name}</a>
+              ) : (
+                t.serviceName && <span class="block mt-1 text-[var(--color-primary)]">{t.serviceName}</span>
+              )}
+            </figcaption>
+          </figure>
+        );
+      })}
+    </div>
+    <div class="mt-3 flex items-center gap-1 text-xs text-[var(--color-muted)]" data-controls hidden>
+      <button type="button" class="ts-btn" data-prev aria-label="Previous testimonials">‹</button>
+      <span class="tabular-nums px-1" data-count aria-live="polite"></span>
+      <button type="button" class="ts-btn" data-next aria-label="Next testimonials">›</button>
+    </div>
+  </section>
+)}
+
+<style>
+  /* The testimonials' row: equal cards, 1 in view on a phone (with the next peeking), 2 on a tablet, 3 wide */
+  .ts-track {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .ts-track::-webkit-scrollbar {
+    display: none;
+  }
+  .ts-track:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-md, 6px);
+  }
+  .ts-card {
+    flex: 0 0 85%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 640px) {
+    .ts-card {
+      flex-basis: calc((100% - 0.75rem) / 2);
+    }
+  }
+  @media (min-width: 1024px) {
+    .ts-card {
+      flex-basis: calc((100% - 1.5rem) / 3);
+    }
+  }
+  /* A long quote, cut at 7 lines until "Read more" (only with JavaScript, which adds the class) */
+  .ts-quote.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+    overflow: hidden;
+  }
+  .ts-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    border-radius: var(--radius-sm, 4px);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .ts-btn:hover {
+    color: var(--color-primary);
+  }
+  .ts-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+</style>
