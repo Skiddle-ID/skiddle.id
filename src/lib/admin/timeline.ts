@@ -1,12 +1,14 @@
 /**
- * The Timeline section: the events on /timeline/ (id.skiddle.event, docs/v4/timeline.md). Three
- * lists: Upcoming (not over yet), Fill in the details (over, but still only rough), and Past. Each
+ * The Timeline section: the events on /timeline/ (id.skiddle.event, docs/v4/timeline.md), as a table
+ * (src/lib/admin/table.ts) filtered by Upcoming (not over yet), Fill in (over, but still only rough)
+ * and Past. Each
  * event opens in the page editor (#event/<key>, src/lib/admin/page-editor.ts), and New event starts
  * one (#new-event).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { DETAIL_FIELDS, EVENT_COLLECTION, KINDS, isOver, spanLabel } from '~/lib/timeline.mjs';
-import { el, item, message } from './dom';
+import { el, message } from './dom';
+import { badge, cellLink, renderTable } from './table';
 import { missingScopes } from './oauth';
 import { report } from './overview';
 import { listRecords, type RepoRecord } from './xrpc';
@@ -37,11 +39,28 @@ export async function loadTimeline() {
   const past = records.filter((r) => isOver(r.value)).sort((a, b) => byStart(b, a));
   // Over, but it was saved while upcoming, so it has none of its details yet
   const rough = past.filter((r) => !DETAIL_FIELDS.some((k) => r.value[k] !== undefined));
-  const rest = past.filter((r) => !rough.includes(r));
-  fillList('timelineUpcoming', upcoming, 'Nothing coming up.');
-  fillList('timelineRough', rough, 'Nothing to fill in.');
-  fillList('timelinePast', rest, 'Nothing yet.');
-  el('timelineRoughSection').hidden = rough.length === 0;
+  // Upcoming soonest first, then the rest newest first
+  const rows = [...upcoming, ...past].map((r) => ({ r, state: upcoming.includes(r) ? 'upcoming' : rough.includes(r) ? 'rough' : 'past' }));
+  const states = { upcoming: ['upcoming', 'ok'], rough: ['fill in', 'warn'], past: ['past', 'muted'] } as const;
+  renderTable(
+    {
+      host: el('timelineTable'),
+      noun: 'events',
+      columns: [
+        { label: 'Event', cell: ({ r }) => cellLink(`#event/${rkeyOf(r.uri)}`, nameOf(r.value)) },
+        { label: 'When', cell: ({ r }) => whereWhen(r.value), secondary: true },
+        { label: 'State', cell: ({ state }) => badge(states[state as keyof typeof states][0], states[state as keyof typeof states][1]) },
+      ],
+      filters: [
+        { label: 'Upcoming', test: ({ state }) => state === 'upcoming' },
+        { label: 'Fill in', test: ({ state }) => state === 'rough' },
+        { label: 'Past', test: ({ state }) => state !== 'upcoming' },
+      ],
+      text: ({ r }) => [r.value.title, r.value.kind, r.value.city].filter(Boolean).join(' '),
+      empty: 'No events yet. New event adds one.',
+    },
+    rows,
+  );
   report('timeline', {
     count: upcoming.length,
     stats: { 'Upcoming events': upcoming.length },
@@ -55,27 +74,13 @@ export async function loadTimeline() {
   message('timelineMessage', '');
 }
 
-function fillList(id: string, records: RepoRecord<EventRecord>[], empty: string) {
-  el(id).replaceChildren(...(records.length ? records.map(row) : [item(empty, 'admin-muted')]));
-}
+/** An event's name: its title, or its kind */
+const nameOf = (v: EventRecord) => String(v.title || KINDS[v.kind as keyof typeof KINDS] || KINDS.other);
 
-function row(r: RepoRecord<EventRecord>) {
-  const v = r.value;
-  const li = item('');
-  const head = document.createElement('div');
-  const name = document.createElement('a');
-  name.href = `#event/${rkeyOf(r.uri)}`;
-  name.className = 'admin-pages-name';
-  const kind = KINDS[v.kind as keyof typeof KINDS] ?? KINDS.other;
-  name.textContent = v.title || kind;
-  head.appendChild(name);
-  const note = document.createElement('span');
-  note.className = 'admin-muted';
+/** Its days, its city, and whether it's announced */
+function whereWhen(v: EventRecord) {
   const start = String(v.startsOn);
-  note.textContent = [v.title && kind, spanLabel(start, typeof v.endsOn === 'string' && v.endsOn > start ? v.endsOn : start), v.city, v.announced && 'announced']
+  return [v.title && (KINDS[v.kind as keyof typeof KINDS] ?? KINDS.other), spanLabel(start, typeof v.endsOn === 'string' && v.endsOn > start ? v.endsOn : start), v.city, v.announced && 'announced']
     .filter(Boolean)
     .join(' · ');
-  li.appendChild(head);
-  li.appendChild(note);
-  return li;
 }

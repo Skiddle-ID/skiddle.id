@@ -46,11 +46,12 @@ import { wordStats } from '~/lib/markdown-edit.mjs';
 import { ranked } from '~/lib/suggest.mjs';
 import { countChars } from '~/lib/status-states.mjs';
 import { cardKey, cardPostOf, postCard } from './card-text';
-import { el, errorText, formatTime, item, message, revalidate, row, saveState, viewLink } from './dom';
+import { el, errorText, formatTime, message, revalidate, saveState, viewLink } from './dom';
 import { NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { ariaShortcut, insertText, markdownTools, pressedShortcut, shortcut } from './markdown-tools';
 import { missingScopes } from './oauth';
 import { report } from './overview';
+import { badge, cellLink, cellRow, renderTable } from './table';
 import { leavePage, openPage, pageRoute, savePageNow } from './page-editor';
 import { markNav, sectionFromHash, showSection } from './sections';
 import { tagSuggest } from './tag-suggest';
@@ -203,26 +204,50 @@ export async function loadPosts() {
   renderLists();
 }
 
-function renderLists() {
-  const draftList = el('drafts');
-  draftList.textContent = '';
-  const sorted = [...drafts].sort((a, b) => (b.value.updatedAt ?? b.value.createdAt).localeCompare(a.value.updatedAt ?? a.value.createdAt));
-  if (!sorted.length) draftList.appendChild(item('No drafts.', 'admin-muted'));
-  for (const d of sorted) {
-    const note = d.value.publishAt ? `scheduled for ${formatWhen(d.value.publishAt)}` : `edited ${formatTime(d.value.updatedAt ?? d.value.createdAt)}`;
-    draftList.appendChild(row(`#draft/${rkeyOf(d.uri)}`, d.value.title || 'Untitled', note));
-  }
+type PostRow = { kind: 'draft' | 'scheduled' | 'live'; title: string; href: string; note: string; path?: string };
 
-  const published = el('published');
-  published.textContent = '';
+const DAY = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** Posts and drafts as one table: drafts and scheduled ones first, then the published, newest first */
+function renderLists() {
   const posts = documents.filter((d) => isSitePost(d.value)).sort((a, b) => (b.value.publishedAt ?? '').localeCompare(a.value.publishedAt ?? ''));
-  for (const d of posts) {
-    const when = d.value.publishedAt ? new Date(d.value.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-    const r = row(`#post/${rkeyOf(d.uri)}`, d.value.title ?? d.value.path!, when);
-    r.appendChild(viewLink(d.value.path!, `View “${d.value.title}” on the site`));
-    published.appendChild(r);
-  }
-  el('publishedCount').textContent = String(posts.length);
+  const rows: PostRow[] = [
+    ...[...drafts]
+      .sort((a, b) => (b.value.updatedAt ?? b.value.createdAt).localeCompare(a.value.updatedAt ?? a.value.createdAt))
+      .map((d): PostRow => ({
+        kind: d.value.publishAt ? 'scheduled' : 'draft',
+        title: d.value.title || 'Untitled',
+        href: `#draft/${rkeyOf(d.uri)}`,
+        note: d.value.publishAt ? `for ${formatWhen(d.value.publishAt)}` : `edited ${formatTime(d.value.updatedAt ?? d.value.createdAt)}`,
+      })),
+    ...posts.map((d): PostRow => ({
+      kind: 'live',
+      title: d.value.title ?? d.value.path!,
+      href: `#post/${rkeyOf(d.uri)}`,
+      note: d.value.publishedAt ? DAY(d.value.publishedAt) : '',
+      path: d.value.path,
+    })),
+  ];
+  const label = { draft: ['draft', 'muted'], scheduled: ['scheduled', 'warn'], live: ['live', 'ok'] } as const;
+  renderTable(
+    {
+      host: el('postsTable'),
+      noun: 'posts',
+      columns: [
+        { label: 'Title', cell: (r) => cellRow(cellLink(r.href, r.title), ...(r.path ? [' ', viewLink(r.path, `View “${r.title}” on the site`)] : [])) },
+        { label: 'State', cell: (r) => badge(label[r.kind][0], label[r.kind][1]) },
+        { label: 'Date', cell: (r) => r.note, secondary: true },
+      ],
+      filters: [
+        { label: 'Drafts', test: (r) => r.kind === 'draft' },
+        { label: 'Scheduled', test: (r) => r.kind === 'scheduled' },
+        { label: 'Published', test: (r) => r.kind === 'live' },
+      ],
+      text: (r) => r.title,
+      empty: 'No posts or drafts yet.',
+    },
+    rows,
+  );
   report('posts', {
     count: posts.length,
     stats: { Posts: posts.length, Drafts: drafts.length, Scheduled: drafts.filter((d) => d.value.publishAt).length },

@@ -84,12 +84,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p>To write drafts, upload images, publish, edit categories and publish Bluesky feeds, the app needs more permissions from your account.</p>
             <button id="postsSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
-          <h3 class="admin-subhead">Drafts</h3>
-          <ul id="drafts" class="admin-list"><li class="admin-muted">Loading…</li></ul>
-          <details class="admin-details">
-            <summary>Published (<span id="publishedCount">…</span>)</summary>
-            <ul id="published" class="admin-list"></ul>
-          </details>
+          <div id="postsTable" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
           <p class="admin-small">Drafts are saved to your repo as you type, so they’re on all your devices. Anyone who looks can read them there, as with drafts in git today.</p>
           <p id="postsMessage" class="admin-message" role="status"></p>
         </section>
@@ -99,25 +94,22 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <h2 id="seriesTitle">Series</h2>
             <a href="#new-series" class="admin-btn admin-btn-ghost">New series</a>
           </div>
-          <ul id="seriesList" class="admin-list"><li class="admin-muted">Loading…</li></ul>
+          <div id="seriesTable" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
           <p id="seriesNotLive" class="admin-small" hidden></p>
           <p id="seriesMessage" class="admin-message" role="status"></p>
         </section>
 
         <section class="admin-card" data-section="pages" aria-labelledby="pagesTitle">
-          <h2 id="pagesTitle">Pages</h2>
+          <div class="admin-label-row">
+            <h2 id="pagesTitle">Pages</h2>
+            <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
+          </div>
           <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes and the projects: records in your repo, which the site’s pages read. Open one to edit it.</p>
           <div id="pagesScope" class="admin-notice" hidden>
             <p>To write the pages’ records, the app needs more permissions from your account.</p>
             <button id="pagesSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
-          <h3 class="admin-subhead">One record per page</h3>
-          <ul id="pagesList" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
-          <div class="admin-label-row">
-            <h3 class="admin-subhead">One record per project</h3>
-            <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
-          </div>
-          <ul id="projectsList" class="admin-lexicons admin-pages"></ul>
+          <div id="pagesTable" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
           <p id="pagesMessage" class="admin-message" role="status"></p>
           <p class="admin-small">Records are public, like the pages, and go further: other services can keep copies even after a delete.</p>
         </section>
@@ -195,15 +187,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p>To write events, the app needs one more permission from your account.</p>
             <button id="timelineSignIn" type="button" class="admin-btn">Sign in again</button>
           </div>
-          <h3 class="admin-subhead">Upcoming</h3>
-          <ul id="timelineUpcoming" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
-          <div id="timelineRoughSection" hidden>
-            <h3 class="admin-subhead">Fill in the details</h3>
-            <p class="admin-small">Over, and still only rough. Add what you’d like to show, or leave them as they are.</p>
-            <ul id="timelineRough" class="admin-lexicons admin-pages"></ul>
-          </div>
-          <h3 class="admin-subhead">Past</h3>
-          <ul id="timelinePast" class="admin-lexicons admin-pages"></ul>
+          <div id="timelineTable" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
           <p id="timelineMessage" class="admin-message" role="status"></p>
         </section>
 
@@ -1404,6 +1388,119 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
     }
     .admin-side[data-open] .admin-count {
       display: inline;
+    }
+  }
+  /* Tables (src/lib/admin/table.ts): filters and search over the rows; on a phone each row stacks */
+  .admin-table-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .admin-filter {
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  .admin-filter[aria-pressed='true'] {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  .admin-search {
+    flex: 1 1 10rem;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.875rem;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .admin-table[hidden] {
+    display: none;
+  }
+  .admin-table th {
+    text-align: left;
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    padding: 0.25rem 0.5rem 0.375rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .admin-table td {
+    padding: 0.5rem 0.5rem 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+  .admin-table tr:last-child td {
+    border-bottom: 0;
+  }
+  .admin-cell-secondary {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+  }
+  .admin-cell-row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5rem;
+  }
+  .admin-badge {
+    display: inline-block;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+  .admin-badge[data-kind='ok'] {
+    color: var(--color-ok);
+    border-color: var(--color-ok);
+  }
+  .admin-badge[data-kind='warn'] {
+    color: var(--color-warn);
+    border-color: var(--color-warn);
+  }
+  @media (max-width: 40rem) {
+    .admin-table thead {
+      display: none;
+    }
+    .admin-table tr {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.25rem 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .admin-table tr:last-child {
+      border-bottom: 0;
+    }
+    .admin-table td {
+      padding: 0;
+      border: 0;
+    }
+    .admin-table td:first-child {
+      flex: 1 0 100%;
     }
   }
   .admin-stats {
