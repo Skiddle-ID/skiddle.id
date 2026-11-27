@@ -1,30 +1,37 @@
 ---
 /*
   The timeline's views (/timeline/, src/lib/timeline.mjs): a week or a day as lists of entries by
-  day, and a month as a calendar grid with its events listed under it. Prev and next move by the
-  period; Day, Week and Month switch views around the same day.
+  day, and a month as a calendar grid with its events listed under it. Entries are Jeff's events and
+  what the site already has: posts, status changes and notes. On a day, all-day events come first,
+  then the rest by the moment they happened. Prev and next move by the period; Day, Week and Month
+  switch views around the same day.
 */
 import { introHtml } from '~/lib/now-html';
 import {
-  SITE_ZONE,
   dayLabel,
   dayOf,
   daysOf,
+  eventInstant,
   eventsOn,
   monthGrid,
   monthOf,
   spanLabel,
   weekOf,
+  zoneLabel,
+  type Activity,
   type Period,
   type TimelineEvent,
 } from '~/lib/timeline.mjs';
+import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
 
 interface Props {
   period: Period;
   events: TimelineEvent[];
+  /** Posts, status changes and notes (activitiesOf) */
+  activity: Activity[];
   today: string;
 }
-const { period, events, today } = Astro.props;
+const { period, events, activity, today } = Astro.props;
 
 const href = (key: string) => `/timeline/${key}/`;
 // The day the Day, Week and Month links centre on: today if it's in this period
@@ -37,13 +44,8 @@ const views = [
 const prevLabel = { day: 'previous day', week: 'previous week', month: 'previous month' }[period.kind];
 const nextLabel = { day: 'next day', week: 'next week', month: 'next month' }[period.kind];
 
-/** "18:05 CET": a time, with its zone's short name on that day */
-function timeIn(day: string, time: string, zone: string) {
-  const short = new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'short' })
-    .formatToParts(new Date(`${day}T12:00:00Z`))
-    .find((p) => p.type === 'timeZoneName')?.value;
-  return zone === SITE_ZONE || !short ? time : `${time} ${short}`;
-}
+/** "18:05 CET": a time, with its zone's short name on that day (none for Bangkok's) */
+const timeIn = (day: string, time: string, zone: string) => [time, zoneLabel(zone, day)].filter(Boolean).join(' ');
 /** The time column for an event on a day */
 function when(e: TimelineEvent, first: boolean, last: boolean) {
   if (first && e.startTime) return timeIn(e.startsOn, e.startTime, e.timeZone) + (e.endTime && last ? `–${e.endTime}` : '');
@@ -51,6 +53,15 @@ function when(e: TimelineEvent, first: boolean, last: boolean) {
   return 'all day';
 }
 const isExternal = (link: string) => /^https?:/i.test(link);
+
+type Entry = { sort: number; event: TimelineEvent; first: boolean; last: boolean } | { sort: number; activity: Activity };
+/** A day's entries: all-day events first, then everything else by when it happened */
+function entriesOn(day: string): Entry[] {
+  const evs: Entry[] = eventsOn(events, day).map(({ event, first, last }) => ({ sort: (first && eventInstant(event)) || -Infinity, event, first, last }));
+  const acts: Entry[] = activity.filter((a) => a.day === day).map((a) => ({ sort: a.at, activity: a }));
+  return [...evs, ...acts].sort((a, b) => a.sort - b.sort);
+}
+const KIND = { post: 'post', status: 'status', note: 'note' } as const;
 
 const days = period.kind === 'month' ? [] : daysOf(period);
 const grid = period.kind === 'month' ? monthGrid(period) : [];
@@ -73,10 +84,15 @@ const h2 = 'font-semibold before-hash-2';
   </span>
 </nav>
 
+<p class="text-xs text-[var(--color-muted)] mt-3 flex flex-wrap gap-x-4 gap-y-1">
+  <span><span class="inline-block size-1.5 rounded-full bg-[var(--color-primary)] align-middle mr-1.5" aria-hidden="true" />events</span>
+  <span><span class="inline-block size-1.5 rounded-full bg-[var(--color-muted)] align-middle mr-1.5" aria-hidden="true" />posts, statuses and notes</span>
+</p>
+
 {period.kind !== 'month' && (
   <div class="mt-6 flex flex-col gap-6">
     {days.map((day) => {
-      const on = eventsOn(events, day);
+      const on = entriesOn(day);
       return (
         <section aria-labelledby={`d-${day}`}>
           <h2 id={`d-${day}`} class:list={[h2, day === today && 'text-[var(--color-primary)]']}>
@@ -87,24 +103,46 @@ const h2 = 'font-semibold before-hash-2';
             <p class="text-sm text-[var(--color-muted)] mt-2">nothing</p>
           ) : (
             <ul class="mt-2 flex flex-col">
-              {on.map(({ event: e, first, last }) => (
-                <li class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 border-b last:border-b-0 text-sm">
-                  <span class="text-xs text-[var(--color-muted)] pt-0.5">{when(e, first, last)}</span>
-                  <div class="flex flex-col gap-0.5 min-w-0">
-                    <p>
-                      <span class="text-[var(--color-primary)]" aria-hidden="true">● </span>{e.title ?? e.label}
-                    </p>
-                    <p class="text-xs text-[var(--color-muted)]">
-                      {[e.title && e.label, e.startsOn !== e.endsOn && spanLabel(e.startsOn, e.endsOn), e.city, e.place].filter(Boolean).join(' · ')}
-                      {e.rough && <span>{e.title || e.city || e.startsOn !== e.endsOn ? ' · ' : ''}details after it's over</span>}
-                    </p>
-                    {e.note && first && <div class="text-sm leading-relaxed mt-1 flex flex-col gap-1" set:html={introHtml(e.note)} />}
-                    {e.link && first && (
-                      <a href={e.link} class="link text-xs mt-0.5 w-fit" {...(isExternal(e.link) ? { target: '_blank', rel: 'noopener' } : {})}>more →</a>
-                    )}
-                  </div>
-                </li>
-              ))}
+              {on.map((x) => 'event' in x ? (() => {
+                const { event: e, first, last } = x;
+                return (
+                  <li class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 border-b last:border-b-0 text-sm">
+                    <span class="text-xs text-[var(--color-muted)] pt-0.5">{when(e, first, last)}</span>
+                    <div class="flex flex-col gap-0.5 min-w-0">
+                      <p>
+                        <span class="text-[var(--color-primary)]" aria-hidden="true">● </span>{e.title ?? e.label}
+                      </p>
+                      <p class="text-xs text-[var(--color-muted)]">
+                        {[e.title && e.label, e.startsOn !== e.endsOn && spanLabel(e.startsOn, e.endsOn), e.city, e.place].filter(Boolean).join(' · ')}
+                        {e.rough && <span>{e.title || e.city || e.startsOn !== e.endsOn ? ' · ' : ''}details after it's over</span>}
+                      </p>
+                      {e.note && first && <div class="text-sm leading-relaxed mt-1 flex flex-col gap-1" set:html={introHtml(e.note)} />}
+                      {e.link && first && (
+                        <a href={e.link} class="link text-xs mt-0.5 w-fit" {...(isExternal(e.link) ? { target: '_blank', rel: 'noopener' } : {})}>more →</a>
+                      )}
+                    </div>
+                  </li>
+                );
+              })() : (() => {
+                const a = x.activity;
+                return (
+                  <li class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 py-2 border-b last:border-b-0 text-sm">
+                    <span class="text-xs text-[var(--color-muted)] pt-0.5">{timeIn(a.day, a.time, a.timeZone)}</span>
+                    <div class="flex flex-col gap-0.5 min-w-0">
+                      <p class="flex gap-1.5 items-baseline min-w-0">
+                        {a.emoji
+                          ? <span aria-hidden="true">{a.emoji}</span>
+                          : <span aria-hidden="true" class="inline-block size-1.5 rounded-full shrink-0 self-start mt-[0.45rem]" style={`background: ${a.type === 'status' && a.state ? toneColour(STATE_INFO[a.state as keyof typeof STATE_INFO]?.tone ?? 'mute') : 'var(--color-muted)'}`} />}
+                        <span class="text-xs text-[var(--color-muted)] shrink-0">{KIND[a.type]}</span>
+                        {a.href
+                          ? <a href={a.href} class="hover:text-[var(--color-primary)] min-w-0" {...(a.external ? { target: '_blank', rel: 'noopener' } : {})}>{a.text}</a>
+                          : <span class="min-w-0">{a.text}</span>}
+                      </p>
+                      {a.meta && <p class="text-xs text-[var(--color-muted)]">{a.meta}</p>}
+                    </div>
+                  </li>
+                );
+              })())}
             </ul>
           )}
         </section>
@@ -122,16 +160,18 @@ const h2 = 'font-semibold before-hash-2';
       {grid.map((day) => {
         if (!day) return <div aria-hidden="true" />;
         const n = eventsOn(events, day).length;
+        const m = activity.filter((a) => a.day === day).length;
         return (
           <a
             href={href(day)}
             class:list={['border rounded p-1.5 min-h-12 flex flex-col gap-1 hover:border-[var(--color-primary)]', day === today && 'border-[var(--color-primary)]']}
-            aria-label={`${dayLabel(day)}${n ? `: ${n} ${n === 1 ? 'event' : 'events'}` : ''}`}
+            aria-label={`${dayLabel(day)}${[n && `${n} ${n === 1 ? 'event' : 'events'}`, m && `${m} more`].filter(Boolean).map((x, i) => (i ? `, ${x}` : `: ${x}`)).join('')}`}
           >
             <span class:list={[day === today && 'text-[var(--color-primary)] font-semibold']}>{Number(day.slice(8))}</span>
-            {n > 0 && (
+            {n + m > 0 && (
               <span class="flex gap-0.5 flex-wrap" aria-hidden="true">
                 {Array.from({ length: Math.min(n, 3) }, () => <span class="size-1.5 rounded-full bg-[var(--color-primary)]" />)}
+                {Array.from({ length: Math.min(m, 3) }, () => <span class="size-1.5 rounded-full bg-[var(--color-muted)]" />)}
               </span>
             )}
           </a>

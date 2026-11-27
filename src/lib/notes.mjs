@@ -26,7 +26,7 @@ const CDN = 'https://cdn.bsky.app/img';
  *   | { kind: 'video', url: string }
  *   | { kind: 'quote', uri: string, url: string }
  *   | { kind: 'record', label: string, url: string }} Attachment
- * @typedef {{ rkey: string, createdAt: string, url: string, html: string, attachments: Attachment[] }} Note
+ * @typedef {{ rkey: string, createdAt: string, url: string, text: string, html: string, attachments: Attachment[] }} Note
  * @typedef {{ thumb: string, alt: string, width?: number, height?: number }} QuotedImage
  * @typedef {{
  *   uri: string,
@@ -125,6 +125,7 @@ export function notesFromRecords(records, picked) {
       rkey,
       createdAt: str(value.createdAt),
       url: postUrl(rkey),
+      text: str(value.text),
       html: richTextHtml(str(value.text), value.facets),
       attachments: attachmentsOf(value.embed, postUrl(rkey)),
     });
