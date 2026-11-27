@@ -30,6 +30,7 @@ import {
   servicesFromRecord,
   usesFromRecord,
 } from '~/lib/page-records.mjs';
+import { PAGE_COLLECTION, draftKey, pageFromRecord, type Page } from '~/lib/page-blocks.mjs';
 import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import { EVENT_COLLECTION, eventsFromRecords, type TimelineEvent } from '~/lib/timeline.mjs';
@@ -58,6 +59,7 @@ export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
   ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION, THEME_COLLECTION].map((c) => `record/${c}/self`),
   `list/${EVENT_COLLECTION}`,
+  `record/${PAGE_COLLECTION}/home`,
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -104,6 +106,15 @@ export async function getHome(): Promise<Home> {
   const value = await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self');
   const mine = (value ? homeFromRecord(value) : {}) as Partial<Home>;
   return { ...FALLBACK_HOME, ...mine, hire: { ...FALLBACK_HOME.hire, ...mine.hire } };
+}
+
+/**
+ * A page made of blocks (src/lib/page-blocks.mjs), from its id.skiddle.page record, or null while
+ * there's none (or it isn't a page). With `draft`, its draft (`home~draft`), read fresh each time,
+ * for ?preview=draft.
+ */
+export async function getPage(key: string, { draft = false } = {}): Promise<Page | null> {
+  return pageFromRecord(await getRecord<unknown>(PAGE_COLLECTION, draft ? draftKey(key) : key, draft ? { ttl: 0 } : {}));
 }
 
 /**

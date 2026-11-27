@@ -1,0 +1,40 @@
+---
+/*
+  The projects block (src/lib/page-blocks.mjs): the picked projects' cards, in the record's order,
+  and a link to all of them on /projects/. A pick that's no longer a project is left out.
+*/
+import type { ProjectsBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+
+interface Props {
+  block: ProjectsBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { block, anchor, data } = Astro.props;
+const projects = await data.projects();
+const selected = block.projects.map((id) => projects.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+---
+
+<section id={anchor} aria-labelledby={anchor && `${anchor}-title`} class="mt-12 scroll-mt-16">
+  <div class="flex items-baseline justify-between gap-4">
+    <h2 id={anchor && `${anchor}-title`} class="font-semibold before-hash-2">Selected work</h2>
+    <a href="/projects/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all projects →</a>
+  </div>
+  <div class="mt-4 flex flex-col gap-3">
+    {selected.map((p) => (
+      <article class="card p-4 hover:border-[var(--color-primary)] transition-colors">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+          <h3 class="font-semibold text-[var(--color-primary)]">{p.name}</h3>
+          <span class="text-xs text-[var(--color-muted)]">{[p.year, p.category].filter(Boolean).join(' · ')}</span>
+        </div>
+        <p class="text-sm mt-1.5">{p.impact ?? p.description}</p>
+        <p class="text-xs mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          {p.writeup && (<a href={p.writeup} class="link">read the story</a>)}
+          {p.homepage && (<a href={p.homepage} class="link" target="_blank" rel="noopener noreferrer">live</a>)}
+          {p.github && (<a href={p.github} class="link" target="_blank" rel="noopener noreferrer">source</a>)}
+        </p>
+      </article>
+    ))}
+  </div>
+</section>

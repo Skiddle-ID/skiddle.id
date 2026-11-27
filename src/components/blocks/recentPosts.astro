@@ -1,0 +1,72 @@
+---
+/*
+  The recent posts block (src/lib/page-blocks.mjs), "Writing": the series' cards, then the newest
+  posts, leaving out all but the newest part of each series (its card covers the rest). With
+  hideSeries, no cards, and every post counts.
+*/
+import PostList from '../post-list.astro';
+import SeriesBar from '../series-bar.astro';
+import type { RecentPostsBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
+
+interface Props {
+  block: RecentPostsBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { block, anchor, data } = Astro.props;
+const { posts, seriesInfo } = await data.posts();
+const series = block.hideSeries ? [] : groupSeries(posts, seriesInfo);
+
+const seen = new Set<string>();
+const recent = posts
+  .filter((p) => {
+    if (block.hideSeries || !p.data.series) return true;
+    if (seen.has(p.data.series)) return false;
+    seen.add(p.data.series);
+    return true;
+  })
+  .slice(0, block.limit);
+
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+// Finished series also say when their latest part came out
+const seriesMeta = (s: Series) =>
+  s.planned.length || s.ongoing
+    ? seriesStatus(s)
+    : `${seriesStatus(s)} · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
+const seriesLangs = (s: Series) => [...new Set(s.parts.map((p) => p.data.lang))];
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <div class="flex items-baseline justify-between gap-4">
+    <h2 id={anchor} class="font-semibold before-hash-2">Writing</h2>
+    <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
+  </div>
+  {series.length > 0 && (
+    <>
+      <h3 class="text-xs text-[var(--color-muted)] mt-4">series</h3>
+      {/* Two columns for 2 or 4 series, so no card sits alone on a row */}
+      <ul class:list={['grid gap-2.5 mt-2', series.length % 2 === 0 && series.length % 3 !== 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
+        {series.map((s) => (
+          <li class="flex">
+            <a href={seriesUrl(s.slug)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">
+              <span class="text-sm font-semibold leading-snug group-hover:text-[var(--color-primary)]">{s.name}</span>
+              <SeriesBar series={s} />
+              <span class="text-xs text-[var(--color-muted)] leading-normal">
+                {seriesMeta(s)}
+                {seriesLangs(s).length > 1 && seriesLangs(s).map((l) => (
+                  <span class="ml-1.5 inline-block border rounded-sm px-1 text-[10px] leading-4 uppercase">{l}</span>
+                ))}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <h3 class="text-xs text-[var(--color-muted)] mt-6">recent</h3>
+    </>
+  )}
+  <div class="mt-2">
+    <PostList posts={recent} />
+  </div>
+</section>

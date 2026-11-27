@@ -30,8 +30,9 @@ const running = new Map<string, { since: number; value: Promise<unknown> }>();
 
 const GAVE_UP = Symbol('gave up');
 
-/** `load()`'s result, cached in memory and at the edge for `ttl` seconds under `key` */
+/** `load()`'s result, cached in memory and at the edge for `ttl` seconds under `key`; a ttl of 0 loads it every time */
 export async function cached<T>(key: string, ttl: number, load: () => Promise<T>): Promise<T> {
+  if (ttl <= 0) return load();
   const now = Date.now();
   const hit = values.get(key);
   if (hit && hit.until > now) return hit.value as T;

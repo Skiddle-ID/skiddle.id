@@ -1,0 +1,42 @@
+---
+/*
+  The this week block (src/lib/page-blocks.mjs): this week's events on the timeline, and a count of
+  its posts, status changes and notes (/timeline/). Left out when the week is empty or can't be read.
+*/
+import type { ThisWeekBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+import { spanLabel } from '~/lib/timeline.mjs';
+
+interface Props {
+  block: ThisWeekBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { anchor, data } = Astro.props;
+const timeline = await data.week();
+---
+
+{timeline && (
+  <section aria-labelledby={anchor} class="mt-12">
+    <div class="flex items-baseline justify-between gap-4">
+      <div class="flex flex-wrap items-baseline gap-x-3">
+        <h2 id={anchor} class="font-semibold before-hash-2">This week</h2>
+        <span class="text-xs text-[var(--color-muted)]">{timeline.week.label}</span>
+      </div>
+      <a href="/timeline/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">timeline<span class="sr-only"> of what I'm up to</span> →</a>
+    </div>
+    <ul class="text-sm flex flex-col gap-1.5 mt-3">
+      {timeline.events.map((e) => (
+        <li class="flex gap-2">
+          <span aria-hidden="true" class="text-[var(--color-primary)]">-</span>
+          <span>{e.title ?? e.label}<span class="text-[var(--color-muted)]">{[spanLabel(e.startsOn, e.endsOn), e.city].filter(Boolean).map((x) => ` · ${x}`).join('')}</span></span>
+        </li>
+      ))}
+      {timeline.activity && (
+        <li class="flex gap-2 text-[var(--color-muted)]">
+          <span aria-hidden="true">-</span><span>{timeline.activity}</span>
+        </li>
+      )}
+    </ul>
+  </section>
+)}

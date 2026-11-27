@@ -1,0 +1,30 @@
+---
+/*
+  The now block (src/lib/page-blocks.mjs): the id.skiddle.now record's list and when it was
+  updated, or the built-in list (src/data/now.ts) while there's no record.
+*/
+import FormattedDate from '../formatted-date.astro';
+import NowList from '../now-list.astro';
+import { FALLBACK_NOW } from '~/data/now';
+import type { NowBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+
+interface Props {
+  block: NowBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { anchor, data } = Astro.props;
+const now = await data.now();
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <div class="flex items-baseline justify-between gap-4">
+    <div class="flex flex-wrap items-baseline gap-x-3">
+      <h2 id={anchor} class="font-semibold before-hash-2">Now</h2>
+      {now && <span class="text-xs text-[var(--color-muted)]">updated <FormattedDate date={new Date(now.updatedAt)} /></span>}
+    </div>
+    <a href="/now/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">more<span class="sr-only"> on what I'm doing now</span> →</a>
+  </div>
+  <NowList items={now?.items ?? FALLBACK_NOW} class="mt-3" />
+</section>

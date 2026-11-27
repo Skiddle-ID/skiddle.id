@@ -5,7 +5,7 @@
  * BLOCKS is the one table of the kinds of block: how each is read from a record, what each reads
  * from the site's data (src/lib/page-data.ts loads that once per request, however many blocks use
  * it) and the id its heading gets. Each kind has a component of the same name in
- * src/components/blocks/ (src/components/blocks/index.ts), and a def in the lexicon.
+ * src/components/blocks/ (BLOCK_COMPONENTS in blocks.astro), and a def in the lexicon.
  *
  * Reading is lenient: a block of a kind the site doesn't know is kept as `unknown` (the page leaves
  * it out; the admin app keeps it as it is), a width the site doesn't know is full, and a known block
@@ -48,6 +48,7 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
  * @property {BlockWidth} width
  * @property {KnownBlock | UnknownBlock} block
  * @property {string} [anchor] The id of the block's heading (or of the block), unique on the page
+ * @typedef {PlacedBlock & { block: KnownBlock }} KnownPlacedBlock
  *
  * @typedef {object} Page
  * @property {string} title
@@ -71,6 +72,16 @@ const linksOf = (/** @type {unknown} */ v) =>
   objects(v)
     .map((l) => ({ label: str(l.label) ?? '', href: str(l.href) ?? '', me: l.me === true, primary: l.primary === true }))
     .filter((l) => l.label && SAFE_HREF.test(l.href));
+
+/**
+ * How a link opens: one off the site in a new tab, and rel="me" on Jeff's own profiles
+ * @param {Link} l
+ * @returns {{ target?: '_blank', rel?: string }}
+ */
+export function linkAttributes(l) {
+  if (/^https?:/i.test(l.href)) return { target: '_blank', rel: l.me ? 'me noopener' : 'noopener' };
+  return l.me ? { rel: 'me' } : {};
+}
 
 const PROJECT_PREFIX = projectUri('');
 
@@ -200,10 +211,10 @@ const SPAN = { full: 6, half: 3, third: 2 };
 /**
  * The page's known blocks in rows: a full block alone, the others side by side while they fit
  * @param {PlacedBlock[]} blocks
- * @returns {PlacedBlock[][]}
+ * @returns {KnownPlacedBlock[][]}
  */
 export function rowsOf(blocks) {
-  /** @type {PlacedBlock[][]} */
+  /** @type {KnownPlacedBlock[][]} */
   const rows = [];
   let used = 6;
   for (const b of blocks) {
@@ -212,7 +223,7 @@ export function rowsOf(blocks) {
       rows.push([]);
       used = 0;
     }
-    rows[rows.length - 1].push(b);
+    rows[rows.length - 1].push(/** @type {KnownPlacedBlock} */ (b));
     used += SPAN[b.width];
   }
   return rows;
