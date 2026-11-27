@@ -60,6 +60,7 @@ export const PAGE_RECORD_KEYS = [
   ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION, THEME_COLLECTION].map((c) => `record/${c}/self`),
   `list/${EVENT_COLLECTION}`,
   ...SITE_PAGES.map((key) => `record/${PAGE_COLLECTION}/${key}`),
+  `list/${PAGE_COLLECTION}`,
 ];
 
 /** A page's record (key `self`); throws if it isn't there */
@@ -113,6 +114,15 @@ export async function getHome(): Promise<Home> {
  */
 export async function getPage(key: string, { draft = false } = {}): Promise<Page | null> {
   return pageFromRecord(await getRecord<unknown>(PAGE_COLLECTION, draft ? draftKey(key) : key, draft ? { ttl: 0 } : {}));
+}
+
+/**
+ * Every id.skiddle.page record, as one list: the site's pages, Jeff's own (src/lib/own-pages.mjs)
+ * and their drafts. Pages of Jeff's own are read from it, so a request for an address with no page
+ * reads nothing more.
+ */
+export function getPageRecords(): Promise<RepoRecord<unknown>[]> {
+  return listRecords<unknown>(PAGE_COLLECTION);
 }
 
 /**
