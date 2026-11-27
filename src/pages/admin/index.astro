@@ -108,7 +108,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <h2 id="pagesTitle">Pages</h2>
             <a href="#new-project" class="admin-btn admin-btn-ghost">New project</a>
           </div>
-          <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes and the projects: records in your repo, which the site’s pages read. Open one to edit it.</p>
+          <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes and the projects: records in your repo, which the site’s pages read. Open one to edit it. Pages made of blocks open the block editor.</p>
           <div id="pagesScope" class="admin-notice" hidden>
             <p>To write the pages’ records, the app needs more permissions from your account.</p>
             <button id="pagesSignIn" type="button" class="admin-btn">Sign in again</button>
@@ -476,8 +476,57 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p id="peNotLive" class="admin-small" hidden></p>
             <a id="peView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
             <button id="peDelete" type="button" class="admin-btn" hidden>Delete project</button>
+            <button id="peToBlocks" type="button" class="admin-btn" hidden>Move to blocks</button>
+            <p id="peToBlocksMessage" class="admin-message" role="status"></p>
+            <p id="peToBlocksNote" class="admin-small" hidden>Move to blocks makes a draft of the home page in blocks from its saved record, to check, preview and publish in the block editor. Until it’s published, the home page shows this record.</p>
           </div>
         </form>
+      </div>
+
+      <div id="blockEditor" class="admin-editor">
+        <div class="admin-editor-bar">
+          <a href="#pages" class="admin-btn admin-btn-ghost">← Pages</a>
+          <span id="bkState" class="admin-save-state" aria-live="polite"></span>
+        </div>
+        <h2 id="bkTitle" class="admin-editor-title"></h2>
+        <p id="bkFrom" class="admin-small"></p>
+        <div id="bkConflict" class="admin-notice" hidden>
+          <p>This was changed on another device since you opened it.</p>
+          <button id="bkLoadTheirs" type="button" class="admin-btn">Load that version</button>
+          <button id="bkKeepMine" type="button" class="admin-btn">Keep mine</button>
+        </div>
+
+        <form id="bkForm" class="admin-form" novalidate hidden>
+          <fieldset class="admin-field admin-lexform-group">
+            <legend class="admin-legend">The page</legend>
+            <div id="bkSettings"></div>
+            <div id="bkOwnCardRow" class="admin-field" hidden>
+              <label class="admin-check"><input id="bkOwnCard" type="checkbox" /> Its own share card</label>
+              <p class="admin-small">Drawn when it’s published. Without one, the home page uses the site’s card.</p>
+            </div>
+          </fieldset>
+          <fieldset class="admin-field admin-lexform-group">
+            <legend class="admin-legend">Blocks</legend>
+            <p class="admin-small">In reading order. On a wide screen, blocks flow into rows: a full one alone, two halves or three thirds side by side. On a phone, each is full width.</p>
+            <p id="bkReads" class="admin-small"></p>
+            <ol id="bkBlocks" class="admin-blocks"></ol>
+            <div class="admin-block-add">
+              <label for="bkAddKind">Add a block</label>
+              <select id="bkAddKind"></select>
+              <button id="bkAdd" type="button" class="admin-btn">Add</button>
+            </div>
+          </fieldset>
+          <p id="bkProblems" class="admin-message" role="status"></p>
+          <div class="admin-editor-actions">
+            <button id="bkSave" type="button" class="admin-btn admin-btn-primary" disabled>Save draft</button>
+            <button id="bkPreview" type="button" class="admin-btn" disabled>Preview</button>
+            <button id="bkPublish" type="button" class="admin-btn" disabled>Publish</button>
+            <p id="bkHint" class="admin-small"></p>
+            <p id="bkNotLive" class="admin-small" hidden></p>
+            <a id="bkView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
+          </div>
+        </form>
+        <p id="bkMessage" class="admin-message" role="status"></p>
       </div>
       </div>
     </main>
@@ -753,13 +802,15 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   .admin code {
     overflow-wrap: anywhere;
   }
-  /* The dashboard, the posts editor or the series editor, by body[data-view] (src/lib/admin/editor.ts) */
+  /* The dashboard or an editor, by body[data-view] (src/lib/admin/editor.ts) */
   body[data-view='editor'] #dashboard,
   body[data-view='series'] #dashboard,
   body[data-view='page'] #dashboard,
+  body[data-view='blocks'] #dashboard,
   body:not([data-view='editor']) #editor,
   body:not([data-view='series']) #seriesEditor,
-  body:not([data-view='page']) #pageEditor {
+  body:not([data-view='page']) #pageEditor,
+  body:not([data-view='blocks']) #blockEditor {
     display: none;
   }
   /* The page editors' forms, made from the lexicons (src/lib/admin/lexicon-form.ts) */
@@ -865,6 +916,57 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   }
   .admin-dragging .admin-drag {
     cursor: grabbing;
+  }
+  /* The block editor's blocks (src/lib/admin/block-editor.ts): each with its kind, width and buttons, then its options */
+  .admin-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    counter-reset: block;
+  }
+  .admin-block {
+    counter-increment: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+  }
+  .admin-block-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .admin-block-title {
+    flex: 1 1 8rem;
+    overflow-wrap: anywhere;
+  }
+  .admin-block-head > select {
+    flex: none;
+    width: auto;
+  }
+  /* Its number, which follows the order */
+  .admin-block-title::before {
+    content: counter(block) '. ';
+  }
+  .admin-block-options > summary {
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+  .admin-block-options[open] > summary {
+    margin-bottom: 0.75rem;
+  }
+  .admin-block-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .admin-block-add > select {
+    flex: 0 1 16rem;
+    width: auto;
   }
   /* A Markdown field's preview (src/lib/admin/lexicon-form.ts) */
   .admin-field-preview {
@@ -1394,10 +1496,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
       cursor: pointer;
     }
     /* An editor has its own back button and bars; the bottom bar would cover them */
-    body:is([data-view='editor'], [data-view='series'], [data-view='page']) .admin-side {
+    body:is([data-view='editor'], [data-view='series'], [data-view='page'], [data-view='blocks']) .admin-side {
       display: none;
     }
-    body:is([data-view='editor'], [data-view='series'], [data-view='page']) .admin {
+    body:is([data-view='editor'], [data-view='series'], [data-view='page'], [data-view='blocks']) .admin {
       padding-bottom: max(3rem, env(safe-area-inset-bottom));
     }
     /* More: every section, as a sheet above the bar */

@@ -10,6 +10,7 @@
  * one-time import.
  */
 import { DID } from './standard-site.mjs';
+import { isFrameHref } from './site-meta.mjs';
 
 export const PROJECT_COLLECTION = 'id.skiddle.project';
 export const CV_COLLECTION = 'id.skiddle.cv';
@@ -241,9 +242,6 @@ export function nowFromRecord(v) {
   });
 }
 
-/** A link the home page may show: a path on the site, or an https:, http: or mailto: URL */
-const SAFE_HREF = /^(\/(?![/\\])|https?:\/\/|mailto:)/i;
-
 /**
  * The home page's own text, from its record: only the fields it has, each checked, so the page
  * fills in the rest from src/data/home.ts. Unlike the other pages' records, nothing here is
@@ -257,7 +255,7 @@ export function homeFromRecord(v) {
   const selected = (strs(v.selectedProjects) ?? []).filter((uri) => uri.startsWith(projectPrefix)).map((uri) => uri.slice(projectPrefix.length));
   const elsewhere = objects(v.elsewhere)
     .map((l) => defined({ label: str(l.label), href: str(l.href), me: l.me === true ? true : undefined }))
-    .filter((l) => l.label && l.href && SAFE_HREF.test(l.href));
+    .filter((l) => l.label && l.href && isFrameHref(l.href));
   return defined({
     title: str(v.title) || undefined,
     description: str(v.description) || undefined,
@@ -268,4 +266,16 @@ export function homeFromRecord(v) {
     hire: Object.keys(hire).length ? hire : undefined,
     elsewhere: elsewhere.length ? elsewhere : undefined,
   });
+}
+
+/**
+ * The home page's text: the id.skiddle.home record's fields over the built-in text, which fills in
+ * any field the record leaves out, or all of them when there's no record
+ * @param {Record<string, any> | null | undefined} record
+ * @param {import('../types/home').Home} fallback src/data/home.ts
+ * @returns {import('../types/home').Home}
+ */
+export function homeOf(record, fallback) {
+  const mine = /** @type {Partial<import('../types/home').Home>} */ (record ? homeFromRecord(record) : {});
+  return { ...fallback, ...mine, hire: { ...fallback.hire, ...mine.hire } };
 }

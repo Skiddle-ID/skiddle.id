@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 and 2, the design and the frame, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 to 3, the design, the frame and the home page on blocks, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -103,15 +103,15 @@ The union is **open**, as AT Protocol's style guide asks "in almost all situatio
 
 Today's pages, as blocks:
 
-| Page           | Blocks                                                                                                                         |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Home           | Profile, Markdown (intro), Now and Status (half each), This week, Projects, Recent posts, Series, Testimonials, Call to action |
-| About          | Profile, Markdown, Principles, So far, Markdown (outside work), Contact                                                        |
-| CV (`/works/`) | Profile, Highlights, Jobs, Education, Links                                                                                    |
-| Services       | Markdown, Services, Testimonials, Call to action                                                                               |
-| Uses           | Uses                                                                                                                           |
-| Now            | Now                                                                                                                            |
-| Notes          | Bluesky posts                                                                                                                  |
+| Page           | Blocks                                                                                                                                                                  |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home           | Profile (with the status), Markdown (intro), Links (buttons), Now, This week, Projects, Recent posts (with the series), Testimonials, Call to action, Links (Elsewhere) |
+| About          | Profile, Markdown, Principles, So far, Markdown (outside work), Contact                                                                                                 |
+| CV (`/works/`) | Profile, Highlights, Jobs, Education, Links                                                                                                                             |
+| Services       | Markdown, Services, Testimonials, Call to action                                                                                                                        |
+| Uses           | Uses                                                                                                                                                                    |
+| Now            | Now                                                                                                                                                                     |
+| Notes          | Bluesky posts                                                                                                                                                           |
 
 Post pages, `/posts/`, series, topics and `/timeline/` stay templates: they're views of collections, not layouts. They can get small settings later (show the series bar, comments), not blocks.
 
@@ -150,7 +150,14 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
 
 1. **Design.** The theme's colours, fonts, sizes, shape and decoration; the Theme editor with its live preview and contrast check; share cards follow. **Built** ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198)): `src/lib/site-theme.mjs` reads the record and writes the page's CSS variables, which `src/style.css` reads with today's values as fallbacks. The font catalogue is Geist, Geist Mono, IBM Plex Sans, IBM Plex Mono, Inter, JetBrains Mono and Source Serif 4. Every theme colour is used for body-size text somewhere, so the contrast check asks 4.5:1 of each, never the 3:1 of large text.
 2. **The frame.** The menu, the footer and the sidebar's parts in `id.skiddle.site`; the sidebar, the command bar and the footer read them. **Built** ([#199](https://github.com/Skiddle-ID/skiddle.id/pull/199)): `menu` (up to 50 items, each a label, a link and an optional icon), `footerLinks` (up to 30), `hideMusic` and `hideThemeButtons`, read by `src/lib/site-meta.mjs`, which drops a link that isn't a site path, an `https:` or a `mailto:` address. The built-in menu, footer links and command bar pages are in `src/data/frame.ts`. The command bar lists the site's pages and, when the record sets a menu, its other links. There's no `hideStatus`: the sidebar shows no status, so it waits until it does.
-3. **Pages from blocks, starting with home.** `id.skiddle.page`, the block registry and wrapper, the blocks home needs, the block editor with draft, preview and publish, and page share cards drawn in the admin app.
+3. **Pages from blocks, starting with home.** `id.skiddle.page`, the block registry and wrapper, the blocks home needs, the block editor with draft, preview and publish, and page share cards drawn in the admin app. **Built** ([#200](https://github.com/Skiddle-ID/skiddle.id/pull/200)):
+   - `src/lib/page-blocks.mjs` reads a page record leniently and has `BLOCKS`, the one table of kinds: how each is read, what it reads and its heading's id. Each kind is a component in `src/components/blocks/`, laid out in rows by `blocks.astro`; `frame.astro` renders each one first, so one that fails is left out and logged. Side by side, blocks line up at the top, and a block that shows nothing leaves no gap. `scripts/page-blocks.test.mjs` checks every kind has its def, reader and component.
+   - Home's nine kinds: profile (with the status line), markdown, links (buttons or a line), now, this week, projects, recent posts (with the series' cards), testimonials and call to action. The quick links and the hire box's buttons, which were in the page's code, are links in the record now. Markdown renders like the Now page's intro: raw HTML shows as text.
+   - Until `home` is published, the home page renders its old record turned into blocks (`homePageFromLegacy`), so every deploy runs the blocks. `scripts/parity.mjs` found its `<main>`, title, description and JSON-LD the same as the live page's; only whitespace between blocks and between buttons in flex rows differs, which doesn't render.
+   - Each source the blocks read is loaded once per request, all started together (`src/lib/page-data.ts`). A source that fails fails the page, as before, so a cached copy shows; only This week is left out.
+   - `/?preview=draft` renders `home~draft`, read fresh, with `Cache-Control: no-store` and `X-Robots-Tag: noindex`, under a note that it's a preview.
+   - The admin app's block editor (`#blocks/home`) and Move to blocks: see [the README](../../README.md#admin-app).
+   - **The budget,** measured on a local `wrangler dev`, as the workerd process's CPU time per request: 3.4–3.8 ms with the records cached (150 requests, 3 runs; a bare request costs 1.2 ms), against 6.4–7.8 ms for the page before blocks. Most of the difference is a fix that came out of measuring: the timeline built two date formatters for every post, status change and note on each render (`src/lib/timeline.mjs` now makes each once). A render with expired records makes 21 subrequests (20 before: the page record is read first, and the old record too until the page record exists) and costs 110–120 ms of process CPU (130–140 before). That figure also counts the TLS and HTTP work of 21 HTTPS connections, which Cloudflare does outside the Worker, so it's an upper bound; Workers observability shows the real CPU time of those renders.
 4. **The other pages,** one PR each: About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks.
 5. **Pages of Jeff's own:** New page, the address rules, the sitemap, search and the menu.
 6. **Clean-up:** stop using the seven old lexicons, mark them deprecated, drop their permissions.

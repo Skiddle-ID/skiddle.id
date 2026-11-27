@@ -1,0 +1,18 @@
+---
+/*
+  The testimonials block (src/lib/page-blocks.mjs): the Services page's testimonials, sliding
+  (src/components/testimonial-slider.astro), so they're kept in one place: id.skiddle.services.
+*/
+import TestimonialSlider from '../testimonial-slider.astro';
+import type { TestimonialsBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+
+interface Props {
+  block: TestimonialsBlock;
+  data: PageData;
+}
+const { data } = Astro.props;
+const services = await data.services();
+---
+
+<TestimonialSlider testimonials={services.testimonials} />

@@ -105,7 +105,7 @@ The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), i
 - [x] Share cards: the publication's logo and a design from the theme ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194)); the site's default mode and accent ([#195](https://github.com/Skiddle-ID/skiddle.id/pull/195))
 - [x] Design: colours, fonts, sizes, shape and decoration in the theme, with a live preview and a contrast check ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198))
 - [x] The frame: the menu, the footer's links and the sidebar's switches in `id.skiddle.site`, edited in Site and SEO ([#199](https://github.com/Skiddle-ID/skiddle.id/pull/199))
-- [ ] Pages from blocks, starting with home: `id.skiddle.page`, the block editor, draft, preview and publish
+- [x] Pages from blocks, starting with home: `id.skiddle.page`, the block editor, draft, preview and publish ([#200](https://github.com/Skiddle-ID/skiddle.id/pull/200))
 - [ ] The other pages on blocks: About, Now, Uses, the CV, Services, Notes
 - [ ] Pages of Jeff's own, at an address he picks
 - [ ] Clean-up: the seven old page lexicons go

@@ -74,6 +74,19 @@ export function cardSeriesOf(
   };
 }
 
+/** The parts of a page made of blocks (id.skiddle.page) that its card shows */
+export interface CardPage {
+  /** Its record key, which is its address: home for / */
+  key: string;
+  title: string;
+  description?: string;
+}
+
+/** A page's card: "whoami" for the home page, "cd ~/<key>" for the others, then its title and description */
+export function pageCard(page: CardPage): CardText {
+  return { command: page.key === 'home' ? 'whoami' : `cd ~/${page.key}`, title: page.title, description: page.description, meta: [''] };
+}
+
 /** A post's card, as the build draws it */
 export function postCard(post: CardPost): CardText {
   // As the post page computes them (src/lib/posts.ts): words / 220, and the date in UTC

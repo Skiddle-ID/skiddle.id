@@ -3,13 +3,18 @@
  * Checks the lexicons in lexicons/: each is a valid lexicon document, and its path matches its id
  * (lexicons/id/skiddle/post.json is id.skiddle.post). Runs in CI: `npm run check:lexicons`.
  *
- * Before the v4 launch this also checked every post, series and page of the site's data against
- * the lexicons, on their way into records. Since the launch the records are the only copy, and the
- * admin app checks each record against its lexicon before it saves it.
+ * It also checks the records the site and the admin app make themselves: the home page's
+ * id.skiddle.page record converted from its old record (the live one in scripts/fixtures/, and the
+ * built-in text in src/data/home.ts), which the page renders until it has one and Move to blocks
+ * saves as a draft. Before the v4 launch it checked every post, series and page of the site's data
+ * on their way into records; since then the admin app checks each record it saves.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { Lexicons } from '@atproto/lexicon';
+import { Lexicons, jsonToLex } from '@atproto/lexicon';
+import { FALLBACK_HOME } from '../src/data/home.ts';
+import { PAGE_COLLECTION, homePageFromLegacy } from '../src/lib/page-blocks.mjs';
+import { homeOf } from '../src/lib/page-records.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const errors = [];
@@ -46,8 +51,23 @@ for (const file of files.sort()) {
   }
 }
 
+// Records made from data, each checked against its lexicon
+const at = new Date().toISOString();
+const homeRecord = JSON.parse(readFileSync(join(ROOT, 'scripts/fixtures/home-record.json'), 'utf8'));
+const made = [
+  ['the home page from its live record', PAGE_COLLECTION, homePageFromLegacy(homeOf(homeRecord, FALLBACK_HOME), at)],
+  ['the home page from its built-in text', PAGE_COLLECTION, homePageFromLegacy(homeOf(null, FALLBACK_HOME), at)],
+];
+for (const [what, collection, record] of made) {
+  try {
+    lex.assertValidRecord(collection, jsonToLex(record));
+  } catch (err) {
+    fail(what, err.message);
+  }
+}
+
 if (errors.length) {
   console.error(`${errors.length} problem${errors.length > 1 ? 's' : ''}:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
   process.exit(1);
 }
-console.log(`All ${ids.length} lexicons are valid: ${ids.join(', ')}.`);
+console.log(`All ${ids.length} lexicons are valid: ${ids.join(', ')}. ${made.length} records made from data match theirs.`);

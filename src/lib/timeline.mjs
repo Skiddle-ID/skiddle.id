@@ -40,11 +40,27 @@ export const isDate = (/** @type {unknown} */ s) =>
 /** A time of day, HH:MM */
 export const isTime = (/** @type {unknown} */ s) => typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
 
+/** @type {Map<string, Intl.DateTimeFormat>} */
+const formatters = new Map();
+
+/**
+ * A date formatter, made once for each locale and options: making one costs far more than using
+ * it, and the timeline formats a time for every post, status change and note
+ * @param {string} locale
+ * @param {Intl.DateTimeFormatOptions} options
+ */
+function formatter(locale, options) {
+  const key = `${locale} ${JSON.stringify(options)}`;
+  let f = formatters.get(key);
+  if (!f) formatters.set(key, (f = new Intl.DateTimeFormat(locale, options)));
+  return f;
+}
+
 /** @param {unknown} tz */
 export function isZone(tz) {
   if (typeof tz !== 'string' || !tz) return false;
   try {
-    new Intl.DateTimeFormat('en', { timeZone: tz });
+    formatter('en', { timeZone: tz });
     return true;
   } catch {
     return false;
@@ -60,7 +76,7 @@ export const isSafeLink = (/** @type {unknown} */ s) => typeof s === 'string' &&
  * @param {number} [now]
  */
 export function todayIn(zone = SITE_ZONE, now = Date.now()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: isZone(zone) ? zone : SITE_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  return formatter('en-CA', { timeZone: isZone(zone) ? zone : SITE_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
 
 const toMs = (/** @type {string} */ day) => Date.parse(`${day}T00:00:00Z`);
@@ -338,13 +354,13 @@ export function roughOnly(/** @type {Record<string, any>} */ v) {
 
 /** The time of day an instant is in a zone, HH:MM */
 export function timeIn(/** @type {number} */ at, zone = SITE_ZONE) {
-  return new Intl.DateTimeFormat('en-GB', { timeZone: isZone(zone) ? zone : SITE_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(at);
+  return formatter('en-GB', { timeZone: isZone(zone) ? zone : SITE_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(at);
 }
 
 /** A zone's short name on a day ("CET", "GMT+8"), or '' for Bangkok's, which the page doesn't name */
 export function zoneLabel(/** @type {string} */ zone, /** @type {string} */ day) {
   if (zone === SITE_ZONE || !isZone(zone)) return '';
-  return new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'short' }).formatToParts(Date.parse(`${day}T12:00:00Z`)).find((p) => p.type === 'timeZoneName')?.value ?? '';
+  return formatter('en-GB', { timeZone: zone, timeZoneName: 'short' }).formatToParts(Date.parse(`${day}T12:00:00Z`)).find((p) => p.type === 'timeZoneName')?.value ?? '';
 }
 
 /** A note's text as one short line: the #note tag and links' line breaks gone, cut at 140 characters */
@@ -390,7 +406,7 @@ export function eventInstant(/** @type {TimelineEvent} */ e) {
   if (!e.startTime) return undefined;
   const local = Date.parse(`${e.startsOn}T${e.startTime}:00Z`);
   // The zone's offset that day, e.g. "GMT+01:00"
-  const offset = new Intl.DateTimeFormat('en-US', { timeZone: e.timeZone, timeZoneName: 'longOffset' }).formatToParts(local).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT';
+  const offset = formatter('en-US', { timeZone: e.timeZone, timeZoneName: 'longOffset' }).formatToParts(local).find((p) => p.type === 'timeZoneName')?.value ?? 'GMT';
   const m = /GMT([+-])(\d{2}):(\d{2})/.exec(offset);
   const minutes = m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
   return local - minutes * 60000;

@@ -8,6 +8,7 @@ import {
   aboutFromRecord,
   cvFromRecord,
   homeFromRecord,
+  homeOf,
   nowFromRecord,
   projectFromRecord,
   projectUri,
@@ -90,6 +91,12 @@ describe('the home record', () => {
       ],
     });
     assert.deepEqual(home, { elsewhere: [{ label: 'Mail', href: 'mailto:jeff@skiddle.id' }] });
+  });
+
+  it('fills in what the record leaves out from the built-in text, the hire box field by field', () => {
+    const fallback = { title: 'T', description: 'D', greeting: 'G', tagline: 'L', intro: 'I', selectedProjects: ['a'], hire: { title: 'HT', blurb: 'HB' }, elsewhere: [] };
+    assert.deepEqual(homeOf(null, fallback), fallback);
+    assert.deepEqual(homeOf({ tagline: 'Mine', hire: { blurb: 'My blurb' } }, fallback), { ...fallback, tagline: 'Mine', hire: { title: 'HT', blurb: 'My blurb' } });
   });
 });
 

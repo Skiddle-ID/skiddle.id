@@ -1,0 +1,18 @@
+---
+/*
+  One block of a page, rendered here before it goes into the page: a block that fails is left out,
+  and logged with its kind, while the rest of the page renders (src/components/blocks/blocks.astro).
+*/
+interface Props {
+  kind: string;
+}
+
+let html = '';
+try {
+  html = await Astro.slots.render('default');
+} catch (err) {
+  console.error(`page: the ${Astro.props.kind} block failed, so it's left out:`, err);
+}
+---
+
+<Fragment set:html={html} />

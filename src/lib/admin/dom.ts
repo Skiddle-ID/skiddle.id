@@ -17,7 +17,7 @@ export const errorText = (err: unknown) => (err instanceof Error ? err.message :
  *   - unsaved: "Unsaved changes", "Not saved yet", "Changes kept on this device"
  *   - busy: anything still going on ("Saving…", "Writing the post…")
  *   - saved: "Saved 18 Nov, 12:03", "Saved and live …", "Loaded the version saved …", "Published …"
- *   - error: "Not saved", "Not saved: changed elsewhere", "Not deleted …", "Not finished"
+ *   - error: "Not saved", "Not saved: changed elsewhere", "Not deleted …", "Not finished", "Not published"
  */
 export function saveState(id: string, text: string) {
   const s = el(id);
@@ -30,7 +30,7 @@ export function saveState(id: string, text: string) {
         ? 'saved'
         : /^(Unsaved|Not saved yet|Changes kept)/.test(text)
           ? 'unsaved'
-          : /^Not (saved|deleted|finished)/.test(text)
+          : /^Not (saved|deleted|finished|published)/.test(text)
             ? 'error'
             : 'info';
 }

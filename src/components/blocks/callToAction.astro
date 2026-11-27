@@ -1,0 +1,25 @@
+---
+/*
+  The call to action block (src/lib/page-blocks.mjs): a box with a heading, a line and buttons, the
+  one marked primary in the accent colour, e.g. "Need a hand with infrastructure?".
+*/
+import { linkAttributes, type CallToActionBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: CallToActionBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+---
+
+<section aria-labelledby={anchor} class="mt-12 card p-5">
+  <h2 id={anchor} class="font-semibold">{block.title}</h2>
+  {block.text && <p class="text-sm text-[var(--color-muted)] mt-1.5">{block.text}</p>}
+  {block.links.length > 0 && (
+    <div class="flex flex-wrap gap-2 mt-4">
+      {block.links.map((l) => (
+        <a class:list={['btn', l.primary && 'border-[var(--color-primary)] text-[var(--color-primary)]']} href={l.href} {...linkAttributes(l)}>{l.label}</a>
+      ))}
+    </div>
+  )}
+</section>

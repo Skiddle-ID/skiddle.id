@@ -1,224 +1,40 @@
 ---
 import Shell from '../layouts/shell.astro';
-import PostList from '../components/post-list.astro';
-import FormattedDate from '../components/formatted-date.astro';
-import NowList from '../components/now-list.astro';
-import SeriesBar from '../components/series-bar.astro';
-import TestimonialSlider from '../components/testimonial-slider.astro';
-import { groupSeries, seriesStatus, seriesUrl, type Series } from '~/lib/posts';
-import { POSTS_CACHE, sitePosts } from '~/lib/site-posts';
-import { FALLBACK_NOW } from '~/data/now';
-import { PAGES_TAG, getEvents, getHome, getNow, getProjects, getServices } from '~/lib/page-content';
-import { getActivity } from '~/lib/timeline-feed';
-import { spanLabel, todayIn, weekSummary } from '~/lib/timeline.mjs';
-import { introHtml } from '~/lib/now-html';
-import { getStatus } from '~/lib/at-status';
-import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
-// Rendered on request: the recent posts and series come from the PDS (src/lib/site-posts.ts), and
-// so do the page's own text (id.skiddle.home, or src/data/home.ts), Now, the project cards and the
-// testimonial (src/lib/page-content.ts)
+import Blocks from '../components/blocks/blocks.astro';
+import { homePageFromLegacy, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
+import { PAGES_TAG, getHome, getPage } from '~/lib/page-content';
+import { pageData, preload } from '~/lib/page-data';
+import { POSTS_CACHE } from '~/lib/site-posts';
+// Rendered on request, from blocks (src/components/blocks/): the id.skiddle.page record `home`, or
+// until there is one, the page made from the id.skiddle.home record (or src/data/home.ts), as it
+// was laid out before blocks (homePageFromLegacy). Each block reads what it shows, e.g. the posts
+// and series, Now, the projects and the testimonials (src/lib/page-data.ts).
 export const prerender = false;
 
-// Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
-const profileImg = '/avatars/bluesky.jpg';
+// ?preview=draft shows the draft the admin app saved (home~draft), never cached or indexed
+const preview = Astro.url.searchParams.get('preview') === 'draft';
+const draft = preview ? await getPage('home', { draft: true }) : null;
+const page = draft ?? (await getPage('home')) ?? pageFromRecord(homePageFromLegacy(await getHome(), new Date().toISOString()));
+const data = pageData();
+await preload(data, readsOf(page));
 
-const [{ posts, seriesInfo }, home, now, { projects }, { services }, status, timeline] = await Promise.all([
-  sitePosts(),
-  getHome(),
-  getNow(),
-  getProjects(),
-  getServices(),
-  // The live status (or src/data/status.ts if the PDS can't be read); the line keeps itself current below
-  getStatus(Astro.url.origin),
-  // This week on the timeline (src/lib/timeline.mjs); left out if it can't be read
-  Promise.all([getEvents(), getActivity()]).then(
-    ([events, activity]) => weekSummary(events, activity, todayIn()),
-    (err) => (console.error('home: the timeline failed:', err), null),
-  ),
-]);
-const series = groupSeries(posts, seriesInfo);
-// Purged when either posts or the pages' records change
-Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
-
-// Recent posts: everything not in a series, plus only the newest part of each series (the series cards cover the rest)
-const seen = new Set<string>();
-const recent = posts
-  .filter((p) => {
-    if (!p.data.series) return true;
-    if (seen.has(p.data.series)) return false;
-    seen.add(p.data.series);
-    return true;
-  })
-  .slice(0, 4);
-
-const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-// Finished series also say when their latest part came out
-const seriesMeta = (s: Series) =>
-  s.planned.length || s.ongoing
-    ? seriesStatus(s)
-    : `${seriesStatus(s)} · latest ${monthYear(new Date(Math.max(...s.parts.map((p) => p.data.pubDate.valueOf()))))}`;
-const seriesLangs = (s: Series) => [...new Set(s.parts.map((p) => p.data.lang))];
-
-// Picked in the home record, in its order; everything else lives on /projects/
-const selected = home.selectedProjects
-  .map((id) => projects.find((p) => p.id === id))
-  .filter((p): p is NonNullable<typeof p> => Boolean(p));
-
-// The status line starts from the status as the page was rendered and updates from /api/status.json
-const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const h2 = 'font-semibold before-hash-2';
+if (preview) {
+  Astro.response.headers.set('Cache-Control', 'no-store');
+  Astro.response.headers.set('X-Robots-Tag', 'noindex');
+} else {
+  // Purged when either posts or the pages' records change
+  Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
+}
 ---
 
-<Shell title={home.title} description={home.description}>
-  <div class="max-w-[70ch] w-full">
-
-    <!-- Intro -->
-    <section aria-labelledby="intro" class="flex flex-col sm:flex-row sm:items-center gap-6">
-      <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-24 sm:size-28 rounded-full shrink-0 border" />
-      <div class="flex flex-col gap-1.5">
-        <h1 id="intro" class="text-2xl font-semibold leading-tight">{home.greeting}</h1>
-        <p class="text-[var(--color-primary)]">{home.tagline}</p>
-        <!-- The status links to its history (/status/) -->
-        <a href="/status/" class="w-fit text-xs text-[var(--color-muted)] flex items-center gap-2 hover:text-[var(--color-primary)] transition-colors">
-          <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.emoji && 'hidden']} style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
-          <span id="statusEmoji" class:list={['text-sm leading-none shrink-0', !status.emoji && 'hidden']} aria-hidden="true">{status.emoji}</span>
-          <span id="statusState" class="sr-only">{STATE_INFO[status.state].label}: </span>
-          <span id="statusText">{capitalise(status.label)}</span>
-          <span class="sr-only"> (status history)</span>
-        </a>
-      </div>
-    </section>
-
-    <div class="prose mt-8" set:html={introHtml(home.intro)} />
-
-    <nav aria-label="Quick links" class="flex flex-wrap gap-2 mt-6">
-      <a href="#work" class="btn">Selected work</a>
-      <a href="/posts/" class="btn">Read the blog</a>
-      <a href="/services/" class="btn border-[var(--color-primary)] text-[var(--color-primary)]">Work with me →</a>
-    </nav>
-
-    <!-- Now: the record's list, or the built-in one (src/data/now.ts) -->
-    <section aria-labelledby="now" class="mt-12">
-      <div class="flex items-baseline justify-between gap-4">
-        <div class="flex flex-wrap items-baseline gap-x-3">
-          <h2 id="now" class={h2}>Now</h2>
-          {now && <span class="text-xs text-[var(--color-muted)]">updated <FormattedDate date={new Date(now.updatedAt)} /></span>}
-        </div>
-        <a href="/now/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">more<span class="sr-only"> on what I'm doing now</span> →</a>
-      </div>
-      <NowList items={now?.items ?? FALLBACK_NOW} class="mt-3" />
-    </section>
-
-    <!-- This week: its events, and a count of its posts, status changes and notes (/timeline/) -->
-    {timeline && (
-      <section aria-labelledby="this-week" class="mt-12">
-        <div class="flex items-baseline justify-between gap-4">
-          <div class="flex flex-wrap items-baseline gap-x-3">
-            <h2 id="this-week" class={h2}>This week</h2>
-            <span class="text-xs text-[var(--color-muted)]">{timeline.week.label}</span>
-          </div>
-          <a href="/timeline/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">timeline<span class="sr-only"> of what I'm up to</span> →</a>
-        </div>
-        <ul class="text-sm flex flex-col gap-1.5 mt-3">
-          {timeline.events.map((e) => (
-            <li class="flex gap-2">
-              <span aria-hidden="true" class="text-[var(--color-primary)]">-</span>
-              <span>{e.title ?? e.label}<span class="text-[var(--color-muted)]">{[spanLabel(e.startsOn, e.endsOn), e.city].filter(Boolean).map((x) => ` · ${x}`).join('')}</span></span>
-            </li>
-          ))}
-          {timeline.activity && (
-            <li class="flex gap-2 text-[var(--color-muted)]">
-              <span aria-hidden="true">-</span><span>{timeline.activity}</span>
-            </li>
-          )}
-        </ul>
-      </section>
+<Shell title={page.title || undefined} description={page.description || undefined} image={page.card && `/media/${page.card}`}>
+  <Blocks page={page} data={data}>
+    {preview && (
+      <p class="card p-3 mb-8 text-sm text-[var(--color-muted)]" role="status">
+        {draft ? 'A preview of the draft: it isn’t published.' : 'There’s no draft: this is the published page.'}
+      </p>
     )}
-
-    <!-- Selected work -->
-    <section id="work" aria-labelledby="work-title" class="mt-12 scroll-mt-16">
-      <div class="flex items-baseline justify-between gap-4">
-        <h2 id="work-title" class={h2}>Selected work</h2>
-        <a href="/projects/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all projects →</a>
-      </div>
-      <div class="mt-4 flex flex-col gap-3">
-        {selected.map((p) => (
-          <article class="card p-4 hover:border-[var(--color-primary)] transition-colors">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-              <h3 class="font-semibold text-[var(--color-primary)]">{p.name}</h3>
-              <span class="text-xs text-[var(--color-muted)]">{[p.year, p.category].filter(Boolean).join(' · ')}</span>
-            </div>
-            <p class="text-sm mt-1.5">{p.impact ?? p.description}</p>
-            <p class="text-xs mt-3 flex flex-wrap gap-x-4 gap-y-1">
-              {p.writeup && (<a href={p.writeup} class="link">read the story</a>)}
-              {p.homepage && (<a href={p.homepage} class="link" target="_blank" rel="noopener noreferrer">live</a>)}
-              {p.github && (<a href={p.github} class="link" target="_blank" rel="noopener noreferrer">source</a>)}
-            </p>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <!-- Writing -->
-    <section aria-labelledby="writing" class="mt-12">
-      <div class="flex items-baseline justify-between gap-4">
-        <h2 id="writing" class={h2}>Writing</h2>
-        <a href="/posts/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)]">all posts →</a>
-      </div>
-      {series.length > 0 && (
-        <>
-          <h3 class="text-xs text-[var(--color-muted)] mt-4">series</h3>
-          <!-- Two columns for 2 or 4 series, so no card sits alone on a row -->
-          <ul class:list={['grid gap-2.5 mt-2', series.length % 2 === 0 && series.length % 3 !== 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-3']}>
-            {series.map((s) => (
-              <li class="flex">
-                <a href={seriesUrl(s.slug)} class="card p-3.5 w-full flex flex-col gap-2 hover:border-[var(--color-primary)] transition-colors group">
-                  <span class="text-sm font-semibold leading-snug group-hover:text-[var(--color-primary)]">{s.name}</span>
-                  <SeriesBar series={s} />
-                  <span class="text-xs text-[var(--color-muted)] leading-normal">
-                    {seriesMeta(s)}
-                    {seriesLangs(s).length > 1 && seriesLangs(s).map((l) => (
-                      <span class="ml-1.5 inline-block border rounded-sm px-1 text-[10px] leading-4 uppercase">{l}</span>
-                    ))}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          <h3 class="text-xs text-[var(--color-muted)] mt-6">recent</h3>
-        </>
-      )}
-      <div class="mt-2">
-        <PostList posts={recent} />
-      </div>
-    </section>
-
-    <!-- Kind words: every testimonial, sliding (src/components/testimonial-slider.astro) -->
-    <TestimonialSlider testimonials={services.testimonials} />
-
-    <!-- Work with me -->
-    <section aria-labelledby="hire" class="mt-12 card p-5">
-      <h2 id="hire" class="font-semibold">{home.hire.title}</h2>
-      <p class="text-sm text-[var(--color-muted)] mt-1.5">{home.hire.blurb}</p>
-      <div class="flex flex-wrap gap-2 mt-4">
-        <a class="btn border-[var(--color-primary)] text-[var(--color-primary)]" href="mailto:work@skiddle.id?subject=Hello%20from%20skiddle.id">Email work@skiddle.id</a>
-        <a class="btn" href="/services/">See services</a>
-        <a class="btn" href="/works/">View my CV</a>
-      </div>
-    </section>
-
-    <!-- Elsewhere -->
-    <p class="mt-10 text-sm text-[var(--color-muted)] flex flex-wrap gap-x-4 gap-y-1">
-      <span>Elsewhere:</span>
-      {home.elsewhere.map((l) => {
-        // Links off the site open in a new tab; rel="me" marks Jeff's own profiles
-        const external = /^https?:/i.test(l.href);
-        return (
-          <a class="link" href={l.href} target={external ? '_blank' : undefined} rel={external ? [l.me && 'me', 'noopener'].filter(Boolean).join(' ') : l.me ? 'me' : undefined}>{l.label}</a>
-        );
-      })}
-    </p>
-  </div>
+  </Blocks>
 </Shell>
 
 <script>

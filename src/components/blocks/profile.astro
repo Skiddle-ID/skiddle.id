@@ -1,0 +1,39 @@
+---
+/*
+  The profile block (src/lib/page-blocks.mjs): Jeff's avatar beside the greeting, the page's main
+  heading, his tagline, and his status, which links to its history (/status/). The status is as the
+  page was rendered; the page's script keeps it current from /api/status.json (src/pages/index.astro).
+*/
+import type { ProfileBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+import { STATE_INFO, toneColour } from '~/lib/status-states.mjs';
+
+interface Props {
+  block: ProfileBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { block, anchor, data } = Astro.props;
+
+// Bluesky avatar, resized to 224px (2× its 112px size). See README → "Avatars" to update it.
+const profileImg = '/avatars/bluesky.jpg';
+const status = block.hideStatus ? null : await data.status();
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+---
+
+<section aria-labelledby={anchor} class="flex flex-col sm:flex-row sm:items-center gap-6">
+  <img src={profileImg} alt="Jeff's avatar" width="112" height="112" class="size-24 sm:size-28 rounded-full shrink-0 border" />
+  <div class="flex flex-col gap-1.5">
+    <h1 id={anchor} class="text-2xl font-semibold leading-tight">{block.greeting}</h1>
+    {block.tagline && <p class="text-[var(--color-primary)]">{block.tagline}</p>}
+    {status && (
+      <a href="/status/" class="w-fit text-xs text-[var(--color-muted)] flex items-center gap-2 hover:text-[var(--color-primary)] transition-colors">
+        <span id="statusDot" class:list={['size-2 rounded-full shrink-0', status.emoji && 'hidden']} style={`background: ${toneColour(STATE_INFO[status.state].tone)}`} aria-hidden="true"></span>
+        <span id="statusEmoji" class:list={['text-sm leading-none shrink-0', !status.emoji && 'hidden']} aria-hidden="true">{status.emoji}</span>
+        <span id="statusState" class="sr-only">{STATE_INFO[status.state].label}: </span>
+        <span id="statusText">{capitalise(status.label)}</span>
+        <span class="sr-only"> (status history)</span>
+      </a>
+    )}
+  </div>
+</section>

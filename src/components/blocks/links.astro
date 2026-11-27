@@ -1,0 +1,28 @@
+---
+/*
+  The links block (src/lib/page-blocks.mjs): as buttons, a navigation named by its label (the home
+  page's quick links), one marked primary in the accent colour; otherwise a line after the label
+  ("Elsewhere:"). Links off the site open in a new tab; rel="me" marks Jeff's own profiles.
+*/
+import { linkAttributes, type LinksBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: LinksBlock;
+}
+const { block } = Astro.props;
+---
+
+{block.buttons ? (
+  <nav aria-label={block.label || 'Links'} class="flex flex-wrap gap-2 mt-6">
+    {block.links.map((l) => (
+      <a href={l.href} class:list={['btn', l.primary && 'border-[var(--color-primary)] text-[var(--color-primary)]']} {...linkAttributes(l)}>{l.label}</a>
+    ))}
+  </nav>
+) : (
+  <p class="mt-10 text-sm text-[var(--color-muted)] flex flex-wrap gap-x-4 gap-y-1">
+    {block.label && <span>{block.label}:</span>}
+    {block.links.map((l) => (
+      <a class="link" href={l.href} {...linkAttributes(l)}>{l.label}</a>
+    ))}
+  </p>
+)}

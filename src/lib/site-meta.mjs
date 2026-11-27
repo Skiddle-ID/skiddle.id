@@ -34,6 +34,9 @@ const isHttp = (/** @type {string} */ s) => /^https?:\/\/\S+$/i.test(s);
  * mailto: address. Anything else (javascript:, http:, a bare word) is dropped.
  */
 export const isFrameHref = (/** @type {string} */ s) => /^(\/(?![/\\])\S*|https:\/\/\S+|mailto:\S+@\S+)$/i.test(s);
+
+/** A link a page may show: one the frame may (isFrameHref), or a place on the page, like #hire */
+export const isPageHref = (/** @type {string} */ s) => isFrameHref(s) || /^#[A-Za-z][\w-]*$/.test(s);
 /** A link that leaves the site, which opens in a new tab */
 export const isExternal = (/** @type {string} */ href) => /^https:/i.test(href);
 const isIcon = (/** @type {unknown} */ s) => ICON_NAMES.some((n) => n === s);

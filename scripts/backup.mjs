@@ -46,6 +46,7 @@ const SITE_COLLECTIONS = [
   'id.skiddle.now',
   'id.skiddle.notes',
   'id.skiddle.home',
+  'id.skiddle.page',
   'id.skiddle.site',
   'com.atproto.lexicon.schema',
 ];

@@ -1,0 +1,15 @@
+---
+/*
+  The markdown block (src/lib/page-blocks.mjs): a section of text, rendered like the Now page's
+  intro (src/lib/now-html.ts): raw HTML in it shows as text, and links get the site's link style.
+*/
+import type { MarkdownBlock } from '~/lib/page-blocks.mjs';
+import { introHtml } from '~/lib/now-html';
+
+interface Props {
+  block: MarkdownBlock;
+}
+const { block } = Astro.props;
+---
+
+<div class="prose mt-8" set:html={introHtml(block.text)} />

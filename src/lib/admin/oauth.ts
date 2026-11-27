@@ -21,6 +21,8 @@
  *   - id.skiddle.site: the site's metadata for search engines and link previews
  *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
  *     (docs/v4/pages-on-atproto.md), edited in the Pages section
+ *   - id.skiddle.page: pages made of blocks and their drafts (docs/v4/themes.md), edited in the
+ *     block editor (src/lib/admin/block-editor.ts)
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
  *     edited or unpublished
  *   - id.skiddle.series: the series
@@ -46,6 +48,7 @@ export const COLLECTIONS = [
   'id.skiddle.now',
   'id.skiddle.notes',
   'id.skiddle.home',
+  'id.skiddle.page',
   'id.skiddle.site',
   'id.skiddle.theme',
   'site.standard.document',

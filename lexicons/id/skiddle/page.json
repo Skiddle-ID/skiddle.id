@@ -1,0 +1,248 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.page",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "any",
+      "description": "A page of the site, made of blocks (docs/v4/themes.md). The key is the page's address: 'home' for /, 'about' for /about/. A draft of a page is a record under '<key>~draft' (e.g. 'home~draft'), which the site shows only at the page's address with ?preview=draft; anything that lists pages leaves out keys with a '~'. The site's code defines each kind of block; a record only picks them, orders them and sets their options.",
+      "record": {
+        "type": "object",
+        "required": ["title", "blocks", "updatedAt"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 2000,
+            "maxGraphemes": 200,
+            "description": "The page's title, in the browser tab and in search results, and its heading unless that's hidden."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "maxGraphemes": 500,
+            "description": "What search results and link previews say about the page."
+          },
+          "card": {
+            "type": "blob",
+            "accept": ["image/*"],
+            "maxSize": 1000000,
+            "description": "The page's share card, drawn by the admin app when the page is published. Without one, the home page uses the site's card."
+          },
+          "width": {
+            "type": "string",
+            "maxLength": 64,
+            "knownValues": ["narrow", "wide"],
+            "default": "narrow",
+            "description": "How wide the page is: narrow for reading (the default), wide for grids."
+          },
+          "hideHeading": {
+            "type": "boolean",
+            "description": "Leave out the page's heading, e.g. when a block has its own."
+          },
+          "blocks": {
+            "type": "array",
+            "maxLength": 200,
+            "items": {
+              "type": "ref",
+              "ref": "#block"
+            },
+            "description": "The page's blocks, in reading order."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "description": "One block on the page, and where it sits. Blocks flow into rows: a full one alone, two halves or three thirds side by side. On a phone every block is full width, in the same order.",
+      "required": ["block"],
+      "properties": {
+        "width": {
+          "type": "string",
+          "maxLength": 64,
+          "knownValues": ["full", "half", "third"],
+          "default": "full",
+          "description": "How much of a row the block takes: full (the default), half or third."
+        },
+        "block": {
+          "type": "union",
+          "refs": [
+            "#profile",
+            "#markdown",
+            "#links",
+            "#now",
+            "#thisWeek",
+            "#projects",
+            "#recentPosts",
+            "#testimonials",
+            "#callToAction"
+          ],
+          "description": "The block. A kind of block this site doesn't know is left out of the page, and the admin app keeps it as it is."
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "description": "Jeff's avatar, a greeting as the page's main heading, a tagline, and his status, which keeps itself current.",
+      "required": ["greeting"],
+      "properties": {
+        "greeting": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The heading beside the avatar."
+        },
+        "tagline": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200,
+          "description": "The line under the heading, in the accent colour."
+        },
+        "hideStatus": {
+          "type": "boolean",
+          "description": "Leave out the status line."
+        }
+      }
+    },
+    "markdown": {
+      "type": "object",
+      "description": "A section of text.",
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 200000,
+          "maxGraphemes": 20000,
+          "description": "Markdown: paragraphs, headings, lists, links, bold and italics. Raw HTML shows as text."
+        }
+      }
+    },
+    "links": {
+      "type": "object",
+      "description": "A list of links: in a line after its label (e.g. 'Elsewhere:'), or as buttons.",
+      "required": ["links"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "What the list is, e.g. 'Elsewhere': shown before the links, or read out by screen readers for buttons."
+        },
+        "buttons": {
+          "type": "boolean",
+          "description": "Show the links as buttons."
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 50,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          }
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "required": ["label", "href"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "e.g. 'Bluesky'."
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "A path on skiddle.id (/rss.xml), a place on the page (#work), or a full URL: https://… or mailto:…."
+        },
+        "me": {
+          "type": "boolean",
+          "description": "One of Jeff's own profiles (rel=\"me\"), so the profile can check it links back here."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "As a button, stands out in the accent colour."
+        }
+      }
+    },
+    "now": {
+      "type": "object",
+      "description": "What Jeff is doing now: the Now page's list (id.skiddle.now), with when it was updated.",
+      "properties": {}
+    },
+    "thisWeek": {
+      "type": "object",
+      "description": "This week on the timeline: its events, and a count of its posts, status changes and notes. Left out when the week is empty.",
+      "properties": {}
+    },
+    "projects": {
+      "type": "object",
+      "description": "Picked projects (id.skiddle.project), as cards, in order.",
+      "required": ["projects"],
+      "properties": {
+        "projects": {
+          "type": "array",
+          "maxLength": 100,
+          "items": {
+            "type": "string",
+            "format": "at-uri"
+          },
+          "description": "The id.skiddle.project records to show, in order."
+        }
+      }
+    },
+    "recentPosts": {
+      "type": "object",
+      "description": "The newest posts, under the series' cards. A series shows only its newest part, since its card covers the rest.",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 4,
+          "description": "How many posts: 4 if left out."
+        },
+        "hideSeries": {
+          "type": "boolean",
+          "description": "Leave out the series' cards, and list every part of a series as a post."
+        }
+      }
+    },
+    "testimonials": {
+      "type": "object",
+      "description": "The first five testimonials of the Services page (id.skiddle.services), one at a time, sliding.",
+      "properties": {}
+    },
+    "callToAction": {
+      "type": "object",
+      "description": "A box with a heading, a line and buttons, e.g. asking people to work with Jeff.",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 2000,
+          "maxGraphemes": 200
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 10000,
+          "maxGraphemes": 1000
+        },
+        "links": {
+          "type": "array",
+          "maxLength": 10,
+          "items": {
+            "type": "ref",
+            "ref": "#link"
+          },
+          "description": "The buttons; one marked primary stands out."
+        }
+      }
+    }
+  }
+}
