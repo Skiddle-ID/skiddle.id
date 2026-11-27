@@ -1,4 +1,11 @@
 ---
+import { isExternal, type SiteLink } from '~/lib/site-meta.mjs';
+
+interface Props {
+  /** The footer's links, from the id.skiddle.site record or the built-in ones (src/data/frame.ts) */
+  links: SiteLink[];
+}
+const { links } = Astro.props;
 const year = new Date().getFullYear();
 const hash = __GIT_HASH__;
 const tag = __GIT_TAG__;
@@ -20,10 +27,11 @@ const linkCls = 'decoration-wavy underline underline-offset-2 hover:text-[var(--
       )}
     </span>
     <span aria-hidden="true">·</span>
-    <a href="/now/" class={linkCls}>now</a>
-    <a href="/rss.xml" class={linkCls}>rss</a>
-    <a href="mailto:work@skiddle.id" class={linkCls}>work@skiddle.id</a>
-    <a href={repo} target="_blank" rel="noopener" class={linkCls}>source</a>
+    {links.map((l) => (
+      <Fragment>
+        {' '}<a href={l.href} target={isExternal(l.href) ? '_blank' : undefined} rel={isExternal(l.href) ? 'noopener' : undefined} class={linkCls}>{l.label}</a>
+      </Fragment>
+    ))}
   </div>
   <p class="mt-1">
     <a href={`${repo}/blob/v4/LICENSE-CONTENT.md`} target="_blank" rel="noopener" class={linkCls}>writing: all rights reserved</a>

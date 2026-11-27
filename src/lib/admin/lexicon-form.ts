@@ -71,6 +71,9 @@ const LABELS: Record<string, string> = {
   live: 'Live site',
   id: 'Anchor',
   me: 'One of my own profiles (rel="me")',
+  menu: 'Menu items',
+  hideMusic: 'Hide the music card',
+  hideThemeButtons: 'Hide the theme and accent buttons',
 };
 
 /** "selectedProjects" → "Selected projects" */

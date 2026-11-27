@@ -6,7 +6,9 @@ import Icon from '../components/icon.astro';
 import CommandBar from '../components/command-bar.astro';
 import { scriptJson } from '../lib/script-json.mjs';
 import { getSiteMeta, getSiteTheme } from '~/lib/page-content';
-import { pageMetaOf } from '~/lib/site-meta.mjs';
+import { commandPagesOf, pageMetaOf } from '~/lib/site-meta.mjs';
+import { COMMAND_PAGES } from '~/data/frame';
+import { FALLBACK_SITE } from '~/data/site-meta';
 import { decorationAttributes, fontsToPreload, themeCss } from '~/lib/site-theme.mjs';
 
 import '../style.css';
@@ -33,6 +35,8 @@ const firstMode = theme.mode === 'light' ? 'light' : 'dark';
 // The theme's design: its CSS variables (none for today's look) and the terminal touches it hides
 const designCss = themeCss(theme);
 const { title, description, keywords, noindex } = pageMetaOf(siteMeta, Astro.url.pathname, Astro.props);
+// The search lists the site's pages, and the menu's links when the record sets the menu
+const commandPages = commandPagesOf(COMMAND_PAGES, siteMeta.menu === FALLBACK_SITE.menu ? [] : siteMeta.menu);
 const author = siteMeta.author;
 const site = Astro.site!;
 const canonical = new URL(Astro.url.pathname, site).toString();
@@ -142,7 +146,7 @@ const jsonLd = {
       </div>
     </div>
 
-    <Sidebar />
+    <Sidebar menu={siteMeta.menu} hideMusic={siteMeta.hideMusic} hideThemeButtons={siteMeta.hideThemeButtons} />
 
     <div id="sidebarBackdrop" class="lg:hidden fixed inset-0 bg-[#000]/50 z-30 hidden"></div>
 
@@ -151,10 +155,10 @@ const jsonLd = {
       <main id="main" class="flex flex-col lg:items-center px-5 lg:px-10 py-8 lg:py-12 print:p-0 grow">
         <slot />
       </main>
-      <Footer />
+      <Footer links={siteMeta.footerLinks} />
     </div>
 
-    <CommandBar />
+    <CommandBar pages={commandPages} />
 
     <script>
       function setupMobileSidebar() {
