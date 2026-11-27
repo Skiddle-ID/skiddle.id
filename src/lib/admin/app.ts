@@ -1,7 +1,8 @@
 /**
  * The admin app (/admin/), in the browser. Signs in with Jeff's Bluesky account over AT Protocol
  * OAuth (src/lib/admin/oauth.ts), then reads and writes records in his repo through his PDS:
- *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read
+ *   - the status (id.skiddle.status, key `self`), which /api/status.json and the home page read,
+ *     and its history (id.skiddle.statusLog, src/lib/status-log.mjs), which /status/ lists
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
  *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about, .now, .notes), imported from the
@@ -13,14 +14,15 @@
  */
 import { BrowserOAuthClient, OAuthCallbackError, type OAuthSession } from '@atproto/oauth-client-browser';
 import { DID } from '~/lib/standard-site.mjs';
+import { STATUS_LOG_COLLECTION, logEntryOf, statusHistory, type PastStatus } from '~/lib/status-log.mjs';
 import { MAX_CHARS as MAX, STATE_INFO, countChars, isEmoji, isState, stateOf, toneColour, type StatusState } from '~/lib/status-states.mjs';
-import { el, errorText, message } from './dom';
+import { el, errorText, item, message, revalidate } from './dom';
 import { categoryUsage, loadPosts, route, setupPosts } from './editor';
 import { setupRedraw } from './redraw';
-import { clientMetadata, isLoopback, loopbackClientId } from './oauth';
+import { clientMetadata, isLoopback, loopbackClientId, missingScopes } from './oauth';
 import { setupPageEditor } from './page-editor';
 import { loadPages, setupPages } from './pages';
-import { XrpcError, canonical, getRecord, putRecord, xrpc, type RepoRecord } from './xrpc';
+import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, xrpc, type RepoRecord } from './xrpc';
 
 const STATUS = 'id.skiddle.status';
 const LEXICON = 'com.atproto.lexicon.schema';
@@ -166,10 +168,75 @@ function fillStatus(record: RepoRecord<Partial<StatusRecord>> | null) {
 }
 
 async function loadStatus(session: OAuthSession) {
-  fillStatus(await getRecord<Partial<StatusRecord>>(session, STATUS, 'self'));
+  // A session from before the history began can't add to it until it signs in again
+  el('statusScope').hidden = !missingScopes((await session.getTokenInfo()).scope).includes(`repo:${STATUS_LOG_COLLECTION}`);
+  const record = await getRecord<Partial<StatusRecord>>(session, STATUS, 'self');
+  fillStatus(record);
+  await loadHistory(session, record?.value);
 }
 
-function setupStatus(session: OAuthSession) {
+/** The history shown in the admin: the newest this many; /status/ has them all */
+const HISTORY_SHOWN = 20;
+
+/** Lists the status history under the form, each past one with a Delete button */
+async function loadHistory(session: OAuthSession, current: Partial<StatusRecord> | undefined) {
+  const list = el('statusHistory');
+  let history: PastStatus[];
+  try {
+    history = statusHistory(current ?? null, await listRecords<Record<string, unknown>>(session, STATUS_LOG_COLLECTION));
+  } catch (err) {
+    list.replaceChildren();
+    return message('statusHistoryMessage', `Couldn't read the history: ${errorText(err)}`, 'error');
+  }
+  message('statusHistoryMessage', history.length > HISTORY_SHOWN ? `${history.length - HISTORY_SHOWN} older ones are on /status/.` : '');
+  list.replaceChildren(...(history.length ? history.slice(0, HISTORY_SHOWN).map((h) => historyItem(session, h)) : [item('Nothing yet: the next status you save starts it.', 'admin-muted')]));
+}
+
+function historyItem(session: OAuthSession, h: PastStatus) {
+  const li = item('');
+  const head = document.createElement('div');
+  const mark = document.createElement('span');
+  if (h.emoji) mark.textContent = h.emoji;
+  else {
+    mark.className = 'admin-dot';
+    mark.style.background = toneColour(STATE_INFO[h.state].tone);
+  }
+  mark.setAttribute('aria-hidden', 'true');
+  const text = document.createElement('span');
+  text.textContent = `${STATE_INFO[h.state].label}: ${h.text}`;
+  head.appendChild(mark);
+  head.appendChild(text);
+  const note = document.createElement('span');
+  note.className = 'admin-muted';
+  note.textContent = `${h.current ? 'Now, since ' : ''}${new Date(h.at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}${h.location ? ` · ${h.location}` : ''}`;
+  li.appendChild(head);
+  li.appendChild(note);
+  // The current status changes by saving a new one; past ones can be deleted
+  if (h.rkey) {
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'admin-btn admin-btn-ghost';
+    del.textContent = 'Delete';
+    del.setAttribute('aria-label', `Delete “${h.text}” from the history`);
+    del.addEventListener('click', async () => {
+      if (!confirm(`Delete “${h.text}” from your status history? This can’t be undone.`)) return;
+      del.disabled = true;
+      try {
+        await deleteRecord(session, STATUS_LOG_COLLECTION, h.rkey!);
+        void revalidate();
+        await loadStatus(session);
+      } catch (err) {
+        del.disabled = false;
+        message('statusHistoryMessage', `Couldn't delete it: ${errorText(err)}`, 'error');
+      }
+    });
+    li.appendChild(del);
+  }
+  return li;
+}
+
+function setupStatus(session: OAuthSession, signInAgain: () => void) {
+  el('statusSignIn').addEventListener('click', () => signInAgain());
   const form = el<HTMLFormElement>('statusForm');
   fillZones();
   // Quick picks fill the emoji box (an empty one clears it, back to the dot)
@@ -205,7 +272,15 @@ function setupStatus(session: OAuthSession) {
     try {
       const res = await putRecord(session, STATUS, 'self', record, statusCid);
       fillStatus({ uri: res.uri, cid: res.cid, value: record });
-      message('statusMessage', 'Saved. skiddle.id shows it within a minute.', 'ok');
+      // Then its copy in the history; the status is set either way, and /status/ shows it
+      const logged = await createRecord(session, STATUS_LOG_COLLECTION, logEntryOf(record)).then(
+        () => true,
+        (err) => (console.error('status history:', err), false),
+      );
+      void revalidate();
+      await loadHistory(session, record).catch(() => {});
+      if (logged) message('statusMessage', 'Saved. skiddle.id shows it within a minute.', 'ok');
+      else message('statusMessage', 'Saved, but adding it to the history failed. skiddle.id still shows it, on /status/ too.', 'error');
     } catch (err) {
       if (err instanceof XrpcError && err.error === 'InvalidSwap') {
         await loadStatus(session).catch(() => {});
@@ -376,7 +451,7 @@ async function loadRecords(session: OAuthSession) {
 async function signedIn(session: OAuthSession, signInAgain: () => void) {
   show('signedIn');
   el('accountHandle').textContent = session.sub;
-  setupStatus(session);
+  setupStatus(session, signInAgain);
   setupLexicons(session);
   setupPosts(session, signInAgain);
   setupPages(session, signInAgain);

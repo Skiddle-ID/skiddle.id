@@ -13,7 +13,7 @@
  * What the app may do with the account, and nothing else: write these collections and upload
  * images. Bluesky's sign-in page lists them. A new collection is added here, and signing in again
  * grants it; the app asks for that when its session lacks one (missingScopes).
- *   - id.skiddle.status: the status
+ *   - id.skiddle.status: the status, and id.skiddle.statusLog: its history
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
  *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
@@ -30,6 +30,7 @@
  */
 export const COLLECTIONS = [
   'id.skiddle.status',
+  'id.skiddle.statusLog',
   'com.atproto.lexicon.schema',
   'id.skiddle.draft',
   'id.skiddle.project',

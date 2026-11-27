@@ -141,6 +141,8 @@ Cards and badges in the site's terminal style, for a GitHub profile README, othe
 
 `/status.svg` reads "● open to consulting · Bangkok 14:32", with the local time when it loads. The dot's colour is the status: available (green), busy (amber), do not disturb (red) or away (grey). With an `emoji` set (one emoji, like ✈️), it takes the dot's place, there and on the home page. The status is the `id.skiddle.status` record in Jeff's AT Protocol repo ([lexicon](lexicons/id/skiddle/status.json)), read through `src/lib/at-status.ts`. That code looks up the PDS from the DID, caches the record for 60 seconds and falls back to `src/data/status.ts` if it can't be read. `/api/status.json` serves the same status, and the home page's status line updates from it.
 
+**History:** each time the status is set, the admin app and `npm run status` add a copy to `id.skiddle.statusLog` ([lexicon](lexicons/id/skiddle/statusLog.json)), one record per change. [`/status/`](https://skiddle.id/status/) lists every one, newest first, and the home page's status line links to it. The admin app's Status section lists the recent ones, and can delete a past one. The current status always tops the list, even if its copy wasn't added (`src/lib/status-log.mjs`).
+
 To set it, open [`/admin/`](#admin-app) and sign in with Bluesky. Or, from a computer (with `BLUESKY_APP_PASSWORD` set):
 
 ```bash

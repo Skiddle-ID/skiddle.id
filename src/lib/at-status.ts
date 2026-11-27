@@ -7,7 +7,8 @@
  * valid record yet, the status falls back to src/data/status.ts, so the badge never breaks.
  */
 import { status as fallback, type Status } from '~/data/status';
-import { getRecord } from '~/lib/pds';
+import { getRecord, listRecords } from '~/lib/pds';
+import { STATUS_LOG_COLLECTION, statusHistory, type PastStatus } from '~/lib/status-log.mjs';
 import { isEmoji, isState, stateOf, trimChars } from '~/lib/status-states.mjs';
 
 export const STATUS_COLLECTION = 'id.skiddle.status';
@@ -47,6 +48,19 @@ export function parseStatus(value: unknown): LiveStatus | null {
   // One emoji, shown instead of the dot; anything else is left out
   const emoji = isEmoji(v.emoji) ? v.emoji : undefined;
   return { state: stateOf(v), ...(emoji ? { emoji } : {}), label: text, city: location, timeZone, updatedAt, source: 'pds' };
+}
+
+/**
+ * Every status, newest first, for /status/: the current one, then the history
+ * (id.skiddle.statusLog, src/lib/status-log.mjs). Both are read through src/lib/pds.ts, which
+ * caches them for a minute. A failed read throws, so a cached page shows instead.
+ */
+export async function getStatusHistory(): Promise<PastStatus[]> {
+  const [current, log] = await Promise.all([
+    getRecord<Record<string, unknown>>(STATUS_COLLECTION, 'self'),
+    listRecords<Record<string, unknown>>(STATUS_LOG_COLLECTION),
+  ]);
+  return statusHistory(current, log);
 }
 
 function validTimeZone(tz: string): boolean {

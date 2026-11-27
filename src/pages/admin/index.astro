@@ -105,6 +105,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
 
         <section class="admin-card" data-section="status" aria-labelledby="statusTitle">
           <h2 id="statusTitle">Your status</h2>
+          <div id="statusScope" class="admin-notice" hidden>
+            <p>To keep each status in your history, the app needs one more permission from your account.</p>
+            <button id="statusSignIn" type="button" class="admin-btn">Sign in again</button>
+          </div>
           <p class="admin-preview" aria-live="polite">
             <span id="previewDot" class="admin-dot" aria-hidden="true"></span>
             <span id="previewEmoji" class="admin-preview-emoji" aria-hidden="true" hidden></span>
@@ -154,6 +158,10 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p id="statusMessage" class="admin-message" role="status"></p>
           </form>
           <p id="statusUpdated" class="admin-small"></p>
+          <h3 class="admin-subhead">History</h3>
+          <p class="admin-small">Each status you save is kept, newest first. <a href="/status/" target="_blank" rel="noopener">See them all on /status/</a>.</p>
+          <ul id="statusHistory" class="admin-lexicons admin-pages"><li class="admin-muted">Loading…</li></ul>
+          <p id="statusHistoryMessage" class="admin-message" role="status"></p>
         </section>
 
         <section class="admin-card" data-section="site" aria-labelledby="lexiconTitle">

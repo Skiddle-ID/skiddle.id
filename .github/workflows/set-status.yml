@@ -1,8 +1,8 @@
 name: Set status
 
 # Sets the status on skiddle.id from the GitHub app or website (Actions → Set status → Run workflow):
-# writes the id.skiddle.status record to Jeff's AT Protocol repo with scripts/status.mjs. The site
-# shows it within a minute. The admin app (/admin/) does the same; this is a fallback.
+# writes the id.skiddle.status record to Jeff's AT Protocol repo with scripts/status.mjs, and adds a
+# copy to its history (id.skiddle.statusLog, shown on /status/). The site shows it within a minute. The admin app (/admin/) does the same; this is a fallback.
 # GitHub only offers "Run workflow" for workflows on the default branch, so the button appears once
 # this file is on it.
 on:
