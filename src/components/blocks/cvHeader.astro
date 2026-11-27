@@ -1,0 +1,64 @@
+---
+/*
+  The CV header block (src/lib/page-blocks.mjs): Jeff's name, the page's main heading, his title and
+  where he is, a button to print the page (the CV's script runs it, src/pages/works.astro), how to
+  reach him, a summary, how many years he's been in infrastructure and a status line, then his
+  highlights as cards under it. On paper it loses its card, the prompt and the button.
+*/
+import Icon from '../icon.astro';
+import type { CvHeaderBlock } from '~/lib/page-blocks.mjs';
+import { lineHtml } from '~/lib/now-html';
+
+interface Props {
+  block: CvHeaderBlock;
+}
+const { block } = Astro.props;
+const years = block.since ? new Date().getFullYear() - block.since : 0;
+---
+
+<header class="card p-5 sm:p-6 print:border-0 print:p-0">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <p class="prompt text-xs text-[var(--color-muted)] print:hidden" aria-hidden="true">
+        <span class="text-[var(--color-primary)]">skiddle@web</span>:~$ cat cv.md
+      </p>
+      <h1 class="text-2xl font-semibold mt-2 print:mt-0">{block.name}</h1>
+      <p class="text-[var(--color-primary)] mt-1">{[block.title, block.location].filter(Boolean).join(' · ')}</p>
+    </div>
+    <button type="button" id="printCv" class="btn print:hidden"><Icon name="print" size={14} /> Print / save as PDF</button>
+  </div>
+
+  <p class="text-sm mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+    {block.email && <a href={`mailto:${block.email}`} class="link inline-flex items-center gap-1.5"><Icon name="mail" size={13} class="print:hidden" />{block.email}</a>}
+    <a href="https://skiddle.id" class="link" data-plain>skiddle.id</a>
+    {block.github && (<a href={block.github} class="link inline-flex items-center gap-1.5" target="_blank" rel="me noopener"><Icon name="github" size={13} class="print:hidden" />GitHub</a>)}
+    {block.bluesky && (<a href={block.bluesky} class="link inline-flex items-center gap-1.5" target="_blank" rel="me noopener"><Icon name="bluesky" size={13} class="print:hidden" />Bluesky</a>)}
+  </p>
+
+  {block.summary.length > 0 && (
+    <div class="mt-4 pt-4 border-t border-dashed text-sm leading-relaxed flex flex-col gap-2">
+      {block.summary.map((p) => (<p>{p}</p>))}
+    </div>
+  )}
+
+  <p class="text-xs text-[var(--color-muted)] mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+    {years > 0 && <span>{years}+ years in infrastructure</span>}
+    {block.status && (
+      <span class="inline-flex items-center gap-1.5 print:hidden">
+        <span class="size-2 rounded-full bg-[var(--color-ok)]" aria-hidden="true"></span>
+        <Fragment set:html={lineHtml(block.status)} />
+      </span>
+    )}
+  </p>
+</header>
+
+{block.highlights.length > 0 && (
+  <section aria-label="Highlights" class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+    {block.highlights.map((h) => (
+      <div class="card p-4">
+        <p class="text-lg font-semibold text-[var(--color-primary)]">{h.value}</p>
+        <p class="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">{h.label}</p>
+      </div>
+    ))}
+  </section>
+)}

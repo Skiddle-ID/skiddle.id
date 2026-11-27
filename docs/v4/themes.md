@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 to 3, the design, the frame and the home page on blocks, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 to 4, the design, the frame and the site's pages on blocks, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -103,15 +103,15 @@ The union is **open**, as AT Protocol's style guide asks "in almost all situatio
 
 Today's pages, as blocks:
 
-| Page           | Blocks                                                                                                                                                                  |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Home           | Profile (with the status), Markdown (intro), Links (buttons), Now, This week, Projects, Recent posts (with the series), Testimonials, Call to action, Links (Elsewhere) |
-| About          | Profile, Markdown, Principles, So far, Markdown (outside work), Contact                                                                                                 |
-| CV (`/works/`) | Profile, Highlights, Jobs, Education, Links                                                                                                                             |
-| Services       | Markdown, Services, Testimonials, Call to action                                                                                                                        |
-| Uses           | Uses                                                                                                                                                                    |
-| Now            | Now                                                                                                                                                                     |
-| Notes          | Bluesky posts                                                                                                                                                           |
+| Page           | Blocks (the kinds in `src/lib/page-blocks.mjs`)                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Home           | profile (with the status), markdown (intro), links (buttons), now, thisWeek, projects, recentPosts (with the series), testimonials, callToAction, links (Elsewhere) |
+| About          | facts, section (intro), principles, soFar, section (outside work), contact                                                             |
+| CV (`/works/`) | cvHeader (with the highlights), jobs, skills, projectGrid, education (with the certifications), cvContact                               |
+| Services       | servicesIntro, highlights, services, steps, reviews, brief                                                                              |
+| Uses           | uses                                                                                                                                    |
+| Now            | nowFull                                                                                                                                 |
+| Notes          | blueskyPosts                                                                                                                            |
 
 Post pages, `/posts/`, series, topics and `/timeline/` stay templates: they're views of collections, not layouts. They can get small settings later (show the series bar, comments), not blocks.
 
@@ -158,14 +158,20 @@ Pages move one at a time. Until a page is moved, it reads its old record as now;
    - `/?preview=draft` renders `home~draft`, read fresh, with `Cache-Control: no-store` and `X-Robots-Tag: noindex`, under a note that it's a preview.
    - The admin app's block editor (`#blocks/home`) and Move to blocks: see [the README](../../README.md#admin-app).
    - **The budget,** measured on a local `wrangler dev`, as the workerd process's CPU time per request: 3.4–3.8 ms with the records cached (150 requests, 3 runs; a bare request costs 1.2 ms), against 6.4–7.8 ms for the page before blocks. Most of the difference is a fix that came out of measuring: the timeline built two date formatters for every post, status change and note on each render (`src/lib/timeline.mjs` now makes each once). A render with expired records makes 21 subrequests (20 before: the page record is read first, and the old record too until the page record exists) and costs 110–120 ms of process CPU (130–140 before). That figure also counts the TLS and HTTP work of 21 HTTPS connections, which Cloudflare does outside the Worker, so it's an upper bound; Workers observability shows the real CPU time of those renders.
-4. **The other pages,** one PR each: About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks.
+4. **The other pages:** About, Now, Uses, the CV, Services, Notes, each with the blocks it needs and Move to blocks. **Built** ([#201](https://github.com/Skiddle-ID/skiddle.id/pull/201), a commit per page):
+   - Each page renders from blocks through `src/lib/block-page.ts`, as home now does too: its `id.skiddle.page` record, else its old record turned into blocks (`src/lib/page-legacy.mjs`), and `?preview=draft`. The CV's page key is `works`, its address. `scripts/parity.mjs` finds every page's `<main>`, title, description and JSON-LD the same as the live page's, and screenshots of `<main>` at 1280 and 375 px match the live site's to the pixel, but for the avatars' downscaling, which also differs between two captures of the live site.
+   - Twenty new kinds. The table above met the pages' markup: home's kinds carry home's spacing and link styles, so none of them fit another page exactly, and each page's sections became kinds of their own. About: `facts` (the neofetch card), `section` (Markdown under an optional heading, its id its own or made from the title), `principles`, `soFar` and `contact`. Now: `nowFull`. Uses: `uses`. The CV: `cvHeader` (with the highlights under it), `jobs`, `skills`, `projectGrid`, `education` (with the certifications beside it) and `cvContact` (with the print button). Services: `servicesIntro`, `highlights`, `services`, `steps`, `reviews` and `brief`. Notes: `blueskyPosts`.
+   - On each of these pages, a block holds the page's main heading (`facts`, `nowFull`, `uses`, `cvHeader`, `servicesIntro`, `blueskyPosts`), so the page hides its own; its title is still the browser tab's (`About — Skiddle`).
+   - The text that was in the pages' code is in the records: headings, leads, Services' steps and its email template. Leads and short lines are Markdown (`src/lib/now-html.ts`): a link off the site opens in a new tab wherever the site renders Markdown, and bold in a muted line is the text colour.
+   - What another page also shows stays in its record, and the block reads it once per request (`src/lib/page-data.ts`): the Now list and the services and testimonials (the home page reads them), and the notes (the timeline does). The rest moves into the page record: About's, Uses' and the CV's content. Services' track record is a copy of the CV's highlights. Uses' "last updated" is the page record's `updatedAt`, and its converted page keeps the Uses record's.
+   - A block's script stays in its page's route, as home's status script does: Astro renders a component's script where the component is, inside `<main>`. Astro 7.4 also drops the scoped styles of components shared only by pages rendered on request, so the blocks' styles are in `src/components/blocks/blocks.css`, which `src/style.css` imports.
+   - **The budget,** measured as in phase 3, on a local `wrangler dev`, this branch's build beside `v4`'s, interleaved: 150 requests a run, 5 runs each. With the records cached, the median CPU time per render is 2.5 ms for About, the heaviest moved page (2.6 ms before), 2.3 ms for the CV (3.1 ms), 2.3 ms for Services (2.9 ms), 2.1 ms for Uses (3.0 ms), 1.9 ms for Now and 2.2 ms for Notes (both as before) and 2.9 ms for the home page (2.8 ms); a bare request costs 0.8 ms. Why the CV, Services and Uses measure lower isn't explained (no profile was taken), so no speedup is claimed: the pages are no slower. A render with expired records reads one more record than before, the page record: Notes, the most, makes 6 fetches, 6 cache reads and 6 cache writes (5 of each before), 18 subrequests counted together, under 25. The runs are in the PR.
 5. **Pages of Jeff's own:** New page, the address rules, the sitemap, search and the menu.
 6. **Clean-up:** stop using the seven old lexicons, mark them deprecated, drop their permissions.
 7. **Later:** saved theme presets (switch, export, import), post page settings.
 
 ## Open questions
 
-- **The CV's address:** it stays `/works/`, as a page whose record key is `cv`, or the key becomes `works`.
 - **Presets (settled in the review):** `id.skiddle.theme` keeps the key `self` only. Changing it to any would break the published lexicon: a preset saved under another key wouldn't be valid under today's schema. Presets get a collection of their own, `id.skiddle.themePreset` (key: the preset's name), and applying one copies it into `self`.
 
 ## The review

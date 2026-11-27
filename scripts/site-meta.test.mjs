@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { COMMAND_PAGES, FALLBACK_FOOTER_LINKS, FALLBACK_MENU } from '../src/data/frame.ts';
 import { ICON_NAMES } from '../src/lib/icons.mjs';
-import { commandPagesOf, frameProblems, normalPath, pageMetaOf, siteMetaFromRecord, siteMetaOf } from '../src/lib/site-meta.mjs';
+import { commandPagesOf, frameProblems, isExternal, normalPath, pageMetaOf, siteMetaFromRecord, siteMetaOf } from '../src/lib/site-meta.mjs';
 
 const fallback = {
   name: 'Skiddle',
@@ -133,5 +133,11 @@ describe('site meta', () => {
       const lexicon = JSON.parse(readFileSync(new URL('../lexicons/id/skiddle/site.json', import.meta.url), 'utf8'));
       assert.deepEqual(lexicon.defs.menuItem.properties.icon.knownValues, [...ICON_NAMES]);
     });
+  });
+  it('opens only https links to another host in a new tab', () => {
+    assert.deepEqual(
+      ['https://bsky.app/x', 'https://skiddle.id/posts/a/', 'https://skiddle.id', 'https://skiddle.id.evil.example/', '/posts/', 'mailto:a@b.c'].map(isExternal),
+      [true, false, false, true, false, false],
+    );
   });
 });

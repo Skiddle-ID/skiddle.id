@@ -31,9 +31,10 @@
  *   - writes it with swapRecord, so a change made on another device isn't overwritten unseen (a
  *     new record with createRecord, which never overwrites one)
  *   - refreshes the site's pages
- * The Home editor has Move to blocks: it saves the home page, as its saved record shows it, as a draft
- * of its id.skiddle.page record (home~draft, src/lib/page-blocks.mjs), after a confirm if there's a
- * draft already, and opens it in the block editor (src/lib/admin/block-editor.ts) to check and publish.
+ * The editors of the pages made of blocks (Home, the CV, Services, Uses, About, Now and Notes) have
+ * Move to blocks: it saves the page, as its saved record shows it, as a draft of its id.skiddle.page
+ * record (<key>~draft, src/lib/admin/legacy-pages.ts), after a confirm if there's a draft already, and
+ * opens it in the block editor (src/lib/admin/block-editor.ts) to check and publish.
  *
  * A project can be deleted, after a confirm. Changes are kept on this device until they're saved,
  * as with series. Saving and deleting follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
@@ -74,7 +75,10 @@ import { publicationLexicon } from './publication-lexicon';
 import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
 import { PAGE_COLLECTION, draftKey } from '~/lib/page-blocks.mjs';
-import { assertValidPage, legacyHomePage } from './block-editor';
+import { assertValidPage } from './block-editor';
+import { LEGACY_PAGES, legacyPage, sitePageOfEditor, type SitePage } from './legacy-pages';
+
+const MOVE_NOTE = 'Move to blocks makes a draft of this page in blocks from what it shows now, to check, preview and publish in the block editor. Until it’s published, the page shows this record.';
 
 type Value = Record<string, unknown>;
 
@@ -352,6 +356,28 @@ export async function openPage(route: PageRoute) {
   // A page whose record wasn't imported starts empty
   el('peNote').hidden = !('page' in route) || !!record;
   checkBackup();
+  void notePublished(current);
+}
+
+/** The pages whose blocks still read their old editor's record once they're published: the Now list, the services, the notes */
+const READ_AFTER_MOVE = new Set<SitePage>(['now', 'services', 'notes']);
+
+/**
+ * On an old editor whose page is published in blocks, says what this record still changes: for
+ * most pages nothing, since the page shows its blocks; for the Now list, the services and the
+ * notes, what their blocks read from it.
+ */
+async function notePublished(target: Open) {
+  const note = el('peToBlocksNote');
+  note.textContent = MOVE_NOTE;
+  const key = sitePageOfEditor(target.route);
+  if (!key) return;
+  const published = await getRecord<Value>(session, PAGE_COLLECTION, key).catch(() => null);
+  if (!published || current !== target) return;
+  const { title } = LEGACY_PAGES[key];
+  note.textContent = READ_AFTER_MOVE.has(key)
+    ? `${title} is published in blocks: edit its layout and text in Pages. What its blocks read from this record still shows on it.`
+    : `${title} is published in blocks, so this record no longer changes it: edit it in Pages. Move to blocks again only to start over from this record.`;
 }
 
 /** ⌘S in a page editor: saves, if the Save button could */
@@ -458,7 +484,9 @@ function refresh() {
   del.textContent = isEvent(current) ? 'Delete event' : 'Delete project';
   del.disabled = !PUBLISHING_LIVE;
   const toBlocks = el<HTMLButtonElement>('peToBlocks');
-  toBlocks.hidden = current.route !== 'page/home';
+  const blocks = sitePageOfEditor(current.route);
+  // A page made from this editor's record can move once the record is saved
+  toBlocks.hidden = !blocks || (LEGACY_PAGES[blocks].needsSource === true && LEGACY_PAGES[blocks].source === current.collection && !current.record);
   toBlocks.disabled = !PUBLISHING_LIVE;
   el('peToBlocksNote').hidden = toBlocks.hidden;
   el('peToBlocksMessage').hidden = toBlocks.hidden;
@@ -578,25 +606,28 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
 }
 
 /**
- * The Home editor's Move to blocks: the home page as its saved record shows it, saved as the draft of
- * its page record (after a confirm if there's one already), opened in the block editor
+ * Move to blocks, on the old editor of one of the site's own pages: the page as its saved record
+ * shows it (src/lib/admin/legacy-pages.ts), saved as the draft of its page record (after a confirm
+ * if there's one already), opened in the block editor
  */
 async function moveToBlocks() {
-  if (!PUBLISHING_LIVE || current?.route !== 'page/home') return;
+  const key = current && sitePageOfEditor(current.route);
+  if (!PUBLISHING_LIVE || !current || !key) return;
   const target = current;
+  const { title, source } = LEGACY_PAGES[key];
   const button = el<HTMLButtonElement>('peToBlocks');
   button.disabled = true;
   message('peToBlocksMessage', 'Moving to blocks…');
   try {
-    const draft = await getRecord<Value>(session, PAGE_COLLECTION, draftKey('home'));
+    const draft = await getRecord<Value>(session, PAGE_COLLECTION, draftKey(key));
     const when = typeof draft?.value.updatedAt === 'string' ? `, saved ${formatTime(draft.value.updatedAt)}` : '';
-    if (draft && !confirm(`Home already has a draft in blocks${when}. Replace it with one made from the Home record as it’s saved?`)) return message('peToBlocksMessage', '');
-    const record = legacyHomePage(target.record);
+    if (draft && !confirm(`${title} already has a draft in blocks${when}. Replace it with one made from what the page shows now?`)) return message('peToBlocksMessage', '');
+    const record = await legacyPage(session, key, source === target.collection ? target.record : undefined);
     await assertValidPage(record);
-    await putRecord(session, PAGE_COLLECTION, draftKey('home'), record, draft?.cid);
+    await putRecord(session, PAGE_COLLECTION, draftKey(key), record, draft?.cid);
     await revalidate();
     message('peToBlocksMessage', '');
-    location.hash = '#blocks/home';
+    location.hash = `#blocks/${key}`;
   } catch (err) {
     if (current === target) message('peToBlocksMessage', `Couldn’t move it to blocks: ${errorText(err)}`, 'error');
   } finally {

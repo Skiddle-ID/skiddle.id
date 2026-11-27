@@ -7,7 +7,8 @@
  * still shows while it's stale (PAGES_CACHE): only This week is left out when it can't be read.
  */
 import { getStatus, type LiveStatus } from '~/lib/at-status';
-import { getEvents, getNow, getProjects, getServices } from '~/lib/page-content';
+import { getEvents, getNotes, getNow, getProjects, getQuotedPosts, getServices } from '~/lib/page-content';
+import { notesPage, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import type { Source } from '~/lib/page-blocks.mjs';
 import { sitePosts, type SitePosts } from '~/lib/site-posts';
 import { getActivity } from '~/lib/timeline-feed';
@@ -24,6 +25,21 @@ export interface PageData {
   services: () => Promise<ServicesData>;
   /** This week on the timeline, or null if it's empty or can't be read */
   week: () => Promise<ReturnType<typeof weekSummary>>;
+  /** The notes on the page of them the request asks for, and the posts they quote; null if there's no such page */
+  notes: () => Promise<NotesShown | null>;
+}
+
+export interface NotesShown {
+  notes: Note[];
+  /** Which page of notes this is, and how many there are */
+  page: number;
+  pages: number;
+  quoted: Map<string, QuotedPost>;
+}
+
+/** What a request's reads depend on besides the records: which page of the notes it asks for (/notes/?page=2) */
+export interface PageDataOptions {
+  notesPage?: number;
 }
 
 /** The first call's promise, every time */
@@ -33,7 +49,7 @@ function once<T>(load: () => Promise<T>): () => Promise<T> {
 }
 
 /** A request's reads, none started yet */
-export function pageData(): PageData {
+export function pageData({ notesPage: requested = 1 }: PageDataOptions = {}): PageData {
   return {
     status: once(() => getStatus()),
     now: once(getNow),
@@ -46,6 +62,10 @@ export function pageData(): PageData {
         (err) => (console.error('page: reading This week failed:', err), null),
       ),
     ),
+    notes: once(async () => {
+      const shown = notesPage(await getNotes(), requested);
+      return shown && { ...shown, quoted: await getQuotedPosts(shown.notes) };
+    }),
   } satisfies Record<Source, () => Promise<unknown>>;
 }
 

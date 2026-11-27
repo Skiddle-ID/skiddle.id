@@ -1,0 +1,60 @@
+---
+/*
+  The jobs block (src/lib/page-blocks.mjs): each company, with the years it spans and a line on what
+  it is, beside its roles on a timeline. A role still held has a filled dot; a client engagement
+  through the company sits in a dashed box that says whom it was for.
+*/
+import type { JobsBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: JobsBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+
+const h2 = 'font-semibold before-hash-2 print:before:content-none';
+const endOf = (p: { end?: string }) => p.end ?? 'Present';
+const companyRange = (positions: { start: string; end?: string }[]) => {
+  const starts = positions.map((p) => p.start).sort();
+  const ends = positions.map(endOf);
+  return `${starts[0]} – ${ends.includes('Present') ? 'Present' : ends.sort().at(-1)}`;
+};
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <h2 id={anchor} class={h2}>{block.title}</h2>
+  <ol class="mt-5 flex flex-col gap-8">
+    {block.jobs.map((exp) => (
+      <li class="sm:grid sm:grid-cols-[10rem_1fr] sm:gap-6">
+        <div class="mb-2 sm:mb-0">
+          <h3 class="font-semibold">{exp.company}</h3>
+          <p class="text-xs text-[var(--color-muted)] tabular-nums mt-0.5">{companyRange(exp.positions)}</p>
+          {exp.description && <p class="text-xs text-[var(--color-muted)] mt-1.5 leading-relaxed">{exp.description}</p>}
+        </div>
+        <ol class="relative border-l ml-1 flex flex-col gap-5">
+          {exp.positions.map((pos) => (
+            <li class="relative pl-5">
+              <span class:list={['absolute -left-[5px] size-2.5 rounded-full border-2 border-[var(--color-primary)]', pos.client ? 'top-[1.35em]' : 'top-[0.45em]', endOf(pos) === 'Present' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-bg)]']} aria-hidden="true"></span>
+              <div class:list={[pos.client && 'border border-dashed rounded-md p-3 sm:p-4']}>
+              {pos.client && <p class="text-[11px] uppercase tracking-wider text-[var(--color-muted)] mb-1">Client engagement</p>}
+              <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                <h4 class="text-[var(--color-primary)]">
+                  {pos.role}
+                  {pos.employment && <span class="ml-2 align-middle text-[11px] px-1.5 py-0.5 rounded-sm border text-[var(--color-muted)]">{pos.employment.toLowerCase()}</span>}
+                </h4>
+                <span class="text-xs text-[var(--color-muted)] tabular-nums">{pos.start} – {endOf(pos)}</span>
+              </div>
+              {pos.client && <p class="text-xs text-[var(--color-muted)] mt-0.5">for {pos.client} · via {exp.company.replace(/ Pte\. Ltd\.$/, '')}</p>}
+              <ul class="mt-2 text-sm flex flex-col gap-1">
+                {pos.highlights.map((h) => (
+                  <li class="flex gap-2"><span aria-hidden="true" class="text-[var(--color-primary)]">-</span><span>{h}</span></li>
+                ))}
+              </ul>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </li>
+    ))}
+  </ol>
+</section>

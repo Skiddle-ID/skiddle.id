@@ -1,0 +1,29 @@
+---
+/*
+  The section block (src/lib/page-blocks.mjs): text in Markdown under its own heading, or right
+  after the block before it when it has no title. Raw HTML in it shows as text; .prose styles the
+  links (src/lib/now-html.ts).
+*/
+import type { SectionBlock } from '~/lib/page-blocks.mjs';
+import { proseHtml } from '~/lib/now-html';
+
+interface Props {
+  block: SectionBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+const html = proseHtml(block.text);
+---
+
+{block.title ? (
+  <section aria-labelledby={anchor} class="mt-12">
+    <h2 id={anchor} class="font-semibold before-hash-2">{block.title}</h2>
+    <div class="prose mt-3">
+      <Fragment set:html={html} />
+    </div>
+  </section>
+) : (
+  <div class="prose mt-10">
+    <Fragment set:html={html} />
+  </div>
+)}

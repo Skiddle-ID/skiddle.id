@@ -22,6 +22,9 @@
 @import '@fontsource/source-serif-4/latin-600.css' layer(base);
 @import '@fontsource/source-serif-4/latin-400-italic.css' layer(base);
 
+/* The blocks' styles (src/components/blocks/blocks.css), unlayered */
+@import './components/blocks/blocks.css';
+
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 

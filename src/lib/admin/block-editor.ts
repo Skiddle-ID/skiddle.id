@@ -2,9 +2,9 @@
  * The block editor (docs/v4/themes.md, phase 3), at #blocks/<key>: a page made of blocks, an
  * id.skiddle.page record keyed by the page's address (home for /), opened from the Pages section.
  *
- * It opens the page's draft (<key>~draft) if there is one, else the page's record, else, for home,
- * the home page as it shows today (its id.skiddle.home record over src/data/home.ts, turned into
- * blocks by homePageFromLegacy in src/lib/page-blocks.mjs). It edits:
+ * It opens the page's draft (<key>~draft) if there is one, else the page's record, else, for one of
+ * the site's own pages, the page as it shows today: its old record turned into blocks
+ * (src/lib/admin/legacy-pages.ts, src/lib/page-legacy.mjs). It edits:
  *   - the page's settings: its title, description, width and whether it hides its heading
  *   - its blocks, in order: each with its kind, its width, a handle to drag it, ↑/↓, Remove and its
  *     options as a form made from its def in the lexicon (src/lib/admin/lexicon-form.ts). A block
@@ -22,9 +22,9 @@
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
 import pageLexicon from '../../../lexicons/id/skiddle/page.json';
-import { FALLBACK_HOME } from '~/data/home';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
-import { HOME_COLLECTION, PROJECT_COLLECTION, homeOf, projectUri } from '~/lib/page-records.mjs';
+import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
+import { PROJECT_COLLECTION, projectUri } from '~/lib/page-records.mjs';
+import { LEGACY_PAGES, isSitePage, legacyPage } from './legacy-pages';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, labelOf, problems, recordSchema, type Field, type LexiconDoc } from './lexicon-form';
@@ -81,11 +81,6 @@ export async function assertValidPage(record: Value) {
   new Lexicons([structuredClone(DOC) as never]).assertValidRecord(PAGE_COLLECTION, jsonToLex(record));
 }
 
-/** The home page as it shows without a page record: its id.skiddle.home record over the built-in text, in blocks */
-export function legacyHomePage(home: Value | undefined): Value {
-  return homePageFromLegacy(homeOf(home, FALLBACK_HOME), new Date().toISOString());
-}
-
 /** One block in the editor: a kind this app knows, with its form, or one it doesn't, kept as it is */
 type Row =
   | {
@@ -105,7 +100,7 @@ interface Open {
   key: string;
   page?: RepoRecord<Value>;
   draft?: RepoRecord<Value>;
-  /** The record the editor started from: the draft, the page's record, or for home the converted Home record */
+  /** The record the editor started from: the draft, the page's record, or a site page as it shows today */
   base: Value;
   settings: Field;
   rows: Row[];
@@ -164,7 +159,7 @@ export function setupBlockEditor(s: OAuthSession, onSaved: () => Promise<void>) 
 export async function openBlocks(key: string) {
   if (current?.key === key || !leaveBlocks()) return;
   document.body.dataset.view = 'blocks';
-  el('bkTitle').textContent = key === 'home' ? 'Home' : key;
+  el('bkTitle').textContent = isSitePage(key) ? LEGACY_PAGES[key].title : key;
   el('bkFrom').textContent = '';
   el('bkConflict').hidden = true;
   el('bkForm').hidden = true;
@@ -172,26 +167,26 @@ export async function openBlocks(key: string) {
   saveState('bkState', 'Loading…');
   let page: RepoRecord<Value> | null;
   let draft: RepoRecord<Value> | null;
-  let home: RepoRecord<Value> | null = null;
+  let legacy: Value | undefined;
   try {
     [page, draft] = await Promise.all([
       getRecord<Value>(session, PAGE_COLLECTION, key),
       getRecord<Value>(session, PAGE_COLLECTION, draftKey(key)),
       listRecords<Value>(session, PROJECT_COLLECTION).then((list) => (projects = list)),
     ]);
-    if (!page && !draft && key === 'home') home = await getRecord<Value>(session, HOME_COLLECTION, 'self');
+    if (!page && !draft && isSitePage(key)) legacy = await legacyPage(session, key);
   } catch (err) {
     saveState('bkState', '');
     return message('bkMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
   }
   if (blocksRoute(location.hash) !== key) return; // moved on while it loaded
-  const base = draft?.value ?? page?.value ?? (key === 'home' ? legacyHomePage(home?.value) : { $type: PAGE_COLLECTION, title: '', blocks: [] });
+  const base = draft?.value ?? page?.value ?? legacy ?? { $type: PAGE_COLLECTION, title: '', blocks: [] };
   el('bkFrom').textContent = draft
     ? `The draft, saved ${formatTime(String(draft.value.updatedAt))}.${page ? ' The page shows the published version until you publish it.' : ' Not published yet.'}`
     : page
       ? 'The published page. Saving makes a draft; the page changes when you publish it.'
-      : key === 'home'
-        ? `No page record yet, so the home page shows its Home record${home ? '' : ' (none: the built-in text)'}: these are its blocks. Save a draft, preview it, then publish it.`
+      : isSitePage(key)
+        ? `No page record yet, so ${addressOf(key)} shows ${LEGACY_PAGES[key].shows}: these are its blocks. Save a draft, preview it, then publish it.`
         : 'Not in your repo yet. Save a draft to create it.';
   current = { key, page: page ?? undefined, draft: draft ?? undefined, base, settings: { el: document.createElement('div'), read: () => ({}) }, rows: [] };
   fill(current);

@@ -1,0 +1,44 @@
+---
+/*
+  The services intro block (src/lib/page-blocks.mjs): the Services page's pitch. Its heading, the
+  page's main heading, a tagline, lines in a muted colour (bold in them is the text colour), whether
+  Jeff is available, and buttons, each with its icon (linkIcon), the one marked primary in the
+  accent colour.
+*/
+import Icon from '../icon.astro';
+import { linkAttributes, linkIcon, type ServicesIntroBlock } from '~/lib/page-blocks.mjs';
+import { mutedLineHtml } from '~/lib/now-html';
+
+interface Props {
+  block: ServicesIntroBlock;
+}
+const { block } = Astro.props;
+const links = block.links.map((l) => ({ ...l, ...linkAttributes(l), icon: linkIcon(l.href) }));
+---
+
+<header class="max-w-[70ch]">
+  <h1 class="font-semibold text-xl before-hash-1">{block.heading}</h1>
+  {block.tagline && (
+    <p class="mt-3 leading-relaxed">
+      {block.tagline}
+    </p>
+  )}
+  {block.lines.map((line) => (
+    <p class="text-sm text-[var(--color-muted)] mt-2 leading-relaxed">
+      <Fragment set:html={mutedLineHtml(line)} />
+    </p>
+  ))}
+  {block.status && (
+    <p class="text-xs text-[var(--color-muted)] mt-4 flex items-center gap-2">
+      <span class="size-2 rounded-full bg-[var(--color-ok)] shrink-0" aria-hidden="true"></span>
+      {block.status}
+    </p>
+  )}
+  {links.length > 0 && (
+    <div class="flex flex-wrap gap-2 mt-5">
+      {links.map((l) => (
+        <a class={l.primary ? 'btn border-[var(--color-primary)] text-[var(--color-primary)]' : 'btn'} href={l.href} target={l.target} rel={l.rel}>{l.icon ? <><Icon name={l.icon} size={14} /> {l.label}</> : l.label}</a>
+      ))}
+    </div>
+  )}
+</header>

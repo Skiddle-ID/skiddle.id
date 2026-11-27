@@ -1,0 +1,24 @@
+---
+/*
+  The highlights block (src/lib/page-blocks.mjs): numbers that back the page up, as cards, four to a
+  row on a wide screen, each with a link to its story if it has one. Its label names the cards for
+  screen readers ("Track record").
+*/
+import type { HighlightsBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: HighlightsBlock;
+}
+const { block } = Astro.props;
+---
+
+<section aria-label={block.label} class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
+  {block.highlights.map((p) => (
+    <div class="card p-4">
+      <p class="text-lg font-semibold text-[var(--color-primary)]">{p.value}</p>
+      <p class="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">
+        {p.label}{p.href && <> <a href={p.href} class="link">story</a></>}
+      </p>
+    </div>
+  ))}
+</section>

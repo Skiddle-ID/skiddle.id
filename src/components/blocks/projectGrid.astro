@@ -1,0 +1,55 @@
+---
+/*
+  The project grid block (src/lib/page-blocks.mjs): the picked projects' cards, three to a row, in the
+  record's order, with a link to all of them on /projects/, then other projects as a list. A pick
+  that's no longer a project is left out.
+*/
+import type { ProjectGridBlock } from '~/lib/page-blocks.mjs';
+import type { PageData } from '~/lib/page-data';
+
+interface Props {
+  block: ProjectGridBlock;
+  anchor?: string;
+  data: PageData;
+}
+const { block, anchor, data } = Astro.props;
+const projects = await data.projects();
+const selected = block.projects.map((id) => projects.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+---
+
+<section aria-labelledby={anchor} class="mt-12">
+  <div class="flex items-baseline justify-between gap-4">
+    <h2 id={anchor} class="font-semibold before-hash-2 print:before:content-none">{block.title}</h2>
+    <a href="/projects/" class="text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] print:hidden">all projects →</a>
+  </div>
+  <div class="mt-4 grid gap-3 md:grid-cols-3">
+    {selected.map((p) => (
+      <article class="card p-4 flex flex-col">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="font-semibold text-[var(--color-primary)]">{p.name}</h3>
+          <span class="text-xs text-[var(--color-muted)]">{p.year}</span>
+        </div>
+        <p class="text-xs mt-2 leading-relaxed">{p.impact ?? p.description}</p>
+        <p class="mt-auto pt-3 text-xs flex flex-wrap gap-x-3">
+          {p.writeup && <a href={p.writeup} class="link print:hidden">story</a>}
+          {p.homepage && <a href={p.homepage} class="link" target="_blank" rel="noopener noreferrer">live</a>}
+          {p.github && <a href={p.github} class="link" target="_blank" rel="noopener noreferrer">source</a>}
+        </p>
+      </article>
+    ))}
+  </div>
+  {block.others.length > 0 && (
+    <ul class="mt-4 text-sm flex flex-col gap-2">
+      {block.others.map((prj) => (
+        <li class="flex flex-col sm:flex-row sm:gap-3">
+          <span class="font-semibold shrink-0">{prj.title}{prj.status && <span class="text-xs font-normal text-[var(--color-muted)]"> · {prj.status.toLowerCase()}</span>}</span>
+          <span class="text-[var(--color-muted)]">
+            {prj.description}
+            {prj.live && <a href={prj.live} class="link ml-2 text-xs" target="_blank" rel="noopener">live</a>}
+            {prj.source && <a href={prj.source} class="link ml-2 text-xs" target="_blank" rel="noopener">source</a>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )}
+</section>

@@ -1,0 +1,23 @@
+---
+/* The principles block (src/lib/page-blocks.mjs): how Jeff works, as numbered cards, two to a row */
+import type { PrinciplesBlock } from '~/lib/page-blocks.mjs';
+
+interface Props {
+  block: PrinciplesBlock;
+  anchor?: string;
+}
+const { block, anchor } = Astro.props;
+---
+
+<section aria-labelledby={anchor} class="mt-10">
+  <h2 id={anchor} class="font-semibold before-hash-2">{block.title}</h2>
+  <div class="mt-4 grid sm:grid-cols-2 gap-3">
+    {block.principles.map((p, i) => (
+      <div class="card p-4">
+        <p class="text-xs text-[var(--color-muted)]">{String(i + 1).padStart(2, '0')}</p>
+        <h3 class="font-semibold text-[var(--color-primary)] mt-1">{p.title}</h3>
+        <p class="text-sm text-[var(--color-muted)] mt-1">{p.body}</p>
+      </div>
+    ))}
+  </div>
+</section>

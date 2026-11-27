@@ -6,9 +6,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, homePageFromLegacy, isPageKey, linkAttributes, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, SITE_PAGES, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { homePageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
-import { introHtml } from '../src/lib/now-html.ts';
+import { introHtml, lineHtml, mutedLineHtml, proseHtml } from '../src/lib/now-html.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const lexicon = JSON.parse(readFileSync(join(ROOT, 'lexicons/id/skiddle/page.json'), 'utf8'));
@@ -46,6 +47,12 @@ describe('page records, read', () => {
     const html = introHtml('[run](javascript:alert(1)) [now](/now/) [hire](#hire)');
     assert.doesNotMatch(html, /javascript:/);
     assert.match(html, /run <a href="\/now\/" class="link">now<\/a> <a href="#hire" class="link">hire<\/a>/);
+  });
+
+  it('Markdown: a link off the site opens in a new tab; in .prose, links take the prose’s style', () => {
+    assert.equal(lineHtml('A [now page](https://nownownow.com/about), [mine](/now/)'), 'A <a href="https://nownownow.com/about" class="link" target="_blank" rel="noopener">now page</a>, <a href="/now/" class="link">mine</a>');
+    assert.equal(proseHtml('My [CV](/works/) and <b>this</b>'), '<p>My <a href="/works/">CV</a> and &lt;b&gt;this&lt;/b&gt;</p>\n');
+    assert.equal(mutedLineHtml('Runs through **Skiddle Labs**.'), 'Runs through <span class="text-[var(--color-text)]">Skiddle Labs</span>.');
   });
 
   it('keeps only links it’s safe to follow', () => {
@@ -105,14 +112,178 @@ describe('page records, read', () => {
     const cid = 'bafkreigh2akiscaildcqabsyg3dfr6chu3fgpregiymsck7e7aqa4s52zy';
     assert.deepEqual(
       pageFromRecord({ ...page(), description: 'D', width: 'wide', hideHeading: true, card: { $type: 'blob', ref: { $link: cid }, mimeType: 'image/png', size: 1 } }),
-      { title: 'T', description: 'D', width: 'wide', hideHeading: true, card: cid, blocks: [] },
+      { title: 'T', description: 'D', width: 'wide', hideHeading: true, card: cid, blocks: [], updatedAt: at },
     );
-    assert.deepEqual(pageFromRecord({ blocks: [], width: 'huge', hideHeading: 'yes' }), { title: '', description: '', width: 'narrow', hideHeading: false, blocks: [] });
+    assert.deepEqual(pageFromRecord({ blocks: [], width: 'huge', hideHeading: 'yes', updatedAt: 'yesterday' }), { title: '', description: '', width: 'narrow', hideHeading: false, blocks: [], updatedAt: '' });
   });
 
   it('what a page reads, each once, leaving out unknown blocks', () => {
     const p = pageFromRecord(page(block('profile', { greeting: 'Hi' }), block('recentPosts'), block('recentPosts', { hideSeries: true }), { block: { $type: 'x' } }, block('markdown', { text: 'x' })));
     assert.deepEqual(readsOf(p), ['status', 'posts']);
+  });
+});
+
+describe('the About page’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('facts: only the ones with a label and a value; with none, only its heading', () => {
+    const facts = [{ label: 'OS', value: 'macOS' }, { label: 'Shell' }, { value: 'x' }, 'Editor: Zed'];
+    assert.deepEqual(read('facts', { heading: 'About me', facts }), { kind: 'facts', heading: 'About me', facts: [{ label: 'OS', value: 'macOS' }] });
+    assert.deepEqual(read('facts', { heading: 'About me' }), { kind: 'facts', heading: 'About me', facts: [] });
+    assert.equal(read('facts', { facts: [{ label: 'Shell' }] }), undefined);
+  });
+
+  it('a section’s heading id: its own if it’s one, else made from its title; none without a title', () => {
+    const anchors = [{ title: 'Outside of work', anchor: 'outside' }, { title: 'Outside of work' }, { title: '2 Things', anchor: 'a b"' }, {}].map(
+      (o) => pageFromRecord(page(block('section', { text: 'x', ...o }))).blocks[0].anchor,
+    );
+    assert.deepEqual(anchors, ['outside', 'outside-of-work', 's-2-things', undefined]);
+    assert.equal(read('section', { title: 'Empty', text: ' ' }), undefined);
+  });
+
+  it('a block’s own id is unique on the page too', () => {
+    const p = pageFromRecord(page(block('section', { title: 'A', anchor: 'how', text: 'x' }), block('principles', { title: 'How', principles: [{ title: 't', body: 'b' }] })));
+    assert.deepEqual(p.blocks.map((b) => b.anchor), ['how', 'how-2']);
+  });
+
+  it('principles: only the ones with a title and a body, under a title', () => {
+    assert.deepEqual(read('principles', { title: 'How I work', principles: [{ title: 'A', body: 'B' }, { title: 'C' }] }).principles, [{ title: 'A', body: 'B' }]);
+    assert.equal(read('principles', { principles: [{ title: 'A', body: 'B' }] }), undefined);
+  });
+
+  it('so far: a milestone’s link only if the site would follow it, and its text only with a link', () => {
+    const milestones = [
+      { year: '2020', text: 'a', href: '/posts/a/', link: 'read it' },
+      { year: '2021', text: 'b', href: 'javascript:alert(1)', link: 'run' },
+      { year: '2022', text: 'c', link: 'no link' },
+      { year: '2023' },
+    ];
+    assert.deepEqual(read('soFar', { title: 'So far', milestones, current: 'now' }), {
+      kind: 'soFar',
+      title: 'So far',
+      milestones: [{ year: '2020', text: 'a', href: '/posts/a/', link: 'read it' }, { year: '2021', text: 'b' }, { year: '2022', text: 'c' }],
+      current: 'now',
+    });
+    assert.deepEqual(read('soFar', { title: 'So far', current: 'now' }), { kind: 'soFar', title: 'So far', milestones: [], current: 'now' });
+    assert.equal(read('soFar', { milestones, current: 'now' }), undefined);
+  });
+
+  it('contact: its links, each with the icon of where it goes', () => {
+    const links = [{ label: 'Email', href: 'mailto:a@b.c', primary: true }, { label: 'Bluesky', href: 'https://bsky.app/profile/x', me: true }, { label: 'GitHub', href: 'https://github.com/x', me: true }, { label: 'RSS', href: '/rss.xml' }];
+    const contact = read('contact', { title: 'Say hi', links });
+    assert.deepEqual(contact.links.map((l) => linkIcon(l.href)), ['mail', 'bluesky', 'github', undefined]);
+    assert.deepEqual(contact.links.map((l) => [l.me, l.primary]), [[false, true], [true, false], [true, false], [false, false]]);
+  });
+});
+
+describe('the Now page’s block, read', () => {
+  it('needs its heading, and reads the Now record', () => {
+    const p = pageFromRecord(page(block('nowFull', { heading: 'Now', text: 'A lead' }), block('nowFull', { text: 'no heading' })));
+    assert.deepEqual(p.blocks.map((b) => b.block), [{ kind: 'nowFull', heading: 'Now', text: 'A lead' }]);
+    assert.deepEqual(readsOf(p), ['now']);
+  });
+});
+
+describe('the Uses page’s block, read', () => {
+  const item = (name, more = {}) => ({ name, ...more });
+  const sections = [
+    { id: 'dev', title: 'Dev', blurb: 'b', groups: [{ title: 'Editors', items: [item('Zed', { href: 'https://zed.dev', note: 'n' }), item('vi', { href: 'javascript:x' }), { note: 'no name' }] }, { title: 'Empty', items: [] }] },
+    { id: '1bad', title: 'Bad id', groups: [{ title: 'G', items: [item('x')] }] },
+    { id: 'none', title: 'No groups', groups: [] },
+  ];
+
+  it('keeps sections with an id and a group of things, and a thing’s link only if it’s safe', () => {
+    const b = pageFromRecord(page(block('uses', { heading: 'Uses', sections, outro: 'o' }))).blocks[0].block;
+    assert.deepEqual(b, {
+      kind: 'uses',
+      heading: 'Uses',
+      text: '',
+      outro: 'o',
+      sections: [{ id: 'dev', title: 'Dev', blurb: 'b', groups: [{ title: 'Editors', items: [item('Zed', { note: 'n', href: 'https://zed.dev' }), item('vi')] }] }],
+    });
+  });
+
+  it('with none of them, only its heading; with no heading, no block', () => {
+    assert.deepEqual(pageFromRecord(page(block('uses', { heading: 'Uses', sections: sections.slice(1) }))).blocks[0].block.sections, []);
+    assert.equal(pageFromRecord(page(block('uses', { sections }))).blocks.length, 0);
+  });
+});
+
+describe('the CV’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('the header: an email and profiles only if they’re ones, and a start year from 1900 to 2100', () => {
+    const header = (o) => read('cvHeader', { name: 'Jeff', title: 'Engineer', ...o });
+    const b = header({ email: 'a@b.c', github: 'https://github.com/x', bluesky: 'javascript:x', since: 2016, highlights: [{ value: '10', label: 'years', href: '/posts/x/' }, { value: 'x' }] });
+    assert.deepEqual([b.email, b.github, b.bluesky, b.since], ['a@b.c', 'https://github.com/x', '', 2016]);
+    assert.deepEqual(b.highlights, [{ value: '10', label: 'years', href: '/posts/x/' }]);
+    assert.deepEqual([header({ email: 'not an email' }).email, header({ github: 'http://github.com/x' }).github], ['', '']);
+    assert.deepEqual([1899, 2016.5, '2016'].map((since) => header({ since }).since), [undefined, undefined, undefined]);
+    assert.equal(read('cvHeader', { name: 'Jeff' }), undefined);
+  });
+
+  it('jobs: a role needs a title and a start; a company needs a role', () => {
+    const jobs = [
+      { company: 'A', description: 'd', positions: [{ role: 'R', start: '2020', employment: 'Contract', highlights: ['h', ''] }, { role: 'no start' }] },
+      { company: 'B', positions: [{ start: '2019' }] },
+    ];
+    assert.deepEqual(read('jobs', { title: 'Experience', jobs }).jobs, [{ company: 'A', description: 'd', positions: [{ role: 'R', start: '2020', employment: 'Contract', highlights: ['h'] }] }]);
+  });
+
+  it('skills: groups with a title and skills', () => {
+    assert.deepEqual(read('skills', { title: 'Skills', groups: [{ title: 'Langs', items: ['Go', 3] }, { title: 'None', items: [] }] }).groups, [{ title: 'Langs', items: ['Go'] }]);
+  });
+
+  it('the project grid: this repo’s projects by key, and other projects with links only to https:// addresses', () => {
+    const b = read('projectGrid', {
+      title: 'Selected projects',
+      projects: [projectUri('a'), 'at://did:plc:other/id.skiddle.project/b'],
+      others: [{ title: 'O', description: 'd', status: 'Ongoing', live: 'https://o.example', source: 'ftp://x' }, { title: 'no description' }],
+    });
+    assert.deepEqual([b.projects, b.others], [['a'], [{ title: 'O', description: 'd', status: 'Ongoing', live: 'https://o.example' }]]);
+    assert.deepEqual(readsOf(pageFromRecord(page(block('projectGrid', { title: 'P', projects: [] })))), ['projects']);
+  });
+
+  it('education: schools with a degree and a school; certifications with when', () => {
+    const b = read('education', { title: 'Education', schools: [{ degree: 'MSc', school: 'C', end: 'Present' }, { degree: 'x' }], certificationsTitle: 'Certs', certifications: [{ title: 'PPL', when: '2026' }, { title: 'no when' }] });
+    assert.deepEqual([b.schools, b.certifications], [[{ degree: 'MSc', school: 'C', end: 'Present' }], [{ title: 'PPL', when: '2026' }]]);
+    assert.equal(read('education', { title: 'Education', schools: [] }), undefined);
+  });
+});
+
+describe('the Services page’s blocks, read', () => {
+  const read = (kind, options) => pageFromRecord(page(block(kind, options))).blocks[0]?.block;
+
+  it('the intro: its lines, status and safe links, under its heading', () => {
+    const b = read('servicesIntro', { heading: 'Services', lines: ['a', '', 3], links: [{ label: 'CV', href: '/works/' }, { label: 'x', href: 'javascript:x' }] });
+    assert.deepEqual(b, { kind: 'servicesIntro', heading: 'Services', tagline: '', lines: ['a'], status: '', links: [{ label: 'CV', href: '/works/', me: false, primary: false }] });
+    assert.equal(read('servicesIntro', { tagline: 'no heading' }), undefined);
+  });
+
+  it('highlights: each with a value and a label, its story only if it’s a link the site would follow', () => {
+    const b = read('highlights', { highlights: [{ value: '5', label: 'years', href: '/posts/x/' }, { value: '1', label: 'l', href: 'javascript:x' }, { label: 'no value' }] });
+    assert.deepEqual(b, { kind: 'highlights', label: 'Highlights', highlights: [{ value: '5', label: 'years', href: '/posts/x/' }, { value: '1', label: 'l' }] });
+  });
+
+  it('services: needs an email to send to, and reads the services record, as the reviews do', () => {
+    assert.equal(read('services', { title: 'What I can help with', email: 'nope' }), undefined);
+    const p = pageFromRecord(page(block('services', { title: 'S', email: 'work@skiddle.id', brief: 'Hi' }), block('reviews', { title: 'R' }), block('steps', { title: 'How', steps: [{ title: 't', body: 'b' }] })));
+    assert.deepEqual(kinds(p), ['services', 'reviews', 'steps']);
+    assert.deepEqual(readsOf(p), ['services']);
+    assert.deepEqual(p.blocks.map((b) => b.anchor), ['services', 'kind-words', 'process']);
+  });
+
+  it('the brief: what to include, and its buttons', () => {
+    const b = read('brief', { title: 'Tell me', points: ['what', ''], links: [{ label: 'Bluesky', href: 'https://bsky.app/profile/x' }] });
+    assert.deepEqual([b.points, b.links.map((l) => linkIcon(l.href))], [['what'], ['bluesky']]);
+  });
+});
+
+describe('the Notes page’s block, read', () => {
+  it('needs its heading, and reads the notes', () => {
+    const p = pageFromRecord(page(block('blueskyPosts', { heading: 'Notes', text: 'Mine' }), block('blueskyPosts', { text: 'no heading' })));
+    assert.deepEqual(p.blocks.map((b) => b.block), [{ kind: 'blueskyPosts', heading: 'Notes', text: 'Mine' }]);
+    assert.deepEqual(readsOf(p), ['notes']);
   });
 });
 
@@ -181,6 +352,15 @@ describe('the block registry', () => {
     for (const kind of defs) {
       assert.ok(existsSync(join(ROOT, `src/components/blocks/${kind}.astro`)), `src/components/blocks/${kind}.astro`);
       assert.equal(lexicon.defs[kind].type, 'object', `#${kind} is an object`);
+    }
+  });
+
+  it('each of the site’s own pages has a route that renders it from blocks, and the admin app can move it', () => {
+    const admin = readFileSync(join(ROOT, 'src/lib/admin/legacy-pages.ts'), 'utf8');
+    for (const key of SITE_PAGES) {
+      const route = readFileSync(join(ROOT, `src/pages/${key === 'home' ? 'index' : key}.astro`), 'utf8');
+      assert.match(route, new RegExp(`blockPage\\(Astro, '${key}'`), `src/pages/${key}.astro`);
+      assert.match(admin, new RegExp(`^  ${key}: \\{`, 'm'), `LEGACY_PAGES.${key}`);
     }
   });
 

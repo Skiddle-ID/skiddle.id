@@ -1,9 +1,9 @@
 ---
 import Shell from '../layouts/shell.astro';
 import Blocks from '../components/blocks/blocks.astro';
-import { homePageFromLegacy, pageFromRecord, readsOf } from '~/lib/page-blocks.mjs';
-import { PAGES_TAG, getHome, getPage } from '~/lib/page-content';
-import { pageData, preload } from '~/lib/page-data';
+import { blockPage } from '~/lib/block-page';
+import { PAGES_TAG, getHome } from '~/lib/page-content';
+import { homePageFromLegacy } from '~/lib/page-legacy.mjs';
 import { POSTS_CACHE } from '~/lib/site-posts';
 // Rendered on request, from blocks (src/components/blocks/): the id.skiddle.page record `home`, or
 // until there is one, the page made from the id.skiddle.home record (or src/data/home.ts), as it
@@ -11,30 +11,13 @@ import { POSTS_CACHE } from '~/lib/site-posts';
 // and series, Now, the projects and the testimonials (src/lib/page-data.ts).
 export const prerender = false;
 
-// ?preview=draft shows the draft the admin app saved (home~draft), never cached or indexed
-const preview = Astro.url.searchParams.get('preview') === 'draft';
-const draft = preview ? await getPage('home', { draft: true }) : null;
-const page = draft ?? (await getPage('home')) ?? pageFromRecord(homePageFromLegacy(await getHome(), new Date().toISOString()));
-const data = pageData();
-await preload(data, readsOf(page));
-
-if (preview) {
-  Astro.response.headers.set('Cache-Control', 'no-store');
-  Astro.response.headers.set('X-Robots-Tag', 'noindex');
-} else {
-  // Purged when either posts or the pages' records change
-  Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
-}
+const { page, data, preview } = await blockPage(Astro, 'home', async () => homePageFromLegacy(await getHome(), new Date().toISOString()));
+// Purged when either posts or the pages' records change
+if (!preview) Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
 ---
 
 <Shell title={page.title || undefined} description={page.description || undefined} image={page.card && `/media/${page.card}`}>
-  <Blocks page={page} data={data}>
-    {preview && (
-      <p class="card p-3 mb-8 text-sm text-[var(--color-muted)]" role="status">
-        {draft ? 'A preview of the draft: it isn’t published.' : 'There’s no draft: this is the published page.'}
-      </p>
-    )}
-  </Blocks>
+  <Blocks page={page} data={data} preview={preview} />
 </Shell>
 
 <script>

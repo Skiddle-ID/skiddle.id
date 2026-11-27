@@ -7,8 +7,9 @@
  *   node scripts/parity.mjs http://127.0.0.1:8787 / /about/
  *
  * Before comparing, each page is normalised: comments and runs of whitespace, the hashes in /_astro/
- * file names, Astro's data-astro-cid-* attributes, and what changes from one minute to the next
- * (the status line, relative times like "3 hours ago"). A difference prints with the lines around
+ * file names, Astro's data-astro-cid-* attributes, quotes written as character references (&#39;,
+ * &quot;: text from a record is escaped, text in a page's code isn't, and both show the same), and
+ * what changes from one minute to the next (the status line, relative times like "3 hours ago"). A difference prints with the lines around
  * it, and the script exits with 1. Whitespace between two tags is compared apart: it renders only
  * between inline elements, not between blocks or in flex rows, so a page that differs only there
  * passes, with the places listed to check. Pass --against <url> to compare with another site.
@@ -53,6 +54,8 @@ function partsOf(html) {
     main: withoutComments(LIVE.reduce((s, [re, to]) => s.replace(re, to), main))
       .replace(/(\/_astro\/[^"'\s)]+?)\.[A-Za-z0-9_-]{8}\.(js|css|webp|png|jpg|svg|woff2?)/g, '$1.HASH.$2')
       .replace(/\s*data-astro-cid-[a-z0-9]+(="[^"]*")?/g, '')
+      .replace(/&#39;|&#x27;|&apos;/g, "'")
+      .replace(/&quot;|&#34;|&#x22;/g, '"')
       .replace(/\s+/g, ' '),
   };
 }
