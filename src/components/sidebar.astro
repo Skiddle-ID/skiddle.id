@@ -93,6 +93,11 @@ const isActive = (href: string) => {
   const themeBtn = document.getElementById('themeToggle');
   const systemLight = matchMedia('(prefers-color-scheme: light)');
   const systemTheme = () => (systemLight.matches ? 'light' : 'dark');
+  // The site's own look (id.skiddle.theme, set on <html> by src/layouts/shell.astro)
+  const siteMode = root.dataset.siteMode;
+  const followsDevice = siteMode !== 'light' && siteMode !== 'dark';
+  const siteTheme = () => (followsDevice ? systemTheme() : siteMode);
+  const siteAccent = root.dataset.siteAccent || 'blue';
   const picked = () => ['light', 'dark'].includes(load('theme') ?? '');
   const syncThemeLabel = () => {
     const light = root.dataset.theme === 'light';
@@ -103,23 +108,26 @@ const isActive = (href: string) => {
   themeBtn?.addEventListener('click', () => {
     const next = root.dataset.theme === 'light' ? 'dark' : 'light';
     root.dataset.theme = next;
-    // Switching back to the device's own theme means "follow the device" again; otherwise remember it.
-    if (next === systemTheme()) forget('theme');
+    // Switching back to the site's own theme means "follow the site" again; otherwise remember it.
+    if (next === siteTheme()) forget('theme');
     else save('theme', next);
     syncThemeLabel();
   });
-  // Follow the device when it switches light/dark (e.g. automatic at sunset), unless a theme was picked here.
+  // Follow the device when it switches light/dark (e.g. automatic at sunset), when the site follows
+  // it and no theme was picked here.
   systemLight.addEventListener('change', () => {
-    if (picked()) return;
+    if (picked() || !followsDevice) return;
     root.dataset.theme = systemTheme();
     syncThemeLabel();
   });
 
   document.getElementById('accentToggle')?.addEventListener('click', () => {
-    const i = ACCENTS.indexOf(root.dataset.accent || 'blue');
+    const i = ACCENTS.indexOf(root.dataset.accent || siteAccent);
     const next = ACCENTS[(i + 1) % ACCENTS.length];
     root.dataset.accent = next;
-    save('accent', next);
+    // Back to the site's own accent means "follow the site" again
+    if (next === siteAccent) forget('accent');
+    else save('accent', next);
   });
 
   // Now playing

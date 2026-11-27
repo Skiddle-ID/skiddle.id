@@ -88,3 +88,67 @@ export function designField(onChange: () => void) {
     return { el: wrap, read: () => design };
   };
 }
+
+/** An option of a choiceField: its value, label and, for a colour, its swatch's dark and light colours */
+interface Choice {
+  value: string;
+  label: string;
+  swatch?: [string, string];
+}
+
+/**
+ * A row of choices (radio buttons) for one of the theme's fields: its mode, or its accent, whose
+ * choices show the colour. The record keeps the value the site doesn't know as is, if it has one.
+ */
+export function choiceField(name: string, legendText: string, help: string, choices: Choice[], fallback: string, onChange: () => void) {
+  return (initial: unknown): Field => {
+    let value = typeof initial === 'string' && initial ? initial : fallback;
+    const wrap = document.createElement('fieldset');
+    wrap.className = 'admin-field admin-designs';
+    const legend = document.createElement('legend');
+    legend.className = 'admin-label-row';
+    legend.textContent = legendText;
+    wrap.appendChild(legend);
+    const row = document.createElement('div');
+    row.className = 'admin-choice-row';
+    for (const c of choices) {
+      const option = document.createElement('label');
+      option.className = 'admin-choice';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = name;
+      radio.value = c.value;
+      radio.checked = c.value === value;
+      radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        value = c.value;
+        onChange();
+      });
+      option.appendChild(radio);
+      if (c.swatch) {
+        const sw = document.createElement('span');
+        sw.className = 'admin-swatch';
+        sw.style.setProperty('--swatch-dark', c.swatch[0]);
+        sw.style.setProperty('--swatch-light', c.swatch[1]);
+        option.appendChild(sw);
+      }
+      option.appendChild(document.createTextNode(c.label));
+      row.appendChild(option);
+    }
+    wrap.appendChild(row);
+    const p = document.createElement('p');
+    p.className = 'admin-small';
+    p.textContent = help;
+    wrap.appendChild(p);
+    return { el: wrap, read: () => value };
+  };
+}
+
+/** The accents' colours, dark then light, as src/style.css has them */
+export const ACCENT_COLOURS: Record<string, [string, string]> = {
+  blue: ['#82cfff', '#0f62fe'],
+  teal: ['#3ddbd9', '#007d79'],
+  purple: ['#be95ff', '#8a3ffc'],
+  pink: ['#ff7eb6', '#d02670'],
+  green: ['#42be65', '#198038'],
+};

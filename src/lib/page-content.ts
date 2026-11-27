@@ -34,6 +34,8 @@ import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quote
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
 import { EVENT_COLLECTION, eventsFromRecords, type TimelineEvent } from '~/lib/timeline.mjs';
 import { SITE_COLLECTION, siteMetaOf, type SiteMeta } from '~/lib/site-meta.mjs';
+import { THEME_COLLECTION } from '~/lib/card-theme.mjs';
+import { DEFAULT_SITE_THEME, siteThemeOf, type SiteTheme } from '~/lib/site-theme.mjs';
 import { FALLBACK_SITE } from '~/data/site-meta';
 import type { About } from '~/types/about';
 import { FALLBACK_HOME } from '~/data/home';
@@ -54,7 +56,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION].map((c) => `record/${c}/self`),
+  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION, THEME_COLLECTION].map((c) => `record/${c}/self`),
   `list/${EVENT_COLLECTION}`,
 ];
 
@@ -115,6 +117,19 @@ export async function getSiteMeta(): Promise<SiteMeta> {
   } catch (err) {
     console.error('site meta:', err);
     return FALLBACK_SITE;
+  }
+}
+
+/**
+ * The site's look for visitors who haven't picked their own (id.skiddle.theme, src/lib/site-theme.mjs).
+ * Like the metadata, a failed read gets the defaults (follow the device, blue), not an error.
+ */
+export async function getSiteTheme(): Promise<SiteTheme> {
+  try {
+    return siteThemeOf(await getRecord<Record<string, unknown>>(THEME_COLLECTION, 'self'));
+  } catch (err) {
+    console.error('site theme:', err);
+    return DEFAULT_SITE_THEME;
   }
 }
 
