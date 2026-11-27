@@ -4,8 +4,9 @@
  * project. Each name opens its editor, and New project starts one (src/lib/admin/page-editor.ts).
  *
  * The pages made of blocks (id.skiddle.page, docs/v4/themes.md) are listed too, each opening the
- * block editor (src/lib/admin/block-editor.ts) with its draft noted. Home (blocks) is always there:
- * until it has a page record, the home page shows its Home record.
+ * block editor (src/lib/admin/block-editor.ts) with its draft noted. The site's own (Home, the CV,
+ * Services, Uses, About, Now and Notes) are always there: until one has a page record, it shows what
+ * its old record says (src/lib/admin/legacy-pages.ts).
  *
  * Until the v4 launch this section also imported the records from the data files in src/data/,
  * once; they've left git since.
@@ -14,7 +15,8 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
-import { PAGE_COLLECTION, draftKey, isPageKey } from '~/lib/page-blocks.mjs';
+import { PAGE_COLLECTION, SITE_PAGES, draftKey, isPageKey } from '~/lib/page-blocks.mjs';
+import { LEGACY_PAGES, isSitePage } from './legacy-pages';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, formatTime, message, viewLink } from './dom';
 import { report } from './overview';
@@ -114,17 +116,17 @@ export async function loadPages() {
   );
 }
 
-/** The pages made of blocks, with their drafts: Home first, always, then the others by key */
+/** The pages made of blocks, with their drafts: the site's own first, always, then the others by key */
 function blockPages(records: RepoRecord<PageRecord>[]): Row[] {
   const byKey = new Map(records.map((r) => [rkeyOf(r.uri), r]));
-  const keys = new Set(['home', ...[...byKey.keys()].filter(isPageKey).sort()]);
+  const keys = new Set<string>([...SITE_PAGES, ...[...byKey.keys()].filter(isPageKey).sort()]);
   return [...keys].map((key) => ({
-    title: key === 'home' ? 'Home (blocks)' : `${String(byKey.get(key)?.value.title || key)} (blocks)`,
+    title: `${isSitePage(key) ? LEGACY_PAGES[key].title : String(byKey.get(key)?.value.title || key)} (blocks)`,
     collection: PAGE_COLLECTION,
     rkey: key,
     page: key === 'home' ? '/' : `/${key}/`,
     editor: `#blocks/${key}`,
-    fallback: key === 'home' ? 'the Home record' : undefined,
+    fallback: isSitePage(key) ? LEGACY_PAGES[key].shows : undefined,
     have: byKey.get(key),
     draft: byKey.get(draftKey(key)),
   }));

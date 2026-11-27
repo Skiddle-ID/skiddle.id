@@ -74,6 +74,11 @@ const LABELS: Record<string, string> = {
   menu: 'Menu items',
   hideMusic: 'Hide the music card',
   hideThemeButtons: 'Hide the theme and accent buttons',
+  // Kinds of block (src/lib/admin/block-editor.ts)
+  cvHeader: 'CV header',
+  cvContact: 'CV contact',
+  nowFull: 'Now, in full',
+  since: 'In infrastructure since',
 };
 
 /** "selectedProjects" → "Selected projects" */

@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
-import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { BLOCKS, PAGE_COLLECTION, SITE_PAGES, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
 import { homePageFromLegacy } from '../src/lib/page-legacy.mjs';
 import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
 import { introHtml, lineHtml, mutedLineHtml, proseHtml } from '../src/lib/now-html.ts';
@@ -349,6 +349,15 @@ describe('the block registry', () => {
     for (const kind of defs) {
       assert.ok(existsSync(join(ROOT, `src/components/blocks/${kind}.astro`)), `src/components/blocks/${kind}.astro`);
       assert.equal(lexicon.defs[kind].type, 'object', `#${kind} is an object`);
+    }
+  });
+
+  it('each of the site’s own pages has a route that renders it from blocks, and the admin app can move it', () => {
+    const admin = readFileSync(join(ROOT, 'src/lib/admin/legacy-pages.ts'), 'utf8');
+    for (const key of SITE_PAGES) {
+      const route = readFileSync(join(ROOT, `src/pages/${key === 'home' ? 'index' : key}.astro`), 'utf8');
+      assert.match(route, new RegExp(`blockPage\\(Astro, '${key}'`), `src/pages/${key}.astro`);
+      assert.match(admin, new RegExp(`^  ${key}: \\{`, 'm'), `LEGACY_PAGES.${key}`);
     }
   });
 

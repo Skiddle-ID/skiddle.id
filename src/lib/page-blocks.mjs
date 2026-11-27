@@ -102,6 +102,8 @@ export const blockType = (/** @type {string} */ kind) => `${PAGE_COLLECTION}#${k
 const str = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() ? v : undefined);
 const objects = (/** @type {unknown} */ v) => /** @type {Raw[]} */ (Array.isArray(v) ? v.filter((o) => o && typeof o === 'object' && !Array.isArray(o)) : []);
 
+/** A link's address, if it's one the site would follow (isPageHref) */
+const hrefOf = (/** @type {unknown} */ v) => (typeof v === 'string' && isPageHref(v) ? v : undefined);
 /** The strings in a list that have text */
 const strings = (/** @type {unknown} */ v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string' && s.trim()) : []);
 /** The fields of an object that are strings with text, by name, leaving out the rest */
@@ -116,8 +118,6 @@ const highlightsOf = (/** @type {unknown} */ v) =>
     const [value, label, href] = [str(h.value), str(h.label), hrefOf(h.href)];
     return value && label ? [{ value, label, ...(href ? { href } : {}) }] : [];
   });
-/** A link's address, if it's one the site would follow (isPageHref) */
-const hrefOf = (/** @type {unknown} */ v) => (typeof v === 'string' && isPageHref(v) ? v : undefined);
 /** An id for an element: a letter, then letters, digits, - or _ */
 const isId = (/** @type {unknown} */ v) => typeof v === 'string' && /^[A-Za-z][\w-]{0,63}$/.test(v);
 /** An id made from a heading: "Outside of work" is outside-of-work */
