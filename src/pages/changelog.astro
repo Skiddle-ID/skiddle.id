@@ -3,7 +3,6 @@
   /changelog/: the site's published releases on GitHub, newest first, each with its notes
   (src/lib/releases.ts). A release's section has an id from its tag (#v4-1), so it can be linked.
 */
-import { env } from 'cloudflare:workers';
 import Shell from '../layouts/shell.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { nestedProseHtml } from '~/lib/now-html';
@@ -12,7 +11,7 @@ import { RELEASES_URL, getReleases, releaseId } from '~/lib/releases';
 
 export const prerender = false;
 
-const releases = await getReleases(fetch, (env as { GITHUB_TOKEN?: string }).GITHUB_TOKEN ?? '');
+const releases = await getReleases();
 // Without the releases, render again in a minute rather than keep the page that says so
 Astro.cache.set(releases ? PAGES_CACHE : { maxAge: 60, tags: [PAGES_TAG] });
 

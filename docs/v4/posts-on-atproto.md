@@ -243,7 +243,7 @@ Once the posts are only in the PDS, they need a copy somewhere else. Every Sunda
 
 It checks every block of the CAR file and every blob against its hash. A broken download fails the run, and GitHub emails about it, so a broken backup never replaces a good one. For the same reason it refuses to back up a repo with no posts. Today a backup is about 14 MB and takes a minute.
 
-The release is public, like the repo it copies. A deleted record stays in the backups for up to four weeks.
+The release is public, like the repo it copies. A deleted record stays in the backups for up to four weeks. The release also holds `releases.json`, the published releases that [/changelog](https://skiddle.id/changelog/) reads ([Publish the releases for /changelog](../../.github/workflows/changelog-data.yml)); the backup workflow's pruning only touches `backup-*.tar.gz`.
 
 **Restoring.** [goat](https://github.com/bluesky-social/goat), Bluesky's command-line tool, reads the CAR file:
 - `goat repo ls repo.car` lists the records.

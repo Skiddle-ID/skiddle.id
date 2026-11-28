@@ -49,7 +49,7 @@ jobs:
           FILE: ${{ steps.backup.outputs.file }}
         run: |
           if ! gh release view backups > /dev/null 2>&1; then
-            gh release create backups --prerelease --title "Backups" --notes "Weekly backups of the AT Protocol repo behind skiddle.id: every record (repo.car), every blob, and the DID's history, one .tar.gz a week. The newest $KEEP are kept. Made by .github/workflows/backup.yml. How to restore: docs/v4/posts-on-atproto.md#backups"
+            gh release create backups --prerelease --title "Backups" --notes "Weekly backups of the AT Protocol repo behind skiddle.id: every record (repo.car), every blob, and the DID's history, one .tar.gz a week. The newest $KEEP are kept. Made by .github/workflows/backup.yml. How to restore: docs/v4/posts-on-atproto.md#backups. It also holds releases.json, the published releases for skiddle.id/changelog, from .github/workflows/changelog-data.yml."
           fi
           gh release upload backups "$FILE" --clobber
           echo "Attached $FILE ($(du -h "$FILE" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
