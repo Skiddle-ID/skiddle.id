@@ -1,0 +1,44 @@
+name: Publish the releases for /changelog
+
+# /changelog/ reads the site's published releases from releases.json on the "backups" release
+# (src/lib/releases.ts), not from GitHub's API: without a token, the API's limit is shared with
+# every other Worker, and the Skiddle-ID organization only allows tokens that expire within a year.
+# This writes that file with the run's own token whenever a release is published, edited,
+# unpublished or deleted, and when this file changes on v4. Drafts are left out: the file is public.
+# Release events and "Run workflow" only work once this file is on the default branch.
+on:
+  release:
+    types: [published, edited, unpublished, deleted]
+  push:
+    branches: [v4]
+    paths: [.github/workflows/changelog-data.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One at a time: each run reads the list as it is then, so the last run leaves the current list
+concurrency:
+  group: changelog-data
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Skiddle-ID/skiddle.id'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write releases.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+            --jq '.[] | select(.draft == false) | {tag_name, name, draft, prerelease, published_at, html_url, body}' \
+            | jq -s . > releases.json
+          echo "releases.json: $(jq length releases.json) releases" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach it to the backups release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload backups releases.json --clobber --repo "$GITHUB_REPOSITORY"

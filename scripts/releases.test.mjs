@@ -1,10 +1,10 @@
-// /changelog/'s releases (src/lib/releases.ts): which of GitHub's releases are listed and how, and
-// what the page gets when GitHub refuses (a rate limit): the last list read, or null if there's none.
+// /changelog/'s releases (src/lib/releases.ts): which of the releases in releases.json are listed and
+// how, and what the page gets when it can't be read: the last list read, or null if there's none.
 // No edge cache here (caches.default is undefined in Node), so only the in-memory side runs.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { forget } from '../src/lib/edge-cache.ts';
-import { RELEASES_URL, getReleases, releaseId, releasesFrom } from '../src/lib/releases.ts';
+import { DATA_URL, RELEASES_URL, getReleases, releaseId, releasesFrom } from '../src/lib/releases.ts';
 import { nestedProseHtml } from '../src/lib/now-html.ts';
 
 const release = (tag, fields = {}) => ({
@@ -122,28 +122,12 @@ describe('reading the releases', () => {
     assert.deepEqual((await getReleases(answer(200, renamed)))?.map((r) => r.tag), ['v4.1']);
   });
 
-  it('sends the token when there is one, and none without', async () => {
+  it('reads releases.json from the backups release, once, with no token', async () => {
     await forget(['github/releases']);
-    const auth = [];
-    const fetcher = async (_url, init) => (auth.push(init.headers.Authorization), new Response(JSON.stringify([release('v4.1')])));
-    await getReleases(fetcher, 'github_pat_x');
-    await forget(['github/releases']);
-    await getReleases(fetcher);
-    assert.deepEqual(auth, ['Bearer github_pat_x', undefined]);
-  });
-
-  it('reads every page', async () => {
-    await forget(['github/releases']);
-    const pages = [];
-    const full = Array.from({ length: 100 }, (_, i) => release(`v1.${i}`, { published_at: new Date(Date.UTC(2025, 0, 1) + i * 86400000).toISOString() }));
-    const fetcher = async (url) => {
-      const page = Number(new URL(url).searchParams.get('page'));
-      pages.push(page);
-      return new Response(JSON.stringify(page === 1 ? full : [release('v4.1', { published_at: '2026-11-27T16:22:31Z' })]));
-    };
-    const listed = await getReleases(fetcher);
-    assert.deepEqual(pages, [1, 2]);
-    assert.equal(listed?.length, 101);
-    assert.equal(listed?.[0].tag, 'v4.1');
+    const asked = [];
+    const fetcher = async (url, init) => (asked.push([url, init?.headers]), new Response(JSON.stringify([release('v4.1')])));
+    assert.deepEqual((await getReleases(fetcher))?.map((r) => r.tag), ['v4.1']);
+    assert.deepEqual(asked, [[`${RELEASES_URL}/download/backups/releases.json`, undefined]]);
+    assert.equal(DATA_URL, 'https://github.com/Skiddle-ID/skiddle.id/releases/download/backups/releases.json');
   });
 });
