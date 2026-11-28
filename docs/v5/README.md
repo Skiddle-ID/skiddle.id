@@ -47,7 +47,7 @@ The design system is one stylesheet, [`mockups/v5.css`](mockups/v5.css), and one
 | Projects | `projects.html` | |
 | CV | `cv.html` | prints on A4 |
 | Changelog | `changelog.html` | planned (Later) |
-| Flying | `flying.html` | planned for v4.2; placeholders where the logbook and the airport go |
+| Flying | `flying.html` | planned for v4.3; placeholders where the logbook and the airport go |
 | About | `about.html` | |
 | Now | `now.html` | planned for v4.1 |
 | Listening | `listening.html` | |
