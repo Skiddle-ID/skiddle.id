@@ -19,8 +19,8 @@
  *   - com.atproto.lexicon.schema: publishing the lexicons
  *   - id.skiddle.draft: posts being written (docs/v4/posts-on-atproto.md)
  *   - id.skiddle.site: the site's metadata for search engines and link previews
- *   - id.skiddle.project, .home, .cv, .services, .uses, .about, .now and .notes: the pages' content
- *     (docs/v4/pages-on-atproto.md), edited in the Pages section
+ *   - id.skiddle.project, .services, .now and .notes: what the pages' blocks read (the projects, the
+ *     services and testimonials, the Now list and the note picks), edited in the Pages section
  *   - id.skiddle.page: pages made of blocks and their drafts (docs/v4/themes.md), edited in the
  *     block editor (src/lib/admin/block-editor.ts)
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
@@ -41,13 +41,9 @@ export const COLLECTIONS = [
   'com.atproto.lexicon.schema',
   'id.skiddle.draft',
   'id.skiddle.project',
-  'id.skiddle.cv',
   'id.skiddle.services',
-  'id.skiddle.uses',
-  'id.skiddle.about',
   'id.skiddle.now',
   'id.skiddle.notes',
-  'id.skiddle.home',
   'id.skiddle.page',
   'id.skiddle.site',
   'id.skiddle.theme',

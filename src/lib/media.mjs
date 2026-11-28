@@ -19,6 +19,7 @@ export const SITE_BLOB_COLLECTIONS = [
   'app.bsky.feed.generator',
   'id.skiddle.project',
   'id.skiddle.site',
+  'id.skiddle.page',
 ];
 
 /** The site's collections whose text can link to a file (/media/<cid>), and the admin app can write */
@@ -27,12 +28,9 @@ export const LINK_COLLECTIONS = [
   'site.standard.document',
   'id.skiddle.series',
   'id.skiddle.project',
-  'id.skiddle.home',
-  'id.skiddle.about',
+  'id.skiddle.page',
   'id.skiddle.now',
   'id.skiddle.notes',
-  'id.skiddle.uses',
-  'id.skiddle.cv',
   'id.skiddle.services',
   'id.skiddle.event',
 ];
@@ -40,17 +38,16 @@ export const LINK_COLLECTIONS = [
 /** The collections Media reads: those holding files, and those whose text links to them */
 export const MEDIA_READ_COLLECTIONS = [...new Set([...SITE_BLOB_COLLECTIONS, ...LINK_COLLECTIONS])];
 
-/** A page's record (key self), by the page it is, for its label and its editor */
+/** A record with key self that has its own editor: its label and the editor's name (#page/<name>) */
 const PAGE_OF = {
-  'id.skiddle.home': 'home',
-  'id.skiddle.about': 'about',
-  'id.skiddle.now': 'now',
-  'id.skiddle.notes': 'notes',
-  'id.skiddle.uses': 'uses',
-  'id.skiddle.cv': 'cv',
-  'id.skiddle.services': 'services',
-  'id.skiddle.site': 'site',
+  'id.skiddle.now': { label: 'the Now list', editor: 'now' },
+  'id.skiddle.notes': { label: 'note picks', editor: 'notes' },
+  'id.skiddle.services': { label: 'services and testimonials', editor: 'services' },
+  'id.skiddle.site': { label: 'page: site', editor: 'site' },
 };
+
+/** A page made of blocks: id.skiddle.page, keyed by its address, its draft by <address>~draft */
+const BLOCK_PAGE = 'id.skiddle.page';
 
 /**
  * @typedef {{ cid: string, mimeType?: string, size?: number }} BlobInfo
@@ -127,8 +124,9 @@ export function relinked(value, from, to) {
 
 /** What a record is called, for "used by" */
 function labelOf(/** @type {string} */ collection, /** @type {Record<string, any>} */ v, /** @type {string} */ rkey) {
-  const page = /** @type {Record<string, string>} */ (PAGE_OF)[collection];
-  if (page) return `page: ${page}`;
+  const own = /** @type {Record<string, { label: string }>} */ (PAGE_OF)[collection];
+  if (own) return own.label;
+  if (collection === BLOCK_PAGE) return rkey.endsWith('~draft') ? `page draft: ${rkey.slice(0, -'~draft'.length)}` : `page: ${rkey}`;
   const name = v?.title || v?.name || v?.displayName;
   const kind = { 'id.skiddle.draft': 'draft', 'site.standard.document': 'post', 'id.skiddle.series': 'series', 'site.standard.publication': 'publication', 'app.bsky.feed.generator': 'Bluesky feed', 'id.skiddle.project': 'project', 'id.skiddle.event': 'event', [MEDIA_COLLECTION]: 'library' }[collection] ?? collection;
   return `${kind}: ${typeof name === 'string' && name ? name : rkey}`;
@@ -180,8 +178,9 @@ export function mediaItems(cids, records) {
 
 /** Where a record opens in the admin app, if it has an editor there */
 export function editorHref(/** @type {BlobUse} */ use) {
-  const page = /** @type {Record<string, string>} */ (PAGE_OF)[use.collection];
-  if (page) return `#page/${page}`;
+  const own = /** @type {Record<string, { editor: string }>} */ (PAGE_OF)[use.collection];
+  if (own) return `#page/${own.editor}`;
+  if (use.collection === BLOCK_PAGE) return `#blocks/${use.rkey.replace(/~draft$/, '')}`;
   if (use.collection === 'id.skiddle.event') return `#event/${use.rkey}`;
   return (
     { 'site.standard.publication': '#page/publication', 'id.skiddle.draft': `#draft/${use.rkey}`, 'site.standard.document': `#post/${use.rkey}`, 'id.skiddle.series': `#series/${use.rkey}`, 'id.skiddle.project': `#project/${use.rkey}` }[use.collection] ?? undefined
