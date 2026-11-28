@@ -100,7 +100,7 @@ Then the [launch checklist](#the-v4-branch).
 
 ### v4.4: themes and layout
 
-The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), its frame (the menu, the footer) and every page as rows of blocks, all set in the admin app and kept in three records: `id.skiddle.theme`, `id.skiddle.site` and a new `id.skiddle.page`, which replaces the seven per-page lexicons. The code defines the blocks and the design settings; the records arrange them. It ships with today's look only: the redesign stays on hold until January. The plan is [docs/v4/themes.md](docs/v4/themes.md).
+The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), its frame (the menu, the footer) and every page as rows of blocks, all set in the admin app and kept in three records: `id.skiddle.theme`, `id.skiddle.site` and a new `id.skiddle.page`, which replaces the four page-only lexicons. The code defines the blocks and the design settings; the records arrange them. It ships with today's look only: the redesign stays on hold until January. The plan is [docs/v4/themes.md](docs/v4/themes.md).
 
 - [x] Share cards: the publication's logo and a design from the theme ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194)); the site's default mode and accent ([#195](https://github.com/Skiddle-ID/skiddle.id/pull/195))
 - [x] Design: colours, fonts, sizes, shape and decoration in the theme, with a live preview and a contrast check ([#198](https://github.com/Skiddle-ID/skiddle.id/pull/198))
@@ -108,7 +108,7 @@ The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), i
 - [x] Pages from blocks, starting with home: `id.skiddle.page`, the block editor, draft, preview and publish ([#200](https://github.com/Skiddle-ID/skiddle.id/pull/200))
 - [x] The other pages on blocks: About, Now, Uses, the CV, Services, Notes, each with Move to blocks ([#201](https://github.com/Skiddle-ID/skiddle.id/pull/201))
 - [x] Pages of Jeff's own, at an address he picks: New page, Delete page, the sitemap, the search and the command bar ([#202](https://github.com/Skiddle-ID/skiddle.id/pull/202))
-- [ ] Clean-up: the seven old page lexicons go
+- [x] Clean-up: the four page-only lexicons (`about`, `cv`, `home`, `uses`) are deprecated and no longer read, edited or asked for; `now`, `services` and `notes` stay as data ([#204](https://github.com/Skiddle-ID/skiddle.id/pull/204))
 
 ## The v4 branch
 
