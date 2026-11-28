@@ -1,9 +1,11 @@
 /**
  * The site's published releases on GitHub, for /changelog/, from the REST API
- * (https://docs.github.com/en/rest/releases/releases#list-releases), read without a token.
+ * (https://docs.github.com/en/rest/releases/releases#list-releases), with the Worker's
+ * GITHUB_TOKEN secret when it's set.
  *
- * Unauthenticated, GitHub allows 60 requests an hour per IP, and Workers share their IPs, so a read
- * can be refused at any time. The list is cached for an hour, and when a read fails, the last list
+ * Without a token, GitHub allows 60 requests an hour per IP, and Workers share their IPs: on
+ * skiddle.id every read was refused (403). A token (one that can only read public repositories)
+ * allows 5,000 an hour. The list is cached for an hour, and when a read fails, the last list
  * read is shown instead (cachedOrLast in src/lib/edge-cache.ts). Only a Worker that has never read
  * the list and can't read it now has none, and the page says so.
  *
@@ -69,14 +71,19 @@ export function releasesFrom(json: unknown): Release[] {
 }
 
 /** Every page of releases from the API */
-async function readReleases(fetcher: typeof fetch): Promise<Release[]> {
+async function readReleases(fetcher: typeof fetch, token: string): Promise<Release[]> {
   const all: unknown[] = [];
   for (let page = 1; page <= MAX_PAGES; page++) {
     const res = await fetcher(`${API_URL}?per_page=${PER_PAGE}&page=${page}`, {
-      headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'changelog-reader' },
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'changelog-reader',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) throw new Error(`GitHub releases page ${page}: ${res.status}`);
+    if (!res.ok) throw new Error(`GitHub releases page ${page}: ${res.status}${token ? '' : ' (no token)'}, ${res.headers.get('x-ratelimit-remaining') ?? '?'} requests left`);
     const batch: unknown = await res.json();
     if (!Array.isArray(batch)) throw new Error(`GitHub releases page ${page}: not a list`);
     all.push(...batch);
@@ -93,11 +100,11 @@ async function readReleases(fetcher: typeof fetch): Promise<Release[]> {
 export const releaseId = (tag: string) => tag.replace(/\./g, '-');
 
 /** The releases, newest first, or null if they can't be read and none were read before */
-export async function getReleases(fetcher: typeof fetch = fetch): Promise<Release[] | null> {
+export async function getReleases(fetcher: typeof fetch = fetch, token = ''): Promise<Release[] | null> {
   try {
     return await cachedOrLast(CACHE_KEY, RELEASES_TTL, KEEP_LAST, async () => {
       try {
-        return await readReleases(fetcher);
+        return await readReleases(fetcher, token);
       } catch (err) {
         console.error('changelog: reading the releases from GitHub failed:', String(err));
         throw err;
