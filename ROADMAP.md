@@ -109,6 +109,9 @@ The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), i
 - [x] The other pages on blocks: About, Now, Uses, the CV, Services, Notes, each with Move to blocks ([#201](https://github.com/Skiddle-ID/skiddle.id/pull/201))
 - [x] Pages of Jeff's own, at an address he picks: New page, Delete page, the sitemap, the search and the command bar ([#202](https://github.com/Skiddle-ID/skiddle.id/pull/202))
 - [x] Clean-up: the four page-only lexicons (`about`, `cv`, `home`, `uses`) are deprecated and no longer read, edited or asked for; `now`, `services` and `notes` stay as data ([#204](https://github.com/Skiddle-ID/skiddle.id/pull/204))
+- [x] Theme presets (save, apply, rename, delete, export, import) and post page settings (hide the series box, hide comments) ([#205](https://github.com/Skiddle-ID/skiddle.id/pull/205))
+
+Done on 2026-11-28, and checked on Jeff's account ([themes.md](docs/v4/themes.md#checked-live)).
 
 ## The v4 branch
 

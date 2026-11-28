@@ -1,6 +1,6 @@
 # Themes and layout
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). Phases 1 to 7, the design, the frame, the site's pages on blocks, pages of Jeff's own, the clean-up of the old page lexicons, and theme presets with post page settings, are built (see [Phases](#phases)); the share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v44-themes-and-layout)) and reviewed on 2026-11-28 against the AT Protocol specs, Leaflet's lexicons and Cloudflare's limits ([the review](#the-review)). **Complete on 2026-11-28.** All seven phases are built and live: the design, the frame, the site's pages on blocks, pages of Jeff's own, the clean-up of the old page lexicons, and theme presets with post page settings (see [Phases](#phases)). The parts that write to Jeff's repo were then checked on his account ([Checked live](#checked-live)). The share cards' design, the logo and the site's mode and accent already lived in `id.skiddle.theme` ([#194](https://github.com/Skiddle-ID/skiddle.id/pull/194), [#195](https://github.com/Skiddle-ID/skiddle.id/pull/195)).
 
 The site becomes a complete CMS on AT Protocol: its design, its layout and every page's content are set in the admin app and kept as records in Jeff's repo, like the posts. That covers:
 
@@ -190,6 +190,22 @@ Pages moved one at a time. Until a page had a `page` record, it read its old rec
    - The site never reads presets: nothing outside the admin app imports `src/lib/theme-presets.mjs`, and the only `themePreset` in the Worker's build is the scope in `/oauth-client-metadata.json`. The app asks for `repo:id.skiddle.themePreset`; a session from before shows "Sign in again" above the presets. Backups count the collection. A preset holds no files, so Media has nothing to count.
    - **Post page settings** on `id.skiddle.site`, both optional and off when left out: `hideSeriesBox` hides the series box on a post in a series (at the top, and in the side column on wide screens, which then shows only "On this page", if the post has it); the "Next in …" card stays. `hideComments` hides the Comments section (the Bluesky replies, or the line asking readers to start a thread). They're read by `siteMetaFromRecord` like the sidebar's switches and appear in Site and SEO as checkboxes from the lexicon. A post has no setting of its own for either: its record only links its Bluesky thread (`bskyPostRef`), which stays, so the site-wide switch decides for every post. The post page reads the site's record after its 404 check, and the layout reads the same cached record, so a render reads it once.
    - **The budget,** measured as in the earlier phases (CPU time per request from the V8 profiler) on a local `wrangler dev`, `v4`'s build beside this branch's, interleaved, 150 requests a run, 5 runs per page. With the records cached, the median CPU time per render of `/posts/fast-and-accessible/` was 4.18 ms on `v4` (4.15–4.44 by run) and 4.17 ms here (4.01–4.54). `/posts/lab-notes-3/` measured near 9 ms on both builds for its first runs, then about 4 ms from the middle of the third pair on (the step hit both builds at once and isn't explained; no profile was taken), so its runs are compared in pairs: this branch was 0.01 to 0.38 ms under `v4` in each pair but that one, and 4.06 and 4.11 ms against 4.17 and 4.12 ms in the last two. A cold render, with `.wrangler/state/v3/cache` cleared, makes 9 subrequests on both builds (7 fetches, a cache read and a cache write), and a render with every record expired makes the same 6 fetches on both: the site record is read once, for the post page and the layout.
+
+## Checked live
+
+After each phase deployed, its pages were checked on skiddle.id. Then, on 2026-11-28, what writes to Jeff's repo was checked on his account, with each record read back from the PDS:
+
+- **Lexicons:** `id.skiddle.page`, `site`, `theme` and `themePreset` published, and the four retired ones republished with their deprecation notes. All 20 in `lexicons/` match their published copies.
+- **The pages:** Jeff moved all seven site pages to blocks and published them. A build that ignored the page records, beside the live site, showed five pages unchanged and two small differences, both kept:
+  - Uses' "last updated" became the date it was published (November 2026, from September 2025), since Publish stamps `updatedAt`.
+  - The Services emails' template lost its last blank line.
+  Each page's share card, drawn at Publish, loads and matches the one it replaced.
+- **Presets**, after a new sign-in (a session from before presets can't write them):
+  - **Save as preset** wrote a valid record.
+  - **Apply** wrote its design into the theme and kept the mode, the accent and the cards' design. The theme it made gives the same CSS and page attributes as before, since the preset was today's look.
+  - **Export this theme** and **Import** read the file back as a new preset, without touching the theme.
+  - **Rename** changed the name and kept the key, the design and the creation date.
+  - **Delete** removed each preset and left the theme as it was.
 
 ## Open questions
 
