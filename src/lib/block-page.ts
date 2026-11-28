@@ -1,8 +1,8 @@
 /**
  * A page made of blocks, for its route in src/pages/ (docs/v4/themes.md): one of the site's own
- * pages (blockPage), from its id.skiddle.page record or, until there is one, the page made from what
- * it showed before (`legacy`, src/lib/page-legacy.mjs), so every page renders through its blocks; or
- * a page of Jeff's own at /<key>/ (ownBlockPage, src/pages/[key].astro). The reads its blocks need are
+ * pages (blockPage), from its id.skiddle.page record or, without one, its built-in page
+ * (src/lib/page-legacy.mjs) if it has one; or a page of Jeff's own at /<key>/ (ownBlockPage,
+ * src/pages/[key].astro). The reads its blocks need are
  * started together and awaited (src/lib/page-data.ts): a read that fails fails the page, so a copy
  * cached earlier shows.
  *
@@ -37,14 +37,15 @@ async function withData(astro: AstroGlobal, page: Page, preview: BlockPage['prev
 
 /**
  * @param key The page's record key, its address: `about` for /about/
- * @param legacy The page's record made from its old record and the text that was in its code
+ * @param builtIn The page's record without one in the repo: home, Now, Services and Notes have one.
+ *   Without it, a missing record fails the page, so a copy cached earlier shows.
  * @param options What the page's reads depend on besides the records (src/lib/page-data.ts)
  */
-export async function blockPage(astro: AstroGlobal, key: string, legacy: () => Promise<unknown>, options: PageDataOptions = {}): Promise<BlockPage> {
+export async function blockPage(astro: AstroGlobal, key: string, builtIn?: () => unknown, options: PageDataOptions = {}): Promise<BlockPage> {
   const preview = isPreview(astro);
   const draft = preview ? await getPage(key, { draft: true }) : null;
-  const page = draft ?? (await getPage(key)) ?? pageFromRecord(await legacy());
-  if (!page) throw new Error(`page ${key}: its old record made no page`);
+  const page = draft ?? (await getPage(key)) ?? (builtIn && pageFromRecord(builtIn()));
+  if (!page) throw new Error(`page ${key}: there's no page record`);
   return withData(astro, page, preview ? (draft ? 'draft' : 'published') : undefined, options);
 }
 

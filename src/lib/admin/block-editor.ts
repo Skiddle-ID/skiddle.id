@@ -3,8 +3,8 @@
  * id.skiddle.page record keyed by the page's address (home for /), opened from the Pages section.
  *
  * It opens the page's draft (<key>~draft) if there is one, else the page's record, else, for one of
- * the site's own pages, the page as it shows today: its old record turned into blocks
- * (src/lib/admin/legacy-pages.ts, src/lib/page-legacy.mjs). It edits:
+ * the site's own pages that has one, its built-in page (src/lib/admin/site-pages.ts,
+ * src/lib/page-legacy.mjs), else no blocks. It edits:
  *   - the page's settings: its title, description, width and whether it hides its heading
  *   - its blocks, in order: each with its kind, its width, a handle to drag it, ↑/↓, Remove and its
  *     options as a form made from its def in the lexicon (src/lib/admin/lexicon-form.ts). A block
@@ -30,7 +30,7 @@ import pageLexicon from '../../../lexicons/id/skiddle/page.json';
 import { BLOCKS, PAGE_COLLECTION, blockType, draftKey, pageFromRecord, readsOf, type BlockGroup } from '~/lib/page-blocks.mjs';
 import { ownKeyProblem } from '~/lib/own-pages.mjs';
 import { PROJECT_COLLECTION, projectUri } from '~/lib/page-records.mjs';
-import { LEGACY_PAGES, isSitePage, legacyPage } from './legacy-pages';
+import { SITE_PAGE_DEFS, isSitePage } from './site-pages';
 import { el, errorText, formatTime, message, revalidate, saveState } from './dom';
 import { PAGES_NOT_LIVE_YET, PUBLISHING_LIVE } from './launch';
 import { buildForm, labelOf, problems, recordSchema, type Field, type LexiconDoc } from './lexicon-form';
@@ -83,7 +83,7 @@ export function blocksRoute(hash: string): string | undefined {
 }
 
 /** Checks a page record with @atproto/lexicon, in the lexicon's own terms (a card's { $link } is a blob) */
-export async function assertValidPage(record: Value) {
+async function assertValidPage(record: Value) {
   const { Lexicons, jsonToLex } = await import('@atproto/lexicon');
   // A copy: loading a lexicon rewrites its refs in place, which the forms read
   new Lexicons([structuredClone(DOC) as never]).assertValidRecord(PAGE_COLLECTION, jsonToLex(record));
@@ -181,7 +181,7 @@ export function newPage(key: string, title: string) {
 export async function openBlocks(key: string) {
   if (current?.key === key || !leaveBlocks()) return;
   document.body.dataset.view = 'blocks';
-  el('bkTitle').textContent = isSitePage(key) ? LEGACY_PAGES[key].title : addressOf(key);
+  el('bkTitle').textContent = isSitePage(key) ? SITE_PAGE_DEFS[key].title : addressOf(key);
   el('bkFrom').textContent = '';
   el('bkConflict').hidden = true;
   el('bkForm').hidden = true;
@@ -189,14 +189,12 @@ export async function openBlocks(key: string) {
   saveState('bkState', 'Loading…');
   let page: RepoRecord<Value> | null;
   let draft: RepoRecord<Value> | null;
-  let legacy: Value | undefined;
   try {
     [page, draft] = await Promise.all([
       getRecord<Value>(session, PAGE_COLLECTION, key),
       getRecord<Value>(session, PAGE_COLLECTION, draftKey(key)),
       listRecords<Value>(session, PROJECT_COLLECTION).then((list) => (projects = list)),
     ]);
-    if (!page && !draft && isSitePage(key)) legacy = await legacyPage(session, key);
   } catch (err) {
     saveState('bkState', '');
     return message('bkMessage', `Couldn’t open it: ${errorText(err)}`, 'error');
@@ -210,16 +208,19 @@ export async function openBlocks(key: string) {
     saveState('bkState', '');
     return message('bkMessage', `There can’t be a page here: ${problem}`, 'error');
   }
-  const base = draft?.value ?? page?.value ?? legacy ?? { $type: PAGE_COLLECTION, title, blocks: [] };
+  const builtIn = isSitePage(key) ? SITE_PAGE_DEFS[key].builtIn : undefined;
+  const base = draft?.value ?? page?.value ?? builtIn?.page(new Date().toISOString()) ?? { $type: PAGE_COLLECTION, title, blocks: [] };
   el('bkFrom').textContent = problem
     ? `It doesn’t show on the site: ${problem} You can delete it.`
     : draft
       ? `The draft, saved ${formatTime(String(draft.value.updatedAt))}.${page ? ' The page shows the published version until you publish it.' : ' Not published yet.'}`
       : page
         ? 'The published page. Saving makes a draft; the page changes when you publish it.'
-        : isSitePage(key)
-          ? `No page record yet, so ${addressOf(key)} shows ${LEGACY_PAGES[key].shows}: these are its blocks. Save a draft, preview it, then publish it.`
-          : 'Not in your repo yet. Save a draft to create it.';
+        : builtIn
+          ? `No page record yet, so ${addressOf(key)} shows ${builtIn.shows}: these are its blocks. Save a draft, preview it, then publish it.`
+          : isSitePage(key)
+            ? `No page record yet, so ${addressOf(key)} can’t show. Add its blocks, save a draft, preview it, then publish it.`
+            : 'Not in your repo yet. Save a draft to create it.';
   current = { key, page: page ?? undefined, draft: draft ?? undefined, base, settings: { el: document.createElement('div'), read: () => ({}) }, rows: [] };
   fill(current);
   el('bkForm').hidden = false;

@@ -2,16 +2,17 @@
 import Shell from '../layouts/shell.astro';
 import Blocks from '../components/blocks/blocks.astro';
 import { blockPage } from '~/lib/block-page';
-import { PAGES_TAG, getHome } from '~/lib/page-content';
+import { FALLBACK_HOME } from '~/data/home';
+import { PAGES_TAG } from '~/lib/page-content';
 import { homePageFromLegacy } from '~/lib/page-legacy.mjs';
 import { POSTS_CACHE } from '~/lib/site-posts';
 // Rendered on request, from blocks (src/components/blocks/): the id.skiddle.page record `home`, or
-// until there is one, the page made from the id.skiddle.home record (or src/data/home.ts), as it
-// was laid out before blocks (homePageFromLegacy). Each block reads what it shows, e.g. the posts
-// and series, Now, the projects and the testimonials (src/lib/page-data.ts).
+// without one, the built-in text (src/data/home.ts) as it was laid out before blocks
+// (homePageFromLegacy). Each block reads what it shows, e.g. the posts and series, Now, the
+// projects and the testimonials (src/lib/page-data.ts).
 export const prerender = false;
 
-const { page, data, preview } = await blockPage(Astro, 'home', async () => homePageFromLegacy(await getHome(), new Date().toISOString()));
+const { page, data, preview } = await blockPage(Astro, 'home', () => homePageFromLegacy(FALLBACK_HOME, new Date().toISOString()));
 // Purged when either posts or the pages' records change
 if (!preview) Astro.cache.set({ ...POSTS_CACHE, tags: [...POSTS_CACHE.tags, PAGES_TAG] });
 ---

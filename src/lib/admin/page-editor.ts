@@ -2,9 +2,10 @@
  * The page editors (docs/v4/pages-on-atproto.md, step 5), opened from the Pages section:
  *   - #page/site: the site's metadata for search engines and link previews (id.skiddle.site,
  *     src/lib/site-meta.mjs), starting from the built-in values (src/data/site-meta.ts)
- *   - #page/home, #page/cv, #page/services, #page/uses, #page/about, #page/now and #page/notes: each
- *     page's record, key `self`. Home and Now start with the built-in text (src/data/home.ts,
- *     src/data/now.ts) if there's no record yet
+ *   - #page/now, #page/services and #page/notes: what the pages' blocks read (key `self`): the Now
+ *     list (id.skiddle.now), which starts with the built-in list (src/data/now.ts) if there's no
+ *     record yet, the services and testimonials (id.skiddle.services), and the note picks
+ *     (id.skiddle.notes). The pages themselves are made of blocks (src/lib/admin/block-editor.ts)
  *   - #page/publication: the Standard.site publication (site.standard.publication, its fixed key
  *     PUBLICATION_RKEY): its name, description, logo and whether readers may list it. The form uses
  *     the part of Standard.site's lexicon it edits (src/lib/admin/publication-lexicon.ts); the rest
@@ -31,32 +32,23 @@
  *   - writes it with swapRecord, so a change made on another device isn't overwritten unseen (a
  *     new record with createRecord, which never overwrites one)
  *   - refreshes the site's pages
- * The editors of the pages made of blocks (Home, the CV, Services, Uses, About, Now and Notes) have
- * Move to blocks: it saves the page, as its saved record shows it, as a draft of its id.skiddle.page
- * record (<key>~draft, src/lib/admin/legacy-pages.ts), after a confirm if there's a draft already, and
- * opens it in the block editor (src/lib/admin/block-editor.ts) to check and publish.
  *
  * A project can be deleted, after a confirm. Changes are kept on this device until they're saved,
  * as with series. Saving and deleting follow PUBLISHING_LIVE (src/lib/admin/launch.ts).
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
-import aboutLexicon from '../../../lexicons/id/skiddle/about.json';
 import categoriesLexicon from '../../../lexicons/id/skiddle/categories.json';
-import cvLexicon from '../../../lexicons/id/skiddle/cv.json';
 import eventLexicon from '../../../lexicons/id/skiddle/event.json';
-import homeLexicon from '../../../lexicons/id/skiddle/home.json';
 import notesLexicon from '../../../lexicons/id/skiddle/notes.json';
 import nowLexicon from '../../../lexicons/id/skiddle/now.json';
 import projectLexicon from '../../../lexicons/id/skiddle/project.json';
 import servicesLexicon from '../../../lexicons/id/skiddle/services.json';
 import siteLexicon from '../../../lexicons/id/skiddle/site.json';
 import themeLexicon from '../../../lexicons/id/skiddle/theme.json';
-import usesLexicon from '../../../lexicons/id/skiddle/uses.json';
-import { FALLBACK_HOME } from '~/data/home';
 import { FALLBACK_SITE } from '~/data/site-meta';
 import { SITE_COLLECTION, frameProblems } from '~/lib/site-meta.mjs';
 import { FALLBACK_NOW } from '~/data/now';
-import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
+import { NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, projectUri } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { CATEGORIES_COLLECTION, DEFAULT_CATEGORIES, categoryProblems } from '~/lib/categories.mjs';
 import { seriesSlug } from '~/lib/post-record.mjs';
@@ -74,11 +66,6 @@ import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
 import { PUBLICATION_DESCRIPTION, PUBLICATION_NAME, PUBLICATION_RKEY, SITE_URL } from '~/lib/standard-site.mjs';
 import { XrpcError, canonical, createRecord, deleteRecord, getRecord, listRecords, putRecord, type RepoRecord } from './xrpc';
-import { PAGE_COLLECTION, draftKey } from '~/lib/page-blocks.mjs';
-import { assertValidPage } from './block-editor';
-import { LEGACY_PAGES, legacyPage, sitePageOfEditor, type SitePage } from './legacy-pages';
-
-const MOVE_NOTE = 'Move to blocks makes a draft of this page in blocks from what it shows now, to check, preview and publish in the block editor. Until it’s published, the page shows this record.';
 
 type Value = Record<string, unknown>;
 
@@ -109,7 +96,7 @@ interface PageEditor {
 let categoryUsage: () => Map<string, number> = () => new Map();
 
 /** The records with key `self` that have an editor, by their editor's address */
-export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'cv' | 'services' | 'uses' | 'about' | 'now' | 'notes' | 'categories', PageEditor> = {
+export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'services' | 'now' | 'notes' | 'categories', PageEditor> = {
   site: {
     title: 'Site and search engines',
     collection: SITE_COLLECTION,
@@ -142,31 +129,15 @@ export const PAGE_EDITORS: Record<'site' | 'publication' | 'theme' | 'home' | 'c
     initial: () => ({ mode: DEFAULT_SITE_THEME.mode, accent: DEFAULT_SITE_THEME.accent, cardDesign: DEFAULT_CARD_DESIGN }),
     check: themeProblems,
   },
-  home: {
-    title: 'Home',
-    collection: HOME_COLLECTION,
-    lexicon: homeLexicon as LexiconDoc,
-    page: '/',
-    // Today's text, in the record's shape: the projects by their at:// addresses
-    initial: () => ({
-      ...FALLBACK_HOME,
-      hire: { ...FALLBACK_HOME.hire },
-      selectedProjects: FALLBACK_HOME.selectedProjects.map(projectUri),
-      elsewhere: FALLBACK_HOME.elsewhere.map((l) => ({ ...l })),
-    }),
-  },
-  cv: { title: 'The CV', collection: CV_COLLECTION, lexicon: cvLexicon as LexiconDoc, page: '/works/' },
-  services: { title: 'Services', collection: SERVICES_COLLECTION, lexicon: servicesLexicon as LexiconDoc, page: '/services/' },
-  uses: { title: 'Uses', collection: USES_COLLECTION, lexicon: usesLexicon as LexiconDoc, page: '/uses/' },
-  about: { title: 'About', collection: ABOUT_COLLECTION, lexicon: aboutLexicon as LexiconDoc, page: '/about/' },
+  services: { title: 'Services and testimonials', collection: SERVICES_COLLECTION, lexicon: servicesLexicon as LexiconDoc, page: '/services/' },
   now: {
-    title: 'Now',
+    title: 'The Now list',
     collection: NOW_COLLECTION,
     lexicon: nowLexicon as LexiconDoc,
     page: '/now/',
     initial: () => ({ items: FALLBACK_NOW.map((text) => ({ text })) }),
   },
-  notes: { title: 'Notes', collection: NOTES_COLLECTION, lexicon: notesLexicon as LexiconDoc, page: '/notes/' },
+  notes: { title: 'Note picks', collection: NOTES_COLLECTION, lexicon: notesLexicon as LexiconDoc, page: '/notes/' },
   categories: {
     title: 'Categories',
     collection: CATEGORIES_COLLECTION,
@@ -188,7 +159,7 @@ const RECORD_KEY = /^[A-Za-z0-9._:~-]{1,512}$/;
 export function pageRoute(hash: string): PageRoute | undefined {
   if (hash === NEW_PROJECT) return { newProject: true };
   if (hash === NEW_EVENT) return { newEvent: true };
-  const page = /^#page\/(site|publication|theme|home|cv|services|uses|about|now|notes|categories)$/.exec(hash)?.[1];
+  const page = /^#page\/(site|publication|theme|services|now|notes|categories)$/.exec(hash)?.[1];
   if (page) return { page: page as PageName };
   const key = /^#project\/(.+)$/.exec(hash)?.[1];
   if (key && RECORD_KEY.test(key) && key !== '.' && key !== '..') return { project: key };
@@ -294,7 +265,6 @@ export function setupPageEditor(s: OAuthSession, onSaved: () => Promise<void>, u
   el('peForm').addEventListener('submit', (event) => event.preventDefault());
   el('peSave').addEventListener('click', () => void save());
   el('peDelete').addEventListener('click', () => void remove());
-  el('peToBlocks').addEventListener('click', () => void moveToBlocks());
   el('peLoadTheirs').addEventListener('click', () => void resolveConflict('theirs'));
   el('peKeepMine').addEventListener('click', () => void resolveConflict('mine'));
   el('peRestore').addEventListener('click', restoreBackup);
@@ -324,7 +294,6 @@ export async function openPage(route: PageRoute) {
   back.textContent = `← ${from}`;
   el('peRough').hidden = true;
   message('peMessage', '');
-  message('peToBlocksMessage', '');
   el('peConflict').hidden = true;
   el('peBackup').hidden = true;
   el('peForm').hidden = true;
@@ -356,28 +325,6 @@ export async function openPage(route: PageRoute) {
   // A page whose record wasn't imported starts empty
   el('peNote').hidden = !('page' in route) || !!record;
   checkBackup();
-  void notePublished(current);
-}
-
-/** The pages whose blocks still read their old editor's record once they're published: the Now list, the services, the notes */
-const READ_AFTER_MOVE = new Set<SitePage>(['now', 'services', 'notes']);
-
-/**
- * On an old editor whose page is published in blocks, says what this record still changes: for
- * most pages nothing, since the page shows its blocks; for the Now list, the services and the
- * notes, what their blocks read from it.
- */
-async function notePublished(target: Open) {
-  const note = el('peToBlocksNote');
-  note.textContent = MOVE_NOTE;
-  const key = sitePageOfEditor(target.route);
-  if (!key) return;
-  const published = await getRecord<Value>(session, PAGE_COLLECTION, key).catch(() => null);
-  if (!published || current !== target) return;
-  const { title } = LEGACY_PAGES[key];
-  note.textContent = READ_AFTER_MOVE.has(key)
-    ? `${title} is published in blocks: edit its layout and text in Pages. What its blocks read from this record still shows on it.`
-    : `${title} is published in blocks, so this record no longer changes it: edit it in Pages. Move to blocks again only to start over from this record.`;
 }
 
 /** ⌘S in a page editor: saves, if the Save button could */
@@ -483,13 +430,6 @@ function refresh() {
   del.hidden = !isItem(current) || !current.record;
   del.textContent = isEvent(current) ? 'Delete event' : 'Delete project';
   del.disabled = !PUBLISHING_LIVE;
-  const toBlocks = el<HTMLButtonElement>('peToBlocks');
-  const blocks = sitePageOfEditor(current.route);
-  // A page made from this editor's record can move once the record is saved
-  toBlocks.hidden = !blocks || (LEGACY_PAGES[blocks].needsSource === true && LEGACY_PAGES[blocks].source === current.collection && !current.record);
-  toBlocks.disabled = !PUBLISHING_LIVE;
-  el('peToBlocksNote').hidden = toBlocks.hidden;
-  el('peToBlocksMessage').hidden = toBlocks.hidden;
 }
 
 function onChange() {
@@ -602,36 +542,6 @@ async function resolveConflict(choice: 'theirs' | 'mine') {
     }
   } catch (err) {
     message('peMessage', `Couldn’t load it: ${errorText(err)}`, 'error');
-  }
-}
-
-/**
- * Move to blocks, on the old editor of one of the site's own pages: the page as its saved record
- * shows it (src/lib/admin/legacy-pages.ts), saved as the draft of its page record (after a confirm
- * if there's one already), opened in the block editor
- */
-async function moveToBlocks() {
-  const key = current && sitePageOfEditor(current.route);
-  if (!PUBLISHING_LIVE || !current || !key) return;
-  const target = current;
-  const { title, source } = LEGACY_PAGES[key];
-  const button = el<HTMLButtonElement>('peToBlocks');
-  button.disabled = true;
-  message('peToBlocksMessage', 'Moving to blocks…');
-  try {
-    const draft = await getRecord<Value>(session, PAGE_COLLECTION, draftKey(key));
-    const when = typeof draft?.value.updatedAt === 'string' ? `, saved ${formatTime(draft.value.updatedAt)}` : '';
-    if (draft && !confirm(`${title} already has a draft in blocks${when}. Replace it with one made from what the page shows now?`)) return message('peToBlocksMessage', '');
-    const record = await legacyPage(session, key, source === target.collection ? target.record : undefined);
-    await assertValidPage(record);
-    await putRecord(session, PAGE_COLLECTION, draftKey(key), record, draft?.cid);
-    await revalidate();
-    message('peToBlocksMessage', '');
-    location.hash = `#blocks/${key}`;
-  } catch (err) {
-    if (current === target) message('peToBlocksMessage', `Couldn’t move it to blocks: ${errorText(err)}`, 'error');
-  } finally {
-    button.disabled = !PUBLISHING_LIVE;
   }
 }
 

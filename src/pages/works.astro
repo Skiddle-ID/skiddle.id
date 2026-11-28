@@ -1,19 +1,14 @@
 ---
 import Shell from '../layouts/shell.astro';
 import Blocks from '../components/blocks/blocks.astro';
-import { CONTENT_PAGES } from '~/data/list-pages';
 import { blockPage } from '~/lib/block-page';
-import { PAGES_CACHE, getCv } from '~/lib/page-content';
-import { cvPageFromLegacy } from '~/lib/page-legacy.mjs';
+import { PAGES_CACHE } from '~/lib/page-content';
 
-// Rendered on request, from blocks: the id.skiddle.page record `works`, or until there is one, the
-// page made from the id.skiddle.cv record (cvPageFromLegacy). On paper, links show where they go.
+// Rendered on request, from blocks: the id.skiddle.page record `works`. On paper, links show where
+// they go.
 export const prerender = false;
 
-const { page, data, preview } = await blockPage(Astro, 'works', async () => {
-  const { works, highlights } = await getCv();
-  return cvPageFromLegacy(works, highlights, CONTENT_PAGES.works, new Date().toISOString());
-});
+const { page, data, preview } = await blockPage(Astro, 'works');
 if (!preview) Astro.cache.set(PAGES_CACHE);
 ---
 

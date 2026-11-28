@@ -69,7 +69,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <button id="overviewNewDraft" type="button" class="admin-btn admin-btn-primary">New draft</button>
             <a href="#status" class="admin-btn">Set status</a>
             <a href="#new-event" class="admin-btn">New event</a>
-            <a href="#page/home" class="admin-btn">Edit home page</a>
+            <a href="#blocks/home" class="admin-btn">Edit home page</a>
             <a href="#media" class="admin-btn">Media</a>
           </div>
           <h3 class="admin-subhead">Recent</h3>
@@ -127,7 +127,7 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             </div>
             <p class="admin-small">It opens in the block editor. It’s in your repo once you save a draft, and on the site once you publish it.</p>
           </form>
-          <p>The site’s metadata for search engines, the home page, the CV, services, uses, About, Now, Notes, your own pages and the projects: records in your repo, which the site’s pages read. Open one to edit it. Pages made of blocks open the block editor.</p>
+          <p>The site’s pages, made of blocks, and your own pages, which open in the block editor; the site’s metadata for search engines; what the pages’ blocks read (the Now list, the services and testimonials, the note picks); and the projects. All are records in your repo, which the site’s pages read. Open one to edit it.</p>
           <div id="pagesScope" class="admin-notice" hidden>
             <p>To write the pages’ records, the app needs more permissions from your account.</p>
             <button id="pagesSignIn" type="button" class="admin-btn">Sign in again</button>
@@ -495,9 +495,6 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <p id="peNotLive" class="admin-small" hidden></p>
             <a id="peView" href="/" target="_blank" rel="noopener" class="admin-link" hidden>View it on the site</a>
             <button id="peDelete" type="button" class="admin-btn" hidden>Delete project</button>
-            <button id="peToBlocks" type="button" class="admin-btn" hidden>Move to blocks</button>
-            <p id="peToBlocksMessage" class="admin-message" role="status"></p>
-            <p id="peToBlocksNote" class="admin-small" hidden>Move to blocks makes a draft of this page in blocks from what it shows now, to check, preview and publish in the block editor. Until it’s published, the page shows this record.</p>
           </div>
         </form>
       </div>
