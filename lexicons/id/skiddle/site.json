@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions; and the site's frame: the menu, the footer's links and what the sidebar shows. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
+      "description": "The site's metadata, for search engines and link previews: its name, description and keywords, who it's by, their profiles, and per-page titles and descriptions; and the site's frame: the menu, the footer's links and what the sidebar shows; and what every post page shows. One record, key 'self'. A field left out uses the built-in value (src/data/site-meta.ts).",
       "record": {
         "type": "object",
         "required": ["updatedAt"],
@@ -74,6 +74,14 @@
           "hideThemeButtons": {
             "type": "boolean",
             "description": "Hide the sidebar's light/dark and accent buttons, and their commands in the search. Left out, or false, shows them, as today."
+          },
+          "hideSeriesBox": {
+            "type": "boolean",
+            "description": "On a post that is part of a series, hide the series box (which part it is, the series' progress and its parts), at the top of the post and in its side column on wide screens. The 'Next in …' card at the end of the post stays. Left out, or false, shows it, as today."
+          },
+          "hideComments": {
+            "type": "boolean",
+            "description": "Hide the Comments section at the end of every post (the replies to the post's Bluesky thread, or the line asking readers to start one). The post's link to its thread stays in its record. Left out, or false, shows it, as today."
           },
           "pages": {
             "type": "array",

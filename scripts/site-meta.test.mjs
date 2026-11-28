@@ -16,6 +16,8 @@ const fallback = {
   footerLinks: FALLBACK_FOOTER_LINKS,
   hideMusic: false,
   hideThemeButtons: false,
+  hideSeriesBox: false,
+  hideComments: false,
 };
 
 describe('site meta', () => {
@@ -119,6 +121,19 @@ describe('site meta', () => {
       const site = siteMetaOf(fallback, { hideThemeButtons: true });
       assert.equal(site.hideMusic, false);
       assert.equal(site.hideThemeButtons, true);
+    });
+
+    it('shows the series box and the comments on posts, as today, unless the record hides them', () => {
+      for (const record of [null, {}, { updatedAt: '2026-11-28T00:00:00Z' }, { hideSeriesBox: false, hideComments: false }]) {
+        const site = siteMetaOf(fallback, record);
+        assert.equal(site.hideSeriesBox, false);
+        assert.equal(site.hideComments, false);
+      }
+      assert.deepEqual(siteMetaFromRecord({ hideSeriesBox: 'true', hideComments: 1 }), {});
+      const site = siteMetaOf(fallback, { hideComments: true });
+      assert.equal(site.hideSeriesBox, false);
+      assert.equal(site.hideComments, true);
+      assert.equal(siteMetaOf(fallback, { hideSeriesBox: true, hideComments: true }).hideSeriesBox, true);
     });
 
     it('lists the site’s pages in the command bar, named as the menu names them, then the menu’s others', () => {

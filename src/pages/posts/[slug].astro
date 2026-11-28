@@ -3,7 +3,8 @@
   A post, rendered when it's requested from its record in Jeff's AT Protocol repo (the pdsPosts live
   collection, src/lib/pds-posts.ts), so publishing or editing a post needs no build. The page is
   cached at Cloudflare (Astro's route cache, tag "posts") and the PDS reads are cached too. Old
-  record-key URLs from the WhiteWind days, /posts/<rkey>/, redirect to the post.
+  record-key URLs from the WhiteWind days, /posts/<rkey>/, redirect to the post. The site's record
+  (id.skiddle.site, src/lib/site-meta.mjs) can hide the series box and the comments on every post.
 */
 export const prerender = false;
 import { getLiveEntry, render } from 'astro:content';
@@ -18,6 +19,7 @@ import { categoryLabel } from '~/lib/categories.mjs';
 import { scriptJson } from '~/lib/script-json.mjs';
 import { categoryUrl, postUrl, readingMinutes, groupSeries, seriesFeedUrl, seriesUrl, SERIES_LIST_LIMIT, type Post } from '~/lib/posts';
 import { getCategories } from '~/lib/site-categories';
+import { getSiteMeta } from '~/lib/page-content';
 import { POSTS_CACHE, pdsData, sitePosts } from '~/lib/site-posts';
 import { DID } from '~/lib/standard-site.mjs';
 import { env } from 'cloudflare:workers';
@@ -38,6 +40,8 @@ if (!live.entry) {
   if (moved) return Astro.redirect(postUrl(moved), 301);
   return notFound();
 }
+// What the site's record hides on every post; the layout reads the same record, so it's read once
+const { hideSeriesBox, hideComments } = await getSiteMeta();
 const entry: Post = { id: live.entry.id, body: live.entry.data.markdown, data: live.entry.data };
 const { Content } = await render(live.entry);
 const headings = live.entry.data.headings ?? [];
@@ -58,6 +62,7 @@ const recordUrl = `https://pdsls.dev/${atDocument}`;
 const series = entry.data.series ? groupSeries(all, seriesInfo).find((s) => s.name === entry.data.series) : undefined;
 // An ongoing series (e.g. weekly) has its box from part 1 and no "of N"
 const hasSeries = !!series && (series.entries.length > 1 || series.ongoing);
+const showSeriesBox = hasSeries && !hideSeriesBox;
 const openEnded = !!series?.ongoing && series.planned.length === 0;
 const entryIdx = series ? series.entries.findIndex((e) => e.post?.id === entry.id) : -1;
 const partNumber = entryIdx + 1;
@@ -69,7 +74,7 @@ const seriesFeed = series?.feed ? seriesFeedUrl(series.slug) : undefined;
 const partIdx = series ? series.parts.findIndex((p) => p.id === entry.id) : -1;
 const prev: Post | null = series && partIdx > 0 ? series.parts[partIdx - 1] : null;
 const next: Post | null = series && partIdx >= 0 && partIdx < series.parts.length - 1 ? series.parts[partIdx + 1] : null;
-const showRail = toc.length >= 3 || hasSeries;
+const showRail = toc.length >= 3 || showSeriesBox;
 const ofCount = openEnded ? '' : ` of ${partCount}`;
 const seriesLink = partCount > SERIES_LIST_LIMIT ? `all ${partCount} parts →` : 'all series →';
 
@@ -137,7 +142,7 @@ const jsonLd = {
       </p>
     </header>
 
-    {hasSeries && (
+    {showSeriesBox && (
       <details class="card px-4 py-3 mb-8 text-sm group xl:hidden" lang="en">
         <summary class="cursor-pointer select-none list-none flex flex-col gap-2.5 [&::-webkit-details-marker]:hidden">
           <span class="flex items-baseline justify-between gap-3">
@@ -237,7 +242,7 @@ const jsonLd = {
       </div>
     </footer>
 
-    <BlueskyComments uri={entry.data.bluesky} title={entry.data.title} url={canonical} />
+    {!hideComments && <BlueskyComments uri={entry.data.bluesky} title={entry.data.title} url={canonical} />}
 
     {related.length > 0 && (
       <section class="mt-12" lang="en">
@@ -248,9 +253,9 @@ const jsonLd = {
   </article>
 
   {showRail && (
-    <aside class="hidden xl:block w-56 shrink-0 print:hidden" aria-label={hasSeries ? 'Series and contents' : 'On this page'} lang="en">
+    <aside class="hidden xl:block w-56 shrink-0 print:hidden" aria-label={showSeriesBox ? 'Series and contents' : 'On this page'} lang="en">
       <div class="sticky top-12 text-sm">
-        {hasSeries && (
+        {showSeriesBox && (
           <nav aria-label="Series" class="mb-8">
             <p class="text-xs text-[var(--color-muted)] mb-2.5"><a href={seriesUrl(series!.slug)} class="hover:text-[var(--color-primary)]">{series!.name}</a> · {openEnded ? `part ${partNumber}` : `${partNumber} of ${partCount}`}</p>
             <SeriesBar series={series!} class="mb-3" />
