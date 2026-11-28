@@ -83,7 +83,17 @@ async function readReleases(fetcher: typeof fetch, token: string): Promise<Relea
       },
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) throw new Error(`GitHub releases page ${page}: ${res.status}${token ? '' : ' (no token)'}, ${res.headers.get('x-ratelimit-remaining') ?? '?'} requests left`);
+    if (!res.ok) {
+      // GitHub's reason, its message only: no headers, no token
+      const body = await res.text().catch(() => '');
+      let reason = body;
+      try {
+        reason = String((JSON.parse(body) as { message?: unknown }).message ?? body);
+      } catch {
+        // not JSON: the text as it is
+      }
+      throw new Error(`GitHub releases page ${page}: ${res.status}${token ? '' : ' (no token)'}, ${res.headers.get('x-ratelimit-remaining') ?? '?'} requests left: ${reason.slice(0, 200)}`);
+    }
     const batch: unknown = await res.json();
     if (!Array.isArray(batch)) throw new Error(`GitHub releases page ${page}: not a list`);
     all.push(...batch);
