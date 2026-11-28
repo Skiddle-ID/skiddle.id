@@ -14,6 +14,8 @@
  *     its design (src/lib/admin/theme-editor.ts: colours, fonts, sizes, corners, spacing and the
  *     terminal touches, beside a live preview in dark and light), and the share cards' design, picked
  *     from previews (src/lib/admin/design-field.ts). A text colour under WCAG AA can't be saved.
+ *     Under the form, the saved designs (src/lib/admin/theme-presets.ts): applying one saves the
+ *     theme with its design, as Reset and Save would with Today's look
  *   - #page/categories: the post categories (id.skiddle.categories), from the Posts section. It
  *     starts with the site's current categories if there's no record yet, and refuses ids that
  *     can't be ids, come twice, or that posts still use but the list drops (src/lib/categories.mjs)
@@ -60,7 +62,9 @@ import { buildForm, problems, recordSchema, type LexiconDoc } from './lexicon-fo
 import { iconField, logoField } from './icon-field';
 import { ACCENT_COLOURS, choiceField, designField } from './design-field';
 import { ACCENTS, DEFAULT_SITE_THEME } from '~/lib/site-theme.mjs';
-import { KEPT_ON_RESET, designFields, themePreview, themeProblems } from './theme-editor';
+import { designFields, themePreview, themeProblems } from './theme-editor';
+import { hidePresets, showPresets } from './theme-presets';
+import { TODAYS_LOOK, withDesign } from '~/lib/theme-presets.mjs';
 import { resetCardStyle } from './card-style';
 import { DEFAULT_CARD_DESIGN, THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { publicationLexicon } from './publication-lexicon';
@@ -226,6 +230,7 @@ interface Open {
   rough?: boolean;
   fixed?: Value;
   noDates?: boolean;
+  initial?: () => Value;
   defaults?: () => Value;
   cid?: string;
   record?: Value;
@@ -325,6 +330,7 @@ export async function openPage(route: PageRoute) {
   // A page whose record wasn't imported starts empty
   el('peNote').hidden = !('page' in route) || !!record;
   checkBackup();
+  if (current.collection === THEME_COLLECTION) void showPresets({ read: () => current?.read() ?? {}, dirty: () => dirty, apply: applyDesign });
 }
 
 /** ⌘S in a page editor: saves, if the Save button could */
@@ -335,6 +341,7 @@ export function savePageNow() {
 /** Closes the editor; unsaved changes stay on this device */
 export function leavePage() {
   if (!current) return;
+  if (current.collection === THEME_COLLECTION) hidePresets();
   current = undefined;
   dirty = false;
   conflict = false;
@@ -383,12 +390,19 @@ function fill(value: Value) {
   refresh();
 }
 
-/** The Theme editor's Reset: today's design, keeping the mode, the accent and the cards' design */
+/** The Theme editor's Reset: Today's look's design in the form, keeping the mode, the accent and the cards' design */
 function resetTheme() {
   if (!current) return;
-  const value = current.read();
-  fill(Object.fromEntries(KEPT_ON_RESET.filter((k) => k in value).map((k) => [k, value[k]])));
+  fill(withDesign(current.read(), TODAYS_LOOK.design));
   onChange();
+}
+
+/** A preset's Apply: its design in the form, over the saved theme (or the new one's), then saved; true if it saved */
+async function applyDesign(design: Value): Promise<boolean> {
+  if (current?.collection !== THEME_COLLECTION) return false;
+  fill(withDesign(current.record ?? current.initial?.() ?? {}, design));
+  onChange();
+  return save();
 }
 
 /** The key a new project would get from its name, or the record's own; a new event's comes from the PDS ('') */
@@ -462,11 +476,12 @@ function recordOf(o: Open, value: Value, at: string): Value {
   return { $type: o.collection, ...kept, ...own, ...o.fixed, ...dates };
 }
 
-async function save(force = false) {
-  if (!PUBLISHING_LIVE || !current || (conflict && !force)) return;
+/** Saves the form; true if it saved */
+async function save(force = false): Promise<boolean> {
+  if (!PUBLISHING_LIVE || !current || (conflict && !force)) return false;
   const target = current;
   const value = target.read();
-  if (issues(target, value).length) return;
+  if (issues(target, value).length) return false;
   const key = keyFor(target, value);
   const step = (text: string) => {
     if (current === target) saveState('peState', text);
@@ -507,6 +522,7 @@ async function save(force = false) {
       step(typeof at === 'string' ? `Saved ${formatTime(at)}` : 'Saved');
       refresh();
     }
+    return true;
   } catch (err) {
     if (err instanceof XrpcError && err.error === 'InvalidSwap') {
       conflict = true;
@@ -517,6 +533,7 @@ async function save(force = false) {
       message('peMessage', `Couldn’t save: ${errorText(err)}. Your changes are kept on this device.`, 'error');
     }
     if (current === target) refresh();
+    return false;
   }
 }
 

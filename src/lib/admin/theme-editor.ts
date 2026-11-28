@@ -168,9 +168,6 @@ export function designFields(onChange: () => void): Record<string, (value: unkno
   };
 }
 
-/** The fields Reset keeps: the mode, the accent and the cards' design, which aren't the page's design */
-export const KEPT_ON_RESET = ['mode', 'accent', 'cardDesign'];
-
 /**
  * A sample page in dark and in light, drawn with the theme the form holds
  * @param onReset Goes back to today's look

@@ -497,6 +497,31 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
             <button id="peDelete" type="button" class="admin-btn" hidden>Delete project</button>
           </div>
         </form>
+
+        <!-- The Theme editor's presets: src/lib/admin/theme-presets.ts -->
+        <section id="presets" class="admin-form admin-presets" aria-labelledby="presetsTitle" hidden>
+          <div class="admin-label-row">
+            <h3 id="presetsTitle" class="admin-subhead">Presets</h3>
+            <div class="admin-toolbar">
+              <button id="presetExport" type="button" class="admin-btn admin-btn-ghost">Export this theme</button>
+              <label class="admin-btn admin-btn-ghost">Import<input id="presetImport" type="file" accept=".json,application/json" class="sr-only" /></label>
+            </div>
+          </div>
+          <p class="admin-small">Saved designs: colours, fonts, sizes, corners, spacing and the terminal touches. Apply saves the theme with one, and keeps its mode, accent and cards’ design. Export downloads one as a file; Import saves a file as a preset, to apply from here.</p>
+          <div id="presetsScope" class="admin-notice" hidden>
+            <p>To save presets, the app needs one more permission from your account.</p>
+            <button id="presetsSignIn" type="button" class="admin-btn">Sign in again</button>
+          </div>
+          <div class="admin-field">
+            <label for="presetName">Save the design in the form as a preset</label>
+            <div class="admin-toolbar">
+              <input id="presetName" type="text" autocomplete="off" placeholder="A name" />
+              <button id="presetSave" type="button" class="admin-btn">Save as preset</button>
+            </div>
+          </div>
+          <div id="presetsList" class="admin-table-host"><p class="admin-muted">Loading…</p></div>
+          <p id="presetsMessage" class="admin-message" role="status"></p>
+        </section>
       </div>
 
       <div id="blockEditor" class="admin-editor">
@@ -1792,6 +1817,14 @@ import { EMOJI_PICKS, STATES, STATE_INFO, toneColour } from '~/lib/status-states
   .admin-theme-layout {
     display: grid;
     gap: 1rem;
+  }
+  .admin-presets {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .admin-presets .admin-toolbar input {
+    flex: 1 1 14rem;
   }
   @media (min-width: 64rem) {
     .admin-theme-layout {

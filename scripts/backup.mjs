@@ -26,8 +26,8 @@ import { DID } from '../src/lib/standard-site.mjs';
 
 /**
  * The site's collections, counted in the manifest for a quick look at what's there: posts, series
- * and drafts, the status, the pages and what their blocks read, the site's metadata and theme, and
- * the lexicons. The old page records (id.skiddle.cv, .uses, .about, .home), which no page reads
+ * and drafts, the status, the pages and what their blocks read, the site's metadata, theme and theme
+ * presets, and the lexicons. The old page records (id.skiddle.cv, .uses, .about, .home), which no page reads
  * since docs/v4/themes.md's phase 6, are counted while they're in the repo. The backup itself is the
  * whole repo, whatever's in it.
  */
@@ -51,6 +51,7 @@ const SITE_COLLECTIONS = [
   'id.skiddle.page',
   'id.skiddle.site',
   'id.skiddle.theme',
+  'id.skiddle.themePreset',
   'com.atproto.lexicon.schema',
 ];
 /** Blobs downloaded at a time */

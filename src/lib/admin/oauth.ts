@@ -23,6 +23,8 @@
  *     services and testimonials, the Now list and the note picks), edited in the Pages section
  *   - id.skiddle.page: pages made of blocks and their drafts (docs/v4/themes.md), edited in the
  *     block editor (src/lib/admin/block-editor.ts)
+ *   - id.skiddle.theme: the site's theme, and id.skiddle.themePreset: its saved designs
+ *     (src/lib/admin/theme-presets.ts)
  *   - site.standard.document: published posts (Standard.site), written when a post is published,
  *     edited or unpublished
  *   - id.skiddle.series: the series
@@ -47,6 +49,7 @@ export const COLLECTIONS = [
   'id.skiddle.page',
   'id.skiddle.site',
   'id.skiddle.theme',
+  'id.skiddle.themePreset',
   'site.standard.document',
   'site.standard.publication',
   'id.skiddle.series',
