@@ -82,7 +82,11 @@ async function readReleases(fetcher: typeof fetch): Promise<Release[]> {
     all.push(...batch);
     if (batch.length < PER_PAGE) break;
   }
-  return releasesFrom(all);
+  const releases = releasesFrom(all);
+  // GitHub answered with releases but none could be read (its fields renamed, say): a failure, so
+  // the last list read stays rather than being replaced with an empty one
+  if (all.length && !releases.length) throw new Error(`GitHub releases: none of ${all.length} could be read`);
+  return releases;
 }
 
 /** A release's id on /changelog/, for a link to it: v4.1 is #v4-1 */

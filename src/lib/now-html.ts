@@ -44,8 +44,8 @@ export const proseHtml = (text: string) => prose.parse(text, { async: false });
 
 /**
  * Markdown inside .prose under one of the page's headings, like a release's notes on /changelog/:
- * its headings move down so the highest is an h`top`, and HTML comments are left out rather than
- * shown as text
+ * its headings move so the highest is an h`top` and none is skipped below the page's, and HTML
+ * comments are left out rather than shown as text
  */
 export function nestedProseHtml(text: string, top: number): string {
   const tokens = prose.lexer(text);
@@ -53,9 +53,9 @@ export function nestedProseHtml(text: string, top: number): string {
   prose.walkTokens(tokens, (t) => {
     if (t.type === 'heading') highest = Math.min(highest, t.depth);
   });
-  const shift = Math.max(0, top - highest);
+  const shift = top - highest;
   prose.walkTokens(tokens, (t) => {
-    if (t.type === 'heading') t.depth = Math.min(6, t.depth + shift);
+    if (t.type === 'heading') t.depth = Math.min(6, Math.max(top, t.depth + shift));
   });
   return prose.parser(tokens.filter((t) => !(t.type === 'html' && t.raw.trimStart().startsWith('<!--'))));
 }

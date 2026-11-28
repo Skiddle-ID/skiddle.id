@@ -80,6 +80,12 @@ describe('a release’s notes', () => {
     assert.match(out, /alert #3</);
   });
 
+  it('move up when their highest heading is deeper, so none is skipped under the release’s', () => {
+    const out = html('#### Added\n\n- a thing\n\n##### Smaller\n\n- more\n');
+    assert.match(out, /<h3>Added<\/h3>/);
+    assert.match(out, /<h4>Smaller<\/h4>/);
+  });
+
   it('show raw HTML as text, drop comments and unsafe links', () => {
     const out = html('<!-- generated -->\n\n<script>alert(1)</script>\n\nSee [this](javascript:alert(1)).\n');
     assert.doesNotMatch(out, /<script|generated|javascript:/);
@@ -108,6 +114,12 @@ describe('reading the releases', () => {
     let asked = 0;
     await getReleases(async () => (asked++, new Response('[]')));
     assert.equal(asked, 0);
+  });
+
+  it('keeps the last list when GitHub answers with releases it can’t read, rather than an empty one', async () => {
+    await forget(['github/releases']);
+    const renamed = [{ tag: 'v4.2', is_draft: false }, release('backups')];
+    assert.deepEqual((await getReleases(answer(200, renamed)))?.map((r) => r.tag), ['v4.1']);
   });
 
   it('reads every page', async () => {
