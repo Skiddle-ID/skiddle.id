@@ -1,7 +1,7 @@
 /**
  * The site's metadata (lexicons/id/skiddle/site.json): the name, description and keywords every
  * page's head uses, who the site is by, his profiles, and per-page titles and descriptions; and the
- * frame: the menu, the footer's links and what the sidebar shows. The layout
+ * frame: the menu, the footer's links and what the sidebar shows; and what every post page shows. The layout
  * (src/layouts/shell.astro) reads it on each request, cached; src/data/site-meta.ts fills in any
  * field the record leaves out. No dependencies, so the site and the admin app share it.
  */
@@ -17,7 +17,8 @@ export const SITE_COLLECTION = 'id.skiddle.site';
  * @typedef {{ label: string, href: string }} SiteLink A link in the frame: a page on the site (/posts/), or an https: or mailto: address
  * @typedef {SiteLink & { icon?: IconName }} MenuItem
  * @typedef {{ menu: MenuItem[], footerLinks: SiteLink[], hideMusic: boolean, hideThemeButtons: boolean }} SiteFrame
- * @typedef {{ name: string, description: string, keywords: string[], author: SiteAuthor, profiles: string[], pages: PageMeta[], icon?: SiteIcon } & SiteFrame} SiteMeta
+ * @typedef {{ hideSeriesBox: boolean, hideComments: boolean }} PostPageSettings What every post page leaves out (src/pages/posts/[slug].astro)
+ * @typedef {{ name: string, description: string, keywords: string[], author: SiteAuthor, profiles: string[], pages: PageMeta[], icon?: SiteIcon } & SiteFrame & PostPageSettings} SiteMeta
  * @typedef {SiteLink & { hint: string, keywords: string }} CommandPage A page the command bar lists; `keywords` are only for matching
  */
 
@@ -110,6 +111,8 @@ export function siteMetaFromRecord(v) {
   set('footerLinks', linksOf(v?.footerLinks, false));
   if (v?.hideMusic === true) out.hideMusic = true;
   if (v?.hideThemeButtons === true) out.hideThemeButtons = true;
+  if (v?.hideSeriesBox === true) out.hideSeriesBox = true;
+  if (v?.hideComments === true) out.hideComments = true;
   return /** @type {any} */ (out);
 }
 

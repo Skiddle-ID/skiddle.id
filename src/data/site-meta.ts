@@ -24,4 +24,6 @@ export const FALLBACK_SITE: SiteMeta = {
   footerLinks: FALLBACK_FOOTER_LINKS,
   hideMusic: false,
   hideThemeButtons: false,
+  hideSeriesBox: false,
+  hideComments: false,
 };

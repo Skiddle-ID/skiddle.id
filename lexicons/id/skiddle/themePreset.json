@@ -1,0 +1,83 @@
+{
+  "lexicon": 1,
+  "id": "id.skiddle.themePreset",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "any",
+      "description": "A saved design for the site's theme: its colours, fonts, text size, line heights, corners, spacing and terminal touches, the same fields as id.skiddle.theme's design, by the same rules. Applying a preset in the admin app copies its design into id.skiddle.theme (key 'self') and keeps the theme's mode, accent and cards' design. The site never reads presets. The key is made from the name when the preset is saved, and stays when it's renamed. A field left out is today's look, so a preset with only a name is today's look.",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 640,
+            "maxGraphemes": 64,
+            "description": "The preset's name, as the admin app lists it, e.g. 'Today's look, warmer'."
+          },
+          "colors": {
+            "type": "ref",
+            "ref": "id.skiddle.theme#colors",
+            "description": "The site's colours, for dark and for light. A colour left out keeps today's."
+          },
+          "fonts": {
+            "type": "ref",
+            "ref": "id.skiddle.theme#fonts",
+            "description": "The site's fonts. A font left out keeps today's: Geist Mono, and Geist for post text."
+          },
+          "textSize": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["small", "normal", "large", "larger"],
+            "description": "The base text size, in steps: 'normal' is today's. Every size and the spacing follow it."
+          },
+          "textLineHeight": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["tight", "normal", "loose"],
+            "description": "The line height of the site's text: 'normal' is today's."
+          },
+          "postLineHeight": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["tight", "normal", "loose"],
+            "description": "The line height of a post's text: 'normal' is today's."
+          },
+          "radius": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["none", "small", "round"],
+            "description": "The corners of cards, buttons and images: 'small' is today's."
+          },
+          "spacing": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["compact", "normal", "roomy"],
+            "description": "The space around and between things: 'normal' is today's."
+          },
+          "noPrompt": {
+            "type": "boolean",
+            "description": "Hide the terminal prompts ('skiddle@web:~$') above sections and in the search. Left out, or false, shows them, as today."
+          },
+          "noCursor": {
+            "type": "boolean",
+            "description": "Hide the blinking cursor. Left out, or false, shows it, as today."
+          },
+          "noHeadingMarks": {
+            "type": "boolean",
+            "description": "Hide the '#' and '##' before headings. Left out, or false, shows them, as today."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
