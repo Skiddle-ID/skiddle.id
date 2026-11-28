@@ -1,0 +1,52 @@
+---
+/*
+  /changelog/: the site's published releases on GitHub, newest first, each with its notes
+  (src/lib/releases.ts). A release's section has an id from its tag (#v4-1), so it can be linked.
+*/
+import Shell from '../layouts/shell.astro';
+import { CONTENT_PAGES } from '~/data/list-pages';
+import { nestedProseHtml } from '~/lib/now-html';
+import { PAGES_CACHE, PAGES_TAG } from '~/lib/page-content';
+import { RELEASES_URL, getReleases, releaseId } from '~/lib/releases';
+
+export const prerender = false;
+
+const releases = await getReleases();
+// Without the releases, render again in a minute rather than keep the page that says so
+Astro.cache.set(releases ? PAGES_CACHE : { maxAge: 60, tags: [PAGES_TAG] });
+
+const date = (iso: string) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
+const meta = CONTENT_PAGES.changelog;
+---
+
+<Shell title={`${meta.title} — Skiddle`} description={meta.description}>
+  <div class="max-w-[70ch] w-full">
+    <header>
+      <h1 class="font-semibold text-xl before-hash-1">Changelog</h1>
+      <p class="text-sm mt-2 leading-relaxed">
+        What changed on this site, release by release, newest first. The notes come from the
+        <a href={RELEASES_URL} class="link" target="_blank" rel="noopener">releases on GitHub</a>.
+      </p>
+    </header>
+
+    {releases === null ? (
+      <p class="text-sm text-[var(--color-muted)] mt-8">
+        The release notes can't be loaded right now. They're on <a href={RELEASES_URL} class="link" target="_blank" rel="noopener">GitHub</a>.
+      </p>
+    ) : releases.length === 0 ? (
+      <p class="text-sm text-[var(--color-muted)] mt-8">No releases yet.</p>
+    ) : (
+      releases.map((r) => (
+        <section id={releaseId(r.tag)} aria-labelledby={`${releaseId(r.tag)}-title`} class="mt-12">
+          <h2 id={`${releaseId(r.tag)}-title`} class="font-semibold before-hash-2">{r.name}</h2>
+          <p class="text-xs text-[var(--color-muted)] mt-1">
+            {r.name !== r.tag && <>{r.tag} · </>}<time datetime={r.publishedAt}>{date(r.publishedAt)}</time> · <a href={r.url} class="link" target="_blank" rel="noopener">on GitHub</a>
+          </p>
+          <div class="prose mt-3 break-words">
+            <Fragment set:html={nestedProseHtml(r.notes, 3)} />
+          </div>
+        </section>
+      ))
+    )}
+  </div>
+</Shell>

@@ -1,6 +1,6 @@
 /**
  * Markdown from records as HTML: the Now and home records' text, and the text in a page's blocks
- * (src/lib/page-blocks.mjs).
+ * (src/lib/page-blocks.mjs), and the releases' notes on /changelog/.
  * Raw HTML in it shows as text, a link the site wouldn't show (isPageHref, like javascript:) shows as
  * its text, and a link off the site opens in a new tab, as the links blocks' do. Outside .prose,
  * links get the site's link style; inside it, the prose styles them.
@@ -41,3 +41,21 @@ export const introHtml = (text: string) => styled.parse(text, { async: false });
 
 /** Paragraphs of Markdown inside .prose, which styles their links */
 export const proseHtml = (text: string) => prose.parse(text, { async: false });
+
+/**
+ * Markdown inside .prose under one of the page's headings, like a release's notes on /changelog/:
+ * its headings move so the highest is an h`top` and none is skipped below the page's, and HTML
+ * comments are left out rather than shown as text
+ */
+export function nestedProseHtml(text: string, top: number): string {
+  const tokens = prose.lexer(text);
+  let highest = 6;
+  prose.walkTokens(tokens, (t) => {
+    if (t.type === 'heading') highest = Math.min(highest, t.depth);
+  });
+  const shift = top - highest;
+  prose.walkTokens(tokens, (t) => {
+    if (t.type === 'heading') t.depth = Math.min(6, Math.max(top, t.depth + shift));
+  });
+  return prose.parser(tokens.filter((t) => !(t.type === 'html' && t.raw.trimStart().startsWith('<!--'))));
+}
