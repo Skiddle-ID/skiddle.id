@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "Who Jeff is, the /about/ page. One record, key 'self'.",
+      "description": "Deprecated: replaced by id.skiddle.page (key about). Who Jeff is, the /about/ page. One record, key 'self'.",
       "record": {
         "type": "object",
         "required": ["intro", "updatedAt"],
