@@ -122,6 +122,16 @@ describe('reading the releases', () => {
     assert.deepEqual((await getReleases(answer(200, renamed)))?.map((r) => r.tag), ['v4.1']);
   });
 
+  it('sends the token when there is one, and none without', async () => {
+    await forget(['github/releases']);
+    const auth = [];
+    const fetcher = async (_url, init) => (auth.push(init.headers.Authorization), new Response(JSON.stringify([release('v4.1')])));
+    await getReleases(fetcher, 'github_pat_x');
+    await forget(['github/releases']);
+    await getReleases(fetcher);
+    assert.deepEqual(auth, ['Bearer github_pat_x', undefined]);
+  });
+
   it('reads every page', async () => {
     await forget(['github/releases']);
     const pages = [];
