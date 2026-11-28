@@ -1,6 +1,6 @@
 # The timeline
 
-Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v43-the-timeline)). All three phases are built: events, then posts, status changes and notes, then the calendar feed and the home page's This week.
+Planned on 2026-11-27 ([ROADMAP.md](../../ROADMAP.md#v41-the-timeline)). All three phases are built: events, then posts, status changes and notes, then the calendar feed and the home page's This week.
 
 A new page, `/timeline/`, shows what Jeff did and has coming up, by day, week and month. It mixes two kinds of entries:
 - **events** Jeff adds in the admin app, such as trips, flights, talks, classes, meetings and deadlines

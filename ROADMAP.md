@@ -36,7 +36,7 @@ Publish one post at a time, in reading order, so the Bluesky announcements stay 
 
 **Direction:** everything the site shows moves into Jeff's AT Protocol repo and is edited from the admin app: posts, series and the pages' content first, then Now, notes and flying. Git keeps the code, and the content leaves it. There's no redesign in v4. Pages keep v3's look, and the new pages (/now, /flying) use it too. The redesign is [v5](#v5-the-redesign). Decided on 2026-11-17.
 
-**Order:** v4.0 is the launch: posts, series and the pages' content move onto AT Protocol, and the admin app's Save and Publish work for real ([v4: posts and series](#v4-posts-and-series)). v4.1 and v4.2 add Now, notes, music and flying. The pages' content moved into v4.0 on 2026-11-17, so its work can start now. How the records are read and written is in [AT Protocol backend](#at-protocol-backend).
+**Order:** v4.0 is the launch: posts, series and the pages' content move onto AT Protocol, and the admin app's Save and Publish work for real ([v4: posts and series](#v4-posts-and-series)). v4.1 added Now, notes, music and the timeline, v4.2 themes and layout, and v4.3 is flying, on hold. The numbers follow the releases: work moves up or down the list as plans change, so a section's number is the release it shipped in. The pages' content moved into v4.0 on 2026-11-17, so its work can start now. How the records are read and written is in [AT Protocol backend](#at-protocol-backend).
 
 ### v4.0-pre: a safety net first
 
@@ -81,16 +81,7 @@ Then the [launch checklist](#the-v4-branch).
 - [x] Status history: every status set is kept (`id.skiddle.statusLog`), listed on /status/ and in the admin app
 - [x] The home page's own text (`id.skiddle.home`): its intro, selected work, hire box and links, edited from the admin app ([#178](https://github.com/Skiddle-ID/skiddle.id/pull/178))
 
-### v4.2: flying
-
-**On hold** (2026-11-27): Jeff is working out how to keep it simple and not too nerdy.
-
-- [ ] `id.skiddle.flight` for the logbook (needs your logbook data)
-- [ ] /flying: From Fear to Flight plus logbook stats, from the records
-- [ ] Flying logbook card, `/flying.svg`
-- [ ] Log a flight from the admin app
-
-### v4.3: the timeline
+### v4.1: the timeline
 
 `/timeline/`: what Jeff did and has coming up, by day, week and month. Upcoming events stay rough (the kind, the days and the city) until they're over. The plan is [docs/v4/timeline.md](docs/v4/timeline.md).
 
@@ -98,7 +89,7 @@ Then the [launch checklist](#the-v4-branch).
 - [x] Posts, status changes and notes join the timeline
 - [x] Extras: a `.ics` feed, a "This week" card on the home page
 
-### v4.4: themes and layout
+### v4.2: themes and layout
 
 The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), its frame (the menu, the footer) and every page as rows of blocks, all set in the admin app and kept in three records: `id.skiddle.theme`, `id.skiddle.site` and a new `id.skiddle.page`, which replaces the four page-only lexicons. The code defines the blocks and the design settings; the records arrange them. It ships with today's look only: the redesign stays on hold until January. The plan is [docs/v4/themes.md](docs/v4/themes.md).
 
@@ -113,6 +104,15 @@ The site as a complete CMS on AT Protocol: its design (colours, fonts, sizes), i
 
 Done on 2026-11-28, and checked on Jeff's account ([themes.md](docs/v4/themes.md#checked-live)).
 
+### v4.3: flying
+
+**On hold** (2026-11-27): Jeff is working out how to keep it simple and not too nerdy.
+
+- [ ] `id.skiddle.flight` for the logbook (needs your logbook data)
+- [ ] /flying: From Fear to Flight plus logbook stats, from the records
+- [ ] Flying logbook card, `/flying.svg`
+- [ ] Log a flight from the admin app
+
 ## The v4 branch
 
 **v4 has been production since 2026-11-18** ([the switch](docs/v4/switch.md), [#143](https://github.com/Skiddle-ID/skiddle.id/pull/143)): skiddle.id renders everything from Jeff's AT Protocol repo, PRs go into `v4`, and `v4` is the default branch. The rest of this section is how v4 was built alongside v3.
@@ -124,7 +124,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 - **Keeping v4 current:** posts, Lab Notes and fixes keep going into `v3`. Merge `v3` into `v4` regularly, at least after each post, so v4 has the same content.
 - **Publishing stays on v3:** the Bluesky announcements, the AT Protocol sync and scheduled posts only run on `v3`.
 
-**Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in v4.1 and v4.2). Every step, in order and with who does it, is in [docs/v4/switch.md](docs/v4/switch.md):
+**Launch checklist,** for v4.0 (posts, series and the pages' content on AT Protocol; Now, notes, music and flying follow in later releases). Every step, in order and with who does it, is in [docs/v4/switch.md](docs/v4/switch.md):
 
 - [x] Merge `v3` into `v4` one last time: nothing left to merge on 2026-11-18
 - [x] Switch posts to records: remove the post files and the git publishing workflows (see [v4: posts and series](#v4-posts-and-series)) ([#143](https://github.com/Skiddle-ID/skiddle.id/pull/143))
@@ -137,7 +137,7 @@ v4 is built on its own branch, `v4`, so `v3` stays live and unchanged while v4 t
 
 **Goal:** the site's data lives as records in Jeff's own AT Protocol repo (`did:plc:xaj6j6abvpgwps5v6k4t6clv`), and a small admin app updates all of it by signing in with the Bluesky account (AT Protocol OAuth). There's no database of our own. It keeps working after a move to another PDS, because the site always looks up the PDS from the DID.
 
-v4 moves all of it. Posts and series come first: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. The pages' content comes with them in v4.0. Then Now, notes and flying follow (v4.1 and v4.2).
+v4 moves all of it. Posts and series come first: the writing lives in the PDS, the repo keeps the code, and the post files leave the repo. The pages' content comes with them in v4.0. Then Now, notes and flying follow in later releases.
 
 - **Lexicons:** under `id.skiddle.*`, reusing existing ones where they fit (Standard.site for posts, maybe teal.fm for music). Lexicons can only gain optional fields once they're in use, so each one is designed before it ships.
 - **Reading:** the Worker reads records when a page is requested and caches the result: the status, posts, series and the pages' content, and from v4.1 the rest. Only code changes need a build.
