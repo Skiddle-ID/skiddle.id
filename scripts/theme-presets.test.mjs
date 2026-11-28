@@ -71,10 +71,25 @@ describe('a preset file', () => {
   });
 
   it('is refused when it has a field a preset can’t have, at the top or inside', () => {
-    assert.deepEqual(read({ name: 'X', css: 'body{}' }), { problem: 'The preset has fields a preset can’t have: css.' });
+    assert.deepEqual(read({ name: 'X', css: 'body{}' }), { problem: 'The preset has fields or values a preset can’t have: css.' });
     assert.deepEqual(read({ name: 'X', mode: 'dark', colors: { dark: { bg: { r: 0, g: 0, b: 0, a: 1 }, glow: { r: 1, g: 1, b: 1 } } } }), {
-      problem: 'The preset has fields a preset can’t have: mode, colors.dark.bg.a, colors.dark.glow.',
+      problem: 'The preset has fields or values a preset can’t have: mode, colors.dark.bg.a, colors.dark.glow.',
     });
+  });
+
+  it('is refused when a field is named like one every object inherits, so nothing rides along unchecked', () => {
+    for (const k of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+      const result = read(`{"name": "X", "colors": {"dark": {"${k}": "</style><script>alert(1)</script>"}}}`);
+      assert.deepEqual(result, { problem: `The preset has fields or values a preset can’t have: colors.dark.${k}.` }, k);
+      assert.deepEqual(read(`{"name": "X", "${k}": 1}`), { problem: `The preset has fields or values a preset can’t have: ${k}.` }, k);
+    }
+  });
+
+  it('is refused when a font or a size is one the site doesn’t have, instead of quietly keeping today’s', () => {
+    assert.deepEqual(read({ name: 'X', fonts: { text: 'comic-sans' }, textSize: 'huge' }), {
+      problem: 'The preset has fields or values a preset can’t have: fonts.text (comic-sans), textSize (huge).',
+    });
+    assert.ok('record' in read({ name: 'X', fonts: { text: 'inter' }, textSize: 'large' }));
   });
 
   it('is refused when it isn’t JSON, isn’t an object, is another record, or has no name', () => {

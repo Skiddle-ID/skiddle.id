@@ -67,8 +67,10 @@ export const presetRecord = (name, design, at) => ({ $type: THEME_PRESET_COLLECT
 export const presetFile = (record) => `${JSON.stringify({ $type: THEME_PRESET_COLLECTION, ...record }, null, 2)}\n`;
 
 /**
- * The fields of `value` that its schema doesn't have, by their paths ("colors.dark.glow"), looking
- * through refs and objects
+ * The fields of `value` that its schema doesn't have, and the values it doesn't know (a font the site
+ * doesn't bundle, a size it has no name for), by their paths ("colors.dark.glow", "fonts.text"),
+ * looking through refs and objects. The lexicon lets an unknown value through, but applying it would
+ * quietly keep today's, so Import refuses it.
  * @param {{ getDefOrThrow: (uri: string) => any }} lex
  * @param {any} schema
  * @param {unknown} value
@@ -77,8 +79,10 @@ export const presetFile = (record) => `${JSON.stringify({ $type: THEME_PRESET_CO
  */
 function unknownFields(lex, schema, value, where = '') {
   const s = schema.type === 'ref' ? lex.getDefOrThrow(schema.ref) : schema;
+  if (s.type === 'string' && s.knownValues && typeof value === 'string' && !s.knownValues.includes(value)) return [`${where.slice(0, -1)} (${value})`];
   if (s.type !== 'object' || !value || typeof value !== 'object' || Array.isArray(value)) return [];
-  return Object.entries(value).flatMap(([k, v]) => (k === '$type' && !where ? [] : s.properties?.[k] ? unknownFields(lex, s.properties[k], v, `${where}${k}.`) : [`${where}${k}`]));
+  const properties = s.properties ?? {};
+  return Object.entries(value).flatMap(([k, v]) => (k === '$type' && !where ? [] : Object.hasOwn(properties, k) ? unknownFields(lex, properties[k], v, `${where}${k}.`) : [`${where}${k}`]));
 }
 
 /**
@@ -105,7 +109,7 @@ export function presetFromFile(text, lex, toLex, at) {
   if (v.$type !== undefined && v.$type !== THEME_PRESET_COLLECTION) return { problem: `The file holds another kind of record (${String(v.$type)}), not a theme preset (${THEME_PRESET_COLLECTION}).` };
   if (typeof v.name !== 'string' || !v.name.trim()) return { problem: 'The preset has no name.' };
   const unknown = unknownFields(lex, lex.getDefOrThrow(`lex:${THEME_PRESET_COLLECTION}`).record, v);
-  if (unknown.length) return { problem: `The preset has fields a preset can’t have: ${unknown.join(', ')}.` };
+  if (unknown.length) return { problem: `The preset has fields or values a preset can’t have: ${unknown.join(', ')}.` };
   const record = presetRecord(v.name.trim(), v, at);
   try {
     lex.assertValidRecord(THEME_PRESET_COLLECTION, toLex(record));
