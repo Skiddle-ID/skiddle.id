@@ -11,7 +11,7 @@ export const LIST_PAGES = {
 
 /**
  * The other pages rendered on request from records: the pages' content and the notes
- * (src/lib/page-content.ts), the status history (src/lib/at-status.ts) and the listening history (src/lib/listening.ts). Their title, description, and the command their
+ * (src/lib/page-content.ts), the status history (src/lib/at-status.ts), the listening history (src/lib/listening.ts) and the changelog (src/lib/releases.ts). Their title, description, and the command their
  * share card shows (the page's own prompt, or a cd into it).
  */
 export const CONTENT_PAGES = {
@@ -64,5 +64,10 @@ export const CONTENT_PAGES = {
     title: 'Listening',
     description: 'What Jeff (Skiddle) has been listening to: now playing, this week’s top artists and tracks, and every play, from teal.fm.',
     command: 'tail -n 50 plays.log',
+  },
+  changelog: {
+    title: 'Changelog',
+    description: 'What changed on skiddle.id, release by release: the release notes from GitHub, newest first.',
+    command: 'git log --oneline',
   },
 } as const;

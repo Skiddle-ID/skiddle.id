@@ -35,5 +35,6 @@ export const COMMAND_PAGES: CommandPage[] = [
   { href: '/projects/', label: 'projects', hint: 'open-source projects', keywords: 'open source apis automation tools code demos' },
   { href: '/uses/', label: 'uses', hint: 'hardware, software and tools', keywords: 'setup machines homelab dev creative tools flight bag gear' },
   { href: '/listening/', label: 'listening', hint: 'what I’ve been listening to', keywords: 'music now playing songs artists plays teal.fm spotify apple music last.fm' },
+  { href: '/changelog/', label: 'changelog', hint: 'what changed on this site', keywords: 'releases release notes versions history updates github' },
   { href: '/services/', label: 'services', hint: 'infrastructure help', keywords: 'hire server hardening ci/cd ansible automation monitoring self-hosting website setup' },
 ];

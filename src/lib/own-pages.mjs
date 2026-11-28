@@ -25,6 +25,7 @@ export const RESERVED_KEYS = new Set([
   'api',
   'avatars',
   'cdn-cgi',
+  'changelog',
   'index',
   'listening',
   'media',

@@ -94,6 +94,8 @@ Manual deploy and rollback still work from any machine logged in with `npx wrang
 
 The footer shows the latest release tag reachable from the deployed commit (e.g. `v4.0`), linked to its GitHub release. [Release Drafter](.github/release-drafter.yml) keeps a draft of the next release (`v4.1`, …) under GitHub → Releases, with PRs sorted by their title prefix (`feat:`, `fix:`, `chore:`, `docs:`). Rename and publish it when you're ready. Add a `major` label to a PR for a new major version.
 
+[`/changelog/`](https://skiddle.id/changelog/) lists the published releases, newest first, with their notes, read from GitHub's API without a token (`src/lib/releases.ts`). Drafts, pre-releases and the `backups` release are left out. The list is cached for an hour, and if GitHub refuses (its limit is 60 requests an hour per IP, shared with other Workers), the last list read shows instead. Each release can be linked by its tag: `/changelog/#v4-1`. A release shows up within the hour after it's published, with no deploy.
+
 Publishing a release only creates a tag, and tags don't trigger Workers Builds. So the footer picks up the new version on the next merge into `v4`. To show it straight away, either:
 
 - re-run the latest build from the Worker's build history in the Cloudflare dashboard, or
