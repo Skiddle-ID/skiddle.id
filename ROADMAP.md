@@ -223,7 +223,7 @@ Moved out of v4 on 2026-11-17, so v4 is only about moving to AT Protocol.
 
 ### Later
 
-- [ ] /changelog from the GitHub releases
+- [x] /changelog from the GitHub releases ([#208](https://github.com/Skiddle-ID/skiddle.id/pull/208))
 - [ ] METAR card, `/metar.svg?station=…`: live airport weather (needs your home airport's ICAO code)
 - [ ] Maybe: a newsletter (RSS to email; needs an account with an email service)
 
