@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "The home page's own text: the intro, the selected work, the hire box and the links. One record, key 'self'. A field left out shows the built-in text (src/data/home.ts). Now, the posts and the testimonials come from their own records.",
+      "description": "Deprecated: replaced by id.skiddle.page (key home). The home page's own text: the intro, the selected work, the hire box and the links. One record, key 'self'. A field left out shows the built-in text (src/data/home.ts). Now, the posts and the testimonials come from their own records.",
       "record": {
         "type": "object",
         "required": ["updatedAt"],

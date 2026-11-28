@@ -1,5 +1,5 @@
 // Pages made of blocks (src/lib/page-blocks.mjs): an id.skiddle.page record read leniently, the
-// rows its blocks flow into, and the home page's old record turned into a page record that the
+// rows its blocks flow into, and the home page's built-in text turned into a page record that the
 // lexicon accepts. Every kind of block in the lexicon has a reader and a component.
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -7,14 +7,13 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { Lexicons, jsonToLex } from '@atproto/lexicon';
 import { BLOCKS, PAGE_COLLECTION, SITE_PAGES, blockType, draftKey, isPageKey, linkAttributes, linkIcon, pageFromRecord, readsOf, rowsOf } from '../src/lib/page-blocks.mjs';
+import { FALLBACK_HOME } from '../src/data/home.ts';
 import { homePageFromLegacy } from '../src/lib/page-legacy.mjs';
-import { homeFromRecord, projectUri } from '../src/lib/page-records.mjs';
+import { projectUri } from '../src/lib/page-records.mjs';
 import { introHtml, lineHtml, mutedLineHtml, proseHtml } from '../src/lib/now-html.ts';
 
 const ROOT = join(import.meta.dirname, '..');
 const lexicon = JSON.parse(readFileSync(join(ROOT, 'lexicons/id/skiddle/page.json'), 'utf8'));
-/** The live id.skiddle.home record, as it was on 2026-11-27 */
-const homeRecord = JSON.parse(readFileSync(join(ROOT, 'scripts/fixtures/home-record.json'), 'utf8'));
 const at = '2026-11-28T00:00:00.000Z';
 
 const block = (kind, options = {}, width) => ({ ...(width ? { width } : {}), block: { $type: blockType(kind), ...options } });
@@ -311,27 +310,28 @@ describe('drafts', () => {
   });
 });
 
-describe('the home page from its old record', () => {
-  const converted = homePageFromLegacy(homeFromRecord(homeRecord), at);
+describe('the home page from its built-in text', () => {
+  const home = FALLBACK_HOME;
+  const converted = homePageFromLegacy(home, at);
 
   it('lays out what the page showed, in its order', () => {
     const p = pageFromRecord(converted);
     assert.deepEqual(kinds(p), ['profile', 'markdown', 'links', 'now', 'thisWeek', 'projects', 'recentPosts', 'testimonials', 'callToAction', 'links']);
     assert.ok(p.blocks.every((b) => b.width === 'full'));
     assert.equal(p.hideHeading, true);
-    assert.equal(p.title, homeRecord.title);
-    assert.equal(p.description, homeRecord.description);
+    assert.equal(p.title, home.title);
+    assert.equal(p.description, home.description);
     const [profile, intro, quick, , , projects, recent, , hire, elsewhere] = p.blocks.map((b) => b.block);
-    assert.deepEqual(profile, { kind: 'profile', greeting: homeRecord.greeting, tagline: homeRecord.tagline, hideStatus: false });
-    assert.equal(intro.text, homeRecord.intro);
+    assert.deepEqual(profile, { kind: 'profile', greeting: home.greeting, tagline: home.tagline, hideStatus: false });
+    assert.equal(intro.text, home.intro);
     assert.deepEqual(quick.links.map((l) => l.href), ['#work', '/posts/', '/services/']);
-    assert.deepEqual(projects.projects, ['checkdomain', 'shortlink', 'blocklist']);
+    assert.deepEqual(projects.projects, home.selectedProjects);
     assert.deepEqual(recent, { kind: 'recentPosts', limit: 4, hideSeries: false });
-    assert.equal(hire.title, homeRecord.hire.title);
-    assert.equal(hire.text, homeRecord.hire.blurb);
+    assert.equal(hire.title, home.hire.title);
+    assert.equal(hire.text, home.hire.blurb);
     assert.deepEqual(
       elsewhere.links.map((l) => [l.label, l.href, l.me]),
-      homeRecord.elsewhere.map((l) => [l.label, l.href, l.me === true]),
+      home.elsewhere.map((l) => [l.label, l.href, l.me === true]),
     );
     assert.deepEqual(p.blocks.map((b) => b.anchor), ['intro', undefined, undefined, 'now', 'this-week', 'work', 'writing', undefined, 'hire', undefined]);
   });
@@ -355,12 +355,12 @@ describe('the block registry', () => {
     }
   });
 
-  it('each of the site’s own pages has a route that renders it from blocks, and the admin app can move it', () => {
-    const admin = readFileSync(join(ROOT, 'src/lib/admin/legacy-pages.ts'), 'utf8');
+  it('each of the site’s own pages has a route that renders it from blocks, and a place in the admin app', () => {
+    const admin = readFileSync(join(ROOT, 'src/lib/admin/site-pages.ts'), 'utf8');
     for (const key of SITE_PAGES) {
       const route = readFileSync(join(ROOT, `src/pages/${key === 'home' ? 'index' : key}.astro`), 'utf8');
       assert.match(route, new RegExp(`blockPage\\(Astro, '${key}'`), `src/pages/${key}.astro`);
-      assert.match(admin, new RegExp(`^  ${key}: \\{`, 'm'), `LEGACY_PAGES.${key}`);
+      assert.match(admin, new RegExp(`^  ${key}: \\{`, 'm'), `SITE_PAGE_DEFS.${key}`);
     }
   });
 

@@ -1,7 +1,6 @@
 /**
- * The home page's own text, as it reads it from the id.skiddle.home record
- * (lexicons/id/skiddle/home.json, src/lib/page-content.ts), with src/data/home.ts filling in any
- * field the record leaves out. `intro` is Markdown.
+ * The home page's built-in text (src/data/home.ts), which it shows without its id.skiddle.page
+ * record (homePageFromLegacy in src/lib/page-legacy.mjs). `intro` is Markdown.
  */
 export interface HomeLink {
   label: string;

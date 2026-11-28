@@ -42,11 +42,20 @@ describe('media library', () => {
     const items = mediaItems([cid], [
       { collection: MEDIA_COLLECTION, uri: uri(MEDIA_COLLECTION, 'm1'), value: { file: blob(cid), name: 'plane.png' } },
       { collection: 'site.standard.document', uri: uri('site.standard.document', 'p1'), value: { title: 'Lab Notes #3', content: { markdown: `Look: ![a plane](/media/${cid}) and again /media/${cid}` } } },
-      { collection: 'id.skiddle.about', uri: uri('id.skiddle.about', 'self'), value: { body: `https://skiddle.id/media/${cid}` } },
+      { collection: 'id.skiddle.page', uri: uri('id.skiddle.page', 'about'), value: { title: 'About', blocks: [{ block: { text: `https://skiddle.id/media/${cid}` } }] } },
     ]);
     assert.deepEqual(items[0].uses.map((u) => [u.label, !!u.link]), [['library: plane.png', false], ['post: Lab Notes #3', true], ['page: about', true]]);
-    assert.equal(editorHref(items[0].uses[2]), '#page/about');
+    assert.equal(editorHref(items[0].uses[2]), '#blocks/about');
     assert.equal(editorHref({ collection: 'id.skiddle.event', rkey: 'e1', label: '' }), '#event/e1');
+  });
+
+  it('counts a page made of blocks, and its draft, as the site’s, opening in the block editor', () => {
+    const [card] = mediaItems(['card'], [
+      { collection: 'id.skiddle.page', uri: uri('id.skiddle.page', 'speaking'), value: { title: 'Speaking', card: blob('card'), blocks: [] } },
+      { collection: 'id.skiddle.page', uri: uri('id.skiddle.page', 'speaking~draft'), value: { title: 'Speaking', card: blob('card'), blocks: [] } },
+    ]);
+    assert.equal(card.group, 'site');
+    assert.deepEqual(card.uses.map((u) => [u.label, editorHref(u)]), [['page: speaking', '#blocks/speaking'], ['page draft: speaking', '#blocks/speaking']]);
   });
 
   it('finds and moves a record’s links to a file', () => {

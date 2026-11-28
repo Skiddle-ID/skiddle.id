@@ -2,6 +2,8 @@
 
 Part of v4.0 ([ROADMAP.md](../../ROADMAP.md#v40-posts-and-pages-on-at-protocol)). Projects, the CV, services, uses and About move from `src/data/` into Jeff's AT Protocol repo. The pages read the records when someone asks for them, and the admin app edits them. It works the same way as posts and series, whose plan is [posts-on-atproto.md](posts-on-atproto.md).
 
+**Since v4.4, the pages are made of blocks** ([themes.md](themes.md)): each is an `id.skiddle.page` record. The CV, Uses, About and home records (`id.skiddle.cv`, `.uses`, `.about`, `.home`) are deprecated, and no page reads them or editor edits them ([phase 6](themes.md#phases)). The projects, the services and testimonials, the Now list and the note picks keep their records here, which the pages' blocks read.
+
 ## What moves
 
 | Page | Today | Record | Record key |

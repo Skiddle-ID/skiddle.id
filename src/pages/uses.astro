@@ -1,16 +1,13 @@
 ---
 import Shell from '../layouts/shell.astro';
 import Blocks from '../components/blocks/blocks.astro';
-import { CONTENT_PAGES } from '~/data/list-pages';
 import { blockPage } from '~/lib/block-page';
-import { PAGES_CACHE, getUses } from '~/lib/page-content';
-import { usesPageFromLegacy } from '~/lib/page-legacy.mjs';
+import { PAGES_CACHE } from '~/lib/page-content';
 
-// Rendered on request, from blocks: the id.skiddle.page record `uses`, or until there is one, the
-// page made from the id.skiddle.uses record (usesPageFromLegacy)
+// Rendered on request, from blocks: the id.skiddle.page record `uses`
 export const prerender = false;
 
-const { page, data, preview } = await blockPage(Astro, 'uses', async () => usesPageFromLegacy(await getUses(), CONTENT_PAGES.uses));
+const { page, data, preview } = await blockPage(Astro, 'uses');
 if (!preview) Astro.cache.set(PAGES_CACHE);
 ---
 

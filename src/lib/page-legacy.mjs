@@ -1,10 +1,10 @@
 /**
- * Each page's id.skiddle.page record made from what it showed before it had one (docs/v4/themes.md,
- * "Moving over"): its old record, in the shape the page read it (src/lib/page-records.mjs), and the
- * text that was in the page's code, in the blocks it was laid out in. A page renders this until it
- * has a page record, so every deploy runs its blocks, and the admin app's Move to blocks saves it as
- * the page's draft. scripts/page-blocks.test.mjs and scripts/check-lexicons.mjs check that the
- * lexicon accepts each one.
+ * The built-in id.skiddle.page records of the site's pages that can show without a record of their
+ * own (docs/v4/themes.md, "Moving over"): the text that was in the page's code, in the blocks it was
+ * laid out in. A page renders this while it has no page record, and the admin app's block editor
+ * starts from it. About, Uses and the CV have no built-in page: their content was only ever in their
+ * records. scripts/page-blocks.test.mjs and scripts/check-lexicons.mjs check that the lexicon accepts
+ * each one.
  *
  * What another page also shows stays in its record, and the block reads it from there: the Now list
  * (the home page), the services and testimonials (the home page), the notes (the timeline).
@@ -28,9 +28,6 @@ const linkRecord = (l) => ({ label: l.label, href: l.href, ...(l.me ? { me: true
  */
 const blockRecord = (kind, options = {}) => ({ block: { $type: blockType(kind), ...options } });
 
-/** The record without its undefined fields */
-const defined = (/** @type {Raw} */ o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
-
 /**
  * A page record with its heading hidden: each of these pages has a block whose heading is the page's
  * @param {PageMeta} meta
@@ -49,9 +46,8 @@ const pageRecord = (meta, blocks, updatedAt, width) => ({
 });
 
 /**
- * The home page's record: its own text (the id.skiddle.home record over src/data/home.ts: homeOf in
- * src/lib/page-records.mjs) in the blocks it was laid out in, with the links and buttons that were
- * in the page's code.
+ * The home page's record: its built-in text (src/data/home.ts) in the blocks it was laid out in, with
+ * the links and buttons that were in the page's code.
  * @param {import('../types/home').Home} home
  * @param {string} updatedAt
  */
@@ -94,32 +90,6 @@ export function homePageFromLegacy(home, updatedAt) {
 }
 
 /**
- * The About page's record, from its id.skiddle.about record: every link but email is one of Jeff's
- * profiles (rel="me"), and the first link is the primary one
- * @param {import('../types/about').About} about
- * @param {PageMeta} meta
- * @param {string} updatedAt
- */
-export function aboutPageFromLegacy(about, meta, updatedAt) {
-  return pageRecord(
-    meta,
-    [
-      blockRecord('facts', { heading: 'About me', facts: about.profile }),
-      blockRecord('section', { text: about.intro }),
-      blockRecord('principles', { title: 'How I work', principles: about.principles }),
-      blockRecord('soFar', { title: 'So far', milestones: about.timeline.map((t) => defined({ year: t.year, text: t.text, href: t.href, link: t.link })), ...(about.current ? { current: about.current } : {}) }),
-      ...(about.outside ? [blockRecord('section', { title: 'Outside of work', anchor: 'outside', text: about.outside })] : []),
-      blockRecord('contact', {
-        title: 'Say hi',
-        ...(about.contact.blurb ? { text: about.contact.blurb } : {}),
-        links: about.contact.links.map((l, i) => linkRecord({ label: l.label, href: l.url, me: !l.url.startsWith('mailto:'), primary: i === 0 })),
-      }),
-    ],
-    updatedAt,
-  );
-}
-
-/**
  * The Now page's record: its heading and what a now page is, which were in the page's code. The
  * list stays in the id.skiddle.now record, which the home page shows too.
  * @param {PageMeta} meta
@@ -138,92 +108,6 @@ export function nowPageFromLegacy(meta, updatedAt) {
   );
 }
 
-/**
- * The Uses page's record, from its id.skiddle.uses record: its sections, with the heading, the lead
- * and the closing line that were in the page's code. It keeps the record's updatedAt, which the page
- * shows as when it was last updated.
- * @param {{ uses: import('../types/uses').UsesSection[], updatedAt: string }} uses
- * @param {PageMeta} meta
- */
-export function usesPageFromLegacy({ uses, updatedAt }, meta) {
-  return pageRecord(
-    meta,
-    [
-      blockRecord('uses', {
-        heading: 'Uses',
-        text: 'The hardware, software and tools I use every day, from the dev box to the flight bag. Inspired by [uses.tech](https://uses.tech).',
-        sections: uses.map((s) => defined({ ...s, groups: s.groups.map((g) => ({ title: g.title, items: g.items.map((i) => defined({ ...i })) })) })),
-        outro: 'Want to know more about any of this? Ask me on [Bluesky](https://bsky.app/profile/skiddle.blue), or read [my homelab posts](/topics/tag/homelab/).',
-      }),
-    ],
-    updatedAt,
-    'wide',
-  );
-}
-
-/**
- * The CV's record, from its id.skiddle.cv record: its head with the highlights under it, the jobs,
- * the skills, the projects, education and certifications, and the box at the end, with the headings
- * and the text that were in the page's code. A role that is still the role leaves out its end, and
- * the head counts the years from the first role's start (since).
- * @param {import('../types/works').WorksData} works
- * @param {import('../types/highlights').Highlight[]} highlights
- * @param {PageMeta} meta
- * @param {string} updatedAt
- */
-export function cvPageFromLegacy(works, highlights, meta, updatedAt) {
-  const { header } = works;
-  const starts = works.experience.flatMap((e) => e.positions.map((p) => Number(p.start))).filter(Number.isFinite);
-  return pageRecord(
-    meta,
-    [
-      blockRecord(
-        'cvHeader',
-        defined({
-          name: header.name,
-          title: header.title,
-          location: header.location || undefined,
-          email: header.email || undefined,
-          github: header.links.github,
-          bluesky: header.links.bluesky,
-          summary: works.summary,
-          since: starts.length ? Math.min(...starts) : undefined,
-          status: 'open to consulting · [services](/services/)',
-          highlights: highlights.map(({ value, label }) => ({ value, label })),
-        }),
-      ),
-      blockRecord('jobs', {
-        title: 'Experience',
-        jobs: works.experience.map((c) =>
-          defined({ company: c.company, description: c.description, positions: c.positions.map((p) => defined({ ...p, end: p.end === 'Present' ? undefined : p.end })) }),
-        ),
-      }),
-      blockRecord('skills', { title: 'Skills', groups: works.skills }),
-      blockRecord('projectGrid', {
-        title: 'Selected projects',
-        projects: works.selectedProjects.map(projectUri),
-        others: works.projects.map((p) => defined({ title: p.title, description: p.description, status: p.status, live: p.live, source: p.github })),
-      }),
-      blockRecord('education', {
-        title: 'Education',
-        schools: works.education.map((e) => defined({ ...e })),
-        certificationsTitle: 'Certifications',
-        certifications: works.certifications.map((c) => ({ title: c.title, when: c.yearOrStatus })),
-      }),
-      blockRecord('cvContact', {
-        title: 'Want to work together?',
-        text: 'Roles, consulting or a quick question: email is the fastest way to reach me.',
-        links: [
-          { label: 'work@skiddle.id', href: 'mailto:work@skiddle.id?subject=Hello%20from%20your%20CV', primary: true },
-          { label: 'See services', href: '/services/' },
-        ].map(linkRecord),
-      }),
-    ],
-    updatedAt,
-    'wide',
-  );
-}
-
 /** What the Services page's emails start with, so people know what to say */
 const SERVICES_BRIEF = ['Hi Jeff,', '', 'What I need help with:', '', 'Goal / what "done" looks like:', '', 'Timeline:', '', 'Current setup and constraints:', ''].join('\n');
 
@@ -234,14 +118,13 @@ const SERVICES_BRIEF = ['Hi Jeff,', '', 'What I need help with:', '', 'Goal / wh
 const briefMail = (subject) => `mailto:work@skiddle.id?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(SERVICES_BRIEF)}`;
 
 /**
- * The Services page's record: what was in the page's code, and the CV's highlights as its track
- * record. The services and testimonials stay in the id.skiddle.services record, which the home page
- * reads too.
- * @param {import('../types/highlights').Highlight[]} highlights The id.skiddle.cv record's
+ * The Services page's record: what was in the page's code, with an empty track record (it was the
+ * CV's highlights, which the page record holds now). The services and testimonials stay in the
+ * id.skiddle.services record, which the home page reads too.
  * @param {PageMeta} meta
  * @param {string} updatedAt
  */
-export function servicesPageFromLegacy(highlights, meta, updatedAt) {
+export function servicesPageFromLegacy(meta, updatedAt) {
   const email = { label: 'Email work@skiddle.id', href: briefMail('Service inquiry from skiddle.id'), primary: true };
   return pageRecord(
     meta,
@@ -256,7 +139,7 @@ export function servicesPageFromLegacy(highlights, meta, updatedAt) {
         status: 'Open to consulting · based in Bangkok (UTC+7)',
         links: [email, { label: 'See what I do', href: '#services' }, { label: 'View my CV', href: '/works/' }].map(linkRecord),
       }),
-      blockRecord('highlights', { label: 'Track record', highlights: highlights.map((h) => defined({ ...h })) }),
+      blockRecord('highlights', { label: 'Track record', highlights: [] }),
       blockRecord('services', { title: 'What I can help with', email: 'work@skiddle.id', brief: SERVICES_BRIEF }),
       blockRecord('steps', {
         title: 'How it works',

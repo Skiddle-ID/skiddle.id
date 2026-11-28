@@ -1,35 +1,20 @@
 /**
- * The pages' content (docs/v4/pages-on-atproto.md), read when a page is requested: projects, the CV
- * and its highlights, services, uses, About, Now and the home page, from their records in Jeff's AT Protocol repo
- * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs).
- * The admin app edits them (src/lib/admin/page-editor.ts). Also the notes: his Bluesky posts tagged
- * #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs), and the posts they quote,
- * from Bluesky's public AppView.
+ * The pages' content, read when a page is requested: the pages made of blocks (id.skiddle.page,
+ * docs/v4/themes.md) and what their blocks read, from their records in Jeff's AT Protocol repo
+ * (src/lib/pds.ts caches them for a minute), in the shapes the pages use (src/lib/page-records.mjs):
+ * the projects, the services and testimonials, the Now list and the timeline. The admin app edits
+ * them (src/lib/admin/page-editor.ts, src/lib/admin/block-editor.ts). Also the notes: his Bluesky
+ * posts tagged #note, and the ones the id.skiddle.notes record picks (src/lib/notes.mjs), and the
+ * posts they quote, from Bluesky's public AppView.
  *
  * If a record is missing or malformed, or the PDS can't be reached, this throws rather than show a
- * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). Now and
- * the home page are the exceptions for a missing record: they show src/data/now.ts and
- * src/data/home.ts instead.
+ * page with nothing on it: a page cached earlier still shows while it's stale (PAGES_CACHE). The Now
+ * list is the exception for a missing record: it shows src/data/now.ts instead.
  *
  * Pages that use this are rendered on request and tag their cache with PAGES_TAG, so
  * /api/revalidate can purge them after a save.
  */
-import {
-  ABOUT_COLLECTION,
-  CV_COLLECTION,
-  HOME_COLLECTION,
-  NOW_COLLECTION,
-  PROJECT_COLLECTION,
-  SERVICES_COLLECTION,
-  USES_COLLECTION,
-  aboutFromRecord,
-  cvFromRecord,
-  homeOf,
-  nowFromRecord,
-  projectsFromRecords,
-  servicesFromRecord,
-  usesFromRecord,
-} from '~/lib/page-records.mjs';
+import { NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, nowFromRecord, projectsFromRecords, servicesFromRecord } from '~/lib/page-records.mjs';
 import { PAGE_COLLECTION, SITE_PAGES, draftKey, pageFromRecord, type Page } from '~/lib/page-blocks.mjs';
 import { NOTES_COLLECTION, POST_COLLECTION, notesFromRecords, pickedRkeys, quotedPostsOf, quotedUris, type Note, type QuotedPost } from '~/lib/notes.mjs';
 import { cached, getRecord, listRecords, recordsPage, type RepoRecord } from '~/lib/pds';
@@ -38,15 +23,9 @@ import { SITE_COLLECTION, siteMetaOf, type SiteMeta } from '~/lib/site-meta.mjs'
 import { THEME_COLLECTION } from '~/lib/card-theme.mjs';
 import { DEFAULT_SITE_THEME, siteThemeOf, type SiteTheme } from '~/lib/site-theme.mjs';
 import { FALLBACK_SITE } from '~/data/site-meta';
-import type { About } from '~/types/about';
-import { FALLBACK_HOME } from '~/data/home';
-import type { Highlight } from '~/types/highlights';
-import type { Home } from '~/types/home';
 import type { Now } from '~/types/now';
 import type { Project } from '~/types/projects';
 import type { ServicesData } from '~/types/services';
-import type { UsesSection } from '~/types/uses';
-import type { WorksData } from '~/types/works';
 
 /** Cache tag on every page built from the pages' records, purged when the repo changes */
 export const PAGES_TAG = 'pages';
@@ -57,7 +36,7 @@ export const PAGES_CACHE = { maxAge: 60, swr: 86400, tags: [PAGES_TAG] };
 /** The cached records' keys in src/lib/pds.ts, which /api/revalidate forgets */
 export const PAGE_RECORD_KEYS = [
   `list/${PROJECT_COLLECTION}`,
-  ...[CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, HOME_COLLECTION, SITE_COLLECTION, THEME_COLLECTION].map((c) => `record/${c}/self`),
+  ...[SERVICES_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION, SITE_COLLECTION, THEME_COLLECTION].map((c) => `record/${c}/self`),
   `list/${EVENT_COLLECTION}`,
   ...SITE_PAGES.map((key) => `record/${PAGE_COLLECTION}/${key}`),
   `list/${PAGE_COLLECTION}`,
@@ -75,36 +54,14 @@ export async function getProjects(): Promise<{ projects: Project[] }> {
   return { projects: projectsFromRecords(await listRecords<Record<string, unknown>>(PROJECT_COLLECTION)) as Project[] };
 }
 
-/** The CV, and the highlights it shares with /services/ */
-export async function getCv(): Promise<{ works: WorksData; highlights: Highlight[] }> {
-  return cvFromRecord(await record(CV_COLLECTION)) as { works: WorksData; highlights: Highlight[] };
-}
-
 export async function getServices(): Promise<{ services: ServicesData }> {
   return { services: servicesFromRecord(await record(SERVICES_COLLECTION)) as ServicesData };
-}
-
-/** The uses page's sections, and when it was last updated ("September 2025", and its updatedAt) */
-export async function getUses(): Promise<{ uses: UsesSection[]; usesUpdated: string; updatedAt: string }> {
-  return usesFromRecord(await record(USES_COLLECTION)) as { uses: UsesSection[]; usesUpdated: string; updatedAt: string };
-}
-
-export async function getAbout(): Promise<{ about: About }> {
-  return { about: aboutFromRecord(await record(ABOUT_COLLECTION)) as About };
 }
 
 /** What Jeff is doing now, or null if there's no record yet */
 export async function getNow(): Promise<Now | null> {
   const value = await getRecord<Record<string, unknown>>(NOW_COLLECTION, 'self');
   return value ? (nowFromRecord(value) as Now) : null;
-}
-
-/**
- * The home page's own text: the id.skiddle.home record's fields, and src/data/home.ts for any it
- * leaves out (all of them until there's a record). Like Now, a missing record isn't an error.
- */
-export async function getHome(): Promise<Home> {
-  return homeOf(await getRecord<Record<string, unknown>>(HOME_COLLECTION, 'self'), FALLBACK_HOME);
 }
 
 /**

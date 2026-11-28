@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "Jeff's CV, the /works/ page. One record, key 'self'. Its highlights also show on /services/.",
+      "description": "Deprecated: replaced by id.skiddle.page (key works). Jeff's CV, the /works/ page. One record, key 'self'. Its highlights also show on /services/.",
       "record": {
         "type": "object",
         "required": ["name", "title", "updatedAt"],

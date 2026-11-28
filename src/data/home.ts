@@ -1,7 +1,7 @@
 /**
- * The home page's built-in text: what it shows for each field the id.skiddle.home record leaves out,
- * or for all of them until there's a record (src/lib/page-content.ts), and what the admin app's Home
- * editor starts from. The shape is the page's (src/types/home.ts).
+ * The home page's built-in text: what it shows without its id.skiddle.page record, and what the
+ * admin app's block editor starts from then (src/lib/page-legacy.mjs). The shape is
+ * src/types/home.ts.
  */
 import type { Home } from '~/types/home';
 

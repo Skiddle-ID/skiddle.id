@@ -5,9 +5,8 @@
  *     and its history (id.skiddle.statusLog, src/lib/status-log.mjs), which /status/ lists
  *   - the lexicons in lexicons/ (com.atproto.lexicon.schema, keyed by NSID), published from the app
  *   - drafts of posts (id.skiddle.draft), written in the editor (src/lib/admin/editor.ts)
- *   - the pages' content (id.skiddle.project, .cv, .services, .uses, .about, .now, .notes), imported from the
- *     site's data in the Pages section (src/lib/admin/pages.ts) and edited in the page editors
- *     (src/lib/admin/page-editor.ts)
+ *   - what the pages' blocks read (id.skiddle.project, .services, .now, .notes), listed in the Pages
+ *     section (src/lib/admin/pages.ts) and edited in the page editors (src/lib/admin/page-editor.ts)
  *   - pages made of blocks (id.skiddle.page) and their drafts, edited in the block editor
  *     (src/lib/admin/block-editor.ts)
  *   - the timeline's events (id.skiddle.event), listed in the Timeline section

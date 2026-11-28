@@ -1,25 +1,26 @@
 /**
- * The Pages section: the pages' content in Jeff's repo (docs/v4/pages-on-atproto.md), one record
- * each for the site's metadata (search engines and link previews), the home page, the CV, services, uses, About, Now and Notes (key `self`), and one id.skiddle.project record per
- * project. Each name opens its editor, and New project starts one (src/lib/admin/page-editor.ts).
+ * The Pages section: the pages' content in Jeff's repo. One record each (key `self`) for the site's
+ * metadata (search engines and link previews) and for what the pages' blocks read: the Now list, the
+ * services and testimonials, and the note picks; and one id.skiddle.project record per project. Each
+ * name opens its editor, and New project starts one (src/lib/admin/page-editor.ts).
  *
  * The pages made of blocks (id.skiddle.page, docs/v4/themes.md) are listed too, each opening the
  * block editor (src/lib/admin/block-editor.ts) with its draft noted. The site's own (Home, the CV,
- * Services, Uses, About, Now and Notes) are always there: until one has a page record, it shows what
- * its old record says (src/lib/admin/legacy-pages.ts). Then Jeff's own pages, each published or a
- * draft, under Your pages; New page picks a new one's title and address (src/lib/own-pages.mjs),
- * checked as it's typed, and opens it in the block editor.
+ * Services, Uses, About, Now and Notes) are always there, with what each shows without a page
+ * record (src/lib/admin/site-pages.ts). Then Jeff's own pages, each published or a draft, under Your
+ * pages; New page picks a new one's title and address (src/lib/own-pages.mjs), checked as it's
+ * typed, and opens it in the block editor.
  *
  * Until the v4 launch this section also imported the records from the data files in src/data/,
  * once; they've left git since.
  */
 import type { OAuthSession } from '@atproto/oauth-client-browser';
-import { ABOUT_COLLECTION, CV_COLLECTION, HOME_COLLECTION, NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION } from '~/lib/page-records.mjs';
+import { NOW_COLLECTION, PROJECT_COLLECTION, SERVICES_COLLECTION } from '~/lib/page-records.mjs';
 import { NOTES_COLLECTION } from '~/lib/notes.mjs';
 import { SITE_COLLECTION } from '~/lib/site-meta.mjs';
 import { PAGE_COLLECTION, SITE_PAGES, draftKey, isPageKey } from '~/lib/page-blocks.mjs';
 import { ownKeyFrom, ownKeyProblem, ownPagePath } from '~/lib/own-pages.mjs';
-import { LEGACY_PAGES, isSitePage } from './legacy-pages';
+import { SITE_PAGE_DEFS, isSitePage } from './site-pages';
 import { newPage } from './block-editor';
 import { DID } from '~/lib/standard-site.mjs';
 import { el, formatTime, message, viewLink } from './dom';
@@ -48,18 +49,14 @@ interface Row {
   problem?: string | null;
 }
 
-const COLLECTIONS = [PROJECT_COLLECTION, PAGE_COLLECTION, SITE_COLLECTION, HOME_COLLECTION, CV_COLLECTION, SERVICES_COLLECTION, USES_COLLECTION, ABOUT_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION];
+const COLLECTIONS = [PROJECT_COLLECTION, PAGE_COLLECTION, SITE_COLLECTION, SERVICES_COLLECTION, NOW_COLLECTION, NOTES_COLLECTION];
 
-/** The pages with one record each, in the order the section lists them */
+/** The records with key `self`, in the order the section lists them: the site's metadata, then what the pages' blocks read */
 const PAGES: Omit<Row, 'rkey' | 'have'>[] = [
   { title: 'Site and search engines', collection: SITE_COLLECTION, page: '/', editor: '#page/site', fallback: 'the built-in metadata' },
-  { title: 'Home', collection: HOME_COLLECTION, page: '/', editor: '#page/home', fallback: 'the built-in text' },
-  { title: 'The CV', collection: CV_COLLECTION, page: '/works/', editor: '#page/cv' },
-  { title: 'Services', collection: SERVICES_COLLECTION, page: '/services/', editor: '#page/services' },
-  { title: 'Uses', collection: USES_COLLECTION, page: '/uses/', editor: '#page/uses' },
-  { title: 'About', collection: ABOUT_COLLECTION, page: '/about/', editor: '#page/about' },
-  { title: 'Now', collection: NOW_COLLECTION, page: '/now/', editor: '#page/now', fallback: 'the built-in list' },
-  { title: 'Notes', collection: NOTES_COLLECTION, page: '/notes/', editor: '#page/notes', fallback: 'only the posts tagged #note' },
+  { title: 'The Now list', collection: NOW_COLLECTION, page: '/now/', editor: '#page/now', fallback: 'the built-in list' },
+  { title: 'Services and testimonials', collection: SERVICES_COLLECTION, page: '/services/', editor: '#page/services' },
+  { title: 'Note picks', collection: NOTES_COLLECTION, page: '/notes/', editor: '#page/notes', fallback: 'only the posts tagged #note' },
 ];
 
 let session: OAuthSession;
@@ -141,7 +138,7 @@ export async function loadPages() {
     return { title: String(r.value.name || rkey), collection: PROJECT_COLLECTION, rkey, page: '/projects/', editor: `#project/${rkey}`, have: r };
   });
   report('pages', { count: pages.filter((p) => p.have).length + blocks.filter((p) => p.have).length + rows.length });
-  const all = [...pages, ...blocks, ...rows];
+  const all = [...blocks, ...pages, ...rows];
   renderTable(
     {
       host: el('pagesTable'),
@@ -182,8 +179,8 @@ function blockPages(records: RepoRecord<PageRecord>[]): Row[] {
   return [...new Set<string>([...SITE_PAGES, ...own.sort()])].map((key) => {
     const [have, draft] = [byKey.get(key), byKey.get(draftKey(key))];
     if (isSitePage(key)) {
-      const { title, shows } = LEGACY_PAGES[key];
-      return { title: `${title} (blocks)`, collection: PAGE_COLLECTION, rkey: key, page: key === 'home' ? '/' : `/${key}/`, editor: `#blocks/${key}`, fallback: shows, have, draft };
+      const { title, builtIn } = SITE_PAGE_DEFS[key];
+      return { title, collection: PAGE_COLLECTION, rkey: key, page: key === 'home' ? '/' : `/${key}/`, editor: `#blocks/${key}`, fallback: builtIn?.shows, have, draft };
     }
     const title = String((have ?? draft)?.value.title || key);
     return { title, collection: PAGE_COLLECTION, rkey: key, page: ownPagePath(key), editor: `#blocks/${key}`, have, draft, problem: ownKeyProblem(key) };

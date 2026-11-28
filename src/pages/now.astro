@@ -6,12 +6,12 @@ import { blockPage } from '~/lib/block-page';
 import { PAGES_CACHE } from '~/lib/page-content';
 import { nowPageFromLegacy } from '~/lib/page-legacy.mjs';
 
-// Rendered on request, from blocks: the id.skiddle.page record `now`, or until there is one, the
+// Rendered on request, from blocks: the id.skiddle.page record `now`, or without one, the
 // page as it was laid out before blocks (nowPageFromLegacy). Its list is the id.skiddle.now record,
 // or the built-in list until there is one.
 export const prerender = false;
 
-const { page, data, preview } = await blockPage(Astro, 'now', async () => nowPageFromLegacy(CONTENT_PAGES.now, new Date().toISOString()));
+const { page, data, preview } = await blockPage(Astro, 'now', () => nowPageFromLegacy(CONTENT_PAGES.now, new Date().toISOString()));
 if (!preview) Astro.cache.set(PAGES_CACHE);
 ---
 

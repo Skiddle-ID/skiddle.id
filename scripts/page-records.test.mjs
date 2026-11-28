@@ -4,19 +4,7 @@
 // the data files survived the trip to records and back, exactly.)
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import {
-  aboutFromRecord,
-  cvFromRecord,
-  homeFromRecord,
-  homeOf,
-  nowFromRecord,
-  projectFromRecord,
-  projectUri,
-  projectsFromRecords,
-  servicesFromRecord,
-  usesFromRecord,
-} from '../src/lib/page-records.mjs';
-import { DID } from '../src/lib/standard-site.mjs';
+import { nowFromRecord, projectFromRecord, projectUri, projectsFromRecords, servicesFromRecord } from '../src/lib/page-records.mjs';
 
 const at = '2026-11-18T00:00:00.000Z';
 
@@ -32,23 +20,9 @@ describe('page records, read', () => {
     assert.equal(projects[0].github, 'https://example.com/b');
   });
 
-  it('a position with no end is still the role', () => {
-    const { works } = cvFromRecord({ name: 'n', title: 't', experience: [{ company: 'C', positions: [{ role: 'R', start: '2020' }] }], certifications: [{ title: 'X', when: '2024' }] });
-    assert.equal(works.experience[0].positions[0].end, 'Present');
-    assert.deepEqual(works.certifications, [{ title: 'X', yearOrStatus: '2024' }]);
-  });
-
   it('a testimonial’s service is the pages’ serviceName', () => {
     const s = servicesFromRecord({ services: [{ name: 'S', description: 'd' }], testimonials: [{ quote: 'q', author: 'a', rating: 5, service: 'S' }] });
     assert.deepEqual(s.testimonials, [{ quote: 'q', author: 'a', serviceName: 'S', rating: 5 }]);
-  });
-
-  it('uses says when it was last updated as a month and year', () => {
-    assert.equal(usesFromRecord({ sections: [], updatedAt: '2025-09-01T00:00:00.000Z' }).usesUpdated, 'September 2025');
-  });
-
-  it('About keeps its Markdown as it is', () => {
-    assert.equal(aboutFromRecord({ intro: '**Hi**', updatedAt: at }).intro, '**Hi**');
   });
 
   it('Now keeps its items in order, with their Markdown, and when it was updated', () => {
@@ -57,56 +31,9 @@ describe('page records, read', () => {
   });
 });
 
-describe('the home record', () => {
-  it('keeps the fields it has, and only those, so the page fills in the rest', () => {
-    assert.deepEqual(homeFromRecord({ updatedAt: at }), {});
-    const home = homeFromRecord({
-      greeting: 'Hi',
-      intro: 'One.\n\nTwo, [a link](/posts/).',
-      selectedProjects: [projectUri('shortlink'), projectUri('checkdomain')],
-      hire: { title: 'Hire me' },
-      elsewhere: [{ label: 'Bluesky', href: 'https://bsky.app/profile/skiddle.blue', me: true }, { label: 'RSS', href: '/rss.xml' }],
-      updatedAt: at,
-    });
-    assert.deepEqual(home, {
-      greeting: 'Hi',
-      intro: 'One.\n\nTwo, [a link](/posts/).',
-      selectedProjects: ['shortlink', 'checkdomain'],
-      hire: { title: 'Hire me' },
-      elsewhere: [{ label: 'Bluesky', href: 'https://bsky.app/profile/skiddle.blue', me: true }, { label: 'RSS', href: '/rss.xml' }],
-    });
-  });
-
-  it('leaves out what it can’t use: wrong types, empty text, other repos’ projects, unsafe links', () => {
-    const home = homeFromRecord({
-      title: 3,
-      tagline: '',
-      selectedProjects: ['at://did:plc:someone/id.skiddle.project/x'],
-      hire: 'no',
-      elsewhere: [
-        { label: 'Bad', href: 'javascript:alert(1)' },
-        { label: 'Other site', href: '//evil.example/' },
-        { label: 'No link' },
-        { label: 'Mail', href: 'mailto:jeff@skiddle.id', me: 'yes' },
-      ],
-    });
-    assert.deepEqual(home, { elsewhere: [{ label: 'Mail', href: 'mailto:jeff@skiddle.id' }] });
-  });
-
-  it('fills in what the record leaves out from the built-in text, the hire box field by field', () => {
-    const fallback = { title: 'T', description: 'D', greeting: 'G', tagline: 'L', intro: 'I', selectedProjects: ['a'], hire: { title: 'HT', blurb: 'HB' }, elsewhere: [] };
-    assert.deepEqual(homeOf(null, fallback), fallback);
-    assert.deepEqual(homeOf({ tagline: 'Mine', hire: { blurb: 'My blurb' } }, fallback), { ...fallback, tagline: 'Mine', hire: { title: 'HT', blurb: 'My blurb' } });
-  });
-});
-
 describe('malformed records', () => {
   it('a missing required field throws', () => {
     assert.throws(() => projectFromRecord('x', { description: 'no name' }), /project x: no name/);
-    assert.throws(() => cvFromRecord({ title: 'no name' }), /the CV: no name/);
-    assert.throws(() => aboutFromRecord({ updatedAt: at }), /about: no intro/);
-    assert.throws(() => usesFromRecord({ sections: [] }), /uses: no updatedAt/);
-    assert.throws(() => usesFromRecord({ sections: [], updatedAt: 'soon' }), /isn't a date/);
     assert.throws(() => nowFromRecord({ updatedAt: at }), /now: no items/);
     assert.throws(() => nowFromRecord({ items: [] }), /now: no updatedAt/);
     assert.throws(() => nowFromRecord({ items: [], updatedAt: 'soon' }), /isn't a date/);
@@ -125,10 +52,5 @@ describe('malformed records', () => {
   it('a testimonial without a rating from 1 to 5 is left out', () => {
     const s = servicesFromRecord({ services: [], testimonials: [{ quote: 'q', author: 'a', rating: 9 }, { quote: 'q', author: 'b', rating: 4, service: 'S' }] });
     assert.deepEqual(s.testimonials, [{ quote: 'q', author: 'b', serviceName: 'S', rating: 4 }]);
-  });
-
-  it('the CV only selects this repo’s projects', () => {
-    const { works: w } = cvFromRecord({ name: 'n', title: 't', selectedProjects: [projectUri('a'), `at://did:plc:someone/${'id.skiddle.project'}/b`, `at://${DID}/id.skiddle.cv/self`] });
-    assert.deepEqual(w.selectedProjects, ['a']);
   });
 });

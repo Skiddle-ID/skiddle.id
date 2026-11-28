@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "key": "literal:self",
-      "description": "What Jeff uses: hardware, software and tools, the /uses/ page. One record, key 'self'.",
+      "description": "Deprecated: replaced by id.skiddle.page (key uses). What Jeff uses: hardware, software and tools, the /uses/ page. One record, key 'self'.",
       "record": {
         "type": "object",
         "required": ["sections", "updatedAt"],

@@ -3,16 +3,16 @@ import Shell from '../layouts/shell.astro';
 import Blocks from '../components/blocks/blocks.astro';
 import { CONTENT_PAGES } from '~/data/list-pages';
 import { blockPage } from '~/lib/block-page';
-import { PAGES_CACHE, getCv } from '~/lib/page-content';
+import { PAGES_CACHE } from '~/lib/page-content';
 import { servicesPageFromLegacy } from '~/lib/page-legacy.mjs';
 import { scriptJson } from '~/lib/script-json.mjs';
 
-// Rendered on request, from blocks: the id.skiddle.page record `services`, or until there is one,
-// the page as it was laid out before blocks, with the CV's highlights (servicesPageFromLegacy). The
-// services and testimonials are the id.skiddle.services record's.
+// Rendered on request, from blocks: the id.skiddle.page record `services`, or without one, the page
+// as it was laid out before blocks (servicesPageFromLegacy). The services and testimonials are the
+// id.skiddle.services record's.
 export const prerender = false;
 
-const { page, data, preview } = await blockPage(Astro, 'services', async () => servicesPageFromLegacy((await getCv()).highlights, CONTENT_PAGES.services, new Date().toISOString()));
+const { page, data, preview } = await blockPage(Astro, 'services', () => servicesPageFromLegacy(CONTENT_PAGES.services, new Date().toISOString()));
 if (!preview) Astro.cache.set(PAGES_CACHE);
 
 // The services as structured data, when the page shows them

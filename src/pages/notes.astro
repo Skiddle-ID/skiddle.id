@@ -8,7 +8,7 @@ import { PAGES_CACHE } from '~/lib/page-content';
 import { notesPageFromLegacy } from '~/lib/page-legacy.mjs';
 import { pageNumber } from '~/lib/notes.mjs';
 
-// Rendered on request, from blocks: the id.skiddle.page record `notes`, or until there is one, the
+// Rendered on request, from blocks: the id.skiddle.page record `notes`, or without one, the
 // page as it was laid out before blocks (notesPageFromLegacy). /notes/?page=2 and on page back
 // through the notes; a page that isn't there goes back to /notes/.
 export const prerender = false;
@@ -16,7 +16,7 @@ export const prerender = false;
 const raw = Astro.url.searchParams.get('page');
 const requested = pageNumber(raw);
 if (requested === undefined || (requested === 1 && raw !== null)) return Astro.redirect('/notes/', 302);
-const { page, data, preview } = await blockPage(Astro, 'notes', async () => notesPageFromLegacy(CONTENT_PAGES.notes, new Date().toISOString()), { notesPage: requested });
+const { page, data, preview } = await blockPage(Astro, 'notes', () => notesPageFromLegacy(CONTENT_PAGES.notes, new Date().toISOString()), { notesPage: requested });
 const shown = readsOf(page).includes('notes') ? await data.notes() : null;
 if (requested > 1 && !shown) return Astro.redirect('/notes/', 302);
 if (!preview) Astro.cache.set(PAGES_CACHE);
